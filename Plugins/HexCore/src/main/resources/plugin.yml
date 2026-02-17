@@ -1,0 +1,10 @@
+name: HexCore
+version: 0.0.1
+main: hex.core.HexCore
+api-version: "1.21"
+author: Havix
+
+commands:
+  hexcore:
+    description: Test command
+    usage: /hexcore
