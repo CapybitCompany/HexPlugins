@@ -1,0 +1,31 @@
+name: HexRanking
+version: 1.0.0
+main: hex.ranking.HexRanking
+api-version: "1.21"
+
+depend:
+  - HexCore
+
+commands:
+  dajpunkt:
+    usage: "/dajpunkt <gracz> <ilosc>"
+    description: Dodaje punkty graczowi
+    permission: hex.ranking.admin
+  odejmijpunkt:
+    usage: "/odejmijpunkt <gracz> <ilosc>"
+    description: Odejmuje punkty graczowi
+    permission: hex.ranking.admin
+  punkty:
+    usage: "/punkty <gracz>"
+    description: Pokazuje globalne punkty gracza
+    permission: hex.ranking.view
+  ranking:
+    usage: "/ranking top"
+    description: Pokazuje ranking top
+    permission: hex.ranking.view
+
+permissions:
+  hex.ranking.admin:
+    default: op
+  hex.ranking.view:
+    default: true
