@@ -1,0 +1,21 @@
+name: UiExample
+version: 1.0.0
+main: uiexample.UiExamplePlugin
+api-version: "1.21"
+
+depend:
+  - HexCore
+
+commands:
+  uichatall:
+    usage: "/uichatall <template>"
+  uichat:
+    usage: "/uichat <nick> <template>"
+  uiactionall:
+    usage: "/uiactionall <template>"
+  uiaction:
+    usage: "/uiaction <nick> <template>"
+  uisubtitleall:
+    usage: "/uisubtitleall <template>"
+  uisubtitle:
+    usage: "/uisubtitle <nick> <template>"

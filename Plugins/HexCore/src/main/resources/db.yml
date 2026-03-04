@@ -1,0 +1,23 @@
+enabled: true
+
+type: "mysql"   # mysql | mariadb | sqlite
+host: "127.0.0.1"
+port: 3306
+database: "minecraft_network"
+username: "mc_user"
+password: "Hexagonik69!"
+
+# dla sqlite:
+sqliteFile: "hex.db"
+
+pool:
+  maxSize: 10
+  minIdle: 2
+  timeoutMs: 10000
+  lifetimeMs: 1800000
+
+options:
+  useSSL: false
+  serverTimezone: "UTC"
+
+tablePrefix: "hex_"

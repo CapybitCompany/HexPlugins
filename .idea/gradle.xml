@@ -10,7 +10,9 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/plugins" />
+            <option value="$PROJECT_DIR$/plugins/DbExample" />
             <option value="$PROJECT_DIR$/plugins/HexCore" />
+            <option value="$PROJECT_DIR$/plugins/UiExample" />
           </set>
         </option>
       </GradleProjectSettings>

@@ -1,3 +1,5 @@
 rootProject.name = 'HexPlugins'
 
 include 'plugins:HexCore'
+include 'plugins:UiExample'
+include 'plugins:DbExample'

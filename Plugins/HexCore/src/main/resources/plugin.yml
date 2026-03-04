@@ -8,3 +8,17 @@ commands:
   hexcore:
     description: Test command
     usage: /hexcore
+  region:
+    description: Manage regions (cuboids)
+    usage: /region
+    permission: hexcore.region
+  uitpl:
+    description: Send UI templates with positional arguments
+    usage: /uitpl <all|gracz> <template> [args...]
+    permission: hexcore.ui.send
+
+permissions:
+  hexcore.region:
+    default: op
+  hexcore.ui.send:
+    default: op

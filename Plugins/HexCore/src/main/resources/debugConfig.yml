@@ -1,0 +1,10 @@
+debug:
+  enabled: true
+  chat:
+    enabled: true
+    # kto dostaje debug na czacie: "ops" albo "permission"
+    audience: "ops"
+    permission: "minecrafthex.debug"
+  file:
+    enabled: true
+    max_size_mb: 10
