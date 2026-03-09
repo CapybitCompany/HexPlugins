@@ -5,6 +5,7 @@ import hex.ranking.command.AddPointsCommand;
 import hex.ranking.command.PointsCommand;
 import hex.ranking.command.RemovePointsCommand;
 import hex.ranking.command.TopCommand;
+import hex.ranking.listener.PlayerRegistrationListener;
 import hex.ranking.repository.MySqlPlayerIdentityRepository;
 import hex.ranking.repository.MySqlRankingRepository;
 import hex.ranking.repository.PlayerIdentityRepository;
@@ -51,6 +52,10 @@ public final class HexRanking extends JavaPlugin {
                     rankingUuidColumn
             );
             this.rankingService = new RankingService(api.db(), repository, playerIdentityRepository);
+            api.db().asyncRun(repository::ensurePerformanceIndexes).exceptionally(ex -> {
+                getLogger().warning("Could not ensure HexRanking performance indexes: " + ex.getMessage());
+                return null;
+            });
         } catch (IllegalArgumentException ex) {
             getLogger().severe("Invalid HexRanking config: " + ex.getMessage());
             getServer().getPluginManager().disablePlugin(this);
@@ -58,6 +63,7 @@ public final class HexRanking extends JavaPlugin {
         }
 
         registerCommands();
+        registerListeners();
         getLogger().info("HexRanking enabled.");
     }
 
@@ -75,5 +81,11 @@ public final class HexRanking extends JavaPlugin {
         TopCommand topCommand = new TopCommand(this, rankingService);
         ranking.setExecutor(topCommand);
         ranking.setTabCompleter(topCommand);
+    }
+
+    private void registerListeners() {
+        PlayerRegistrationListener listener = new PlayerRegistrationListener(this, rankingService);
+        getServer().getPluginManager().registerEvents(listener, this);
+        Bukkit.getOnlinePlayers().forEach(listener::syncPlayer);
     }
 }

@@ -16,8 +16,8 @@ commands:
     description: Odejmuje punkty graczowi
     permission: hex.ranking.admin
   punkty:
-    usage: "/punkty <gracz>"
-    description: Pokazuje globalne punkty gracza
+    usage: "/punkty <gracz> <tabela>"
+    description: Pokazuje punkty gracza z wybranej tabeli
     permission: hex.ranking.view
   ranking:
     usage: "/ranking top"

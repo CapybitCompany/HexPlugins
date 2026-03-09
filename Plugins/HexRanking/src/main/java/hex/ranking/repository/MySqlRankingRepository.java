@@ -5,6 +5,7 @@ import hex.ranking.model.PointsTable;
 import hex.ranking.model.RankingPlayer;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -35,6 +36,15 @@ public final class MySqlRankingRepository implements RankingRepository {
     }
 
     @Override
+    public void upsertPlayer(UUID uuid, String playerName) {
+        db.update(
+                "INSERT INTO " + table() + " (uuid, player, global_points, season_points) VALUES (?, ?, 0, 0) " +
+                        "ON DUPLICATE KEY UPDATE player = VALUES(player)",
+                uuid.toString(), playerName
+        );
+    }
+
+    @Override
     public void addPoints(UUID uuid, PointsTable pointsTable, int amount) {
         String pointsColumn = pointsTable.column();
         int globalDelta = pointsTable == PointsTable.GLOBAL ? amount : 0;
@@ -60,12 +70,18 @@ public final class MySqlRankingRepository implements RankingRepository {
     }
 
     @Override
-    public int getGlobalPoints(UUID uuid) {
+    public int getPoints(UUID uuid, PointsTable pointsTable) {
+        String pointsColumn = pointsTable.column();
         return db.queryOne(
-                "SELECT global_points FROM " + table() + " WHERE uuid=?",
-                rs -> rs.getInt("global_points"),
+                "SELECT " + pointsColumn + " FROM " + table() + " WHERE uuid=?",
+                rs -> rs.getInt(pointsColumn),
                 uuid.toString()
         ).orElse(0);
+    }
+
+    @Override
+    public int getGlobalPoints(UUID uuid) {
+        return getPoints(uuid, PointsTable.GLOBAL);
     }
 
     @Override
@@ -82,5 +98,33 @@ public final class MySqlRankingRepository implements RankingRepository {
                 ),
                 limit
         );
+    }
+
+    @Override
+    public void ensurePerformanceIndexes() {
+        ensureIndex("idx_hexranking_player", "(`player`)");
+        ensureIndex("idx_hexranking_top_global", "(`global_points` DESC, `updated_at` ASC)");
+    }
+
+    private void ensureIndex(String indexName, String columnSpec) {
+        try {
+            db.update("CREATE INDEX `" + indexName + "` ON " + table() + " " + columnSpec);
+        } catch (RuntimeException ex) {
+            if (!isDuplicateIndex(ex)) {
+                throw ex;
+            }
+        }
+    }
+
+    private static boolean isDuplicateIndex(Throwable ex) {
+        Throwable cursor = ex;
+        while (cursor != null) {
+            String message = cursor.getMessage();
+            if (message != null && message.toLowerCase(Locale.ROOT).contains("duplicate key name")) {
+                return true;
+            }
+            cursor = cursor.getCause();
+        }
+        return false;
     }
 }

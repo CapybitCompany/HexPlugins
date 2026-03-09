@@ -26,6 +26,21 @@ public final class RankingService {
         this.playerIdentityRepository = playerIdentityRepository;
     }
 
+    public CompletableFuture<Void> ensurePlayerExists(UUID uuid, String playerName) {
+        if (uuid == null) {
+            return CompletableFuture.failedFuture(new IllegalArgumentException("UUID gracza nie moze byc pusty."));
+        }
+
+        String normalizedName;
+        try {
+            normalizedName = normalizePlayerName(playerName);
+        } catch (IllegalArgumentException ex) {
+            return CompletableFuture.failedFuture(ex);
+        }
+
+        return databaseService.asyncRun(() -> repository.upsertPlayer(uuid, normalizedName));
+    }
+
     public CompletableFuture<Void> addPoints(UUID uuid, PointsTable pointsTable, int amount) {
         if (pointsTable == null) {
             return CompletableFuture.failedFuture(new IllegalArgumentException("Tabela nie moze byc pusta."));
@@ -46,8 +61,15 @@ public final class RankingService {
         return databaseService.asyncRun(() -> repository.removePoints(uuid, pointsTable, amount));
     }
 
+    public CompletableFuture<Integer> getPoints(UUID uuid, PointsTable pointsTable) {
+        if (pointsTable == null) {
+            return CompletableFuture.failedFuture(new IllegalArgumentException("Tabela nie moze byc pusta."));
+        }
+        return databaseService.async(() -> repository.getPoints(uuid, pointsTable));
+    }
+
     public CompletableFuture<Integer> getGlobalPoints(UUID uuid) {
-        return databaseService.async(() -> repository.getGlobalPoints(uuid));
+        return getPoints(uuid, PointsTable.GLOBAL);
     }
 
     public CompletableFuture<List<RankingPlayer>> getTopGlobal(int limit) {
@@ -76,7 +98,14 @@ public final class RankingService {
     }
 
     public CompletableFuture<Integer> getGlobalPointsByName(String playerName) {
-        return findPlayerUuid(playerName).thenCompose(this::getGlobalPoints);
+        return getPointsByName(PointsTable.GLOBAL, playerName);
+    }
+
+    public CompletableFuture<Integer> getPointsByName(PointsTable pointsTable, String playerName) {
+        if (pointsTable == null) {
+            return CompletableFuture.failedFuture(new IllegalArgumentException("Tabela nie moze byc pusta."));
+        }
+        return findPlayerUuid(playerName).thenCompose(uuid -> getPoints(uuid, pointsTable));
     }
 
     public CompletableFuture<UUID> findPlayerUuid(String playerName) {
@@ -91,8 +120,12 @@ public final class RankingService {
                 .thenCompose(optionalUuid -> optionalUuid
                         .map(CompletableFuture::completedFuture)
                         .orElseGet(() -> CompletableFuture.failedFuture(
-                                new IllegalArgumentException("Nie znaleziono gracza '" + normalizedName + "' w tabeli rankingowej.")
+                                playerNotFound(normalizedName)
                         )));
+    }
+
+    private static IllegalArgumentException playerNotFound(String normalizedName) {
+        return new IllegalArgumentException("Nie znaleziono gracza '" + normalizedName + "' w tabeli rankingowej.");
     }
 
     private static String normalizePlayerName(String playerName) {
