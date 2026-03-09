@@ -1,5 +1,6 @@
 package hex.ranking.command;
 
+import hex.ranking.model.PointsTable;
 import hex.ranking.service.RankingService;
 import hex.ranking.util.MessageUtil;
 import org.bukkit.Bukkit;
@@ -20,24 +21,34 @@ public final class RemovePointsCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (args.length != 2) {
-            sender.sendMessage(MessageUtil.error("Uzycie: /odejmijpunkt <gracz> <ilosc>"));
+        if (args.length != 3) {
+            sender.sendMessage(MessageUtil.error("Uzycie: /odejmijpunkt <tabela> <gracz> <ilosc>"));
             return true;
         }
 
-        String playerName = args[0];
+        PointsTable pointsTable;
+        try {
+            pointsTable = PointsTable.fromArgument(args[0]);
+        } catch (IllegalArgumentException ex) {
+            sender.sendMessage(MessageUtil.error(ex.getMessage()));
+            return true;
+        }
+
+        String playerName = args[1];
 
         int amount;
         try {
-            amount = Integer.parseInt(args[1]);
+            amount = Integer.parseInt(args[2]);
         } catch (NumberFormatException ex) {
             sender.sendMessage(MessageUtil.error("Ilosc musi byc liczba."));
             return true;
         }
 
-        rankingService.removePointsByName(playerName, amount)
+        rankingService.removePointsByName(pointsTable, playerName, amount)
                 .thenRun(() -> Bukkit.getScheduler().runTask(plugin, () ->
-                        sender.sendMessage(MessageUtil.success("Odjeto " + amount + " punktow graczowi " + playerName + "."))
+                        sender.sendMessage(MessageUtil.success(
+                                "Odjeto " + amount + " punktow graczowi " + playerName + " z tabeli " + pointsTable.argument() + "."
+                        ))
                 ))
                 .exceptionally(ex -> {
                     Bukkit.getScheduler().runTask(plugin, () ->

@@ -1,6 +1,5 @@
 db:
   # Database schema is configured in HexCore (db.yml). Here we only set table/column names.
   ranking-table: "ranking_points"
-  identity-table: "xconomy"
-  identity-name-column: "name"
-  identity-uuid-column: "uuid"
+  ranking-name-column: "player"
+  ranking-uuid-column: "uuid"

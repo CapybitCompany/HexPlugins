@@ -1,6 +1,7 @@
 package hex.ranking.repository;
 
 import hex.core.api.db.Db;
+import hex.ranking.model.PointsTable;
 import hex.ranking.model.RankingPlayer;
 
 import java.util.List;
@@ -34,24 +35,27 @@ public final class MySqlRankingRepository implements RankingRepository {
     }
 
     @Override
-    public void addGlobalPoints(UUID uuid, int amount) {
+    public void addPoints(UUID uuid, PointsTable pointsTable, int amount) {
+        String pointsColumn = pointsTable.column();
+        int globalDelta = pointsTable == PointsTable.GLOBAL ? amount : 0;
+        int seasonDelta = pointsTable == PointsTable.SEASON ? amount : 0;
+
         db.update(
                 "INSERT INTO " + table() + " (uuid, global_points, season_points) VALUES (?, ?, ?) " +
                         "ON DUPLICATE KEY UPDATE " +
-                        "global_points = GREATEST(0, global_points + VALUES(global_points)), " +
-                        "season_points = GREATEST(0, season_points + VALUES(season_points))",
-                uuid.toString(), amount, amount
+                        pointsColumn + " = GREATEST(0, " + pointsColumn + " + VALUES(" + pointsColumn + "))",
+                uuid.toString(), globalDelta, seasonDelta
         );
     }
 
     @Override
-    public void removeGlobalPoints(UUID uuid, int amount) {
+    public void removePoints(UUID uuid, PointsTable pointsTable, int amount) {
+        String pointsColumn = pointsTable.column();
         db.update(
                 "UPDATE " + table() + " SET " +
-                        "global_points = GREATEST(0, global_points - ?), " +
-                        "season_points = GREATEST(0, season_points - ?) " +
+                        pointsColumn + " = GREATEST(0, " + pointsColumn + " - ?) " +
                         "WHERE uuid = ?",
-                amount, amount, uuid.toString()
+                amount, uuid.toString()
         );
     }
 
@@ -67,11 +71,12 @@ public final class MySqlRankingRepository implements RankingRepository {
     @Override
     public List<RankingPlayer> getTopGlobal(int limit) {
         return db.query(
-                "SELECT uuid, global_points, season_points " +
+                "SELECT uuid, player, global_points, season_points " +
                         "FROM " + table() + " " +
                         "ORDER BY global_points DESC, updated_at ASC LIMIT ?",
                 rs -> new RankingPlayer(
                         UUID.fromString(rs.getString("uuid")),
+                        rs.getString("player"),
                         rs.getInt("global_points"),
                         rs.getInt("season_points")
                 ),

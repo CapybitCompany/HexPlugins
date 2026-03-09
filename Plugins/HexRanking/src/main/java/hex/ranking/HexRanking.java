@@ -34,16 +34,21 @@ public final class HexRanking extends JavaPlugin {
 
         try {
             String rankingTable = getConfig().getString("db.ranking-table", "ranking_points");
-            String identityTable = getConfig().getString("db.identity-table", "xconomy");
-            String identityNameColumn = getConfig().getString("db.identity-name-column", "name");
-            String identityUuidColumn = getConfig().getString("db.identity-uuid-column", "uuid");
+            String rankingNameColumn = getConfig().getString("db.ranking-name-column");
+            if (rankingNameColumn == null || rankingNameColumn.isBlank()) {
+                rankingNameColumn = getConfig().getString("db.identity-name-column", "player");
+            }
+            String rankingUuidColumn = getConfig().getString("db.ranking-uuid-column");
+            if (rankingUuidColumn == null || rankingUuidColumn.isBlank()) {
+                rankingUuidColumn = getConfig().getString("db.identity-uuid-column", "uuid");
+            }
 
             RankingRepository repository = new MySqlRankingRepository(api.db().db(), rankingTable);
             PlayerIdentityRepository playerIdentityRepository = new MySqlPlayerIdentityRepository(
                     api.db().db(),
-                    identityTable,
-                    identityNameColumn,
-                    identityUuidColumn
+                    rankingTable,
+                    rankingNameColumn,
+                    rankingUuidColumn
             );
             this.rankingService = new RankingService(api.db(), repository, playerIdentityRepository);
         } catch (IllegalArgumentException ex) {

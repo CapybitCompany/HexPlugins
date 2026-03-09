@@ -75,9 +75,12 @@ public final class TopCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(MessageUtil.info("Top ranking globalny:"));
         int index = 1;
         for (RankingPlayer player : players) {
-            String name = Bukkit.getOfflinePlayer(player.getUuid()).getName();
+            String name = player.getPlayerName();
             if (name == null || name.isBlank()) {
-                name = player.getUuid().toString();
+                name = Bukkit.getOfflinePlayer(player.getUuid()).getName();
+            }
+            if (name == null || name.isBlank()) {
+                name = "Nieznany gracz";
             }
             sender.sendMessage("§7" + index + ". §f" + name + " §8- §e" + player.getGlobalPoints());
             index++;

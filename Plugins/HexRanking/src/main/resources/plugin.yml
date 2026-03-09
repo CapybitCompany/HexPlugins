@@ -1,5 +1,5 @@
 name: HexRanking
-version: 1.0.0
+version: 1.0.1
 main: hex.ranking.HexRanking
 api-version: "1.21"
 
@@ -8,11 +8,11 @@ depend:
 
 commands:
   dajpunkt:
-    usage: "/dajpunkt <gracz> <ilosc>"
+    usage: "/dajpunkt <tabela> <gracz> <ilosc>"
     description: Dodaje punkty graczowi
     permission: hex.ranking.admin
   odejmijpunkt:
-    usage: "/odejmijpunkt <gracz> <ilosc>"
+    usage: "/odejmijpunkt <tabela> <gracz> <ilosc>"
     description: Odejmuje punkty graczowi
     permission: hex.ranking.admin
   punkty:

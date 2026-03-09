@@ -1,6 +1,7 @@
 package hex.ranking.service;
 
 import hex.core.api.db.DatabaseService;
+import hex.ranking.model.PointsTable;
 import hex.ranking.model.RankingPlayer;
 import hex.ranking.repository.PlayerIdentityRepository;
 import hex.ranking.repository.RankingRepository;
@@ -25,18 +26,24 @@ public final class RankingService {
         this.playerIdentityRepository = playerIdentityRepository;
     }
 
-    public CompletableFuture<Void> addPoints(UUID uuid, int amount) {
+    public CompletableFuture<Void> addPoints(UUID uuid, PointsTable pointsTable, int amount) {
+        if (pointsTable == null) {
+            return CompletableFuture.failedFuture(new IllegalArgumentException("Tabela nie moze byc pusta."));
+        }
         if (amount <= 0) {
             return CompletableFuture.failedFuture(new IllegalArgumentException("Ilosc musi byc wieksza niz 0."));
         }
-        return databaseService.asyncRun(() -> repository.addGlobalPoints(uuid, amount));
+        return databaseService.asyncRun(() -> repository.addPoints(uuid, pointsTable, amount));
     }
 
-    public CompletableFuture<Void> removePoints(UUID uuid, int amount) {
+    public CompletableFuture<Void> removePoints(UUID uuid, PointsTable pointsTable, int amount) {
+        if (pointsTable == null) {
+            return CompletableFuture.failedFuture(new IllegalArgumentException("Tabela nie moze byc pusta."));
+        }
         if (amount <= 0) {
             return CompletableFuture.failedFuture(new IllegalArgumentException("Ilosc musi byc wieksza niz 0."));
         }
-        return databaseService.asyncRun(() -> repository.removeGlobalPoints(uuid, amount));
+        return databaseService.asyncRun(() -> repository.removePoints(uuid, pointsTable, amount));
     }
 
     public CompletableFuture<Integer> getGlobalPoints(UUID uuid) {
@@ -48,18 +55,24 @@ public final class RankingService {
         return databaseService.async(() -> repository.getTopGlobal(sanitizedLimit));
     }
 
-    public CompletableFuture<Void> addPointsByName(String playerName, int amount) {
+    public CompletableFuture<Void> addPointsByName(PointsTable pointsTable, String playerName, int amount) {
+        if (pointsTable == null) {
+            return CompletableFuture.failedFuture(new IllegalArgumentException("Tabela nie moze byc pusta."));
+        }
         if (amount <= 0) {
             return CompletableFuture.failedFuture(new IllegalArgumentException("Ilosc musi byc wieksza od 0."));
         }
-        return findPlayerUuid(playerName).thenCompose(uuid -> addPoints(uuid, amount));
+        return findPlayerUuid(playerName).thenCompose(uuid -> addPoints(uuid, pointsTable, amount));
     }
 
-    public CompletableFuture<Void> removePointsByName(String playerName, int amount) {
+    public CompletableFuture<Void> removePointsByName(PointsTable pointsTable, String playerName, int amount) {
+        if (pointsTable == null) {
+            return CompletableFuture.failedFuture(new IllegalArgumentException("Tabela nie moze byc pusta."));
+        }
         if (amount <= 0) {
             return CompletableFuture.failedFuture(new IllegalArgumentException("Ilosc musi byc wieksza od 0."));
         }
-        return findPlayerUuid(playerName).thenCompose(uuid -> removePoints(uuid, amount));
+        return findPlayerUuid(playerName).thenCompose(uuid -> removePoints(uuid, pointsTable, amount));
     }
 
     public CompletableFuture<Integer> getGlobalPointsByName(String playerName) {
@@ -78,7 +91,7 @@ public final class RankingService {
                 .thenCompose(optionalUuid -> optionalUuid
                         .map(CompletableFuture::completedFuture)
                         .orElseGet(() -> CompletableFuture.failedFuture(
-                                new IllegalArgumentException("Nie znaleziono gracza '" + normalizedName + "' w xconomy.")
+                                new IllegalArgumentException("Nie znaleziono gracza '" + normalizedName + "' w tabeli rankingowej.")
                         )));
     }
 
