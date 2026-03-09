@@ -8,24 +8,29 @@ depend:
 
 commands:
   dajpunkt:
-    usage: "/dajpunkt <tabela> <gracz> <ilosc>"
+    usage: "/dajpunkt <tabela: global|season> <gracz> <ilosc>"
     description: Dodaje punkty graczowi
     permission: hex.ranking.admin
   odejmijpunkt:
-    usage: "/odejmijpunkt <tabela> <gracz> <ilosc>"
+    usage: "/odejmijpunkt <tabela: global|season> <gracz> <ilosc>"
     description: Odejmuje punkty graczowi
     permission: hex.ranking.admin
   punkty:
-    usage: "/punkty <gracz> <tabela>"
+    usage: "/punkty <gracz> <tabela: global|season>"
     description: Pokazuje punkty gracza z wybranej tabeli
     permission: hex.ranking.view
   ranking:
-    usage: "/ranking top"
+    usage: "/ranking top [limit]"
     description: Pokazuje ranking top
+    aliases:
+      - hexranking
     permission: hex.ranking.view
 
 permissions:
+  # Dev-friendly defaults without LuckPerms; LP can still override per group/user.
   hex.ranking.admin:
+    description: Pozwala zarzadzac punktami (/dajpunkt, /odejmijpunkt)
     default: op
   hex.ranking.view:
-    default: true
+    description: Pozwala sprawdzac punkty i ranking (/punkty, /ranking)
+    default: op
