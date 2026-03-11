@@ -2,7 +2,9 @@ package hex.panel2;
 
 import hex.panel2.command.HexPanel2Command;
 import hex.panel2.command.HexPanel2OcenyCommand;
+import hex.panel2.command.HexPanel2OcenyStopCommand;
 import hex.panel2.command.HexPanel2StartCommand;
+import hex.panel2.command.HexPanel2StopCommand;
 import hex.panel2.listener.BuildRestrictionListener;
 import hex.panel2.listener.CraftRestrictionListener;
 import hex.panel2.listener.ForbiddenItemListener;
@@ -52,8 +54,14 @@ public final class HexPanel2Plugin extends JavaPlugin {
         PluginCommand startCommand = Objects.requireNonNull(getCommand("hex_panel2_start"), "Command hex_panel2_start missing in plugin.yml");
         startCommand.setExecutor(new HexPanel2StartCommand(buildSessionService, panelAccessModeService));
 
+        PluginCommand stopCommand = Objects.requireNonNull(getCommand("hex_panel2_stop"), "Command hex_panel2_stop missing in plugin.yml");
+        stopCommand.setExecutor(new HexPanel2StopCommand(buildSessionService));
+
         PluginCommand ocenyCommand = Objects.requireNonNull(getCommand("hex_panel2_oceny"), "Command hex_panel2_oceny missing in plugin.yml");
         ocenyCommand.setExecutor(new HexPanel2OcenyCommand(panelAccessModeService));
+
+        PluginCommand ocenyStopCommand = Objects.requireNonNull(getCommand("hex_panel2_oceny_stop"), "Command hex_panel2_oceny_stop missing in plugin.yml");
+        ocenyStopCommand.setExecutor(new HexPanel2OcenyStopCommand(panelAccessModeService));
     }
 
     private void registerListeners() {

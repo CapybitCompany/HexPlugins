@@ -1,6 +1,5 @@
 package hex.panel2.service;
 
-import hex.panel2.util.AccessControl;
 import org.bukkit.Bukkit;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
@@ -61,6 +60,14 @@ public final class BuildSessionService {
         }, 20L, 20L);
     }
 
+    public synchronized boolean stopEarly() {
+        if (!buildActive) {
+            return false;
+        }
+        endInternal();
+        return true;
+    }
+
     public synchronized void shutdown() {
         if (countdownTask != null) {
             countdownTask.cancel();
@@ -92,12 +99,8 @@ public final class BuildSessionService {
 
         bossBar.setTitle(String.format("§aCzas budowania: %02d:%02d", minutes, seconds));
         bossBar.setProgress(progress);
-        bossBar.removeAll();
-
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if (!AccessControl.isBypass(player)) {
-                bossBar.addPlayer(player);
-            }
+            bossBar.addPlayer(player);
         }
     }
 }

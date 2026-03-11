@@ -16,10 +16,18 @@ commands:
     usage: "/hex_panel2_start [minuty]"
     description: Wlacza czas budowania i uruchamia licznik bossbar
     permission: hex.panel2.start
+  hex_panel2_stop:
+    usage: "/hex_panel2_stop"
+    description: Zatrzymuje aktywna runde budowania przed czasem
+    permission: hex.panel2.stop
   hex_panel2_oceny:
     usage: "/hex_panel2_oceny"
     description: Wlacza tryb ocen (mozna wyjsc z wlasnej dzialki, nie mozna wejsc na cudza)
     permission: hex.panel2.oceny
+  hex_panel2_oceny_stop:
+    usage: "/hex_panel2_oceny_stop"
+    description: Wylacza tryb ocen
+    permission: hex.panel2.oceny.stop
 
 permissions:
   hex.panel2.assignall:
@@ -33,4 +41,10 @@ permissions:
     default: op
   hex.panel2.oceny:
     description: Pozwala wlaczyc tryb ocen
+    default: op
+  hex.panel2.stop:
+    description: Pozwala zatrzymac aktywna sesje budowania przed czasem
+    default: op
+  hex.panel2.oceny.stop:
+    description: Pozwala wylaczyc tryb ocen
     default: op
