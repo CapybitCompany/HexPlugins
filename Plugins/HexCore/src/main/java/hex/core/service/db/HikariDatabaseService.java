@@ -87,6 +87,10 @@ public final class HikariDatabaseService implements DatabaseService {
         ds.close();
     }
 
+    public javax.sql.DataSource dataSource() {
+        return ds;
+    }
+
     private static final class DbImpl implements Db {
         private final HikariDataSource ds;
         private final String prefix;
