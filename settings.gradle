@@ -4,3 +4,11 @@ include 'plugins:HexCore'
 include 'plugins:UiExample'
 include 'plugins:DbExample'
 include 'plugins:HexRanking'
+include 'plugins:HexPanel2'
+
+project(':plugins').projectDir = file('Plugins')
+project(':plugins:HexCore').projectDir = file('Plugins/HexCore')
+project(':plugins:UiExample').projectDir = file('Plugins/UiExample')
+project(':plugins:DbExample').projectDir = file('Plugins/DbExample')
+project(':plugins:HexRanking').projectDir = file('Plugins/HexRanking')
+project(':plugins:HexPanel2').projectDir = file('Plugins/HexPanel2')

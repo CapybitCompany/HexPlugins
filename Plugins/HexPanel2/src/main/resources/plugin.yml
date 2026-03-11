@@ -1,0 +1,36 @@
+name: HexPanel2
+version: 1.0.0
+main: hex.panel2.HexPanel2Plugin
+api-version: "1.21"
+
+depend:
+  - HexCore
+  - HexRanking
+
+commands:
+  hex_panel2:
+    usage: "/hex_panel2"
+    description: Administrator przydziela losowe panele wszystkim graczom online
+    permission: hex.panel2.assignall
+  hex_panel2_start:
+    usage: "/hex_panel2_start [minuty]"
+    description: Wlacza czas budowania i uruchamia licznik bossbar
+    permission: hex.panel2.start
+  hex_panel2_oceny:
+    usage: "/hex_panel2_oceny"
+    description: Wlacza tryb ocen (mozna wyjsc z wlasnej dzialki, nie mozna wejsc na cudza)
+    permission: hex.panel2.oceny
+
+permissions:
+  hex.panel2.assignall:
+    description: Pozwala administratorowi przydzielic panele wszystkim graczom online
+    default: op
+  hex.panel2.start:
+    description: Pozwala administratorowi uruchomic sesje budowania
+    default: op
+  hex.panel2.bypass:
+    description: Bypass dla OP/admin (bez panelu i bez ograniczen panelowych)
+    default: op
+  hex.panel2.oceny:
+    description: Pozwala wlaczyc tryb ocen
+    default: op

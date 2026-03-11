@@ -1,0 +1,27 @@
+plugins {
+    id "java"
+}
+
+group = "hex"
+version = "1.0.0"
+
+repositories {
+    mavenCentral()
+    maven { url = "https://repo.papermc.io/repository/maven-public/" }
+}
+
+dependencies {
+    implementation project(":plugins:HexCore")
+    implementation project(":plugins:HexRanking")
+    compileOnly "io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT"
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+tasks.named("jar") {
+    archiveFileName = "HexPanel2.jar"
+}
