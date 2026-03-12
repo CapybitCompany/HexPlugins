@@ -8,6 +8,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.plugin.Plugin;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -16,8 +17,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 public final class PanelService {
 
@@ -30,9 +31,6 @@ public final class PanelService {
     }
 
     public synchronized void scanPanels() {
-        panels.clear();
-        ownerPanels.clear();
-
         World world = resolveWorld();
         if (world == null) {
             plugin.getLogger().severe("No world found for panel scan.");
@@ -41,61 +39,31 @@ public final class PanelService {
 
         List<Location> markers = collectRedConcreteMarkers(world);
         if (markers.isEmpty()) {
-            plugin.getLogger().warning("No RED_CONCRETE markers found in loaded chunks.");
+            plugin.getLogger().warning("No RED_CONCRETE markers found in loaded chunks for world " + world.getName() + ".");
             return;
         }
 
-        Set<String> markerSet = new HashSet<>();
-        for (Location marker : markers) {
-            markerSet.add(markerKey(marker.getBlockX(), marker.getBlockY(), marker.getBlockZ()));
-        }
-
-        Set<String> addedPanels = new HashSet<>();
-        for (int i = 0; i < markers.size(); i++) {
-            Location first = markers.get(i);
-            for (int j = i + 1; j < markers.size(); j++) {
-                Location second = markers.get(j);
-
-                if (first.getBlockY() != second.getBlockY()) {
-                    continue;
-                }
-                if (first.getBlockX() == second.getBlockX() || first.getBlockZ() == second.getBlockZ()) {
-                    continue;
-                }
-
-                int y = first.getBlockY();
-                int minX = Math.min(first.getBlockX(), second.getBlockX());
-                int maxX = Math.max(first.getBlockX(), second.getBlockX());
-                int minZ = Math.min(first.getBlockZ(), second.getBlockZ());
-                int maxZ = Math.max(first.getBlockZ(), second.getBlockZ());
-
-                if (!markerSet.contains(markerKey(minX, y, maxZ))) {
-                    continue;
-                }
-                if (!markerSet.contains(markerKey(maxX, y, minZ))) {
-                    continue;
-                }
-                if (hasIntermediateMarkers(markers, y, minX, maxX, minZ, maxZ)) {
-                    continue;
-                }
-
-                String panelKey = panelKey(minX, y, minZ, maxX, y, maxZ);
-                if (addedPanels.add(panelKey)) {
-                    panels.add(new Panel(
-                            null,
-                            new Location(world, minX, y, minZ),
-                            new Location(world, maxX, y, maxZ)
-                    ));
-                }
-            }
-        }
-
-        panels.sort(Comparator
+        Map<String, UUID> previousOwners = snapshotOwners();
+        List<Panel> detectedPanels = detectPanels(world, markers, previousOwners);
+        detectedPanels.sort(Comparator
                 .comparingInt((Panel panel) -> panel.getMin().getBlockX())
                 .thenComparingInt(panel -> panel.getMin().getBlockY())
                 .thenComparingInt(panel -> panel.getMin().getBlockZ()));
 
-        plugin.getLogger().info("Panel scan complete. Panels found: " + panels.size());
+        Map<UUID, Panel> detectedOwnerPanels = new HashMap<>();
+        for (Panel panel : detectedPanels) {
+            UUID owner = panel.getOwner();
+            if (owner != null) {
+                detectedOwnerPanels.putIfAbsent(owner, panel);
+            }
+        }
+
+        panels.clear();
+        panels.addAll(detectedPanels);
+        ownerPanels.clear();
+        ownerPanels.putAll(detectedOwnerPanels);
+
+        plugin.getLogger().info("Panel scan complete. Markers=" + markers.size() + ", panels=" + panels.size() + " in world " + world.getName());
     }
 
     public synchronized Optional<Panel> getOwnedPanel(UUID owner) {
@@ -152,12 +120,188 @@ public final class PanelService {
     }
 
     public synchronized boolean canBuild(UUID owner, Location location) {
-        Panel panel = findPanelContainingInternal(location);
-        return panel != null && panel.isOwner(owner);
+        for (Panel panel : panels) {
+            if (panel.contains(location) && panel.isOwner(owner)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public synchronized int getPanelCount() {
         return panels.size();
+    }
+
+    public synchronized int getFreePanelCount() {
+        int free = 0;
+        for (Panel panel : panels) {
+            if (!panel.isOwned()) {
+                free++;
+            }
+        }
+        return free;
+    }
+
+    public synchronized int unassignPlayersNotIn(Set<UUID> activePlayers) {
+        List<UUID> owners = new ArrayList<>(ownerPanels.keySet());
+        int released = 0;
+        for (UUID owner : owners) {
+            if (!activePlayers.contains(owner)) {
+                unassignPanel(owner);
+                released++;
+            }
+        }
+        return released;
+    }
+
+    private List<Panel> detectPanels(World world, List<Location> markers, Map<String, UUID> previousOwners) {
+        Map<Integer, Set<Pos>> byY = new HashMap<>();
+        for (Location marker : markers) {
+            byY.computeIfAbsent(marker.getBlockY(), ignored -> new HashSet<>())
+                    .add(new Pos(marker.getBlockX(), marker.getBlockZ()));
+        }
+
+        List<Panel> detectedPanels = new ArrayList<>();
+        for (Map.Entry<Integer, Set<Pos>> entry : byY.entrySet()) {
+            int y = entry.getKey();
+            Set<Pos> allMarkersOnY = entry.getValue();
+            Set<Pos> remaining = new HashSet<>(allMarkersOnY);
+
+            while (!remaining.isEmpty()) {
+                Pos seed = remaining.iterator().next();
+                Set<Pos> component = collectComponent(seed, allMarkersOnY, remaining);
+
+                Panel panel = tryCreatePanel(world, y, component, previousOwners);
+                if (panel != null) {
+                    detectedPanels.add(panel);
+                }
+            }
+        }
+        return detectedPanels;
+    }
+
+    private Set<Pos> collectComponent(Pos seed, Set<Pos> allMarkers, Set<Pos> remaining) {
+        Set<Pos> component = new HashSet<>();
+        ArrayDeque<Pos> queue = new ArrayDeque<>();
+
+        queue.add(seed);
+        remaining.remove(seed);
+
+        while (!queue.isEmpty()) {
+            Pos current = queue.poll();
+            component.add(current);
+
+            for (Pos neighbor : neighbors(current)) {
+                if (!allMarkers.contains(neighbor) || !remaining.remove(neighbor)) {
+                    continue;
+                }
+                queue.add(neighbor);
+            }
+        }
+
+        return component;
+    }
+
+    private Panel tryCreatePanel(World world, int y, Set<Pos> component, Map<String, UUID> previousOwners) {
+        if (component.size() < 8) {
+            return null;
+        }
+
+        int minX = Integer.MAX_VALUE;
+        int maxX = Integer.MIN_VALUE;
+        int minZ = Integer.MAX_VALUE;
+        int maxZ = Integer.MIN_VALUE;
+        for (Pos pos : component) {
+            minX = Math.min(minX, pos.x());
+            maxX = Math.max(maxX, pos.x());
+            minZ = Math.min(minZ, pos.z());
+            maxZ = Math.max(maxZ, pos.z());
+        }
+
+        int width = maxX - minX;
+        int depth = maxZ - minZ;
+        if (width < 2 || depth < 2) {
+            return null;
+        }
+
+        if (width != depth) {
+            return null;
+        }
+
+        if (!hasFullPerimeter(component, minX, maxX, minZ, maxZ)) {
+            return null;
+        }
+
+        if (!containsOnlyPerimeterBlocks(component, minX, maxX, minZ, maxZ)) {
+            return null;
+        }
+
+        if (!hasCleanLoopDegree(component)) {
+            return null;
+        }
+
+        String key = panelKey(world.getName(), minX, y, minZ, maxX, y, maxZ);
+        UUID owner = previousOwners.get(key);
+
+        return new Panel(
+                owner,
+                new Location(world, minX, y, minZ),
+                new Location(world, maxX, y, maxZ)
+        );
+    }
+
+    private boolean hasFullPerimeter(Set<Pos> component, int minX, int maxX, int minZ, int maxZ) {
+        for (int x = minX; x <= maxX; x++) {
+            if (!component.contains(new Pos(x, minZ))) {
+                return false;
+            }
+            if (!component.contains(new Pos(x, maxZ))) {
+                return false;
+            }
+        }
+        for (int z = minZ; z <= maxZ; z++) {
+            if (!component.contains(new Pos(minX, z))) {
+                return false;
+            }
+            if (!component.contains(new Pos(maxX, z))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean containsOnlyPerimeterBlocks(Set<Pos> component, int minX, int maxX, int minZ, int maxZ) {
+        for (Pos pos : component) {
+            boolean onPerimeter = pos.x() == minX || pos.x() == maxX || pos.z() == minZ || pos.z() == maxZ;
+            if (!onPerimeter) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean hasCleanLoopDegree(Set<Pos> component) {
+        for (Pos pos : component) {
+            int neighbors = 0;
+            for (Pos neighbor : neighbors(pos)) {
+                if (component.contains(neighbor)) {
+                    neighbors++;
+                }
+            }
+            if (neighbors != 2) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private List<Pos> neighbors(Pos pos) {
+        List<Pos> result = new ArrayList<>(4);
+        result.add(new Pos(pos.x() + 1, pos.z()));
+        result.add(new Pos(pos.x() - 1, pos.z()));
+        result.add(new Pos(pos.x(), pos.z() + 1));
+        result.add(new Pos(pos.x(), pos.z() - 1));
+        return result;
     }
 
     private Panel findPanelContainingInternal(Location location) {
@@ -201,31 +345,33 @@ public final class PanelService {
         return markers;
     }
 
-    private boolean hasIntermediateMarkers(List<Location> markers, int y, int minX, int maxX, int minZ, int maxZ) {
-        for (Location marker : markers) {
-            if (marker.getBlockY() != y) {
+    private Map<String, UUID> snapshotOwners() {
+        Map<String, UUID> snapshot = new HashMap<>();
+        for (Panel panel : panels) {
+            UUID owner = panel.getOwner();
+            if (owner == null) {
                 continue;
             }
-
-            int x = marker.getBlockX();
-            int z = marker.getBlockZ();
-            if (x < minX || x > maxX || z < minZ || z > maxZ) {
+            Location min = panel.getMin();
+            Location max = panel.getMax();
+            World world = min.getWorld();
+            if (world == null) {
                 continue;
             }
-
-            boolean corner = (x == minX || x == maxX) && (z == minZ || z == maxZ);
-            if (!corner) {
-                return true;
-            }
+            String key = panelKey(
+                    world.getName(),
+                    min.getBlockX(), min.getBlockY(), min.getBlockZ(),
+                    max.getBlockX(), max.getBlockY(), max.getBlockZ()
+            );
+            snapshot.put(key, owner);
         }
-        return false;
+        return snapshot;
     }
 
-    private static String markerKey(int x, int y, int z) {
-        return x + ":" + y + ":" + z;
+    private static String panelKey(String worldName, int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+        return worldName + "|" + minX + ":" + minY + ":" + minZ + "|" + maxX + ":" + maxY + ":" + maxZ;
     }
 
-    private static String panelKey(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
-        return minX + ":" + minY + ":" + minZ + "|" + maxX + ":" + maxY + ":" + maxZ;
+    private record Pos(int x, int z) {
     }
 }

@@ -10,7 +10,10 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 
 public final class HexPanel2Command implements CommandExecutor {
 
@@ -31,6 +34,19 @@ public final class HexPanel2Command implements CommandExecutor {
             sender.sendMessage("§eBrak graczy online.");
             return true;
         }
+
+        panelService.scanPanels();
+        if (panelService.getPanelCount() == 0) {
+            sender.sendMessage("§cNie wykryto paneli z RED_CONCRETE w zaladowanych chunkach.");
+            sender.sendMessage("§7Upewnij sie, ze panele sa w zaladowanych chunkach.");
+            return true;
+        }
+
+        Set<UUID> onlinePlayerIds = new HashSet<>();
+        for (Player online : Bukkit.getOnlinePlayers()) {
+            onlinePlayerIds.add(online.getUniqueId());
+        }
+        int releasedOffline = panelService.unassignPlayersNotIn(onlinePlayerIds);
 
         int assigned = 0;
         int alreadyAssigned = 0;
@@ -67,7 +83,9 @@ public final class HexPanel2Command implements CommandExecutor {
         sender.sendMessage("§aPrzydzielono nowe panele: " + assigned
                 + " §7| §eJuz przypisane: " + alreadyAssigned
                 + " §7| §cBrak wolnych: " + missingPanels
-                + " §7| §bBypass(OP): " + bypassed);
+                + " §7| §bBypass(OP): " + bypassed
+                + " §7| §dZwolniono offline: " + releasedOffline
+                + " §7| §fWolne teraz: " + panelService.getFreePanelCount());
         return true;
     }
 

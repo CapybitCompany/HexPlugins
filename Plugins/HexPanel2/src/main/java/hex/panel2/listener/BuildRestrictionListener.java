@@ -3,6 +3,7 @@ package hex.panel2.listener;
 import hex.panel2.service.BuildSessionService;
 import hex.panel2.service.PanelService;
 import hex.panel2.util.AccessControl;
+import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -28,6 +29,16 @@ public final class BuildRestrictionListener implements Listener {
         if (AccessControl.isBypass(event.getPlayer())) {
             return;
         }
+        if (event.getBlock().getType() == Material.BEDROCK) {
+            event.setCancelled(true);
+            event.getPlayer().sendMessage("§cNiszczenie bedrocka jest zablokowane.");
+            return;
+        }
+        if (event.getBlock().getType() == Material.RED_CONCRETE) {
+            event.setCancelled(true);
+            event.getPlayer().sendMessage("§cNie mozesz niszczyc znacznikow paneli.");
+            return;
+        }
         if (!buildSessionService.isBuildActive()) {
             event.setCancelled(true);
             sendBuildInactiveMessage(event.getPlayer().getUniqueId(), () ->
@@ -44,6 +55,11 @@ public final class BuildRestrictionListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onBlockPlace(BlockPlaceEvent event) {
         if (AccessControl.isBypass(event.getPlayer())) {
+            return;
+        }
+        if (event.getBlockPlaced().getType() == Material.BEDROCK) {
+            event.setCancelled(true);
+            event.getPlayer().sendMessage("§cStawianie bedrocka jest zablokowane.");
             return;
         }
         if (!buildSessionService.isBuildActive()) {
