@@ -26,7 +26,9 @@ public final class ForbiddenItems {
             Material.MINECART,
             Material.RESPAWN_ANCHOR,
             Material.LAVA_BUCKET,
-            Material.WATER_BUCKET
+            Material.WATER_BUCKET,
+            Material.MILK_BUCKET,
+            Material.HONEY_BOTTLE
     );
 
     private ForbiddenItems() {

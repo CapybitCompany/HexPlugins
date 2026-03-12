@@ -49,10 +49,10 @@ public final class HexPanel2Plugin extends JavaPlugin {
 
     private void registerCommands() {
         PluginCommand assignCommand = Objects.requireNonNull(getCommand("hex_panel2"), "Command hex_panel2 missing in plugin.yml");
-        assignCommand.setExecutor(new HexPanel2Command(panelService));
+        assignCommand.setExecutor(new HexPanel2Command(panelService, panelAccessModeService));
 
         PluginCommand startCommand = Objects.requireNonNull(getCommand("hex_panel2_start"), "Command hex_panel2_start missing in plugin.yml");
-        startCommand.setExecutor(new HexPanel2StartCommand(buildSessionService, panelAccessModeService));
+        startCommand.setExecutor(new HexPanel2StartCommand(buildSessionService, panelAccessModeService, panelService));
 
         PluginCommand stopCommand = Objects.requireNonNull(getCommand("hex_panel2_stop"), "Command hex_panel2_stop missing in plugin.yml");
         stopCommand.setExecutor(new HexPanel2StopCommand(buildSessionService));

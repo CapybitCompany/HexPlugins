@@ -9,10 +9,12 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/plugins" />
-            <option value="$PROJECT_DIR$/plugins/DbExample" />
-            <option value="$PROJECT_DIR$/plugins/HexCore" />
-            <option value="$PROJECT_DIR$/plugins/UiExample" />
+            <option value="$PROJECT_DIR$/Plugins" />
+            <option value="$PROJECT_DIR$/Plugins/DbExample" />
+            <option value="$PROJECT_DIR$/Plugins/HexCore" />
+            <option value="$PROJECT_DIR$/Plugins/HexPanel2" />
+            <option value="$PROJECT_DIR$/Plugins/HexRanking" />
+            <option value="$PROJECT_DIR$/Plugins/UiExample" />
           </set>
         </option>
       </GradleProjectSettings>

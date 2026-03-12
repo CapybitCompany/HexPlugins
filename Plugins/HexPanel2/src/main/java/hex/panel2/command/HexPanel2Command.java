@@ -1,6 +1,7 @@
 package hex.panel2.command;
 
 import hex.panel2.model.Panel;
+import hex.panel2.service.PanelAccessModeService;
 import hex.panel2.service.PanelService;
 import hex.panel2.util.AccessControl;
 import org.bukkit.Bukkit;
@@ -18,9 +19,11 @@ import java.util.UUID;
 public final class HexPanel2Command implements CommandExecutor {
 
     private final PanelService panelService;
+    private final PanelAccessModeService panelAccessModeService;
 
-    public HexPanel2Command(PanelService panelService) {
+    public HexPanel2Command(PanelService panelService, PanelAccessModeService panelAccessModeService) {
         this.panelService = panelService;
+        this.panelAccessModeService = panelAccessModeService;
     }
 
     @Override
@@ -35,6 +38,7 @@ public final class HexPanel2Command implements CommandExecutor {
             return true;
         }
 
+        panelAccessModeService.disableOcenyMode();
         panelService.scanPanels();
         if (panelService.getPanelCount() == 0) {
             sender.sendMessage("§cNie wykryto paneli z RED_CONCRETE w zaladowanych chunkach.");
@@ -49,7 +53,6 @@ public final class HexPanel2Command implements CommandExecutor {
         int releasedOffline = panelService.unassignPlayersNotIn(onlinePlayerIds);
 
         int assigned = 0;
-        int alreadyAssigned = 0;
         int missingPanels = 0;
         int bypassed = 0;
 
@@ -60,14 +63,8 @@ public final class HexPanel2Command implements CommandExecutor {
                 continue;
             }
 
-            Optional<Panel> existing = panelService.getOwnedPanel(target.getUniqueId());
-            if (existing.isPresent()) {
-                alreadyAssigned++;
-                teleportToPanelCenter(target, existing.get());
-                target.sendMessage("§eMasz juz przypisany panel. Teleportowano na srodek.");
-                continue;
-            }
-
+            // Force fresh assignment every run to avoid stale owner mappings from earlier rounds.
+            panelService.unassignPanel(target.getUniqueId());
             Optional<Panel> panel = panelService.assignRandomFreePanel(target.getUniqueId());
             if (panel.isEmpty()) {
                 missingPanels++;
@@ -81,7 +78,6 @@ public final class HexPanel2Command implements CommandExecutor {
         }
 
         sender.sendMessage("§aPrzydzielono nowe panele: " + assigned
-                + " §7| §eJuz przypisane: " + alreadyAssigned
                 + " §7| §cBrak wolnych: " + missingPanels
                 + " §7| §bBypass(OP): " + bypassed
                 + " §7| §dZwolniono offline: " + releasedOffline

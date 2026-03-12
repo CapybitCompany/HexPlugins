@@ -48,7 +48,11 @@ public final class BuildRestrictionListener implements Listener {
         }
         if (!panelService.canBuild(event.getPlayer().getUniqueId(), event.getBlock().getLocation())) {
             event.setCancelled(true);
-            event.getPlayer().sendMessage("§cMozesz niszczyc bloki tylko na swoim panelu.");
+            if (panelService.getOwnedPanel(event.getPlayer().getUniqueId()).isEmpty()) {
+                event.getPlayer().sendMessage("§cNie masz przypisanego panelu. Uzyj /hex_panel2.");
+            } else {
+                event.getPlayer().sendMessage("§cMozesz niszczyc bloki tylko na swoim panelu.");
+            }
         }
     }
 
@@ -71,7 +75,11 @@ public final class BuildRestrictionListener implements Listener {
         }
         if (!panelService.canBuild(event.getPlayer().getUniqueId(), event.getBlockPlaced().getLocation())) {
             event.setCancelled(true);
-            event.getPlayer().sendMessage("§cMozesz stawiac bloki tylko na swoim panelu.");
+            if (panelService.getOwnedPanel(event.getPlayer().getUniqueId()).isEmpty()) {
+                event.getPlayer().sendMessage("§cNie masz przypisanego panelu. Uzyj /hex_panel2.");
+            } else {
+                event.getPlayer().sendMessage("§cMozesz stawiac bloki tylko na swoim panelu.");
+            }
         }
     }
 
