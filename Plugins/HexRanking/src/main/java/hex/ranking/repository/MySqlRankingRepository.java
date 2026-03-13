@@ -46,14 +46,24 @@ public final class MySqlRankingRepository implements RankingRepository {
 
     @Override
     public void addPoints(UUID uuid, PointsTable pointsTable, int amount) {
-        String pointsColumn = pointsTable.column();
-        int globalDelta = pointsTable == PointsTable.GLOBAL ? amount : 0;
-        int seasonDelta = pointsTable == PointsTable.SEASON ? amount : 0;
+        int globalDelta;
+        int seasonDelta;
+        String updateClause;
+
+        if (pointsTable == PointsTable.SEASON) {
+            globalDelta = amount;
+            seasonDelta = amount;
+            updateClause = "global_points = GREATEST(0, global_points + VALUES(global_points)), " +
+                    "season_points = GREATEST(0, season_points + VALUES(season_points))";
+        } else {
+            globalDelta = amount;
+            seasonDelta = 0;
+            updateClause = "global_points = GREATEST(0, global_points + VALUES(global_points))";
+        }
 
         db.update(
                 "INSERT INTO " + table() + " (uuid, global_points, season_points) VALUES (?, ?, ?) " +
-                        "ON DUPLICATE KEY UPDATE " +
-                        pointsColumn + " = GREATEST(0, " + pointsColumn + " + VALUES(" + pointsColumn + "))",
+                        "ON DUPLICATE KEY UPDATE " + updateClause,
                 uuid.toString(), globalDelta, seasonDelta
         );
     }

@@ -14,6 +14,10 @@ commands:
     usage: "/dajpunkt <tabela: global|season> <gracz> <ilosc>"
     description: Dodaje punkty graczowi
     permission: hex.ranking.admin
+  dajpunktevent:
+    usage: "/dajpunktevent [gracz1 gracz2 ...]"
+    description: Przyznaje punkt eventowy (season + global) online graczom
+    permission: hex.ranking.admin
   odejmijpunkt:
     usage: "/odejmijpunkt <tabela: global|season> <gracz> <ilosc>"
     description: Odejmuje punkty graczowi

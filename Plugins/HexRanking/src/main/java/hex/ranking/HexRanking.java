@@ -2,6 +2,7 @@ package hex.ranking;
 
 import hex.core.api.HexApi;
 import hex.ranking.command.AddPointsCommand;
+import hex.ranking.command.AddEventPointsCommand;
 import hex.ranking.command.PointsCommand;
 import hex.ranking.command.RemovePointsCommand;
 import hex.ranking.command.TopCommand;
@@ -82,6 +83,11 @@ public final class HexRanking extends JavaPlugin {
     private void registerCommands() {
         PluginCommand add = Objects.requireNonNull(getCommand("dajpunkt"), "Command dajpunkt missing in plugin.yml");
         add.setExecutor(new AddPointsCommand(this, rankingService));
+
+        PluginCommand addEvent = Objects.requireNonNull(getCommand("dajpunktevent"), "Command dajpunktevent missing in plugin.yml");
+        AddEventPointsCommand addEventPointsCommand = new AddEventPointsCommand(this, rankingService);
+        addEvent.setExecutor(addEventPointsCommand);
+        addEvent.setTabCompleter(addEventPointsCommand);
 
         PluginCommand remove = Objects.requireNonNull(getCommand("odejmijpunkt"), "Command odejmijpunkt missing in plugin.yml");
         remove.setExecutor(new RemovePointsCommand(this, rankingService));

@@ -7,6 +7,7 @@ import hex.ranking.repository.PlayerIdentityRepository;
 import hex.ranking.repository.RankingRepository;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -90,6 +91,33 @@ public final class RankingService {
             return CompletableFuture.failedFuture(new IllegalArgumentException("Ilosc musi byc wieksza od 0."));
         }
         return findPlayerUuid(playerName).thenCompose(uuid -> addPoints(uuid, pointsTable, amount));
+    }
+
+    public CompletableFuture<Integer> addEventPoints(Map<UUID, String> players) {
+        if (players == null || players.isEmpty()) {
+            return CompletableFuture.completedFuture(0);
+        }
+
+        return databaseService.async(() -> {
+            int awarded = 0;
+            for (Map.Entry<UUID, String> entry : players.entrySet()) {
+                UUID uuid = entry.getKey();
+                if (uuid == null) {
+                    continue;
+                }
+
+                String playerName = entry.getValue();
+                if (playerName == null || playerName.isBlank()) {
+                    continue;
+                }
+
+                String normalizedName = normalizePlayerName(playerName);
+                repository.upsertPlayer(uuid, normalizedName);
+                repository.addPoints(uuid, PointsTable.SEASON, 1);
+                awarded++;
+            }
+            return awarded;
+        });
     }
 
     public CompletableFuture<Void> removePointsByName(PointsTable pointsTable, String playerName, int amount) {
