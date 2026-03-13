@@ -6,6 +6,7 @@ import hex.ranking.command.PointsCommand;
 import hex.ranking.command.RemovePointsCommand;
 import hex.ranking.command.TopCommand;
 import hex.ranking.listener.PlayerRegistrationListener;
+import hex.ranking.placeholder.HexPlaceholderExpansion;
 import hex.ranking.repository.MySqlPlayerIdentityRepository;
 import hex.ranking.repository.MySqlRankingRepository;
 import hex.ranking.repository.PlayerIdentityRepository;
@@ -20,6 +21,7 @@ import java.util.Objects;
 public final class HexRanking extends JavaPlugin {
 
     private RankingService rankingService;
+    private HexPlaceholderExpansion placeholderExpansion;
 
     @Override
     public void onEnable() {
@@ -64,7 +66,17 @@ public final class HexRanking extends JavaPlugin {
 
         registerCommands();
         registerListeners();
+        registerPlaceholders();
         getLogger().info("HexRanking enabled.");
+    }
+
+    @Override
+    public void onDisable() {
+        if (placeholderExpansion != null) {
+            placeholderExpansion.stop();
+            placeholderExpansion.unregister();
+            placeholderExpansion = null;
+        }
     }
 
     private void registerCommands() {
@@ -87,5 +99,25 @@ public final class HexRanking extends JavaPlugin {
         PlayerRegistrationListener listener = new PlayerRegistrationListener(this, rankingService);
         getServer().getPluginManager().registerEvents(listener, this);
         Bukkit.getOnlinePlayers().forEach(listener::syncPlayer);
+    }
+
+    private void registerPlaceholders() {
+        if (!Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            getLogger().info("PlaceholderAPI not found. Skipping placeholder expansion registration.");
+            return;
+        }
+
+        try {
+            HexPlaceholderExpansion expansion = new HexPlaceholderExpansion(this, rankingService);
+            if (!expansion.register()) {
+                getLogger().warning("Could not register PlaceholderAPI expansion.");
+                return;
+            }
+            expansion.start();
+            this.placeholderExpansion = expansion;
+            getLogger().info("PlaceholderAPI expansion registered.");
+        } catch (NoClassDefFoundError ex) {
+            getLogger().warning("PlaceholderAPI classes are not available. Skipping placeholder expansion registration.");
+        }
     }
 }

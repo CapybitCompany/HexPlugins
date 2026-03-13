@@ -77,6 +77,11 @@ public final class RankingService {
         return databaseService.async(() -> repository.getTopGlobal(sanitizedLimit));
     }
 
+    public CompletableFuture<List<RankingPlayer>> getTopSeason(int limit) {
+        int sanitizedLimit = Math.max(1, Math.min(limit, 50));
+        return databaseService.async(() -> repository.getTopSeason(sanitizedLimit));
+    }
+
     public CompletableFuture<Void> addPointsByName(PointsTable pointsTable, String playerName, int amount) {
         if (pointsTable == null) {
             return CompletableFuture.failedFuture(new IllegalArgumentException("Tabela nie moze byc pusta."));

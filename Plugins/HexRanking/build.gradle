@@ -8,11 +8,13 @@ version = "1.0.1"
 repositories {
     mavenCentral()
     maven { url = "https://repo.papermc.io/repository/maven-public/" }
+    maven { url = "https://repo.extendedclip.com/content/repositories/placeholderapi/" }
 }
 
 dependencies {
     implementation project(":plugins:HexCore")
     compileOnly "io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT"
+    compileOnly "me.clip:placeholderapi:2.11.6"
 }
 
 java {

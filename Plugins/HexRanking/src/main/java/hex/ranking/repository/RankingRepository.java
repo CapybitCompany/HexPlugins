@@ -20,5 +20,7 @@ public interface RankingRepository {
 
     List<RankingPlayer> getTopGlobal(int limit);
 
+    List<RankingPlayer> getTopSeason(int limit);
+
     void ensurePerformanceIndexes();
 }

@@ -6,6 +6,9 @@ api-version: "1.21"
 depend:
   - HexCore
 
+softdepend:
+  - PlaceholderAPI
+
 commands:
   dajpunkt:
     usage: "/dajpunkt <tabela: global|season> <gracz> <ilosc>"

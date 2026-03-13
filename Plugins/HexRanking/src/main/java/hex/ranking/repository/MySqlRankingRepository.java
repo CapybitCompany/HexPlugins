@@ -101,9 +101,26 @@ public final class MySqlRankingRepository implements RankingRepository {
     }
 
     @Override
+    public List<RankingPlayer> getTopSeason(int limit) {
+        return db.query(
+                "SELECT uuid, player, global_points, season_points " +
+                        "FROM " + table() + " " +
+                        "ORDER BY season_points DESC, updated_at ASC LIMIT ?",
+                rs -> new RankingPlayer(
+                        UUID.fromString(rs.getString("uuid")),
+                        rs.getString("player"),
+                        rs.getInt("global_points"),
+                        rs.getInt("season_points")
+                ),
+                limit
+        );
+    }
+
+    @Override
     public void ensurePerformanceIndexes() {
         ensureIndex("idx_hexranking_player", "(`player`)");
         ensureIndex("idx_hexranking_top_global", "(`global_points` DESC, `updated_at` ASC)");
+        ensureIndex("idx_hexranking_top_season", "(`season_points` DESC, `updated_at` ASC)");
     }
 
     private void ensureIndex(String indexName, String columnSpec) {
