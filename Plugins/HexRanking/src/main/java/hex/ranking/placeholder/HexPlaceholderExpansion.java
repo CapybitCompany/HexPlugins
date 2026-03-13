@@ -52,7 +52,7 @@ public final class HexPlaceholderExpansion extends PlaceholderExpansion {
 
     @Override
     public String getIdentifier() {
-        return "hex";
+        return "hexrank";
     }
 
     @Override
