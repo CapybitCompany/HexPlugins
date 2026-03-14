@@ -1,0 +1,4 @@
+name: HexSpawnHandler
+version: 1.0.0
+main: hex.spawnhandler.HexSpawnHandlerPlugin
+api-version: "1.21"

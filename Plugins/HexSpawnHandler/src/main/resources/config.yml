@@ -1,0 +1,9 @@
+spawn:
+  enabled: true
+  world: ""
+  x: 745.0
+  y: -60.0
+  z: 630.0
+  yaw: 0.0
+  pitch: 0.0
+  teleport-delay-ticks: 1
