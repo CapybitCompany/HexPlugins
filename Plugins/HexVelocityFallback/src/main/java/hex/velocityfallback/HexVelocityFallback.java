@@ -54,10 +54,11 @@ public final class HexVelocityFallback {
 
         proxyServer.getEventManager().register(this, new ServerKickListener(fallbackRedirectService));
         logger.info(
-                "HexVelocityFallback enabled. Fallback: '{}' ({}:{}), connectFailure={}, emptyReason={}, keywords={}",
-                fallbackConfig.serverName(),
-                fallbackConfig.host(),
-                fallbackConfig.port(),
+                "HexVelocityFallback enabled. Default fallback: '{}' ({}:{}), routes={}, connectFailure={}, emptyReason={}, keywords={}",
+                fallbackConfig.defaultTarget().serverName(),
+                fallbackConfig.defaultTarget().host(),
+                fallbackConfig.defaultTarget().port(),
+                fallbackConfig.sourceRoutes(),
                 fallbackConfig.redirectOnConnectFailure(),
                 fallbackConfig.redirectOnEmptyReason(),
                 fallbackConfig.reasonKeywords()

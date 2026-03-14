@@ -1,6 +1,7 @@
 package hex.velocityfallback.service;
 
 import hex.velocityfallback.model.FallbackConfig;
+import hex.velocityfallback.model.FallbackTargetConfig;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -10,8 +11,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Properties;
 
 public final class FallbackConfigService {
@@ -23,6 +26,10 @@ public final class FallbackConfigService {
     private static final String KEY_REDIRECT_ON_CONNECT_FAILURE = "fallback.redirect-on-connect-failure";
     private static final String KEY_REDIRECT_ON_EMPTY_REASON = "fallback.redirect-on-empty-reason";
     private static final String KEY_REASON_KEYWORDS = "fallback.reason-keywords";
+    private static final String ROUTE_PREFIX = "route.";
+    private static final String ROUTE_SERVER_NAME_SUFFIX = ".server-name";
+    private static final String ROUTE_HOST_SUFFIX = ".host";
+    private static final String ROUTE_PORT_SUFFIX = ".port";
 
     private static final String DEFAULT_SERVER_NAME = "lobby";
     private static final String DEFAULT_HOST = "127.0.0.1";
@@ -55,6 +62,8 @@ public final class FallbackConfigService {
         String serverName = normalize(properties.getProperty(KEY_SERVER_NAME), DEFAULT_SERVER_NAME);
         String host = normalize(properties.getProperty(KEY_HOST), DEFAULT_HOST);
         int port = parsePort(properties.getProperty(KEY_PORT), DEFAULT_PORT);
+        FallbackTargetConfig defaultTarget = new FallbackTargetConfig(serverName, host, port);
+        Map<String, FallbackTargetConfig> sourceRoutes = parseSourceRoutes(properties);
         boolean redirectOnConnectFailure = parseBoolean(
                 properties.getProperty(KEY_REDIRECT_ON_CONNECT_FAILURE),
                 DEFAULT_REDIRECT_ON_CONNECT_FAILURE
@@ -66,9 +75,8 @@ public final class FallbackConfigService {
         List<String> reasonKeywords = parseKeywords(properties.getProperty(KEY_REASON_KEYWORDS), DEFAULT_REASON_KEYWORDS);
 
         return new FallbackConfig(
-                serverName,
-                host,
-                port,
+                defaultTarget,
+                sourceRoutes,
                 redirectOnConnectFailure,
                 redirectOnEmptyReason,
                 reasonKeywords
@@ -144,5 +152,63 @@ public final class FallbackConfigService {
         }
 
         return List.copyOf(keywords);
+    }
+
+    private Map<String, FallbackTargetConfig> parseSourceRoutes(Properties properties) {
+        Map<String, FallbackTargetConfig> routes = new LinkedHashMap<>();
+
+        for (String key : properties.stringPropertyNames()) {
+            if (!key.startsWith(ROUTE_PREFIX) || !key.endsWith(ROUTE_SERVER_NAME_SUFFIX)) {
+                continue;
+            }
+
+            String sourceRaw = key.substring(
+                    ROUTE_PREFIX.length(),
+                    key.length() - ROUTE_SERVER_NAME_SUFFIX.length()
+            );
+            String sourceServer = normalize(sourceRaw, "").toLowerCase(Locale.ROOT);
+            if (sourceServer.isEmpty()) {
+                continue;
+            }
+
+            String targetServerName = normalize(properties.getProperty(key), "");
+            if (targetServerName.isEmpty()) {
+                logger.warn("Route '{}' has empty target server name. Skipping route.", sourceServer);
+                continue;
+            }
+
+            String routePrefix = ROUTE_PREFIX + sourceRaw;
+            String host = normalizeNullable(properties.getProperty(routePrefix + ROUTE_HOST_SUFFIX));
+            Integer port = parseOptionalPort(properties.getProperty(routePrefix + ROUTE_PORT_SUFFIX), sourceServer);
+
+            routes.put(sourceServer, new FallbackTargetConfig(targetServerName, host, port));
+        }
+
+        return Map.copyOf(routes);
+    }
+
+    private String normalizeNullable(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+        return raw.trim();
+    }
+
+    private Integer parseOptionalPort(String raw, String sourceServer) {
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+
+        try {
+            int parsed = Integer.parseInt(raw.trim());
+            if (parsed < 1 || parsed > 65_535) {
+                logger.warn("Invalid route port '{}' for source '{}'. Ignoring route port.", raw, sourceServer);
+                return null;
+            }
+            return parsed;
+        } catch (NumberFormatException ex) {
+            logger.warn("Cannot parse route port '{}' for source '{}'. Ignoring route port.", raw, sourceServer);
+            return null;
+        }
     }
 }

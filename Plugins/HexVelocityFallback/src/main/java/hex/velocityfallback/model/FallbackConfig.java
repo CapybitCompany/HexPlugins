@@ -1,18 +1,13 @@
 package hex.velocityfallback.model;
 
-import java.net.InetSocketAddress;
 import java.util.List;
+import java.util.Map;
 
 public record FallbackConfig(
-        String serverName,
-        String host,
-        int port,
+        FallbackTargetConfig defaultTarget,
+        Map<String, FallbackTargetConfig> sourceRoutes,
         boolean redirectOnConnectFailure,
         boolean redirectOnEmptyReason,
         List<String> reasonKeywords
 ) {
-
-    public InetSocketAddress address() {
-        return InetSocketAddress.createUnresolved(host, port);
-    }
 }

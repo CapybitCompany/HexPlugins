@@ -5,20 +5,26 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import com.velocitypowered.api.proxy.server.ServerInfo;
 import hex.velocityfallback.model.FallbackConfig;
+import hex.velocityfallback.model.FallbackTargetConfig;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import org.slf4j.Logger;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 public final class FallbackRedirectService {
 
     private final ProxyServer proxyServer;
     private final Logger logger;
 
-    private RegisteredServer fallbackServer;
-    private ServerInfo dynamicallyRegisteredServerInfo;
+    private RegisteredServer defaultFallbackServer;
+    private final Map<String, RegisteredServer> sourceRouteTargets = new HashMap<>();
+    private final Set<ServerInfo> dynamicallyRegisteredServerInfos = new HashSet<>();
     private FallbackConfig config;
 
     public FallbackRedirectService(ProxyServer proxyServer, Logger logger) {
@@ -28,42 +34,36 @@ public final class FallbackRedirectService {
 
     public void configure(FallbackConfig config) {
         this.config = config;
-        Optional<RegisteredServer> existing = proxyServer.getServer(config.serverName());
-        if (existing.isPresent()) {
-            fallbackServer = existing.get();
-            logger.info("Using already registered fallback server '{}'.", config.serverName());
-            return;
+        defaultFallbackServer = resolveServer(config.defaultTarget(), "default");
+        sourceRouteTargets.clear();
+
+        for (Map.Entry<String, FallbackTargetConfig> entry : config.sourceRoutes().entrySet()) {
+            String sourceServer = entry.getKey();
+            RegisteredServer routeTarget = resolveServer(entry.getValue(), "route." + sourceServer);
+            if (routeTarget != null) {
+                sourceRouteTargets.put(sourceServer, routeTarget);
+            }
         }
-
-        ServerInfo serverInfo = new ServerInfo(config.serverName(), config.address());
-        proxyServer.registerServer(serverInfo);
-        fallbackServer = proxyServer.getServer(config.serverName()).orElse(null);
-        dynamicallyRegisteredServerInfo = serverInfo;
-
-        logger.info(
-                "Registered fallback server '{}' at {}:{}.",
-                config.serverName(),
-                config.host(),
-                config.port()
-        );
     }
 
     public void shutdown() {
-        if (dynamicallyRegisteredServerInfo != null) {
-            proxyServer.unregisterServer(dynamicallyRegisteredServerInfo);
-            dynamicallyRegisteredServerInfo = null;
+        for (ServerInfo serverInfo : dynamicallyRegisteredServerInfos) {
+            proxyServer.unregisterServer(serverInfo);
         }
-        fallbackServer = null;
+        dynamicallyRegisteredServerInfos.clear();
+        sourceRouteTargets.clear();
+        defaultFallbackServer = null;
     }
 
     public void handleKickedFromServer(KickedFromServerEvent event) {
-        if (fallbackServer == null) {
+        String kickedFromName = event.getServer().getServerInfo().getName();
+        RegisteredServer targetServer = resolveTargetForSource(kickedFromName);
+        if (targetServer == null) {
             return;
         }
 
-        String fallbackName = fallbackServer.getServerInfo().getName();
-        String kickedFromName = event.getServer().getServerInfo().getName();
-        if (kickedFromName.equalsIgnoreCase(fallbackName)) {
+        String targetName = targetServer.getServerInfo().getName();
+        if (kickedFromName.equalsIgnoreCase(targetName)) {
             return;
         }
 
@@ -71,12 +71,12 @@ public final class FallbackRedirectService {
             return;
         }
 
-        event.setResult(KickedFromServerEvent.RedirectPlayer.create(fallbackServer));
+        event.setResult(KickedFromServerEvent.RedirectPlayer.create(targetServer));
         logger.debug(
                 "Redirected player '{}' from '{}' to fallback '{}'.",
                 event.getPlayer().getUsername(),
                 kickedFromName,
-                fallbackName
+                targetName
         );
     }
 
@@ -121,5 +121,54 @@ public final class FallbackRedirectService {
         for (Component child : component.children()) {
             appendComponentText(child, builder);
         }
+    }
+
+    private RegisteredServer resolveTargetForSource(String sourceServerName) {
+        if (sourceServerName == null || sourceServerName.isBlank()) {
+            return defaultFallbackServer;
+        }
+
+        RegisteredServer sourceSpecific = sourceRouteTargets.get(sourceServerName.toLowerCase(Locale.ROOT));
+        if (sourceSpecific != null) {
+            return sourceSpecific;
+        }
+
+        return defaultFallbackServer;
+    }
+
+    private RegisteredServer resolveServer(FallbackTargetConfig target, String label) {
+        Optional<RegisteredServer> existing = proxyServer.getServer(target.serverName());
+        if (existing.isPresent()) {
+            logger.info("Using already registered server '{}' for {}.", target.serverName(), label);
+            return existing.get();
+        }
+
+        if (!target.hasAddress()) {
+            logger.warn(
+                    "Server '{}' for {} is not registered and has no host/port configured. Skipping this target.",
+                    target.serverName(),
+                    label
+            );
+            return null;
+        }
+
+        ServerInfo serverInfo = new ServerInfo(target.serverName(), target.address());
+        proxyServer.registerServer(serverInfo);
+        dynamicallyRegisteredServerInfos.add(serverInfo);
+
+        RegisteredServer registered = proxyServer.getServer(target.serverName()).orElse(null);
+        if (registered == null) {
+            logger.warn("Could not register server '{}' for {}.", target.serverName(), label);
+            return null;
+        }
+
+        logger.info(
+                "Registered server '{}' for {} at {}:{}.",
+                target.serverName(),
+                label,
+                target.host(),
+                target.port()
+        );
+        return registered;
     }
 }
