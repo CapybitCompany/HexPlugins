@@ -7,3 +7,6 @@ spawn:
   yaw: 0.0
   pitch: 0.0
   teleport-delay-ticks: 1
+  final-teleport:
+    enabled: true
+    delay-ticks: 60

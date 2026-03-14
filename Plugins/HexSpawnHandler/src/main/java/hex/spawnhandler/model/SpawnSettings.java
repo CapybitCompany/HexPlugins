@@ -8,6 +8,8 @@ public record SpawnSettings(
         double z,
         float yaw,
         float pitch,
-        int teleportDelayTicks
+        int teleportDelayTicks,
+        boolean finalTeleportEnabled,
+        int finalTeleportDelayTicks
 ) {
 }

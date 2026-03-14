@@ -23,6 +23,8 @@ public final class HexSpawnHandlerPlugin extends JavaPlugin {
                 "HexSpawnHandler enabled. Spawn=" + settings.x() + ", " + settings.y() + ", " + settings.z()
                         + " world=" + (settings.worldName() == null ? "<join-world>" : settings.worldName())
                         + " delayTicks=" + settings.teleportDelayTicks()
+                        + " finalTeleport=" + settings.finalTeleportEnabled()
+                        + " finalDelayTicks=" + settings.finalTeleportDelayTicks()
         );
     }
 }

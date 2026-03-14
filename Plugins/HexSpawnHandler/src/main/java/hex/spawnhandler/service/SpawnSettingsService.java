@@ -15,7 +15,7 @@ public final class SpawnSettingsService {
 
     public SpawnSettingsService(Plugin plugin) {
         this.plugin = plugin;
-        this.settings = new SpawnSettings(true, null, 0.0, 64.0, 0.0, 0.0F, 0.0F, 1);
+        this.settings = new SpawnSettings(true, null, 0.0, 64.0, 0.0, 0.0F, 0.0F, 1, true, 60);
     }
 
     public void loadFromConfig() {
@@ -29,8 +29,21 @@ public final class SpawnSettingsService {
         float yaw = (float) config.getDouble("spawn.yaw", 0.0D);
         float pitch = (float) config.getDouble("spawn.pitch", 0.0D);
         int delay = Math.max(0, config.getInt("spawn.teleport-delay-ticks", 1));
+        boolean finalTeleportEnabled = config.getBoolean("spawn.final-teleport.enabled", true);
+        int finalTeleportDelayTicks = Math.max(0, config.getInt("spawn.final-teleport.delay-ticks", 60));
 
-        this.settings = new SpawnSettings(enabled, worldName, x, y, z, yaw, pitch, delay);
+        this.settings = new SpawnSettings(
+                enabled,
+                worldName,
+                x,
+                y,
+                z,
+                yaw,
+                pitch,
+                delay,
+                finalTeleportEnabled,
+                finalTeleportDelayTicks
+        );
 
         if (worldName != null && Bukkit.getWorld(worldName) == null) {
             plugin.getLogger().warning(

@@ -31,14 +31,24 @@ public final class JoinSpawnListener implements Listener {
 
         SpawnSettings settings = spawnSettingsService.getSettings();
         if (settings.teleportDelayTicks() <= 0) {
-            player.teleport(targetLocation);
-            return;
+            teleportIfOnline(player, targetLocation);
+        } else {
+            scheduleTeleport(player, targetLocation, settings.teleportDelayTicks());
         }
 
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            if (player.isOnline()) {
-                player.teleport(targetLocation);
-            }
-        }, settings.teleportDelayTicks());
+        if (settings.finalTeleportEnabled()) {
+            scheduleTeleport(player, targetLocation, settings.finalTeleportDelayTicks());
+        }
+    }
+
+    private void scheduleTeleport(Player player, Location targetLocation, int delayTicks) {
+        Bukkit.getScheduler().runTaskLater(plugin, () -> teleportIfOnline(player, targetLocation), delayTicks);
+    }
+
+    private static void teleportIfOnline(Player player, Location targetLocation) {
+        if (!player.isOnline()) {
+            return;
+        }
+        player.teleport(targetLocation.clone());
     }
 }
