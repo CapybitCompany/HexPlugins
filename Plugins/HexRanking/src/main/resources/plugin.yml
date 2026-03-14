@@ -40,4 +40,4 @@ permissions:
     default: op
   hex.ranking.view:
     description: Pozwala sprawdzac punkty i ranking (/punkty, /ranking)
-    default: op
+    default: true
