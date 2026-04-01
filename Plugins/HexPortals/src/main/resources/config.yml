@@ -1,0 +1,32 @@
+messages:
+  connecting: "&6Łączenie z serwerem..."
+
+portal-1:
+  enabled: true
+  world: "world"
+
+  min-x: 612
+  max-x: 612
+
+  min-y: -25
+  max-y: -17
+
+  min-z: 685
+  max-z: 695
+
+  target-server: "event"
+
+portal-2:
+  enabled: true
+  world: "world"
+
+  min-x: -6
+  max-x: -6
+
+  min-y: 94
+  max-y: 96
+
+  min-z: 36
+  max-z: 39
+
+  target-server: "superflat"
