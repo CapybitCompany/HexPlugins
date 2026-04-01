@@ -3,6 +3,8 @@ package pl.minecrafthex.hexportalconnect;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -45,6 +47,11 @@ public final class HexPortalConnect extends JavaPlugin implements Listener {
 
     private String connectingMessage;
 
+    private String commandPlayerOnlyMessage;
+    private String commandUsageMessage;
+    private String commandInvalidServerMessage;
+    private String commandPlayerNotFoundMessage;
+
     @Override
     public void onEnable() {
         saveDefaultConfig();
@@ -66,6 +73,8 @@ public final class HexPortalConnect extends JavaPlugin implements Listener {
                 + " y=" + portal2MinY + ".." + portal2MaxY
                 + " z=" + portal2MinZ + ".." + portal2MaxZ
                 + " -> server=" + portal2TargetServer);
+
+
     }
 
     @Override
@@ -108,6 +117,11 @@ public final class HexPortalConnect extends JavaPlugin implements Listener {
         portal2MaxZ = config.getInt("portal-2.max-z", 39);
 
         portal2TargetServer = config.getString("portal-2.target-server", "superflat");
+
+        commandPlayerOnlyMessage = color(config.getString("messages.console-only", "&cTej komendy nie moze uzyc gracz."));
+        commandUsageMessage = color(config.getString("messages.hexconnect-usage", "&eUzycie: /hexconnect <nazwaserwera> <gracz>"));
+        commandInvalidServerMessage = color(config.getString("messages.invalid-server", "&cNiepoprawna nazwa serwera."));
+        commandPlayerNotFoundMessage = color(config.getString("messages.player-not-found", "&cPodany gracz nie jest online."));
     }
 
     @EventHandler
@@ -191,6 +205,44 @@ public final class HexPortalConnect extends JavaPlugin implements Listener {
         }
 
         player.sendPluginMessage(this, "BungeeCord", byteStream.toByteArray());
+    }
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (!command.getName().equalsIgnoreCase("hexconnect")) {
+            return false;
+        }
+
+        if (sender instanceof Player) {
+            sender.sendMessage(commandPlayerOnlyMessage);
+            return true;
+        }
+
+        if (args.length != 2) {
+            sender.sendMessage(commandUsageMessage);
+            return true;
+        }
+
+        String serverName = args[0].trim();
+        if (!isValidServerName(serverName)) {
+            sender.sendMessage(commandInvalidServerMessage);
+            return true;
+        }
+
+        String playerName = args[1].trim();
+        Player targetPlayer = Bukkit.getPlayerExact(playerName);
+        if (targetPlayer == null || !targetPlayer.isOnline()) {
+            sender.sendMessage(commandPlayerNotFoundMessage);
+            return true;
+        }
+
+        connectPlayerToServer(targetPlayer, serverName);
+        return true;
+    }
+
+    // Dopuszczamy znaki najczesciej spotykane w nazwach backendow/proxy.
+    private boolean isValidServerName(String serverName) {
+        return !serverName.isEmpty() && serverName.length() <= 64 && serverName.matches("^[A-Za-z0-9._-]+$");
     }
 
     private String color(String text) {
