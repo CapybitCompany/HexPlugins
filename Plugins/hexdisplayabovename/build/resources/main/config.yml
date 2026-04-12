@@ -1,0 +1,20 @@
+# Co ile ticków odświeżać pozycję napisów
+update-interval-ticks: 2
+
+# Dodatkowa wysokość napisu nad głową gracza
+# Zwiększ, jeśli tekst jest za nisko. Zmniejsz, jeśli za wysoko.
+y-offset: 1.80
+
+# Czy pokazywać napis również nad graczem, który sam go posiada
+show-to-self: false
+
+# Czy plugin ma działać w świecie tylko z whitelisty poniżej
+use-world-whitelist: false
+
+world-whitelist:
+  - world
+
+messages:
+  prefix: "&0&l[&4&lHEX&0&l]&7"
+  reloaded: "&aPrzeładowano plugin hexdisplayabovename."
+  no-permission: "&cNie masz uprawnień."
