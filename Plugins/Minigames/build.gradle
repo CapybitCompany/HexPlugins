@@ -1,0 +1,21 @@
+plugins {
+    id 'java'
+}
+
+group = 'hex.minigames'
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+    maven { url = 'https://repo.papermc.io/repository/maven-public/' }
+}
+
+dependencies {
+    compileOnly project(':plugins:HexCore')
+    compileOnly 'io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT'
+}
+
+tasks.jar {
+    archiveBaseName = 'Minigames'
+}
+

@@ -12,6 +12,8 @@
             <option value="$PROJECT_DIR$/plugins" />
             <option value="$PROJECT_DIR$/plugins/DbExample" />
             <option value="$PROJECT_DIR$/plugins/HexCore" />
+            <option value="$PROJECT_DIR$/plugins/HexPortals" />
+            <option value="$PROJECT_DIR$/plugins/Minigames" />
             <option value="$PROJECT_DIR$/plugins/UiExample" />
           </set>
         </option>

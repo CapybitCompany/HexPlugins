@@ -1,0 +1,26 @@
+name: Minigames
+version: 1.0.0
+main: hex.minigames.MinigamesPlugin
+api-version: "1.21"
+author: Havix
+depend:
+  - HexCore
+
+commands:
+  join:
+    usage: /join <gameType>
+  leave:
+    usage: /leave
+  arena:
+    usage: /arena <list|debug> <gameType>
+    permission: minigames.arena
+  minigames:
+    usage: /minigames reload
+    permission: minigames.admin
+
+permissions:
+  minigames.arena:
+    default: op
+  minigames.admin:
+    default: op
+

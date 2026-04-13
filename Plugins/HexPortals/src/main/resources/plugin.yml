@@ -1,0 +1,11 @@
+name: HexPortalConnect
+version: '1.0'
+main: pl.minecrafthex.hexportalconnect.HexPortalConnect
+api-version: '1.21'
+author: HEX
+description: Portal z lobby na backend event przez Velocity
+
+commands:
+  hexconnect:
+    description: Laczy wskazanego gracza z wybranym serwerem backend.
+    usage: /hexconnect <nazwaserwera> <gracz>
