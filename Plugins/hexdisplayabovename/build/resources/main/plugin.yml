@@ -1,0 +1,17 @@
+name: hexdisplayabovename
+version: 1.0
+main: pl.minecrafthex.hexdisplayabovename.HexDisplayAboveNamePlugin
+api-version: '1.21'
+authors: [ Quezo ]
+description: Prosty plugin dodający tekst nad głową gracza na podstawie users.yml
+
+commands:
+  hexdisplayabovename:
+    description: Główna komenda pluginu
+    usage: /<command> reload
+    aliases: [ hdan ]
+
+permissions:
+  hexdisplayabovename.reload:
+    description: Pozwala przeładować plugin
+    default: op
