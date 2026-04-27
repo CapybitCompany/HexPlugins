@@ -1,0 +1,32 @@
+prefix: "<gray>[</gray><gold><bold>HEX</bold></gold><gray>]</gray> "
+
+templates:
+  # Actionbar w poczekalni (czeka na min)
+  lobby.actionbar.waiting: "<gold><bold><game></bold></gold> <gray>|</gray> <white>Graczy:</white> <yellow><current></yellow><gray>/</gray><yellow><max></yellow> <gray>|</gray> <white>Minimum:</white> <red><min></red>"
+
+  # Actionbar podczas odliczania (opcjonalnie inny)
+  lobby.actionbar.countdown: "<gold><bold><game></bold></gold> <gray>|</gray> <white>Start za:</white> <yellow><seconds>s</yellow> <gray>|</gray> <white>Graczy:</white> <yellow><current></yellow><gray>/</gray><yellow><max></yellow>"
+
+  # Subtitle do Title podczas countdown
+  lobby.countdown.subtitle: "<yellow><bold>Start za <seconds>...</bold></yellow>"
+
+  # Wiadomości ogólne
+  core.reload.ok: "<green>Przeładowano konfigurację: <white><id></white></green>"
+  core.reload.fail: "<red>Błąd przeładowania: <white><id></white></red>"
+
+  # Szablony pod jedną komendę i różną liczbę argumentów
+  core.echo: "<aqua><text></aqua>"
+  core.minigame.score: "<gold><player></gold><gray>: </gray><yellow><score></yellow><gray>/</gray><yellow><max></yellow>"
+
+  test.message: "<green>To jest testowa wiadomość!"
+  test.action: "<gold><bold>Actionbar działa!</bold></gold>"
+  test.subtitle: "<yellow><bold>Subtitle działa!</bold></yellow>"
+
+templateArgs:
+  lobby.actionbar.waiting: ["game", "current", "max", "min"]
+  lobby.actionbar.countdown: ["game", "seconds", "current", "max"]
+  lobby.countdown.subtitle: ["seconds"]
+  core.reload.ok: ["id"]
+  core.reload.fail: ["id"]
+  core.echo: ["text"]
+  core.minigame.score: ["player", "score", "max"]

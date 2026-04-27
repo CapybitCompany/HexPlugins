@@ -1,0 +1,14 @@
+regions:
+  hexcore:spawn:
+    world: world
+    min: "0,64,0"
+    max: "10,80,10"
+    meta:
+      type: spawn
+  skywars:lobby_sw1:
+    world: world
+    min: "100,60,200"
+    max: "140,90,240"
+    meta:
+      type: lobby
+      game: skywars

@@ -1,0 +1,29 @@
+# Dodaj te klucze do HexCore ui.yml (przyklad)
+templates:
+  lobby.join.ok: "<green>Dolaczono do <white><game></white> <gray>(<current>/<max>)</gray> mapa: <yellow><map></yellow></green>"
+  lobby.join.full: "<red>Brak wolnych miejsc w trybie <white><game></white>.</red>"
+  lobby.join.unknownType: "<red>Nieznany tryb gry: <white><game></white></red>"
+  lobby.join.already: "<yellow>Juz jestes w instancji <white><game></white>.</yellow>"
+  lobby.leave.ok: "<green>Opusciles instancje <white><game></white>.</green>"
+  lobby.leave.none: "<yellow>Nie jestes w zadnej instancji.</yellow>"
+  lobby.countdown.subtitle: "<yellow><bold>Start za <seconds>...</bold></yellow>"
+  lobby.actionbar.waiting: "<gold><game></gold> <gray>|</gray> <white>Graczy:</white> <yellow><current>/<max></yellow> <gray>|</gray> <white>Min:</white> <red><min></red> <gray>|</gray> <white>Mapa:</white> <aqua><map></aqua>"
+  game.skywars.start: "<gold><bold>SkyWars start!</bold></gold>"
+  game.skywars.end: "<gray>Koniec rundy SkyWars.</gray>"
+  game.spleef.start: "<aqua><bold>Spleef start!</bold></aqua>"
+  game.spleef.end: "<gray>Koniec rundy Spleef.</gray>"
+
+templateArgs:
+  lobby.join.ok: ["game", "current", "max", "map"]
+  lobby.join.full: ["game"]
+  lobby.join.unknownType: ["game"]
+  lobby.join.already: ["game"]
+  lobby.leave.ok: ["game"]
+  lobby.leave.none: []
+  lobby.countdown.subtitle: ["seconds"]
+  lobby.actionbar.waiting: ["game", "current", "max", "min", "map"]
+  game.skywars.start: []
+  game.skywars.end: []
+  game.spleef.start: []
+  game.spleef.end: []
+

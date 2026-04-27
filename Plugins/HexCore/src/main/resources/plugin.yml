@@ -3,8 +3,30 @@ version: 0.0.1
 main: hex.core.HexCore
 api-version: "1.21"
 author: Havix
+softdepend:
+  - PlaceholderAPI
 
 commands:
   hexcore:
     description: Test command
     usage: /hexcore
+  hexdebugdb:
+    description: Debug DB read for coins and ranking points
+    usage: /hexdebugdb
+    permission: hexcore.debugdb
+  region:
+    description: Manage regions (cuboids)
+    usage: /region
+    permission: hexcore.region
+  uitpl:
+    description: Send UI templates with positional arguments
+    usage: /uitpl <all|gracz> <template> [args...]
+    permission: hexcore.ui.send
+
+permissions:
+  hexcore.region:
+    default: op
+  hexcore.ui.send:
+    default: op
+  hexcore.debugdb:
+    default: op

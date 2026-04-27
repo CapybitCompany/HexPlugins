@@ -1,0 +1,19 @@
+plugins {
+    id 'java'
+}
+
+group = 'uiexample'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly project(":plugins:HexCore")
+    compileOnly "io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT"
+}
+
+tasks.jar {
+    archiveBaseName = 'UiExample'
+}

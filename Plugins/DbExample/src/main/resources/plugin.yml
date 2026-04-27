@@ -1,0 +1,17 @@
+name: CoinsPlugin
+version: 1.0.0
+main: hex.coins.CoinsPlugin
+api-version: "1.21"
+
+depend:
+  - HexCore
+
+commands:
+  coins:
+    usage: "/coins <get|add|set> ..."
+    description: Simple coins example using HexCore DB
+    permission: coins.admin
+
+permissions:
+  coins.admin:
+    default: op

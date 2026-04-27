@@ -1,0 +1,16 @@
+skywars:
+  minPlayers: 2
+  maxPlayers: 12
+  countdownSeconds: 20
+  maxInstances: 8
+  maps: ["sw01", "sw02"]
+  lobbySpawn: "sw01,0.5,70,0.5,0,0"
+
+spleef:
+  minPlayers: 2
+  maxPlayers: 16
+  countdownSeconds: 15
+  maxInstances: 6
+  maps: ["sp01", "sp02"]
+  lobbySpawn: "sp01,0.5,65,0.5,0,0"
+
