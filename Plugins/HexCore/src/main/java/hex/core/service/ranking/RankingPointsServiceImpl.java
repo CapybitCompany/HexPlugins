@@ -7,6 +7,12 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * @deprecated Legacy implementation kept for compatibility.
+ * Current runtime path uses {@link hex.core.service.ranking.RankingPointsService}
+ * exposed via {@link hex.core.api.HexApi#rankingPoints()}.
+ */
+@Deprecated(since = "1.0")
 public final class RankingPointsServiceImpl implements RankingPointsService {
 
     private final Map<UUID, RankingPointsRecord> cache = new ConcurrentHashMap<>();
@@ -30,4 +36,3 @@ public final class RankingPointsServiceImpl implements RankingPointsService {
         });
     }
 }
-

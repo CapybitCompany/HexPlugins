@@ -1,0 +1,136 @@
+# ============================================
+# WaterLevelFlood - Konfiguracja
+# Plugin do eventu Titanic - podnoszenie poziomu wody
+# ============================================
+
+# Nazwa świata, w którym działa flood
+world: "world"
+
+# Obszar zalewania (AABB - prostokąt 3D)
+# Woda będzie stawiana TYLKO wewnątrz tego obszaru
+region:
+  x1: -100
+  z1: -100
+  x2: 100
+  z2: 100
+  # Minimalny Y od którego zaczyna się zalewanie (dno)
+  y-min: 50
+  # Maksymalny Y do którego woda może sięgnąć (sufit)
+  y-max: 90
+
+# Poziom Y wody na starcie (przed rozpoczęciem eventu)
+# Wszystko poniżej tego poziomu zostanie wypełnione wodą natychmiast na /flood start
+start-water-level: 55
+
+# O ile bloków ma się podnieść woda w trakcie eventu
+# Końcowy poziom = start-water-level + rise-blocks
+rise-blocks: 20
+
+# Czas trwania podnoszenia wody w sekundach (7-10 minut zalecane)
+duration-seconds: 480
+
+# Ile blokow przetwarzac w jednym TIKU serwera podczas stawiania warstwy wody
+# Im wiecej, tym szybciej stawia warstwe, ale moze lagowac
+# Zalecane: 400-2000
+blocks-per-tick: 1000
+
+# Bloki, które woda może zastąpić (oprócz powietrza)
+# Drzwi, trawy itp. będą niszczone przez wodę
+replaceable-blocks:
+  - "AIR"
+  - "CAVE_AIR"
+  - "VOID_AIR"
+  - "TALL_GRASS"
+  - "SHORT_GRASS"
+  - "FERN"
+  - "LARGE_FERN"
+  - "DEAD_BUSH"
+  - "DANDELION"
+  - "POPPY"
+  - "BLUE_ORCHID"
+  - "ALLIUM"
+  - "AZURE_BLUET"
+  - "RED_TULIP"
+  - "ORANGE_TULIP"
+  - "WHITE_TULIP"
+  - "PINK_TULIP"
+  - "OXEYE_DAISY"
+  - "CORNFLOWER"
+  - "LILY_OF_THE_VALLEY"
+  - "SNOW"
+  - "VINE"
+  # Drzwi - wszystkie typy
+  - "OAK_DOOR"
+  - "SPRUCE_DOOR"
+  - "BIRCH_DOOR"
+  - "JUNGLE_DOOR"
+  - "ACACIA_DOOR"
+  - "DARK_OAK_DOOR"
+  - "MANGROVE_DOOR"
+  - "CHERRY_DOOR"
+  - "BAMBOO_DOOR"
+  - "CRIMSON_DOOR"
+  - "WARPED_DOOR"
+  - "IRON_DOOR"
+  - "COPPER_DOOR"
+  - "EXPOSED_COPPER_DOOR"
+  - "WEATHERED_COPPER_DOOR"
+  - "OXIDIZED_COPPER_DOOR"
+  - "WAXED_COPPER_DOOR"
+  - "WAXED_EXPOSED_COPPER_DOOR"
+  - "WAXED_WEATHERED_COPPER_DOOR"
+  - "WAXED_OXIDIZED_COPPER_DOOR"
+  # Trapdoory
+  - "OAK_TRAPDOOR"
+  - "SPRUCE_TRAPDOOR"
+  - "BIRCH_TRAPDOOR"
+  - "JUNGLE_TRAPDOOR"
+  - "ACACIA_TRAPDOOR"
+  - "DARK_OAK_TRAPDOOR"
+  - "MANGROVE_TRAPDOOR"
+  - "CHERRY_TRAPDOOR"
+  - "BAMBOO_TRAPDOOR"
+  - "CRIMSON_TRAPDOOR"
+  - "WARPED_TRAPDOOR"
+  - "IRON_TRAPDOOR"
+  - "COPPER_TRAPDOOR"
+  - "EXPOSED_COPPER_TRAPDOOR"
+  - "WEATHERED_COPPER_TRAPDOOR"
+  - "OXIDIZED_COPPER_TRAPDOOR"
+  # Furtki
+  - "OAK_FENCE_GATE"
+  - "SPRUCE_FENCE_GATE"
+  - "BIRCH_FENCE_GATE"
+  - "JUNGLE_FENCE_GATE"
+  - "ACACIA_FENCE_GATE"
+  - "DARK_OAK_FENCE_GATE"
+  - "MANGROVE_FENCE_GATE"
+  - "CHERRY_FENCE_GATE"
+  - "BAMBOO_FENCE_GATE"
+  - "CRIMSON_FENCE_GATE"
+  - "WARPED_FENCE_GATE"
+  # Szyby i okna
+  - "GLASS_PANE"
+  - "WHITE_STAINED_GLASS_PANE"
+  - "LIGHT_GRAY_STAINED_GLASS_PANE"
+  - "GRAY_STAINED_GLASS_PANE"
+  - "BLACK_STAINED_GLASS_PANE"
+  - "BROWN_STAINED_GLASS_PANE"
+  - "RED_STAINED_GLASS_PANE"
+  - "ORANGE_STAINED_GLASS_PANE"
+  - "YELLOW_STAINED_GLASS_PANE"
+  - "LIME_STAINED_GLASS_PANE"
+  - "GREEN_STAINED_GLASS_PANE"
+  - "CYAN_STAINED_GLASS_PANE"
+  - "LIGHT_BLUE_STAINED_GLASS_PANE"
+  - "BLUE_STAINED_GLASS_PANE"
+  - "PURPLE_STAINED_GLASS_PANE"
+  - "MAGENTA_STAINED_GLASS_PANE"
+  - "PINK_STAINED_GLASS_PANE"
+
+# Wiadomosci
+messages:
+  flood-started: "&c&l[TITANIC] &eWoda zaczyna sie podnosic! Uciekajcie na gore!"
+  flood-stopped: "&a&l[TITANIC] &eWoda przestala sie podnosic."
+  flood-reset: "&a&l[TITANIC] &eWoda zostala zresetowana."
+  flood-status: "&6&l[TITANIC] &eStatus: &f%status% &7| Poziom: &b%level% &7| Docelowy: &b%target%"

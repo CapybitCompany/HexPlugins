@@ -1,0 +1,72 @@
+# ============================================
+# WaterDrawn - konfiguracja mechaniki toniecia
+# ============================================
+
+enabled: true
+
+# Jesli true, mechanika dziala we wszystkich swiatach.
+# Jesli false, dziala tylko w worlds-list.
+all-worlds: true
+worlds-list:
+  - "world"
+
+# Tryb toniecia:
+# - regions: toniecie tylko w zdefiniowanych regionach
+# - global: toniecie na calym swiecie (w dozwolonych swiatach)
+drown-mode: "regions"
+
+# Ponizej tej wysokosci Y do toniecia wymagane jest zanurzenie glowy.
+# Powyzej tej wysokosci wystarcza sam dotyk (jak wczesniej).
+head-submerge-below-y: 63
+
+# Aktualny poziom wody toniecia na mapie.
+# Jesli poziom wody osiagnie pozycje gracza (playerY <= drown-water-level-y),
+# to nawet ponizej head-submerge-below-y wystarcza sam dotyk.
+drown-water-level-y: 320
+
+# Czas poczatkowego ostrzezenia (sekundy). Po tym czasie startuje odliczanie.
+immediate-warning-seconds: 1.5
+
+# Lista regionow, w ktorych toniecie jest aktywne w trybie "regions".
+regions:
+  titanic:
+    world: "world"
+    x1: -150
+    z1: -150
+    x2: 150
+    z2: 150
+    y-min: 1
+    y-max: 320
+
+# Regiony wykluczone z toniecia do czasu osiagniecia odpowiedniego poziomu wody.
+# Przyklad: basen na statku nie jest grozny, dopoki woda toniecia nie osiagnie progu.
+excluded-regions:
+  ship_pool:
+    world: "world"
+    x1: -20
+    z1: -10
+    x2: -5
+    z2: 8
+    y-min: 58
+    y-max: 70
+    unlock-at-water-level-y: 66
+
+# Po ilu sekundach przebywania w wodzie gracz ma zostac zabity.
+drown-seconds: 5
+
+# Co ile tickow aktualizowac licznik (5 = 0.25s)
+check-interval-ticks: 5
+
+# Obrazenia po przekroczeniu limitu. 999 = natychmiastowa smierc
+drown-damage: 999.0
+
+messages:
+  warning-immediate-actionbar: "&c&lNatychmiast wyjdz z wody!"
+  warning-countdown-actionbar: "&cTopisz sie! &f%seconds%s &cdo utoniecia"
+  death-message: "&c%player% utonal."
+
+sounds:
+  countdown-start:
+    type: "BLOCK_NOTE_BLOCK_PLING"
+    volume: 1.0
+    pitch: 1.2

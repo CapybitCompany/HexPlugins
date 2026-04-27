@@ -101,13 +101,23 @@ public final class RankingPointsRepository {
     }
 
     private int findRankPosition(String pointsColumn, UUID uuid) {
-        // MySQL/MariaDB style. On SQLite this may need adjustment.
-        String sql = "SELECT 1 + COUNT(*) AS pos FROM " + tableName + " WHERE " + pointsColumn + " > (SELECT " + pointsColumn + " FROM " + tableName + " WHERE uuid = ?)";
+        if (uuid == null) {
+            return -1;
+        }
+
+        // Return -1 when player is not present in ranking_points.
+        // Otherwise compute 1-based rank by counting players with strictly higher score.
+        String sql = "SELECT CASE " +
+                "WHEN EXISTS (SELECT 1 FROM " + tableName + " WHERE uuid = ?) " +
+                "THEN 1 + (SELECT COUNT(*) FROM " + tableName + " WHERE " + pointsColumn +
+                " > (SELECT " + pointsColumn + " FROM " + tableName + " WHERE uuid = ?)) " +
+                "ELSE -1 END AS pos";
 
         try (var connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setString(1, uuid.toString());
+            statement.setString(2, uuid.toString());
 
             try (ResultSet rs = statement.executeQuery()) {
                 if (!rs.next()) {
@@ -116,8 +126,6 @@ public final class RankingPointsRepository {
                 return rs.getInt("pos");
             }
         } catch (SQLException exception) {
-            // If player isn't present in the table, the subquery returns NULL and the count query may behave differently.
-            // We'll treat errors/missing rows as not ranked.
             return -1;
         }
     }

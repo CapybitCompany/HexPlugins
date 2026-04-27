@@ -1,0 +1,9 @@
+settings:
+  strike-lightning-on-death: true
+  respawn-gamemode-for-eliminated: "SPECTATOR"
+  resurrect-gamemode: "SURVIVAL"
+
+# Teksty sa teraz w HexCore (registerDefaults, namespace: elimination).
+# Admin nadpisuje je w ui.yml > overrides, np.:
+#   overrides:
+#     elimination.kill.announce: "<red>Gracz <victim> odpadl!</red>"

@@ -1,0 +1,43 @@
+world: "world"
+
+# Effect area.
+area:
+  x1: -30
+  z1: -30
+  x2: 30
+  z2: 30
+  y-min: 55
+  y-max: 80
+
+# How long effect sequence runs after /areaeffects start.
+duration-seconds: 25
+step-ticks: 2
+
+# Visual intensity.
+particles:
+  type: "EXPLOSION"
+  points-per-step: 6
+  count-per-point: 3
+  offset-x: 0.4
+  offset-y: 0.4
+  offset-z: 0.4
+  speed: 0.02
+
+# Visual explosion only (no damage, no block break).
+explosion:
+  enabled: true
+  chance-per-point: 0.15
+  power: 0.0
+
+# Sound played around random points.
+sound:
+  enabled: true
+  type: "ENTITY_GENERIC_EXPLODE"
+  volume: 1.3
+  pitch: 0.8
+
+messages:
+  started: "&6[FX] &fSekwencja efektow wystartowala."
+  stopped: "&6[FX] &fSekwencja efektow zatrzymana."
+  finished: "&6[FX] &fSekwencja efektow zakonczona."
+

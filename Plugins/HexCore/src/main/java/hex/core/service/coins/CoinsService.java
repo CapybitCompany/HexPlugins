@@ -4,6 +4,7 @@ import hex.core.database.repository.CoinsRepository;
 
 import java.time.Clock;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -53,6 +54,37 @@ public final class CoinsService {
 
         cache.put(uuid, new CacheEntry(coins, now + ttlMillis));
         return coins;
+    }
+
+    /**
+     * Forces database fetch and overwrites cache entry immediately.
+     * Useful after a purchase to avoid using stale cached value for up to TTL.
+     *
+     * TODO: later we can add async refresh + single-flight per UUID.
+     */
+    public int refresh(UUID uuid) {
+        if (uuid == null) return 0;
+        if (repository == null) return 0;
+
+        long now = clock.millis();
+        int coins;
+        try {
+            coins = repository.findBalanceByUuid(uuid).orElse(0);
+        } catch (Exception ex) {
+            // TODO log rate-limit; optionally return stale value if present
+            coins = 0;
+        }
+
+        cache.put(uuid, new CacheEntry(coins, now + ttlMillis));
+        return coins;
+    }
+
+    /**
+     * Resolves UUID by player nickname using coins repository data.
+     */
+    public Optional<UUID> findUuidByPlayerName(String playerName) {
+        if (repository == null) return Optional.empty();
+        return repository.findUuidByPlayerName(playerName);
     }
 
     public void invalidate(UUID uuid) {

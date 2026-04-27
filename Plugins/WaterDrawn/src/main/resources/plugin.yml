@@ -1,0 +1,17 @@
+name: WaterDrawn
+version: '1.0.0'
+main: hex.drawn.WaterDrawnPlugin
+api-version: '1.21'
+description: Drowning mechanic plugin (separate from flood)
+authors: [HexTeam]
+softdepend:
+  - HexCore
+commands:
+  waterdrawn:
+    description: Manage WaterDrawn plugin
+    usage: /waterdrawn <reload|status|mode>
+    permission: waterdrawn.admin
+permissions:
+  waterdrawn.admin:
+    description: Allows managing WaterDrawn
+    default: op

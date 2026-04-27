@@ -1,0 +1,26 @@
+stats:
+  definitions:
+    - id: kills
+      display-name: Zabojstwa
+      table: ranking_kills
+      uuid-column: uuid
+      nickname-column: player
+      value-column: kills
+      order: DESC
+
+    - id: deaths
+      display-name: Smierci
+      table: ranking_deaths
+      uuid-column: uuid
+      nickname-column: player
+      value-column: deaths
+      order: DESC
+
+    - id: wins
+      display-name: Wygrane
+      table: ranking_wins
+      uuid-column: uuid
+      nickname-column: player
+      value-column: wins
+      order: DESC
+

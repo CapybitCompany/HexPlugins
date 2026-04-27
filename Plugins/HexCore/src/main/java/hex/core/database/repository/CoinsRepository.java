@@ -42,5 +42,39 @@ public final class CoinsRepository {
             throw new IllegalStateException("Failed to load coins balance for uuid=" + uuid, exception);
         }
     }
-}
 
+    /**
+     * Resolves player's UUID by nickname from xconomy table.
+     */
+    public Optional<UUID> findUuidByPlayerName(String playerName) {
+        if (playerName == null || playerName.isBlank()) {
+            return Optional.empty();
+        }
+
+        String sql = "SELECT UID FROM " + tableName + " WHERE LOWER(player) = LOWER(?) LIMIT 1";
+
+        try (var connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, playerName);
+
+            try (ResultSet rs = statement.executeQuery()) {
+                if (!rs.next()) {
+                    return Optional.empty();
+                }
+
+                String raw = rs.getString("UID");
+                if (raw == null || raw.isBlank()) {
+                    return Optional.empty();
+                }
+
+                try {
+                    return Optional.of(UUID.fromString(raw));
+                } catch (IllegalArgumentException ignored) {
+                    return Optional.empty();
+                }
+            }
+        } catch (SQLException exception) {
+            throw new IllegalStateException("Failed to resolve uuid for player=" + playerName, exception);
+        }
+    }
+}

@@ -1,0 +1,18 @@
+name: IcebergEvent
+version: '1.0.0'
+main: hex.iceberg.IcebergPlugin
+api-version: '1.21'
+description: Generates and moves an iceberg between two points
+authors: [HexTeam]
+softdepend:
+  - HexCore
+commands:
+  iceberg:
+    description: Manage iceberg event
+    usage: /iceberg <start|stop|status|reload>
+    permission: iceberg.admin
+permissions:
+  iceberg.admin:
+    description: Allows managing IcebergEvent
+    default: op
+

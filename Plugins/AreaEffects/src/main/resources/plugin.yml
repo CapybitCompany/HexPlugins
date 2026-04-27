@@ -1,0 +1,16 @@
+name: AreaEffects
+version: '1.0.0'
+main: hex.areaeffects.AreaEffectsPlugin
+api-version: '1.21'
+description: Visual and sound effects runner for collision scenes
+authors: [HexTeam]
+commands:
+  areaeffects:
+    description: Manage area effects
+    usage: /areaeffects <start|stop|status|reload>
+    permission: areaeffects.admin
+permissions:
+  areaeffects.admin:
+    description: Allows managing AreaEffects
+    default: op
+

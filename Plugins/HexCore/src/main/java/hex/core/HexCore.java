@@ -4,10 +4,12 @@ import hex.core.api.HexApi;
 import hex.core.api.config.ConfigSpec;
 import hex.core.api.config.ReloadPolicy;
 import hex.core.api.db.DatabaseService;
+import hex.core.api.messaging.HexMessageBus;
 import hex.core.command.HexCoreVersion;
 import hex.core.command.UiTemplateCommand;
 import hex.core.command.region.RegionCommand;
 import hex.core.command.HexDebugDbCommand;
+import hex.core.command.CoinsCacheCommand;
 import hex.core.database.repository.CoinsRepository;
 import hex.core.database.repository.RankingPointsRepository;
 import hex.core.placeholder.HexPlaceholderExpansion;
@@ -34,6 +36,8 @@ import hex.core.service.region.RegionServiceImpl;
 import hex.core.service.ui.UiConfig;
 import hex.core.service.ui.UiServiceImpl;
 import hex.core.service.ui.UiValidator;
+import hex.core.service.cache.PlayerStatsCacheService;
+import hex.core.service.messaging.HexMessageBusImpl;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -45,6 +49,10 @@ public final class HexCore extends JavaPlugin {
     private HexApi api; // provider rejestrowany w ServicesManager
     private DatabaseService database;
     private HexPlaceholderExpansion placeholderExpansion;
+
+    // Shared ranking services used by PlaceholderAPI + cache invalidation.
+    private RankingTopService rankingTopService;
+    private RankingPositionService rankingPositionService;
 
     @Override
     public void onEnable() {
@@ -110,8 +118,25 @@ public final class HexCore extends JavaPlugin {
         RankingPointsService rankingPointsService = new RankingPointsService(rankingPointsRepository);
         CoinsService coinsService = new CoinsService(coinsRepository);
 
-        // 2) API provider
-        this.api = new HexApiImpl(configs, flags, ui, regionService, database, rankingPointsService, coinsService);
+        // Ranking extras used by PlaceholderAPI (and exposed for cache invalidation)
+        this.rankingTopService = new RankingTopService(rankingPointsRepository);
+        this.rankingPositionService = new RankingPositionService(rankingPointsRepository);
+
+        // 2) API provider (stable core constructor)
+        HexApiImpl apiImpl = new HexApiImpl(configs, flags, ui, regionService, database,
+                rankingPointsService, coinsService);
+
+        // Generic cross-plugin messaging transport.
+        apiImpl.registerService(HexMessageBus.class, new HexMessageBusImpl());
+
+        // Optional extensions registered transparently for consumers via api.service(...)
+        apiImpl.registerService(RankingPositionService.class, this.rankingPositionService);
+        apiImpl.registerService(RankingTopService.class, this.rankingTopService);
+        apiImpl.registerService(PlayerStatsCacheService.class,
+                new PlayerStatsCacheService(coinsService, rankingPointsService,
+                        this.rankingPositionService, this.rankingTopService));
+
+        this.api = apiImpl;
 
         // 3) Register in ServicesManager
         Bukkit.getServicesManager().register(HexApi.class, api, this, ServicePriority.Normal);
@@ -131,6 +156,12 @@ public final class HexCore extends JavaPlugin {
         UiTemplateCommand uiCmd = new UiTemplateCommand(this.api);
         getCommand("uitpl").setExecutor(uiCmd);
         getCommand("uitpl").setTabCompleter(uiCmd);
+
+        if (getCommand("hexcoinscache") != null) {
+            CoinsCacheCommand coinsCacheCommand = new CoinsCacheCommand(this.api);
+            getCommand("hexcoinscache").setExecutor(coinsCacheCommand);
+            getCommand("hexcoinscache").setTabCompleter(coinsCacheCommand);
+        }
 
         registerPlaceholderExpansion();
 
@@ -167,19 +198,16 @@ public final class HexCore extends JavaPlugin {
             registry.register(new SeasonPointsPlaceholderProvider());
             registry.register(new CoinsPlaceholderProvider());
 
-            if (database instanceof HikariDatabaseService hikariDb) {
-                var repo = new RankingPointsRepository(hikariDb.dataSource(), new DbConfigLoader().load(new java.io.File(getDataFolder(), "db.yml")).tablePrefix);
-
-                // TOP 5
-                RankingTopService topService = new RankingTopService(repo);
-                TopRankingPlaceholderProvider topProvider = new TopRankingPlaceholderProvider(topService);
+            // Placeholders that require DB-backed services.
+            if (database instanceof HikariDatabaseService) {
+                // TOP 5 (prefix providers)
+                TopRankingPlaceholderProvider topProvider = new TopRankingPlaceholderProvider(this.rankingTopService);
                 registry.registerPrefix("top_global_", topProvider);
                 registry.registerPrefix("top_season_", topProvider);
 
                 // Player rank position
-                RankingPositionService rankPos = new RankingPositionService(repo);
-                registry.register(new RankPositionPlaceholderProvider("rank_global", rankPos));
-                registry.register(new RankPositionPlaceholderProvider("rank_season", rankPos));
+                registry.register(new RankPositionPlaceholderProvider("rank_global", this.rankingPositionService));
+                registry.register(new RankPositionPlaceholderProvider("rank_season", this.rankingPositionService));
             }
 
             this.placeholderExpansion = new HexPlaceholderExpansion(this, api, registry);

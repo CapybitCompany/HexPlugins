@@ -9,12 +9,18 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/Plugins/AreaEffects" />
+            <option value="$PROJECT_DIR$/Plugins/DbExample" />
+            <option value="$PROJECT_DIR$/Plugins/HexCore" />
+            <option value="$PROJECT_DIR$/Plugins/HexElimination" />
+            <option value="$PROJECT_DIR$/Plugins/HexPortals" />
+            <option value="$PROJECT_DIR$/Plugins/IcebergEvent" />
+            <option value="$PROJECT_DIR$/Plugins/Minigames" />
+            <option value="$PROJECT_DIR$/Plugins/UiExample" />
+            <option value="$PROJECT_DIR$/Plugins/WaterDrawn" />
+            <option value="$PROJECT_DIR$/Plugins/WaterLevelFlood" />
+            <option value="$PROJECT_DIR$/StatsApi" />
             <option value="$PROJECT_DIR$/plugins" />
-            <option value="$PROJECT_DIR$/plugins/DbExample" />
-            <option value="$PROJECT_DIR$/plugins/HexCore" />
-            <option value="$PROJECT_DIR$/plugins/HexPortals" />
-            <option value="$PROJECT_DIR$/plugins/Minigames" />
-            <option value="$PROJECT_DIR$/plugins/UiExample" />
           </set>
         </option>
       </GradleProjectSettings>

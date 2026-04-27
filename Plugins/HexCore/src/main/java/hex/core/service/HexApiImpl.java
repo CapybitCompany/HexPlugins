@@ -7,7 +7,15 @@ import hex.core.api.flags.FeatureFlagService;
 import hex.core.api.region.RegionService;
 import hex.core.api.ui.UiService;
 import hex.core.service.coins.CoinsService;
+import hex.core.service.cache.PlayerStatsCacheService;
 import hex.core.service.ranking.RankingPointsService;
+import hex.core.service.ranking.RankingPositionService;
+import hex.core.service.ranking.RankingTopService;
+
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class HexApiImpl implements HexApi {
 
@@ -18,6 +26,7 @@ public final class HexApiImpl implements HexApi {
     private final DatabaseService db;
     private final RankingPointsService rankingPoints;
     private final CoinsService coins;
+    private final Map<Class<?>, Object> services = new ConcurrentHashMap<>();
 
     public HexApiImpl(ConfigService configs,
                       FeatureFlagService flags,
@@ -33,6 +42,58 @@ public final class HexApiImpl implements HexApi {
         this.db = db;
         this.rankingPoints = rankingPoints;
         this.coins = coins;
+
+        // Register core services for generic lookup.
+        registerService(ConfigService.class, configs);
+        registerService(FeatureFlagService.class, flags);
+        registerService(UiService.class, ui);
+        registerService(RegionService.class, regions);
+        registerService(DatabaseService.class, db);
+        registerService(RankingPointsService.class, rankingPoints);
+        registerService(CoinsService.class, coins);
+
+        // Default cache facade (ranking top/position are optional extensions).
+        registerService(PlayerStatsCacheService.class,
+                new PlayerStatsCacheService(coins, rankingPoints, null, null));
+    }
+
+    /**
+     * Convenience overload kept for current HexCore wiring.
+     * Internally still uses the stable 7-argument core constructor.
+     */
+    public HexApiImpl(ConfigService configs,
+                      FeatureFlagService flags,
+                      UiService ui,
+                      RegionService regions,
+                      DatabaseService db,
+                      RankingPointsService rankingPoints,
+                      CoinsService coins,
+                      RankingPositionService rankingPosition,
+                      RankingTopService rankingTop) {
+        this(configs, flags, ui, regions, db, rankingPoints, coins);
+        registerService(RankingPositionService.class, rankingPosition);
+        registerService(RankingTopService.class, rankingTop);
+        registerService(PlayerStatsCacheService.class,
+                new PlayerStatsCacheService(coins, rankingPoints, rankingPosition, rankingTop));
+    }
+
+    public <T> HexApiImpl registerService(Class<T> type, T service) {
+        Objects.requireNonNull(type, "type");
+        Objects.requireNonNull(service, "service");
+        services.put(type, service);
+        return this;
+    }
+
+    @Override
+    public <T> Optional<T> service(Class<T> type) {
+        if (type == null) {
+            return Optional.empty();
+        }
+        Object value = services.get(type);
+        if (value == null) {
+            return Optional.empty();
+        }
+        return Optional.of(type.cast(value));
     }
 
     @Override public ConfigService configs() { return configs; }
@@ -42,4 +103,8 @@ public final class HexApiImpl implements HexApi {
     @Override public DatabaseService db() { return db; }
     @Override public RankingPointsService rankingPoints() { return rankingPoints; }
     @Override public CoinsService coins() { return coins; }
+    @Override public PlayerStatsCacheService statsCache() {
+        return service(PlayerStatsCacheService.class)
+                .orElseGet(() -> new PlayerStatsCacheService(coins, rankingPoints, null, null));
+    }
 }

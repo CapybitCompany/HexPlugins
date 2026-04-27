@@ -1,0 +1,18 @@
+server:
+  port: 8081
+
+spring:
+  config:
+    import: classpath:stats.yml
+  datasource:
+    url: jdbc:mysql://localhost:3306/hex_server?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: hex_api
+    password: ${DB_PASSWORD:change_me}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+

@@ -1,5 +1,21 @@
 prefix: "<gray>[</gray><gold><bold>HEX</bold></gold><gray>]</gray> "
 
+# Optional per-namespace chat prefixes, e.g. elimination/drawn/iceberg.
+prefixes: {}
+
+# Admin overrides that win over runtime plugin defaults.
+overrides: {}
+
+# Optional composed actions for api.ui().sendPreset(...)
+presets:
+  core.reload.ok:
+    chat: "core.reload.ok"
+    chatBroadcast: false
+    sound: "ENTITY_EXPERIENCE_ORB_PICKUP"
+    soundBroadcast: false
+    volume: 1.0
+    pitch: 1.0
+
 templates:
   # Actionbar w poczekalni (czeka na min)
   lobby.actionbar.waiting: "<gold><bold><game></bold></gold> <gray>|</gray> <white>Graczy:</white> <yellow><current></yellow><gray>/</gray><yellow><max></yellow> <gray>|</gray> <white>Minimum:</white> <red><min></red>"

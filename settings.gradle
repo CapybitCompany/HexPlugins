@@ -5,3 +5,22 @@ include 'plugins:UiExample'
 include 'plugins:DbExample'
 include 'plugins:Minigames'
 include 'plugins:HexPortals'
+include 'plugins:WaterLevelFlood'
+include 'plugins:WaterDrawn'
+include 'plugins:IcebergEvent'
+include 'plugins:AreaEffects'
+include 'plugins:HexElimination'
+include 'statsapi'
+
+// Physical folder is 'Plugins/...' (capital P), keep logical Gradle path consistent.
+project(':plugins:HexCore').projectDir = file('Plugins/HexCore')
+project(':plugins:UiExample').projectDir = file('Plugins/UiExample')
+project(':plugins:DbExample').projectDir = file('Plugins/DbExample')
+project(':plugins:Minigames').projectDir = file('Plugins/Minigames')
+project(':plugins:HexPortals').projectDir = file('Plugins/HexPortals')
+project(':plugins:WaterLevelFlood').projectDir = file('Plugins/WaterLevelFlood')
+project(':plugins:WaterDrawn').projectDir = file('Plugins/WaterDrawn')
+project(':plugins:IcebergEvent').projectDir = file('Plugins/IcebergEvent')
+project(':plugins:AreaEffects').projectDir = file('Plugins/AreaEffects')
+project(':plugins:HexElimination').projectDir = file('Plugins/HexElimination')
+project(':statsapi').projectDir = file('StatsApi')

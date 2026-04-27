@@ -1,0 +1,53 @@
+world: "world"
+
+# Start and target centers of the iceberg movement.
+start:
+  x: -120
+  y: 64
+  z: -120
+target:
+  x: 120
+  y: 64
+  z: 120
+
+# Duration of movement and disappearance delay.
+movement-duration-seconds: 180
+movement-step-ticks: 4
+remove-after-arrival-seconds: 15
+
+# Simple ellipsoid iceberg shape.
+shape:
+  radius-x: 12
+  radius-y: 5
+  radius-z: 10
+
+# Spike - one random tall peak on the iceberg surface.
+# height-multiplier: how many times taller than radiusY (2.0-3.0 recommended)
+# radius: width of the spike column in blocks
+spike:
+  enabled: true
+  height-multiplier: 2.5
+  radius: 2
+
+# Block palette (from center to outside layers).
+materials:
+  core: "PACKED_ICE"
+  shell: "BLUE_ICE"
+  top: "SNOW_BLOCK"
+
+# Visual ice burst effect when iceberg arrives at target.
+# Spawns FallingBlock entities flying upward like an explosion.
+iceburst:
+  enabled: true
+  block-count: 100
+  min-velocity-y: 0.5
+  max-velocity-y: 1.2
+  spread-xz: 0.4
+  remove-after-ticks: 90
+
+messages:
+  started: "&b[Iceberg] &fGora lodowa zaczela ruch."
+  stopped: "&b[Iceberg] &fRuch zatrzymany."
+  arrived: "&b[Iceberg] &fGora lodowa dotarla do celu!"
+  removed: "&b[Iceberg] &fGora lodowa zniknela."
+

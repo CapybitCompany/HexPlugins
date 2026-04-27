@@ -22,6 +22,10 @@ commands:
     description: Send UI templates with positional arguments
     usage: /uitpl <all|gracz> <template> [args...]
     permission: hexcore.ui.send
+  hexcoinscache:
+    description: Invalidate/refresh coins cache by player name
+    usage: /taw komend przy kupowaniu  <invalidate|refresh> <playerName>
+    permission: hexcore.cache.coins
 
 permissions:
   hexcore.region:
@@ -29,4 +33,6 @@ permissions:
   hexcore.ui.send:
     default: op
   hexcore.debugdb:
+    default: op
+  hexcore.cache.coins:
     default: op

@@ -1,0 +1,18 @@
+name: HexElimination
+version: '1.0.0'
+main: hex.elimination.HexEliminationPlugin
+api-version: '1.21'
+description: Elimination system with spectator mode and admin resurrection
+authors: [HexTeam]
+depend:
+  - HexCore
+commands:
+  resurect:
+    description: Resurrect eliminated player
+    usage: /resurect <nick_gracza>
+    permission: hexelimination.admin
+permissions:
+  hexelimination.admin:
+    description: Allows using elimination admin commands
+    default: op
+

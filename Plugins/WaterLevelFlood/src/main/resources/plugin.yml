@@ -1,0 +1,17 @@
+name: WaterLevelFlood
+version: '1.0.0'
+main: hex.flood.WaterLevelFloodPlugin
+api-version: '1.21'
+description: Event plugin - rising water level (Titanic event)
+authors: [HexTeam]
+softdepend:
+  - HexCore
+commands:
+  flood:
+    description: Manage the flood event
+    usage: /flood <start|stop|reset|status|reload>
+    permission: flood.admin
+permissions:
+  flood.admin:
+    description: Allows managing the flood event
+    default: op
