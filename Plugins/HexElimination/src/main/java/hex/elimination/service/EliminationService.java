@@ -17,6 +17,7 @@ public class EliminationService {
 
     private final JavaPlugin plugin;
     private final Set<UUID> eliminated = new HashSet<>();
+    private boolean active = false;
 
     private final File storageFile;
     private YamlConfiguration storage;
@@ -27,13 +28,51 @@ public class EliminationService {
         load();
     }
 
+    public boolean isActive() {
+        return active;
+    }
+
+    public void enable() {
+        this.active = true;
+    }
+
+    public void disable() {
+        this.active = false;
+    }
+
     public boolean isEliminated(UUID uuid) {
         return eliminated.contains(uuid);
     }
 
     public void eliminate(Player player) {
+        if (!active) {
+            return;
+        }
         eliminated.add(player.getUniqueId());
         save();
+    }
+
+    public Set<UUID> getEliminatedUuids() {
+        return new HashSet<>(eliminated);
+    }
+
+    /**
+     * Wskrzesza wszystkich wyeliminowanych graczy, ustawiając im podany tryb gry
+     * (online) i czyści listę eliminacji.
+     *
+     * @return liczba wyeliminowanych graczy, których dotyczyła operacja
+     */
+    public int resurrectAll(GameMode gameMode) {
+        int count = eliminated.size();
+        for (UUID uuid : eliminated) {
+            Player online = Bukkit.getPlayer(uuid);
+            if (online != null && online.isOnline()) {
+                online.setGameMode(gameMode);
+            }
+        }
+        eliminated.clear();
+        save();
+        return count;
     }
 
     public boolean resurrect(OfflinePlayer target) {

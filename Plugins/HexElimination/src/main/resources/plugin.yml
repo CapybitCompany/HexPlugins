@@ -11,6 +11,14 @@ commands:
     description: Resurrect eliminated player
     usage: /resurect <nick_gracza>
     permission: hexelimination.admin
+  resurectall:
+    description: Resurrect ALL eliminated players and clear the elimination list
+    usage: /resurectall [survival|creative|adventure|spectator]
+    permission: hexelimination.admin
+  elimination:
+    description: Start or stop the elimination period
+    usage: /elimination <start|stop>
+    permission: hexelimination.admin
 permissions:
   hexelimination.admin:
     description: Allows using elimination admin commands
