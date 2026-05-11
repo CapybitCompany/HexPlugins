@@ -17,6 +17,11 @@ Po śmierci gracz jest oznaczony jako wyeliminowany, a po respawnie trafia do `S
   - usuwa status eliminacji,
   - ustawia docelowy tryb gry (z configu),
   - wysyła globalny komunikat o wskrzeszeniu i kto je wykonał.
+- `/resurectall [tryb_gry]` - wskrzesza **wszystkich** wyeliminowanych graczy naraz:
+  - opcjonalnie przyjmuje tryb gry (`survival`, `creative`, `adventure`, `spectator`),
+  - domyślnie używa trybu z configu (`settings.resurrect-gamemode`, domyślnie `SURVIVAL`),
+  - czyści całą listę eliminacji (`eliminated.yml`),
+  - wysyła globalny komunikat z liczbą wskrzeszonych graczy i wybranym trybem.
 
 ## Dla kogo
 - dla administratora eventu PvP/survival,
