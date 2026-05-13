@@ -1,0 +1,35 @@
+name: HexChat
+version: '1.0.0'
+main: hexchat.HexChatPlugin
+api-version: '1.21'
+description: System czatu dla sieci Hex
+authors: [HexDevTeam]
+softdepend:
+  - LuckPerms
+  - Essentials
+
+commands:
+  hexchat:
+    description: Zarządzanie pluginem HexChat
+    usage: /hexchat <reload|mute|unmute|togglemute|mutestatus>
+    permission: hexchat.admin
+
+permissions:
+  hexchat.admin:
+    description: Pozwala zarządzać HexChat
+    default: op
+  hexchat.cooldown.bypass:
+    description: Pomija cooldown wiadomości na czacie
+    default: op
+  hexchat.chatmute.bypass:
+    description: Pozwala pisać na wyciszonym czacie globalnym
+    default: op
+  hexchat.commandfilter.bypass:
+    description: Pomija filtr zablokowanych komend
+    default: false
+  hexchat.tabcomplete.bypass:
+    description: Pomija filtr podpowiedzi komend
+    default: false
+  chat.cooldown.bypass:
+    description: Legacy bypass cooldownu (dla kompatybilności)
+    default: false

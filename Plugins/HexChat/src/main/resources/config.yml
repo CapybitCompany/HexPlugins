@@ -1,0 +1,92 @@
+chat:
+  enabled: true
+  format: "<gray>[<gold>Chat</gold>]</gray> <player><dark_gray>:</dark_gray> <message>"
+  global-mute:
+    enabled: true
+    initially-muted: false
+    bypass-permission: "hexchat.chatmute.bypass"
+
+cooldown:
+  enabled: true
+  bypass-permission: "hexchat.cooldown.bypass"
+  use-luckperms-primary-group: true
+  default-seconds: 10 # Ustaw 0, aby wyłączyć cooldown globalny.
+  rank-cooldowns:
+    - rank: "Gracz"
+      seconds: 10 # Ustaw 0, aby wyłączyć cooldown dla rangi.
+    - rank: "VIP"
+      seconds: 2
+    - rank: "SVIP"
+      seconds: 2
+    - rank: "Elita"
+      seconds: 2
+    - rank: "Media"
+      seconds: 10
+    - rank: "Admin"
+      seconds: 2
+
+  # Fallback po permissionach (używany, gdy brak dopasowania rangi LP).
+  permission-overrides:
+    - permission: "group.vip"
+      seconds: 2
+
+auto-messages:
+  enabled: false
+  interval-seconds: 180
+  random-order: false
+  messages:
+    - "<gray>Odwiedź nasz Discord: <gold>discord.gg/twojserwer</gold></gray>"
+    - "<gray>Użyj <gold>/help</gold>, aby sprawdzić najważniejsze komendy.</gray>"
+
+command-filter:
+  enabled: false
+  bypass-permission: "hexchat.commandfilter.bypass"
+  allowed-commands:
+    - "helpop"
+    - "punkty"
+    - "tablica"
+    - "lobby"
+    - "spawn"
+    - "help"
+  hide-namespaced-suggestions: true
+  allowed-namespaced-suggestions:
+    - "essentials:spawn"
+  block-message: "<red>Ta komenda jest zablokowana.</red>"
+
+tab-complete-filter:
+  enabled: false
+  bypass-permission: "hexchat.tabcomplete.bypass"
+  hidden-commands:
+    - "pl"
+    - "plugins"
+    - "ver"
+    - "version"
+    - "about"
+    - "bukkit:plugins"
+    - "paper:plugins"
+
+help:
+  enabled: false
+  mode: "CUSTOM" # CUSTOM | ESSENTIALS
+  command-aliases:
+    - "help"
+  fallback-to-custom-when-essentials-missing: true
+  unavailable-message: "<red>Tryb Essentials jest aktywny, ale plugin Essentials nie został znaleziony.</red>"
+  custom-lines:
+    - "<gold>Najważniejsze komendy:</gold>"
+    - "<yellow>/spawn</yellow> <gray>- teleport do spawnu</gray>"
+    - "<yellow>/msg (gracz) (wiadomość)</yellow> <gray>- prywatna wiadomość</gray>"
+
+messages:
+  prefix: "<dark_gray>[<dark_red>HEX</dark_red>]</dark_gray> "
+  no-permission: "<red>Nie masz uprawnień do tej komendy.</red>"
+  reloaded: "<green>Konfiguracja została przeładowana.</green>"
+  usage: "<yellow>Użycie: /hexchat [reload|mute|unmute|togglemute|mutestatus]</yellow>"
+  cooldown-wait: "<gold>Poczekaj jeszcze <white><seconds></white> <gold>sek.</gold>"
+  chat-muted: "<red>Czat globalny jest aktualnie wyciszony.</red>"
+  chat-mute-enabled: "<green>Wyciszyłeś globalny czat.</green>"
+  chat-mute-disabled: "<green>Przywróciłeś globalny czat.</green>"
+  chat-mute-already-enabled: "<yellow>Czat globalny jest już wyciszony.</yellow>"
+  chat-mute-already-disabled: "<yellow>Czat globalny nie jest wyciszony.</yellow>"
+  chat-mute-status-enabled: "<red>Status czatu: WYCISZONY.</red>"
+  chat-mute-status-disabled: "<green>Status czatu: AKTYWNY.</green>"
