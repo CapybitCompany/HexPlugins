@@ -1,0 +1,23 @@
+name: MysteryBox
+version: '1.0.0'
+main: mysterybox.MysteryBoxPlugin
+api-version: '1.21'
+description: MysteryBox z animowanym GUI otwierania i nagrodami konfigurowalnymi
+authors: [HexDevTeam]
+softdepend:
+  - LuckPerms
+
+commands:
+  mysterybox:
+    description: Daje Mystery Box graczowi
+    usage: /mysterybox reload | /mysterybox [player] [amount]
+    permission: hex.mysterybox.give
+  mysteryboxvip:
+    description: Daje voucher VIP
+    usage: /mysteryboxvip
+    permission: hex.mysterybox.give
+
+permissions:
+  hex.mysterybox.give:
+    description: Pozwala dawać mysteryboxy i vouchery VIP
+    default: op

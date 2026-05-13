@@ -1,0 +1,238 @@
+prefix: "&8[&cMysteryBox&8]&f "
+
+commands:
+  give-permission: "hex.mysterybox.give"
+  max-give-amount: 64
+
+box:
+  material: "SHULKER_BOX"
+  name: "&4&lMYSTERY BOX"
+  lore:
+    - "&7Kliknij PPM, aby otworzyć."
+
+voucher:
+  material: "PAPER"
+  name: "&eVIP &fna obecną edycję!"
+  lore:
+    - "&7Kliknij PPM, aby aktywować."
+  already-vip-check-permissions:
+    - "group.vip"
+  treat-op-as-already-vip: true
+  already-vip:
+    actionbar: "&dMasz już rangę &eVIP&d! &7Otrzymujesz &e10 HexCoins&7."
+    message: "&7Masz już VIP, więc otrzymujesz bonusowe &e10 HexCoins&7."
+    commands:
+      - "eco give %player% 10"
+  activate:
+    message: "&eAktywowano VIP! &7Otrzymujesz rangę &eVIP &7na &e24h&7."
+    commands:
+      - "eco give %player% 20"
+      - "lp user %player% parent settemp vip 1d"
+
+drop-protection:
+  block-mystery-box-drop: true
+  block-voucher-drop: true
+
+audit:
+  enabled: true
+  file-name: "opening-audit.log"
+
+opening:
+  gui-title: "&4&lMYSTERY BOX"
+  gui-size: 27
+  row-slots: [9, 10, 11, 12, 13, 14, 15, 16, 17]
+  spin-steps: 45
+  update-period-ticks: 2
+  reward-delay-ticks: 16
+  sounds:
+    tick:
+      name: "block.note_block.pling"
+      volume: 1.0
+      pitch: 1.0
+    final:
+      name: "entity.player.levelup"
+      volume: 1.0
+      pitch: 1.0
+
+messages:
+  no-permission: "&cNie masz uprawnień do tej komendy."
+  reloaded: "&aKonfiguracja MysteryBox została przeładowana."
+  player-not-found: "&cNie znaleziono gracza."
+  usage-mysterybox: "&7Użycie: &e/mysterybox reload&7 lub &e/mysterybox [player] [amount]"
+  only-player: "&cTa komenda jest tylko dla gracza."
+  give-success-sender: "&7Dałeś &e%amount% &4Mystery Box(ów) &7graczowi &e%target%&7."
+  give-success-target: "&7Otrzymałeś &e%amount% &4Mystery Box(ów)&7! Kliknij &ePPM&7."
+  voucher-give-success: "&7Dostałeś voucher &eVIP 24h&7."
+  already-opening: "&cJuż otwierasz mysterybox. Poczekaj na zakończenie losowania."
+  open-started: "&7Trwa otwieranie MysteryBox..."
+  open-won: "&7Wylosowałeś: &e%reward_name%&7."
+  inventory-full: "&cTwoje inventory jest pełne. Nagroda została wyrzucona pod nogi."
+
+rewards:
+  - id: "vip"
+    chance: 2
+    win-message: "&eVoucher VIP 24h"
+    preview:
+      material: "PAPER"
+      name: "&eVIP Voucher 24h"
+      lore:
+        - "&7Rzadka nagroda"
+    grant:
+      commands: [ ]
+      item:
+        enabled: true
+        preset: "VIP_VOUCHER"
+        amount: 1
+
+  - id: "hex5"
+    chance: 6
+    win-message: "&6Hex Item V"
+    preview:
+      material: "GOLDEN_SWORD"
+      name: "&6Hex V (placeholder)"
+      lore: [ "&7Placeholder pod custom item" ]
+    grant:
+      commands: [ ]
+      item:
+        enabled: true
+        preset: "CUSTOM"
+        material: "GOLDEN_SWORD"
+        amount: 1
+        name: "&6Hex V (placeholder)"
+        lore: [ "&7Placeholder pod custom item" ]
+
+  - id: "wind"
+    chance: 6
+    win-message: "&bWind Charge"
+    preview:
+      material: "WIND_CHARGE"
+      name: "&bWind (placeholder)"
+      lore: [ "&7Placeholder pod custom item" ]
+    grant:
+      commands: [ ]
+      item:
+        enabled: true
+        preset: "CUSTOM"
+        material: "WIND_CHARGE"
+        amount: 1
+        name: "&bWind (placeholder)"
+        lore: [ "&7Placeholder pod custom item" ]
+
+  - id: "hex3"
+    chance: 6
+    win-message: "&dHex Item III"
+    preview:
+      material: "IRON_SWORD"
+      name: "&dHex III (placeholder)"
+      lore: [ "&7Placeholder pod custom item" ]
+    grant:
+      commands: [ ]
+      item:
+        enabled: true
+        preset: "CUSTOM"
+        material: "IRON_SWORD"
+        amount: 1
+        name: "&dHex III (placeholder)"
+        lore: [ "&7Placeholder pod custom item" ]
+
+  - id: "fireball"
+    chance: 6
+    win-message: "&cFireball"
+    preview:
+      material: "FIRE_CHARGE"
+      name: "&cFireball (placeholder)"
+      lore: [ "&7Placeholder pod custom item" ]
+    grant:
+      commands: [ ]
+      item:
+        enabled: true
+        preset: "CUSTOM"
+        material: "FIRE_CHARGE"
+        amount: 1
+        name: "&cFireball (placeholder)"
+        lore: [ "&7Placeholder pod custom item" ]
+
+  - id: "iceball"
+    chance: 10
+    win-message: "&bIceball"
+    preview:
+      material: "SNOWBALL"
+      name: "&bIceball (placeholder)"
+      lore: [ "&7Placeholder pod custom item" ]
+    grant:
+      commands: [ ]
+      item:
+        enabled: true
+        preset: "CUSTOM"
+        material: "SNOWBALL"
+        amount: 1
+        name: "&bIceball (placeholder)"
+        lore: [ "&7Placeholder pod custom item" ]
+
+  - id: "hex1"
+    chance: 10
+    win-message: "&aHex Item I"
+    preview:
+      material: "STONE_SWORD"
+      name: "&aHex I (placeholder)"
+      lore: [ "&7Placeholder pod custom item" ]
+    grant:
+      commands: [ ]
+      item:
+        enabled: true
+        preset: "CUSTOM"
+        material: "STONE_SWORD"
+        amount: 1
+        name: "&aHex I (placeholder)"
+        lore: [ "&7Placeholder pod custom item" ]
+
+  - id: "dark"
+    chance: 10
+    win-message: "&8Dark Powder"
+    preview:
+      material: "GUNPOWDER"
+      name: "&8Dark (placeholder)"
+      lore: [ "&7Placeholder pod custom item" ]
+    grant:
+      commands: [ ]
+      item:
+        enabled: true
+        preset: "CUSTOM"
+        material: "GUNPOWDER"
+        amount: 1
+        name: "&8Dark (placeholder)"
+        lore: [ "&7Placeholder pod custom item" ]
+
+  - id: "cookie"
+    chance: 22
+    win-message: "&6Magic Cookie"
+    preview:
+      material: "COOKIE"
+      name: "&6Cookie (placeholder)"
+      lore: [ "&7Placeholder pod custom item" ]
+    grant:
+      commands: [ ]
+      item:
+        enabled: true
+        preset: "CUSTOM"
+        material: "COOKIE"
+        amount: 1
+        name: "&6Cookie (placeholder)"
+        lore: [ "&7Placeholder pod custom item" ]
+
+  - id: "speed"
+    chance: 22
+    win-message: "&fSpeed Boost"
+    preview:
+      material: "SUGAR"
+      name: "&fSpeed (placeholder)"
+      lore: [ "&7Placeholder pod custom item" ]
+    grant:
+      commands: [ ]
+      item:
+        enabled: true
+        preset: "CUSTOM"
+        material: "SUGAR"
+        amount: 1
+        name: "&fSpeed (placeholder)"
+        lore: [ "&7Placeholder pod custom item" ]
