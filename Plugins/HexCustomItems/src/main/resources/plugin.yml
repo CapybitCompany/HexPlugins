@@ -1,0 +1,58 @@
+name: HexCustomItems
+version: '1.0.0'
+main: hexcustomitems.HexCustomItemsPlugin
+api-version: '1.21'
+description: Konfigurowalne custom itemy HEX z efektami i komendami legacy
+authors: [HexDevTeam]
+
+commands:
+  hexcustomitems:
+    description: Zarządzanie pluginem HexCustomItems
+    usage: /hexcustomitems <give|reload|list>
+  hex_item_potkaskoku:
+    description: Daje item jump_potion
+    usage: /hex_item_potkaskoku <player> [amount]
+  hex_item_potkaspowolnienia:
+    description: Daje item slowness_splash
+    usage: /hex_item_potkaspowolnienia <player> [amount]
+  hex_item_ciastkoniewidka:
+    description: Daje item invisibility_cookie
+    usage: /hex_item_ciastkoniewidka <player> [amount]
+  hex_item_proszekciemnosci:
+    description: Daje item dark_powder
+    usage: /hex_item_proszekciemnosci <player> [amount]
+  hex_item_windcharge:
+    description: Daje item wind_charge
+    usage: /hex_item_windcharge <player> [amount]
+  hex_item_hexcoin1:
+    description: Daje item hex_coin_1
+    usage: /hex_item_hexcoin1 <player> [amount]
+  hex_item_hexcoins2:
+    description: Daje item hex_coin_2
+    usage: /hex_item_hexcoins2 <player> [amount]
+  hex_item_hexcoins3:
+    description: Daje item hex_coin_3
+    usage: /hex_item_hexcoins3 <player> [amount]
+  hex_item_hexcoins5:
+    description: Daje item hex_coin_5
+    usage: /hex_item_hexcoins5 <player> [amount]
+  hex_item_fireballitem:
+    description: Daje item fireball_item
+    usage: /hex_item_fireballitem <player> [amount]
+  hex_item_iceballitem:
+    description: Daje item iceball_item
+    usage: /hex_item_iceballitem <player> [amount]
+  hex_item_potkazawrotow:
+    description: Daje item nausea_splash
+    usage: /hex_item_potkazawrotow <player> [amount]
+  hex_item_potkaspeedu:
+    description: Daje item speed_potion
+    usage: /hex_item_potkaspeedu <player> [amount]
+
+permissions:
+  hex.items.give:
+    description: Pozwala dawać custom itemy
+    default: op
+  hex.items.reload:
+    description: Pozwala przeładować konfigurację HexCustomItems
+    default: op
