@@ -1,0 +1,15 @@
+permissions:
+  toggle: "admin.blokujpvp"
+
+pvp:
+  blocked: false
+  exempt-worlds:
+    - "survival"
+
+messages:
+  prefix: "&8[&cHexPvP&8]&f "
+  no-permission: "&cNie masz uprawnień."
+  pvp-blocked: "&aPvP zostało zablokowane."
+  pvp-unblocked: "&aPvP zostało odblokowane."
+  pvp-already-blocked: "&ePvP jest już zablokowane."
+  pvp-already-unblocked: "&ePvP jest już odblokowane."

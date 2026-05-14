@@ -1,0 +1,21 @@
+name: HexPvPHandler
+version: '1.0.0'
+main: hexpvphandler.HexPvPHandlerPlugin
+api-version: '1.21'
+description: Blokada PvP z obsługą wyjątków i działającymi potionami
+authors: [HexDevTeam]
+
+commands:
+  blokujpvp:
+    description: Blokuje PvP w obsługiwanych światach
+    usage: /blokujpvp
+    permission: admin.blokujpvp
+  odblokujpvp:
+    description: Odblokowuje PvP w obsługiwanych światach
+    usage: /odblokujpvp
+    permission: admin.blokujpvp
+
+permissions:
+  admin.blokujpvp:
+    description: Pozwala blokować i odblokowywać PvP
+    default: op
