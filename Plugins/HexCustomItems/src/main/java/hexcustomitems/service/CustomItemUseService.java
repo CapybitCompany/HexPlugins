@@ -15,6 +15,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Snowball;
+import org.bukkit.entity.ThrownPotion;
 import org.bukkit.event.block.Action;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -147,7 +148,8 @@ public final class CustomItemUseService {
             return false;
         }
 
-        Snowball projectile = player.launchProjectile(Snowball.class);
+        ThrownPotion projectile = player.launchProjectile(ThrownPotion.class);
+        projectile.setItem(registryService.createItem(definition, 1));
         markAreaProjectile(projectile, definition.id());
         playSound(player, configSupplier.get().sounds().throwSound(), 1.0F, 0.9F);
         return true;
@@ -414,7 +416,7 @@ public final class CustomItemUseService {
         return configSupplier.get().protectOpsFromNegativeEffects() && player.isOp();
     }
 
-    private void markAreaProjectile(Snowball projectile, String itemId) {
+    private void markAreaProjectile(Projectile projectile, String itemId) {
         PersistentDataContainer data = projectile.getPersistentDataContainer();
         data.set(projectileKindKey, PersistentDataType.STRING, PROJECTILE_TYPE_AREA);
         data.set(projectileItemIdKey, PersistentDataType.STRING, itemId);
