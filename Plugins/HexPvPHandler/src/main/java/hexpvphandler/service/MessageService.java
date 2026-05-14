@@ -35,6 +35,11 @@ public final class MessageService {
         send(sender, configSupplier.get().messages().pvpAlreadyUnblocked());
     }
 
+    public void sendStatus(CommandSender sender, boolean blocked) {
+        HexPvPHandlerConfig.Messages messages = configSupplier.get().messages();
+        send(sender, blocked ? messages.pvpStatusBlocked() : messages.pvpStatusUnblocked());
+    }
+
     private void send(CommandSender sender, String message) {
         HexPvPHandlerConfig config = configSupplier.get();
         sender.sendMessage(LegacyTextUtil.colorize(config.messages().prefix() + message));

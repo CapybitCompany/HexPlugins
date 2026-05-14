@@ -30,7 +30,9 @@ public final class HexPvPHandlerConfigLoader {
                 readString(config, "messages.pvp-blocked", "&aPvP zostało zablokowane.", logger),
                 readString(config, "messages.pvp-unblocked", "&aPvP zostało odblokowane.", logger),
                 readString(config, "messages.pvp-already-blocked", "&ePvP jest już zablokowane.", logger),
-                readString(config, "messages.pvp-already-unblocked", "&ePvP jest już odblokowane.", logger)
+                readString(config, "messages.pvp-already-unblocked", "&ePvP jest już odblokowane.", logger),
+                readString(config, "messages.pvp-status-blocked", "&7Status PvP: &cZABLOKOWANE&7.", logger),
+                readString(config, "messages.pvp-status-unblocked", "&7Status PvP: &aODBLOKOWANE&7.", logger)
         );
 
         return new HexPvPHandlerConfig(togglePermission, blocked, exemptWorlds, messages);

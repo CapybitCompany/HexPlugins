@@ -6,13 +6,17 @@ description: Blokada PvP z obsługą wyjątków i działającymi potionami
 authors: [HexDevTeam]
 
 commands:
-  blokujpvp:
+  hex_blokujpvp:
     description: Blokuje PvP w obsługiwanych światach
-    usage: /blokujpvp
+    usage: /hex_blokujpvp
     permission: admin.blokujpvp
-  odblokujpvp:
+  hex_odblokujpvp:
     description: Odblokowuje PvP w obsługiwanych światach
-    usage: /odblokujpvp
+    usage: /hex_odblokujpvp
+    permission: admin.blokujpvp
+  hex_pvpstatus:
+    description: Pokazuje aktualny status blokady PvP
+    usage: /hex_pvpstatus
     permission: admin.blokujpvp
 
 permissions:

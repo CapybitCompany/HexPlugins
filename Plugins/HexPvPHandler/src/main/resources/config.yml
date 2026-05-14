@@ -13,3 +13,5 @@ messages:
   pvp-unblocked: "&aPvP zostało odblokowane."
   pvp-already-blocked: "&ePvP jest już zablokowane."
   pvp-already-unblocked: "&ePvP jest już odblokowane."
+  pvp-status-blocked: "&7Status PvP: &cZABLOKOWANE&7."
+  pvp-status-unblocked: "&7Status PvP: &aODBLOKOWANE&7."

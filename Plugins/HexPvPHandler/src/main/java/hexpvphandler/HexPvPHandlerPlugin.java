@@ -1,6 +1,7 @@
 package hexpvphandler;
 
 import hexpvphandler.command.BlockPvpCommand;
+import hexpvphandler.command.PvpStatusCommand;
 import hexpvphandler.command.UnblockPvpCommand;
 import hexpvphandler.config.HexPvPHandlerConfig;
 import hexpvphandler.config.HexPvPHandlerConfigLoader;
@@ -43,17 +44,19 @@ public final class HexPvPHandlerPlugin extends JavaPlugin {
     }
 
     private boolean registerCommands(MessageService messageService) {
-        PluginCommand blockCommand = getCommand("blokujpvp");
-        PluginCommand unblockCommand = getCommand("odblokujpvp");
+        PluginCommand blockCommand = getCommand("hex_blokujpvp");
+        PluginCommand unblockCommand = getCommand("hex_odblokujpvp");
+        PluginCommand statusCommand = getCommand("hex_pvpstatus");
 
-        if (blockCommand == null || unblockCommand == null) {
-            getLogger().severe("Brak komend blokujpvp/odblokujpvp w plugin.yml. Wyłączam plugin.");
+        if (blockCommand == null || unblockCommand == null || statusCommand == null) {
+            getLogger().severe("Brak komend hex_blokujpvp/hex_odblokujpvp/hex_pvpstatus w plugin.yml. Wyłączam plugin.");
             getServer().getPluginManager().disablePlugin(this);
             return false;
         }
 
-        blockCommand.setExecutor(new BlockPvpCommand(configRef::get, pvpToggleService, messageService));
-        unblockCommand.setExecutor(new UnblockPvpCommand(configRef::get, pvpToggleService, messageService));
+        blockCommand.setExecutor(new BlockPvpCommand(configRef::get, pvpToggleService, messageService, getLogger()));
+        unblockCommand.setExecutor(new UnblockPvpCommand(configRef::get, pvpToggleService, messageService, getLogger()));
+        statusCommand.setExecutor(new PvpStatusCommand(configRef::get, pvpToggleService, messageService, getLogger()));
         return true;
     }
 }

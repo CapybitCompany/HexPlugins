@@ -54,7 +54,9 @@ public record HexPvPHandlerConfig(
             String pvpBlocked,
             String pvpUnblocked,
             String pvpAlreadyBlocked,
-            String pvpAlreadyUnblocked
+            String pvpAlreadyUnblocked,
+            String pvpStatusBlocked,
+            String pvpStatusUnblocked
     ) {
         public Messages {
             prefix = Objects.requireNonNull(prefix, "prefix");
@@ -63,6 +65,8 @@ public record HexPvPHandlerConfig(
             pvpUnblocked = Objects.requireNonNull(pvpUnblocked, "pvpUnblocked");
             pvpAlreadyBlocked = Objects.requireNonNull(pvpAlreadyBlocked, "pvpAlreadyBlocked");
             pvpAlreadyUnblocked = Objects.requireNonNull(pvpAlreadyUnblocked, "pvpAlreadyUnblocked");
+            pvpStatusBlocked = Objects.requireNonNull(pvpStatusBlocked, "pvpStatusBlocked");
+            pvpStatusUnblocked = Objects.requireNonNull(pvpStatusUnblocked, "pvpStatusUnblocked");
         }
     }
 }

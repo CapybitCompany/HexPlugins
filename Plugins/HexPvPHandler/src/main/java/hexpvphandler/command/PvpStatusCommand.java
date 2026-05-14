@@ -9,17 +9,17 @@ import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
-import java.util.logging.Logger;
 import java.util.function.Supplier;
+import java.util.logging.Logger;
 
-public final class BlockPvpCommand implements CommandExecutor {
+public final class PvpStatusCommand implements CommandExecutor {
 
     private final Supplier<HexPvPHandlerConfig> configSupplier;
     private final PvpToggleService toggleService;
     private final MessageService messageService;
     private final Logger logger;
 
-    public BlockPvpCommand(
+    public PvpStatusCommand(
             Supplier<HexPvPHandlerConfig> configSupplier,
             PvpToggleService toggleService,
             MessageService messageService,
@@ -36,18 +36,13 @@ public final class BlockPvpCommand implements CommandExecutor {
         String actor = sender.getName();
         if (!sender.hasPermission(configSupplier.get().togglePermission())) {
             messageService.sendNoPermission(sender);
-            logger.info("Odrzucono /hex_blokujpvp dla '" + actor + "' (brak uprawnień).");
+            logger.info("Odrzucono /hex_pvpstatus dla '" + actor + "' (brak uprawnień).");
             return true;
         }
 
-        if (!toggleService.setBlocked(true)) {
-            messageService.sendAlreadyBlocked(sender);
-            logger.info("Komenda /hex_blokujpvp przez '" + actor + "' bez zmian (PvP już zablokowane).");
-            return true;
-        }
-
-        messageService.sendBlocked(sender);
-        logger.info("Komenda /hex_blokujpvp przez '" + actor + "' zakończona sukcesem (PvP zablokowane).");
+        boolean blocked = toggleService.isBlocked();
+        messageService.sendStatus(sender, blocked);
+        logger.info("Komenda /hex_pvpstatus przez '" + actor + "' (stan PvP: " + (blocked ? "zablokowane" : "odblokowane") + ").");
         return true;
     }
 }
