@@ -1,10 +1,12 @@
 package hexabovename.repository;
 
 import hexabovename.config.HexAboveNameConfig;
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.RegisteredServiceProvider;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -19,7 +21,6 @@ import java.util.stream.Collectors;
 
 public final class MySqlDisplayTextRepository implements DisplayTextRepository {
 
-    private final HexAboveNameConfig.MySql config;
     private final String tableQuoted;
     private final String playerColumnQuoted;
     private final String uuidColumnQuoted;
@@ -27,10 +28,9 @@ public final class MySqlDisplayTextRepository implements DisplayTextRepository {
     private final String playerColumn;
     private final String uuidColumn;
     private final String textColumn;
-    private final String jdbcUrl;
+    private HexCoreDbBridge dbBridge;
 
     public MySqlDisplayTextRepository(HexAboveNameConfig.MySql config) {
-        this.config = config;
         this.tableQuoted = quoteIdentifier(config.table());
         this.playerColumnQuoted = quoteIdentifier(config.columns().player());
         this.uuidColumnQuoted = quoteIdentifier(config.columns().uuid());
@@ -38,17 +38,13 @@ public final class MySqlDisplayTextRepository implements DisplayTextRepository {
         this.playerColumn = config.columns().player();
         this.uuidColumn = config.columns().uuid();
         this.textColumn = config.columns().text();
-        this.jdbcUrl = buildJdbcUrl(config);
     }
 
     @Override
     public void initialize() throws Exception {
-        try (Connection connection = openConnection();
-             PreparedStatement statement = connection.prepareStatement(
-                     "SELECT " + uuidColumnQuoted + " FROM " + tableQuoted + " LIMIT 1"
-             )) {
-            statement.executeQuery();
-        }
+        this.dbBridge = HexCoreDbBridge.connect();
+        String sql = "SELECT " + uuidColumnQuoted + " FROM " + tableQuoted + " LIMIT 1";
+        requireBridge().query(sql, rs -> rs.getString(1));
     }
 
     @Override
@@ -74,30 +70,31 @@ public final class MySqlDisplayTextRepository implements DisplayTextRepository {
                 + " OR " + playerColumnQuoted + " IN (" + placeholders(names.size()) + ")";
 
         Map<UUID, String> result = new HashMap<>();
-        try (Connection connection = openConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            int parameter = 1;
-            for (String uuid : uuids) {
-                statement.setString(parameter++, uuid);
-            }
-            for (String player : names) {
-                statement.setString(parameter++, player);
+        Object[] params = new Object[uuids.size() + names.size()];
+        int parameter = 0;
+        for (String uuid : uuids) {
+            params[parameter++] = uuid;
+        }
+        for (String player : names) {
+            params[parameter++] = player;
+        }
+
+        List<RowData> rows = requireBridge().query(sql, rs -> new RowData(
+                rs.getString(playerColumn),
+                rs.getString(uuidColumn),
+                rs.getString(textColumn)
+        ), params);
+
+        for (RowData row : rows) {
+            if (row.text() == null || row.text().isBlank()) {
+                continue;
             }
 
-            try (ResultSet rs = statement.executeQuery()) {
-                while (rs.next()) {
-                    String text = rs.getString(textColumn);
-                    if (text == null || text.isBlank()) {
-                        continue;
-                    }
-
-                    UUID resolvedUuid = resolveUuid(rs, onlineUuids, uuidByLowerName);
-                    if (resolvedUuid == null) {
-                        continue;
-                    }
-                    result.put(resolvedUuid, text);
-                }
+            UUID resolvedUuid = resolveUuid(row, onlineUuids, uuidByLowerName);
+            if (resolvedUuid == null) {
+                continue;
             }
+            result.put(resolvedUuid, row.text());
         }
         return result;
     }
@@ -109,29 +106,29 @@ public final class MySqlDisplayTextRepository implements DisplayTextRepository {
                 + "ON DUPLICATE KEY UPDATE "
                 + playerColumnQuoted + " = VALUES(" + playerColumnQuoted + "), "
                 + textColumnQuoted + " = VALUES(" + textColumnQuoted + ")";
-
-        try (Connection connection = openConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, uuid.toString());
-            statement.setString(2, playerName);
-            statement.setString(3, text);
-            statement.executeUpdate();
-        }
+        requireBridge().update(sql, uuid.toString(), playerName, text);
     }
 
     @Override
     public void clearDisplayText(UUID uuid, String playerName) throws Exception {
         String sql = "DELETE FROM " + tableQuoted + " WHERE " + uuidColumnQuoted + " = ? OR " + playerColumnQuoted + " = ?";
-        try (Connection connection = openConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, uuid.toString());
-            statement.setString(2, playerName);
-            statement.executeUpdate();
-        }
+        requireBridge().update(sql, uuid.toString(), playerName);
     }
 
-    private UUID resolveUuid(ResultSet rs, Set<UUID> onlineUuids, Map<String, UUID> uuidByLowerName) throws SQLException {
-        String uuidRaw = rs.getString(uuidColumn);
+    @Override
+    public void close() {
+        this.dbBridge = null;
+    }
+
+    private HexCoreDbBridge requireBridge() {
+        if (dbBridge == null) {
+            throw new IllegalStateException("HexCore DB bridge nie jest zainicjalizowany.");
+        }
+        return dbBridge;
+    }
+
+    private UUID resolveUuid(RowData row, Set<UUID> onlineUuids, Map<String, UUID> uuidByLowerName) {
+        String uuidRaw = row.uuid();
         if (uuidRaw != null && !uuidRaw.isBlank()) {
             try {
                 UUID uuid = UUID.fromString(uuidRaw);
@@ -142,23 +139,11 @@ public final class MySqlDisplayTextRepository implements DisplayTextRepository {
             }
         }
 
-        String player = rs.getString(playerColumn);
+        String player = row.player();
         if (player == null || player.isBlank()) {
             return null;
         }
         return uuidByLowerName.get(player.toLowerCase(Locale.ROOT));
-    }
-
-    private Connection openConnection() throws SQLException {
-        return DriverManager.getConnection(jdbcUrl, config.username(), config.password());
-    }
-
-    private static String buildJdbcUrl(HexAboveNameConfig.MySql config) {
-        return "jdbc:mariadb://" + config.host() + ":" + config.port() + "/" + config.database()
-                + "?useSsl=" + config.options().useSsl()
-                + "&serverTimezone=" + config.options().serverTimezone()
-                + "&useUnicode=true"
-                + "&characterEncoding=utf8";
     }
 
     private static String placeholders(int count) {
@@ -177,5 +162,124 @@ public final class MySqlDisplayTextRepository implements DisplayTextRepository {
             throw new IllegalArgumentException("Niepoprawny identyfikator SQL: " + identifier);
         }
         return '`' + identifier + '`';
+    }
+
+    private record RowData(
+            String player,
+            String uuid,
+            String text
+    ) {
+    }
+
+    @FunctionalInterface
+    private interface SqlRowMapper<T> {
+        T map(ResultSet resultSet) throws SQLException;
+    }
+
+    private static final class HexCoreDbBridge {
+        private final Object dbClient;
+        private final Class<?> rowMapperClass;
+        private final Method queryMethod;
+        private final Method updateMethod;
+
+        private HexCoreDbBridge(Object dbClient, Class<?> rowMapperClass, Method queryMethod, Method updateMethod) {
+            this.dbClient = dbClient;
+            this.rowMapperClass = rowMapperClass;
+            this.queryMethod = queryMethod;
+            this.updateMethod = updateMethod;
+        }
+
+        static HexCoreDbBridge connect() throws Exception {
+            Class<?> hexApiClass = Class.forName("hex.core.api.HexApi");
+            Class<?> databaseServiceClass = Class.forName("hex.core.api.db.DatabaseService");
+            Class<?> dbClass = Class.forName("hex.core.api.db.Db");
+            @SuppressWarnings("unchecked")
+            RegisteredServiceProvider<Object> registration =
+                    (RegisteredServiceProvider<Object>) Bukkit.getServicesManager().getRegistration((Class<Object>) hexApiClass);
+
+            if (registration == null || registration.getProvider() == null) {
+                throw new IllegalStateException("Nie znaleziono HexCore API w ServicesManager.");
+            }
+
+            Object api = registration.getProvider();
+            Method dbMethod = hexApiClass.getMethod("db");
+            Object dbService = invokeNoArgs(api, dbMethod);
+            if (dbService == null) {
+                throw new IllegalStateException("HexCore db() zwróciło null.");
+            }
+
+            Method dbClientMethod = databaseServiceClass.getMethod("db");
+            Object dbClient = invokeNoArgs(dbService, dbClientMethod);
+            if (dbClient == null) {
+                throw new IllegalStateException("HexCore db().db() zwróciło null.");
+            }
+
+            Class<?> rowMapperClass = Class.forName("hex.core.api.db.RowMapper");
+            Method queryMethod = dbClass.getMethod("query", String.class, rowMapperClass, Object[].class);
+            Method updateMethod = dbClass.getMethod("update", String.class, Object[].class);
+            return new HexCoreDbBridge(dbClient, rowMapperClass, queryMethod, updateMethod);
+        }
+
+        int update(String sql, Object... params) throws Exception {
+            try {
+                Object output = updateMethod.invoke(dbClient, sql, params);
+                return output instanceof Integer value ? value : 0;
+            } catch (InvocationTargetException exception) {
+                throw unwrapInvocation(exception);
+            }
+        }
+
+        @SuppressWarnings("unchecked")
+        <T> List<T> query(String sql, SqlRowMapper<T> mapper, Object... params) throws Exception {
+            Object mapperProxy = Proxy.newProxyInstance(
+                    rowMapperClass.getClassLoader(),
+                    new Class<?>[]{rowMapperClass},
+                    (proxy, method, args) -> {
+                        String methodName = method.getName();
+                        if ("map".equals(methodName)) {
+                            return mapper.map((ResultSet) args[0]);
+                        }
+                        if ("toString".equals(methodName)) {
+                            return "HexAboveNameSqlRowMapper";
+                        }
+                        if ("hashCode".equals(methodName)) {
+                            return System.identityHashCode(proxy);
+                        }
+                        if ("equals".equals(methodName)) {
+                            return proxy == args[0];
+                        }
+                        throw new UnsupportedOperationException("Nieobsługiwana metoda RowMapper: " + methodName);
+                    }
+            );
+
+            try {
+                Object output = queryMethod.invoke(dbClient, sql, mapperProxy, params);
+                if (output instanceof List<?> list) {
+                    return (List<T>) list;
+                }
+                return List.of();
+            } catch (InvocationTargetException exception) {
+                throw unwrapInvocation(exception);
+            }
+        }
+
+        private static Object invokeNoArgs(Object target, Method method) throws Exception {
+            try {
+                return method.invoke(target);
+            } catch (InvocationTargetException exception) {
+                throw unwrapInvocation(exception);
+            }
+        }
+
+        private static Exception unwrapInvocation(InvocationTargetException exception) {
+            Throwable cause = exception.getCause();
+            if (cause instanceof Exception wrapped) {
+                return wrapped;
+            }
+            if (cause instanceof Error error) {
+                throw error;
+            }
+            return new RuntimeException(cause == null ? exception : cause);
+        }
     }
 }

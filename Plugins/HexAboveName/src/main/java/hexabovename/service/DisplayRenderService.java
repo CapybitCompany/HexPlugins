@@ -10,6 +10,8 @@ import org.bukkit.entity.Display;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.util.Transformation;
+import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -93,8 +95,7 @@ public final class DisplayRenderService {
             displays.put(uuid, display);
         }
 
-        Location targetLocation = targetLocation(player);
-        if (!sameWorld(display.getWorld(), targetLocation.getWorld())) {
+        if (!sameWorld(display.getWorld(), player.getWorld())) {
             display.remove();
             TextDisplay recreated = spawnDisplay(player, text);
             if (recreated == null) {
@@ -105,7 +106,10 @@ public final class DisplayRenderService {
             display = recreated;
         }
 
-        display.teleport(targetLocation);
+        if (!ensurePassenger(player, display)) {
+            removeDisplayFor(uuid);
+            return;
+        }
         if (!text.equals(display.getText())) {
             display.setText(text);
         }
@@ -113,12 +117,12 @@ public final class DisplayRenderService {
     }
 
     private TextDisplay spawnDisplay(Player player, String text) {
-        Location spawn = targetLocation(player);
+        Location spawn = player.getLocation();
         World world = spawn.getWorld();
         if (world == null) {
             return null;
         }
-        return world.spawn(spawn, TextDisplay.class, entity -> {
+        TextDisplay display = world.spawn(spawn, TextDisplay.class, entity -> {
             entity.setText(text);
             entity.setBillboard(Display.Billboard.CENTER);
             entity.setGravity(false);
@@ -127,7 +131,18 @@ public final class DisplayRenderService {
             entity.setShadowed(false);
             entity.setSeeThrough(false);
             entity.setDefaultBackground(false);
+            entity.setTransformation(new Transformation(
+                    new Vector3f(0.0F, (float) config.render().yOffset(), 0.0F),
+                    entity.getTransformation().getLeftRotation(),
+                    entity.getTransformation().getScale(),
+                    entity.getTransformation().getRightRotation()
+            ));
         });
+        if (!ensurePassenger(player, display)) {
+            display.remove();
+            return null;
+        }
+        return display;
     }
 
     private void applyOwnerVisibility(Player player, TextDisplay display) {
@@ -137,15 +152,27 @@ public final class DisplayRenderService {
         }
     }
 
+    private boolean ensurePassenger(Player player, TextDisplay display) {
+        if (!player.isOnline() || !player.isValid()) {
+            return false;
+        }
+
+        if (display.getVehicle() != null && !display.getVehicle().getUniqueId().equals(player.getUniqueId())) {
+            display.leaveVehicle();
+        }
+
+        if (display.getVehicle() != null && display.getVehicle().getUniqueId().equals(player.getUniqueId())) {
+            return true;
+        }
+
+        return player.addPassenger(display);
+    }
+
     private boolean isVisibleForPlayer(Player player) {
         if (!player.isOnline() || player.isDead()) {
             return false;
         }
         return config.isWorldAllowed(player.getWorld().getName());
-    }
-
-    private Location targetLocation(Player player) {
-        return player.getLocation().clone().add(0.0D, config.render().yOffset(), 0.0D);
     }
 
     private void removeAllDisplays() {

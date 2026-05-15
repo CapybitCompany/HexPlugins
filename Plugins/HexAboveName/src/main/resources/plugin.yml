@@ -4,9 +4,7 @@ main: hexabovename.HexAboveNamePlugin
 api-version: '1.21'
 description: Efficient above-name display plugin with YAML/MySQL storage
 authors: [HexDevTeam]
-
-libraries:
-  - org.mariadb.jdbc:mariadb-java-client:3.4.1
+softdepend: [HexCore]
 
 commands:
   hexabovename:
