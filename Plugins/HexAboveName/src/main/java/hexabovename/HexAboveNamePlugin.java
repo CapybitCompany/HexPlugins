@@ -11,6 +11,7 @@ import hexabovename.repository.YamlDisplayTextRepository;
 import hexabovename.service.DisplayRenderService;
 import hexabovename.service.DisplayTextCacheService;
 import hexabovename.service.MessageService;
+import hexabovename.service.TitleMutationService;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -26,6 +27,7 @@ public final class HexAboveNamePlugin extends JavaPlugin {
     private DisplayTextRepository repository;
     private DisplayTextCacheService cacheService;
     private DisplayRenderService renderService;
+    private TitleMutationService mutationService;
 
     @Override
     public void onEnable() {
@@ -73,6 +75,10 @@ public final class HexAboveNamePlugin extends JavaPlugin {
         return renderService;
     }
 
+    public TitleMutationService mutationService() {
+        return mutationService;
+    }
+
     private boolean initializeRuntime() {
         HexAboveNameConfig loadedConfig = configLoader.load(getConfig());
         configRef.set(loadedConfig);
@@ -92,6 +98,8 @@ public final class HexAboveNamePlugin extends JavaPlugin {
 
         this.renderService = new DisplayRenderService(this, loadedConfig, cacheService);
         renderService.start();
+
+        this.mutationService = new TitleMutationService(repository);
         return true;
     }
 
@@ -133,6 +141,10 @@ public final class HexAboveNamePlugin extends JavaPlugin {
         if (cacheService != null) {
             cacheService.stop();
             cacheService = null;
+        }
+        if (mutationService != null) {
+            mutationService.shutdown();
+            mutationService = null;
         }
         closeRepositoryQuietly();
     }

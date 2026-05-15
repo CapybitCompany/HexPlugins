@@ -40,4 +40,12 @@ messages:
   reloaded: "&aPrzeładowano plugin HexAboveName."
   reload-failed: "&cNie udało się przeładować pluginu. Sprawdź konsolę."
   no-permission: "&cNie masz uprawnień."
-  usage: "&cUżycie: /<label> reload"
+  usage: "&cUżycie: /<label> <reload|set|clear>"
+  player-not-found: "&cNie znaleziono gracza: &e<player>&c."
+  title-set: "&aUstawiono tytuł dla &e<player>&a: &f<title>"
+  title-cleared: "&aUsunięto tytuł dla &e<player>&a."
+  title-too-long: "&cTytuł jest za długi. Maksymalnie &e<max>&c znaków."
+  storage-write-failed: "&cNie udało się zapisać zmian. Sprawdź konsolę."
+
+limits:
+  max-title-length: 255

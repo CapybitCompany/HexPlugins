@@ -56,9 +56,18 @@ public final class HexAboveNameConfigLoader {
                 config.getString("messages.reloaded", "&aPrzeładowano plugin HexAboveName."),
                 config.getString("messages.reload-failed", "&cNie udało się przeładować pluginu. Sprawdź konsolę."),
                 config.getString("messages.no-permission", "&cNie masz uprawnień."),
-                config.getString("messages.usage", "&cUżycie: /<label> reload")
+                config.getString("messages.usage", "&cUżycie: /<label> <reload|set|clear>"),
+                config.getString("messages.player-not-found", "&cNie znaleziono gracza: &e<player>&c."),
+                config.getString("messages.title-set", "&aUstawiono tytuł dla &e<player>&a: &f<title>"),
+                config.getString("messages.title-cleared", "&aUsunięto tytuł dla &e<player>&a."),
+                config.getString("messages.title-too-long", "&cTytuł jest za długi. Maksymalnie &e<max>&c znaków."),
+                config.getString("messages.storage-write-failed", "&cNie udało się zapisać zmian. Sprawdź konsolę.")
         );
 
-        return new HexAboveNameConfig(render, worlds, storage, messages);
+        HexAboveNameConfig.Limits limits = new HexAboveNameConfig.Limits(
+                config.getInt("limits.max-title-length", 255)
+        );
+
+        return new HexAboveNameConfig(render, worlds, storage, messages, limits);
     }
 }

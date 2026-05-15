@@ -11,7 +11,7 @@ libraries:
 commands:
   hexabovename:
     description: HexAboveName main command
-    usage: /hexabovename reload
+    usage: /hexabovename <reload|set|clear>
     aliases: [ han, hdan ]
     permission: hexabovename.admin
 

@@ -102,6 +102,34 @@ public final class MySqlDisplayTextRepository implements DisplayTextRepository {
         return result;
     }
 
+    @Override
+    public void upsertDisplayText(UUID uuid, String playerName, String text) throws Exception {
+        String sql = "INSERT INTO " + tableQuoted + " (" + uuidColumnQuoted + ", " + playerColumnQuoted + ", " + textColumnQuoted + ") "
+                + "VALUES (?, ?, ?) "
+                + "ON DUPLICATE KEY UPDATE "
+                + playerColumnQuoted + " = VALUES(" + playerColumnQuoted + "), "
+                + textColumnQuoted + " = VALUES(" + textColumnQuoted + ")";
+
+        try (Connection connection = openConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, uuid.toString());
+            statement.setString(2, playerName);
+            statement.setString(3, text);
+            statement.executeUpdate();
+        }
+    }
+
+    @Override
+    public void clearDisplayText(UUID uuid, String playerName) throws Exception {
+        String sql = "DELETE FROM " + tableQuoted + " WHERE " + uuidColumnQuoted + " = ? OR " + playerColumnQuoted + " = ?";
+        try (Connection connection = openConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, uuid.toString());
+            statement.setString(2, playerName);
+            statement.executeUpdate();
+        }
+    }
+
     private UUID resolveUuid(ResultSet rs, Set<UUID> onlineUuids, Map<String, UUID> uuidByLowerName) throws SQLException {
         String uuidRaw = rs.getString(uuidColumn);
         if (uuidRaw != null && !uuidRaw.isBlank()) {

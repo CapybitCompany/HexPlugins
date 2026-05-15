@@ -9,13 +9,15 @@ public record HexAboveNameConfig(
         Render render,
         Worlds worlds,
         Storage storage,
-        Messages messages
+        Messages messages,
+        Limits limits
 ) {
     public HexAboveNameConfig {
         render = Objects.requireNonNull(render, "render");
         worlds = Objects.requireNonNull(worlds, "worlds");
         storage = Objects.requireNonNull(storage, "storage");
         messages = Objects.requireNonNull(messages, "messages");
+        limits = Objects.requireNonNull(limits, "limits");
     }
 
     public boolean isWorldAllowed(String worldName) {
@@ -124,7 +126,12 @@ public record HexAboveNameConfig(
             String reloaded,
             String reloadFailed,
             String noPermission,
-            String usage
+            String usage,
+            String playerNotFound,
+            String titleSet,
+            String titleCleared,
+            String titleTooLong,
+            String storageWriteFailed
     ) {
         public Messages {
             prefix = Objects.requireNonNull(prefix, "prefix");
@@ -132,6 +139,19 @@ public record HexAboveNameConfig(
             reloadFailed = Objects.requireNonNull(reloadFailed, "reloadFailed");
             noPermission = Objects.requireNonNull(noPermission, "noPermission");
             usage = Objects.requireNonNull(usage, "usage");
+            playerNotFound = Objects.requireNonNull(playerNotFound, "playerNotFound");
+            titleSet = Objects.requireNonNull(titleSet, "titleSet");
+            titleCleared = Objects.requireNonNull(titleCleared, "titleCleared");
+            titleTooLong = Objects.requireNonNull(titleTooLong, "titleTooLong");
+            storageWriteFailed = Objects.requireNonNull(storageWriteFailed, "storageWriteFailed");
+        }
+    }
+
+    public record Limits(
+            int maxTitleLength
+    ) {
+        public Limits {
+            maxTitleLength = Math.max(1, maxTitleLength);
         }
     }
 
