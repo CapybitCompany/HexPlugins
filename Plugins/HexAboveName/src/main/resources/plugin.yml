@@ -1,0 +1,24 @@
+name: HexAboveName
+version: '1.0.0'
+main: hexabovename.HexAboveNamePlugin
+api-version: '1.21'
+description: Efficient above-name display plugin with YAML/MySQL storage
+authors: [HexDevTeam]
+
+libraries:
+  - org.mariadb.jdbc:mariadb-java-client:3.4.1
+
+commands:
+  hexabovename:
+    description: HexAboveName main command
+    usage: /hexabovename reload
+    aliases: [ han, hdan ]
+    permission: hexabovename.admin
+
+permissions:
+  hexabovename.admin:
+    description: Allows managing HexAboveName
+    default: op
+  hexabovename.reload:
+    description: Legacy reload permission
+    default: op

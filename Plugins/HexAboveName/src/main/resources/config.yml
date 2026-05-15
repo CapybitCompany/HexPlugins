@@ -1,0 +1,43 @@
+render:
+  update-interval-ticks: 4
+  y-offset: 1.80
+  show-to-self: false
+
+worlds:
+  use-whitelist: false
+  whitelist:
+    - world
+
+storage:
+  # YAML | MYSQL
+  type: "MYSQL"
+
+  # Co ile sekund odświeżać dane z backendu.
+  refresh-interval-seconds: 15
+
+  yaml:
+    file: "users.yml"
+
+  mysql:
+    host: "127.0.0.1"
+    port: 3306
+    database: "minecraft_network"
+    username: "mc_user"
+    password: "change_me"
+    table: "player_display_texts"
+
+    columns:
+      player: "player"
+      uuid: "uuid"
+      text: "string"
+
+    options:
+      use-ssl: false
+      server-timezone: "UTC"
+
+messages:
+  prefix: "&0&l[&4&lHEX&0&l]&7 "
+  reloaded: "&aPrzeładowano plugin HexAboveName."
+  reload-failed: "&cNie udało się przeładować pluginu. Sprawdź konsolę."
+  no-permission: "&cNie masz uprawnień."
+  usage: "&cUżycie: /<label> reload"
