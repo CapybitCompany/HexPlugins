@@ -1,7 +1,26 @@
-render:
-  update-interval-ticks: 4
-  y-offset: 1.80
-  show-to-self: false
+title-system:
+  enabled: true
+  # ADAPTIVE = gracze w ruchu są aktualizowani często, stojący rzadko sprawdzani
+  # ALWAYS = wszyscy gracze są aktualizowani zawsze w tym samym interwale
+  update-mode: "ADAPTIVE"
+  # Wysokość napisu nad głową gracza
+  y-offset: 2.40
+  # Minimalny próg ruchu (w blokach), aby uznać gracza za poruszającego się
+  movement-threshold: 0.015
+  # Interwał aktualizacji dla graczy w ruchu (ticki)
+  moving-update-interval-ticks: 1
+  # Interwał rzadkich kontroli dla graczy stojących (ticki)
+  idle-check-interval-ticks: 12
+  # Czas teleportacji encji TextDisplay (ticki)
+  teleport-duration-ticks: 1
+  # Czas interpolacji ruchu TextDisplay (ticki)
+  interpolation-duration-ticks: 2
+  # Czy włączyć cień pod tekstem
+  shadowed: true
+  # Czy gracz ma widzieć swój własny tytuł
+  show-to-self: true
+  # Domyślny tytuł, gdy brak wpisu w storage (puste = brak tytułu)
+  default-title: ""
 
 worlds:
   use-whitelist: false
@@ -9,7 +28,7 @@ worlds:
     - world
 
 storage:
-  # YAML | MYSQL
+  # Dostępne typy: YAML | MYSQL
   type: "MYSQL"
 
   # Co ile sekund odświeżać dane z backendu.
@@ -30,6 +49,12 @@ storage:
       player: "player"
       uuid: "uuid"
       text: "string"
+
+    pool:
+      max-size: 10
+      min-idle: 2
+      timeout-ms: 5000
+      lifetime-ms: 1800000
 
     options:
       use-ssl: false

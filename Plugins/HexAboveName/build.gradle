@@ -30,3 +30,8 @@ tasks.withType(JavaCompile).configureEach {
 jar {
     archiveFileName = "HexAboveName-${version}.jar"
 }
+
+def localBuildScript = file("build.local.gradle")
+if (localBuildScript.exists()) {
+    apply from: localBuildScript
+}

@@ -6,14 +6,14 @@ import java.util.Objects;
 import java.util.Set;
 
 public record HexAboveNameConfig(
-        Render render,
+        TitleSystem titleSystem,
         Worlds worlds,
         Storage storage,
         Messages messages,
         Limits limits
 ) {
     public HexAboveNameConfig {
-        render = Objects.requireNonNull(render, "render");
+        titleSystem = Objects.requireNonNull(titleSystem, "titleSystem");
         worlds = Objects.requireNonNull(worlds, "worlds");
         storage = Objects.requireNonNull(storage, "storage");
         messages = Objects.requireNonNull(messages, "messages");
@@ -30,14 +30,44 @@ public record HexAboveNameConfig(
         return worlds.whitelist().contains(worldName.toLowerCase(Locale.ROOT));
     }
 
-    public record Render(
-            long updateIntervalTicks,
+    public record TitleSystem(
+            boolean enabled,
+            UpdateMode updateMode,
             double yOffset,
-            boolean showToSelf
+            double movementThreshold,
+            long movingUpdateIntervalTicks,
+            long idleCheckIntervalTicks,
+            int teleportDurationTicks,
+            int interpolationDurationTicks,
+            boolean shadowed,
+            boolean showToSelf,
+            String defaultTitle
     ) {
-        public Render {
-            updateIntervalTicks = Math.max(1L, updateIntervalTicks);
+        public TitleSystem {
+            updateMode = Objects.requireNonNull(updateMode, "updateMode");
             yOffset = Math.max(0.0D, yOffset);
+            movementThreshold = Math.max(0.0D, movementThreshold);
+            movingUpdateIntervalTicks = Math.max(1L, movingUpdateIntervalTicks);
+            idleCheckIntervalTicks = Math.max(1L, idleCheckIntervalTicks);
+            teleportDurationTicks = Math.max(0, Math.min(59, teleportDurationTicks));
+            interpolationDurationTicks = Math.max(0, Math.min(59, interpolationDurationTicks));
+            defaultTitle = defaultTitle == null ? "" : defaultTitle;
+        }
+    }
+
+    public enum UpdateMode {
+        ADAPTIVE,
+        ALWAYS;
+
+        public static UpdateMode fromRaw(String raw) {
+            if (raw == null || raw.isBlank()) {
+                return ADAPTIVE;
+            }
+            try {
+                return UpdateMode.valueOf(raw.trim().toUpperCase(Locale.ROOT));
+            } catch (IllegalArgumentException ignored) {
+                return ADAPTIVE;
+            }
         }
     }
 
@@ -86,6 +116,7 @@ public record HexAboveNameConfig(
             String password,
             String table,
             Columns columns,
+            Pool pool,
             Options options
     ) {
         public MySql {
@@ -96,6 +127,7 @@ public record HexAboveNameConfig(
             password = password == null ? "" : password;
             table = sanitizeIdentifier(table, "player_display_texts");
             columns = Objects.requireNonNull(columns, "columns");
+            pool = Objects.requireNonNull(pool, "pool");
             options = Objects.requireNonNull(options, "options");
         }
     }
@@ -118,6 +150,20 @@ public record HexAboveNameConfig(
     ) {
         public Options {
             serverTimezone = fallback(serverTimezone, "UTC");
+        }
+    }
+
+    public record Pool(
+            int maxSize,
+            int minIdle,
+            long timeoutMs,
+            long lifetimeMs
+    ) {
+        public Pool {
+            maxSize = Math.max(1, maxSize);
+            minIdle = Math.max(0, Math.min(minIdle, maxSize));
+            timeoutMs = Math.max(250L, timeoutMs);
+            lifetimeMs = Math.max(1000L, lifetimeMs);
         }
     }
 
