@@ -1,0 +1,19 @@
+name: HexCustomMobs
+version: '1.0.0'
+main: hexcustommobs.HexCustomMobsPlugin
+api-version: '1.21'
+description: Biome based custom mob spawning with configurable stats and drops
+authors: [HexDevTeam]
+softdepend: [HexCustomItems, WorldGuard]
+
+commands:
+  hexcustommobs:
+    description: Reload HexCustomMobs configuration
+    usage: /hexcustommobs reload
+    aliases: [ hcmobs, hcm ]
+    permission: hexcustommobs.admin
+
+permissions:
+  hexcustommobs.admin:
+    description: Allows reloading HexCustomMobs
+    default: op

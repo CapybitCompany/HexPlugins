@@ -11,6 +11,7 @@ include 'plugins:WaterDrawn'
 include 'plugins:IcebergEvent'
 include 'plugins:AreaEffects'
 include 'plugins:HexElimination'
+include 'plugins:HexCustomMobs'
 include 'statsapi'
 
 // Physical folder is 'Plugins/...' (capital P), keep logical Gradle path consistent.
@@ -24,4 +25,5 @@ project(':plugins:WaterDrawn').projectDir = file('Plugins/WaterDrawn')
 project(':plugins:IcebergEvent').projectDir = file('Plugins/IcebergEvent')
 project(':plugins:AreaEffects').projectDir = file('Plugins/AreaEffects')
 project(':plugins:HexElimination').projectDir = file('Plugins/HexElimination')
+project(':plugins:HexCustomMobs').projectDir = file('Plugins/HexCustomMobs')
 project(':statsapi').projectDir = file('StatsApi')

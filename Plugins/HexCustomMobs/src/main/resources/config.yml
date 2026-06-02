@@ -1,0 +1,209 @@
+# ==========================================================
+# HexCustomMobs - konfiguracja główna
+# ==========================================================
+
+# Główny przełącznik pluginu.
+# false = plugin pozostaje załadowany, ale nie tworzy custom mobów.
+enabled: true
+
+# Tryb debug zapisuje do konsoli decyzje systemu spawnu
+# (np. brak reguły biome, limit chunka, nietrafiona szansa).
+# Zalecenie: true tylko podczas strojenia.
+debug: false
+
+spawn:
+  # Jakie rodzaje spawnów mają być obsługiwane przez plugin.
+  # Najbezpieczniejszy start dla SMP:
+  # - NATURAL
+  #
+  # Dodatkowe opcje (opcjonalnie):
+  # - SPAWNER, REINFORCEMENTS, CHUNK_GEN, JOCKEY, PATROL, RAID...
+  # Uwaga: im więcej powodów, tym większa ingerencja w vanilla.
+  handled-reasons:
+    - NATURAL
+
+  # true  = jeśli dla biome/world brak reguły, vanilla spawn jest anulowany
+  # false = vanilla spawn działa normalnie poza zdefiniowanymi regułami
+  # Zalecenie na start SMP: false
+  cancel-vanilla-on-rule-miss: false
+
+  # Limit custom mobów w jednym chunku (16x16), aby chronić TPS.
+  # Rekomendowane widełki:
+  # - survival SMP: 6-12
+  # - ciężki tryb / eventy: 12-20
+  # - test lokalny: 20+
+  max-custom-mobs-per-chunk: 8
+
+hp-bar:
+  # true = nad custom mobem pojawia się dynamiczny pasek HP
+  enabled: true
+
+  # Szablon paska HP.
+  # Dostępne placeholdery:
+  # <name>       - nazwa moba
+  # <health>     - aktualne HP
+  # <max_health> - maksymalne HP
+  # <bar>        - graficzny pasek
+  format: "&c<name> &7[&a<health>&7/&a<max_health>&7] &8<bar>"
+
+  # Długość graficznego paska HP.
+  # Rekomendacja:
+  # 10-14 dla czytelności, powyżej 16 bywa zbyt długie.
+  bar-length: 12
+
+  # Znak "pełnego" segmentu paska.
+  bar-symbol-full: "|"
+
+  # Znak "pustego" segmentu paska.
+  bar-symbol-empty: "."
+
+  # true  = HP z 1 miejscem po przecinku (np. 17.5)
+  # false = wartości zaokrąglone (np. 18)
+  show-decimals: false
+
+# ==========================================================
+# Definicje custom mobów
+# ==========================================================
+# Każdy wpis pod "mobs" to szablon moba używany przez reguły biome.
+# Id wpisu (np. forest_zombie) jest używany później w biome-rules.
+mobs:
+  forest_zombie:
+    # Vanilla typ encji, na bazie którego budujemy custom moba
+    type: ZOMBIE
+
+    # Nazwa wyświetlana w HP-bar (oraz customName encji)
+    display-name: "&2Forest Zombie"
+
+    # Statystyki bojowe
+    # Rekomendacja startowa dla SMP:
+    # - max-health: 24-60
+    # - attack-damage: 4-12
+    # - movement-speed: 0.24-0.35
+    # - follow-range: 16-32
+    # - armor: 0-8
+    max-health: 40.0
+    attack-damage: 6.0
+    movement-speed: 0.27
+    follow-range: 24.0
+    armor: 4.0
+
+    # Exp z custom moba (zastępuje vanilla exp w death listenerze)
+    exp-drop: 8
+
+    equipment:
+      # --- WAŻNE ---
+      # Armor/equipment NIE dropi z moba (zawsze drop chance = 0),
+      # ponieważ dropy kontroluje tylko sekcja "drops".
+      #
+      # Źródła itemów do equipment:
+      # 1) custom-item-id z HexCustomItems (preferowane)
+      # 2) material (fallback vanilla)
+      #
+      # Można podać oba naraz:
+      # - jeśli HexCustomItems działa i id istnieje -> bierze custom-item-id
+      # - jeśli nie -> użyje material jako fallback
+
+      helmet:
+        custom-item-id: "hex_coin_1"
+        material: LEATHER_HELMET
+        amount: 1
+        # Poniższe pola są opcjonalnymi nadpisaniami:
+        # name, lore, custom-model-data
+        # Jeśli custom-item-id już ma swoje meta, nadpisania są opcjonalne.
+        drop-chance: 0.0
+
+      main-hand:
+        material: STONE_SWORD
+        amount: 1
+        drop-chance: 0.0
+
+    drops:
+      # Każdy wpis to osobny roll lootu.
+      # Dla każdego wpisu losujemy:
+      # 1) chance
+      # 2) amount z zakresu min-amount..max-amount
+      #
+      # Źródła itemów działają jak w equipment:
+      # custom-item-id (HexCustomItems) lub material (fallback).
+      - material: ROTTEN_FLESH
+        chance: 0.75
+        min-amount: 1
+        max-amount: 3
+
+      - custom-item-id: "hex_coin_2"
+        material: EMERALD
+        chance: 0.10
+        min-amount: 1
+        max-amount: 1
+
+  desert_husk:
+    type: HUSK
+    display-name: "&6Desert Husk"
+    max-health: 34.0
+    attack-damage: 5.0
+    movement-speed: 0.30
+    follow-range: 28.0
+    armor: 3.0
+    exp-drop: 7
+
+    equipment:
+      main-hand:
+        custom-item-id: "fireball_item"
+        material: IRON_SWORD
+        amount: 1
+        drop-chance: 0.0
+
+    drops:
+      - material: ROTTEN_FLESH
+        chance: 0.80
+        min-amount: 1
+        max-amount: 2
+
+      - custom-item-id: "hex_coin_1"
+        material: GOLD_NUGGET
+        chance: 0.25
+        min-amount: 1
+        max-amount: 3
+
+# ==========================================================
+# Reguły spawnów per biome
+# ==========================================================
+# Każdy wpis działa od góry do dołu. Pierwsza pasująca reguła wygrywa.
+# Warunki dopasowania:
+# - world jest na liście "worlds" (lub lista pusta)
+# - biome bloku spawnu jest na liście "biomes"
+biome-rules:
+  - id: overworld_forest
+
+    # Lista światów, których dotyczy reguła.
+    # Najczęściej: [ world ]
+    worlds: [ world ]
+
+    # Biomy, gdzie reguła jest aktywna.
+    biomes: [ FOREST, BIRCH_FOREST, OLD_GROWTH_BIRCH_FOREST, DARK_FOREST ]
+
+    # true  = vanilla mob z eventu jest anulowany i zastępowany custom mobem
+    # false = custom template nakłada się tylko gdy typ się zgadza
+    # Zalecenie: true (pełna kontrola nad spawnem)
+    replace-vanilla: true
+
+    # Szansa wejścia reguły po dopasowaniu world+biome.
+    # 0.35 = 35%
+    # Rekomendacja startowa:
+    # - ostrożnie: 0.10-0.25
+    # - standard: 0.25-0.45
+    # - agresywnie: 0.45-0.70
+    spawn-chance: 0.35
+
+    # Lista kandydatów + wagi losowania.
+    # Im większa liczba, tym częściej dany mob zostanie wybrany.
+    mobs:
+      forest_zombie: 100
+
+  - id: overworld_desert
+    worlds: [ world ]
+    biomes: [ DESERT, BADLANDS, WOODED_BADLANDS ]
+    replace-vanilla: true
+    spawn-chance: 0.30
+    mobs:
+      desert_husk: 100
