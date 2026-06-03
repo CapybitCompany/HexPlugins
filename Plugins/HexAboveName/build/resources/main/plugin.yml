@@ -1,0 +1,15 @@
+name: HexAboveName
+version: '1.0.0'
+main: pl.hex.abovename.HexAboveNamePlugin
+api-version: '1.21'
+author: Quezo
+folia-supported: false
+commands:
+  hexabovename:
+    description: Zarządzanie tytułami nad nickiem gracza.
+    usage: /hexabovename <nick> <set/clear> [tytuł] lub /hexabovename reload
+    aliases: [han]
+permissions:
+  hexabovename.admin:
+    description: Dostęp do komend HexAboveName.
+    default: op

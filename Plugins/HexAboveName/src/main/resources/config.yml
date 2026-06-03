@@ -1,0 +1,50 @@
+# HexAboveName
+# Plugin jest czysto wizualny: nie zmienia rang, LuckPerms, teamów, scoreboardów, prefixów ani permisji.
+
+settings:
+  # PASSENGER = domyślnie, lekko i płynnie. TextDisplay jest pasażerem gracza, bez teleportowania co tick.
+  movement-mode: PASSENGER
+
+  # Wysokość tekstu względem attachmentu pasażera. Do testów zwykle 0.45-0.90.
+  height-offset: 0.65
+
+  # Skala tekstu.
+  scale: 1.0
+
+  # Billboard CENTER = tekst obraca się do kamery.
+  billboard: CENTER
+
+  shadow: true
+  see-through: false
+  background-opacity: 0
+  default-visible: true
+
+  # Co ile ticków odświeżać widoczność napisów dla viewerów.
+  # To NIE jest teleportowanie. Przy 15 tytułach i 100 graczach: 1500 prostych sprawdzeń/s przy wartości 20.
+  visibility-refresh-ticks: 20
+
+  # Awaryjne usuwanie starych displayów z tagiem pluginu przy starcie.
+  cleanup-old-displays-on-start: true
+
+visibility:
+  hide-when-vanished: true
+  hide-when-invisible-potion: true
+  hide-when-spectator: true
+  respect-player-can-see: true
+
+messages:
+  prefix: "<dark_gray>[<gold>HexAboveName</gold>]</dark_gray> "
+  no-permission: "<red>Nie masz uprawnień.</red>"
+  usage: "<gray>Użycie: <yellow>/hexabovename <nick> set <tytuł></yellow>, <yellow>/hexabovename <nick> clear</yellow>, <yellow>/hexabovename reload</yellow></gray>"
+  player-not-found: "<red>Nie znaleziono gracza lub gracz nigdy nie był na serwerze.</red>"
+  set: "<green>Ustawiono tytuł dla <yellow><player></yellow>: <white><title></white></green>"
+  cleared: "<green>Wyczyszczono tytuł dla <yellow><player></yellow>.</green>"
+  reloaded: "<green>Przeładowano config i odtworzono aktywne tytuły.</green>"
+
+# Tytuły zapisywane automatycznie przez komendę.
+# Format:
+# titles:
+#   uuid-gracza:
+#     name: "Nick"
+#     title: "<gold><bold>MISTRZ GRY</bold></gold>"
+titles: {}
