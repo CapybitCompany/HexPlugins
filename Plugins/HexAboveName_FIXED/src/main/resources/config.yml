@@ -1,0 +1,52 @@
+# HexAboveName 1.1.0
+# WAŻNE: tryb bez passengerów. Plugin NIE robi player.addPassenger(...),
+# więc nie zmienia gracza w pojazd/nośnik i nie powinien mieszać w WorldGuard/Skript.
+
+settings:
+  # Wysokość nad lokalizacją gracza. Dostosuj na serwerze.
+  height-offset: 2.55
+
+  # Skala tekstu.
+  scale: 1.0
+
+  # Co ile ticków pozycja tekstu ma być aktualizowana.
+  # 2 = bardzo płynnie, nadal lekko przy 15 tytułach.
+  # 3-4 = mniej packetów/teleportów, ale minimalnie mniej płynnie.
+  update-interval-ticks: 2
+
+  # Wygładzenie ruchu Display Entity.
+  # Najczęściej najlepiej równe update-interval-ticks.
+  teleport-duration-ticks: 2
+
+  # Czy usuwać wszystkie stare TextDisplay z tagiem pluginu przy starcie.
+  cleanup-stale-displays-on-startup: true
+
+  shadow: true
+  see-through: false
+  background-opacity: 0
+  text-opacity: 255
+  billboard: CENTER # CENTER, VERTICAL, HORIZONTAL, FIXED
+
+visibility:
+  respect-player-can-see: true
+  hide-when-invisible-potion: true
+  hide-when-spectator: true
+  hide-when-dead: true
+
+messages:
+  prefix: "&0&l[&4HEX ABOVE NAME&0&l] &7"
+  no-permission: "&cNie masz permisji."
+  usage: "&cUżycie: /hexabovename <nick> <set/clear> [tytuł] lub /hexabovename reload"
+  player-not-found: "&cNie znaleziono gracza online ani wpisu w configu."
+  title-set: "&7Ustawiono tytuł dla &f%player%&7: %title%"
+  title-cleared: "&7Usunięto tytuł gracza &f%player%&7."
+  title-cleared-offline: "&7Usunięto zapisany tytuł gracza &f%player%&7."
+  reloaded: "&aPrzeładowano HexAboveName."
+
+# Zapisywane automatycznie przez komendę.
+# Format:
+# titles:
+#   uuid-gracza:
+#     name: "Nick"
+#     title: "&6&lMISTRZ GRY"
+titles: {}

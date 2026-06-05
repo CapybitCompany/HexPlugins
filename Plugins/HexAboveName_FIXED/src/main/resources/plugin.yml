@@ -1,0 +1,15 @@
+name: HexAboveName
+version: ${version}
+main: pl.hex.abovename.HexAboveNamePlugin
+api-version: '1.21'
+author: HEX
+folia-supported: false
+commands:
+  hexabovename:
+    description: Ustawia tekst nad graczem bez podmieniania gracza entity.
+    usage: /hexabovename <nick> <set/clear> [tytul] lub /hexabovename reload
+    aliases: [han]
+permissions:
+  hexabovename.admin:
+    description: Dostęp do komend HexAboveName.
+    default: op
