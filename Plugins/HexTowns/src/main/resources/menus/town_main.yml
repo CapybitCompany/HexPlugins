@@ -1,0 +1,212 @@
+# DeluxeMenus: główne centrum miast HexTowns
+# Wymaga: DeluxeMenus, PlaceholderAPI, HexTowns. Integracje: HexMinions, HexCollections.
+
+menu_title: '&8Miasta &7- centrum'
+open_command:
+  - townmenu
+  - miasto
+  - miasta
+size: 54
+
+items:
+  filler:
+    material: BLACK_STAINED_GLASS_PANE
+    display_name: ' '
+    slots:
+      - 0-53
+
+  player_status:
+    material: PLAYER_HEAD
+    slot: 4
+    display_name: '&6Profil miasta'
+    lore:
+      - '&7Gracz: &f%player_name%'
+      - '&7Status: &f%hextowns_role_display%'
+      - '&7Miasto: &e%hextowns_town_name%'
+      - '&7Właściciel: &f%hextowns_owner_name%'
+      - ''
+      - '&7Członkowie: &f%hextowns_members%&7/&f%hextowns_max_members%'
+      - '&7Chunki: &f%hextowns_chunks%&7/&f%hextowns_max_chunks%'
+      - '&7Growth points: &a%hextowns_growth%'
+      - '&7Miniony: &b%hexminions_count%&7/&b%hexminions_limit%'
+      - ''
+      - '&8Chunk teraz: %hextowns_current_chunk%'
+      - '&8Teren tutaj: %hextowns_here_town_name%'
+
+  create_town:
+    material: EMERALD_BLOCK
+    slot: 20
+    priority: 1
+    display_name: '&aZałóż miasto'
+    lore:
+      - '&7Tworzy miasto na aktualnym chunku.'
+      - '&7Startowy rozmiar: &f%hextowns_create_initial_chunks% chunków'
+      - '&7Min. dystans: &f%hextowns_create_min_distance% chunków'
+      - ''
+      - '&eKliknij, aby rozpocząć zakładanie.'
+      - '&8Nazwa domyślna: twój nick.'
+      - '&8Własna nazwa: /town create <nazwa>'
+    view_requirement:
+      requirements:
+        no_town:
+          type: string equals
+          input: '%hextowns_has_town%'
+          output: 'false'
+    left_click_commands:
+      - '[player] town create'
+      - '[openguimenu] town_create_confirm'
+
+  manage_town:
+    material: BELL
+    slot: 20
+    priority: 2
+    display_name: '&eZarządzaj miastem'
+    lore:
+      - '&7Miasto: &f%hextowns_town_name%'
+      - '&7Rola: &f%hextowns_role_display%'
+      - ''
+      - '&eKliknij, aby przejść do panelu zarządzania.'
+    view_requirement:
+      requirements:
+        has_town:
+          type: string equals
+          input: '%hextowns_has_town%'
+          output: 'true'
+    left_click_commands:
+      - '[openguimenu] town_manage'
+
+  join_coop:
+    material: OAK_DOOR
+    slot: 22
+    priority: 1
+    display_name: '&bPoproś o COOP'
+    lore:
+      - '&7Stań w cudzym mieście i kliknij,'
+      - '&7aby wysłać prośbę do właściciela.'
+      - ''
+      - '&eWykonuje: /town coop'
+    view_requirement:
+      requirements:
+        no_town:
+          type: string equals
+          input: '%hextowns_has_town%'
+          output: 'false'
+    left_click_commands:
+      - '[player] town coop'
+
+  claim_panel:
+    material: GRASS_BLOCK
+    slot: 22
+    priority: 2
+    display_name: '&aTeren i claimy'
+    lore:
+      - '&7Claimuj chunki, sprawdzaj mapę'
+      - '&7i włączaj wizualizację granic.'
+      - ''
+      - '&7Growth points: &a%hextowns_growth%'
+      - '&7Koszt claimu: &f%hextowns_claim_cost_growth% GP'
+      - ''
+      - '&eKliknij, aby otworzyć.'
+    view_requirement:
+      requirements:
+        has_town:
+          type: string equals
+          input: '%hextowns_has_town%'
+          output: 'true'
+    left_click_commands:
+      - '[openguimenu] town_claims'
+
+  coop_panel:
+    material: WRITABLE_BOOK
+    slot: 24
+    display_name: '&dCOOP i członkowie'
+    lore:
+      - '&7Członkowie: &f%hextowns_members%&7/&f%hextowns_max_members%'
+      - '&7Twoja rola: &f%hextowns_role_display%'
+      - ''
+      - '&eKliknij, aby otworzyć menu COOP.'
+    view_requirement:
+      requirements:
+        has_town:
+          type: string equals
+          input: '%hextowns_has_town%'
+          output: 'true'
+    left_click_commands:
+      - '[openguimenu] town_coop'
+
+  collections:
+    material: BOOK
+    slot: 30
+    display_name: '&aKolekcje miasta'
+    lore:
+      - '&7Postęp jest wspólny dla miasta/COOP.'
+      - ''
+      - '&7Cobblestone: &f%hexcollections_level_mining_cobblestone%&7/7'
+      - '&7Iron: &f%hexcollections_level_mining_iron%&7/7'
+      - ''
+      - '&eKliknij, aby otworzyć.'
+    view_requirement:
+      requirements:
+        has_town:
+          type: string equals
+          input: '%hextowns_has_town%'
+          output: 'true'
+    left_click_commands:
+      - '[openguimenu] town_collections'
+
+  minions:
+    material: PLAYER_HEAD
+    slot: 32
+    display_name: '&bMiniony miasta'
+    lore:
+      - '&7Zarządzaj minionami przypisanymi do miasta.'
+      - ''
+      - '&7Aktywne: &f%hexminions_count%&7/&f%hexminions_limit%'
+      - '&7Wolne sloty: &f%hexminions_remaining%'
+      - '&7Zapełnienie: &f%hexminions_percent%%'
+      - ''
+      - '&eKliknij, aby otworzyć.'
+    view_requirement:
+      requirements:
+        has_town:
+          type: string equals
+          input: '%hextowns_has_town%'
+          output: 'true'
+    left_click_commands:
+      - '[openguimenu] town_minions'
+
+  local_info:
+    material: COMPASS
+    slot: 34
+    display_name: '&eInfo o miejscu'
+    lore:
+      - '&7Chunk: &f%hextowns_current_chunk%'
+      - '&7Teren: &f%hextowns_here_town_name%'
+      - '&7Możesz budować: &f%hextowns_can_build_here%'
+      - ''
+      - '&eLPM: /town here'
+      - '&ePPM: /town map'
+    left_click_commands:
+      - '[player] town here'
+    right_click_commands:
+      - '[player] town map'
+
+  quick_check:
+    material: LIME_STAINED_GLASS
+    slot: 40
+    display_name: '&aPodgląd granic'
+    lore:
+      - '&7Włącza/wyłącza wizualizację miast.'
+      - '&7Promień: &f%hextowns_visual_radius% chunków'
+      - ''
+      - '&eKliknij: /town check'
+    left_click_commands:
+      - '[player] town check'
+
+  close:
+    material: BARRIER
+    slot: 49
+    display_name: '&cZamknij'
+    left_click_commands:
+      - '[close]'
+

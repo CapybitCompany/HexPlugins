@@ -1,0 +1,13 @@
+schema-version: 1
+
+daily-pools:
+  mining_easy:
+    enabled: true
+    slots: 1
+    include-tags: []
+
+  combat_medium:
+    enabled: true
+    slots: 1
+    include-tags: []
+

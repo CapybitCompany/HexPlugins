@@ -2,9 +2,7 @@ package hex.elimination;
 
 import hex.core.api.HexApi;
 import hex.core.api.ui.UiService;
-import hex.elimination.command.EliminationToggleCommand;
-import hex.elimination.command.ResurectAllCommand;
-import hex.elimination.command.ResurectCommand;
+import hex.elimination.command.HexEliminationCommand;
 import hex.elimination.listener.EliminationListener;
 import hex.elimination.service.EliminationService;
 import org.bukkit.Bukkit;
@@ -32,7 +30,7 @@ public final class HexEliminationPlugin extends JavaPlugin {
         this.ui = api.ui();
 
         // Rejestracja domyslnych szablonow UI (admin moze nadpisac w ui.yml > overrides)
-        ui.registerDefaults("elimination", Map.ofEntries(
+        registerUiDefaults(Map.ofEntries(
             Map.entry("kill.announce",
                 "<dark_gray>[<red>ELIMINACJA</red>]</dark_gray>"
                 + " <white>Gracz</white> <yellow><victim></yellow>"
@@ -44,7 +42,7 @@ public final class HexEliminationPlugin extends JavaPlugin {
             Map.entry("resurect.ok",
                 "<green>Wskrzeszono gracza: <white><target></white></green>"),
             Map.entry("resurect.usage",
-                "<yellow>Uzycie: /resurect <nick_gracza></yellow>"),
+                "<yellow>Użycie: <white>/hexelimination resurect [nick_gracza]</white></yellow>"),
             Map.entry("error.not_eliminated",
                 "<red>Ten gracz nie jest wyeliminowany.</red>"),
             Map.entry("error.player_not_found",
@@ -58,7 +56,7 @@ public final class HexEliminationPlugin extends JavaPlugin {
             Map.entry("resurectall.empty",
                 "<yellow>Lista wyeliminowanych graczy jest już pusta.</yellow>"),
             Map.entry("resurectall.usage",
-                "<yellow>Użycie: /resurectall [survival|creative|adventure|spectator]</yellow>"),
+                "<yellow>Użycie: <white>/hexelimination resurectall [survival|creative|adventure|spectator]</white></yellow>"),
             Map.entry("resurectall.invalid_gamemode",
                 "<red>Nieznany tryb gry: <white><input></white>. Dostępne: survival, creative, adventure, spectator.</red>"),
             Map.entry("toggle.started",
@@ -72,32 +70,23 @@ public final class HexEliminationPlugin extends JavaPlugin {
             Map.entry("toggle.already_stopped",
                 "<yellow>Okres eliminacji jest już nieaktywny.</yellow>"),
             Map.entry("toggle.usage",
-                "<yellow>Użycie: /elimination <start|stop></yellow>")
+                "<yellow>Użycie: <white>/hexelimination [start|stop]</white></yellow>"),
+            Map.entry("reload.ok",
+                "<green><bold>HexElimination</bold></green><gray>:</gray> <white>konfiguracja została przeładowana.</white>"),
+            Map.entry("usage",
+                "<yellow>Użycie: <white>/hexelimination [resurect|resurectall|start|stop|reload]</white></yellow>")
         ));
 
         this.eliminationService = new EliminationService(this);
         getServer().getPluginManager().registerEvents(new EliminationListener(this), this);
 
-        var cmd = getCommand("resurect");
+        var cmd = getCommand("hexelimination");
         if (cmd != null) {
-            ResurectCommand executor = new ResurectCommand(this);
+            HexEliminationCommand executor = new HexEliminationCommand(this);
             cmd.setExecutor(executor);
             cmd.setTabCompleter(executor);
         }
 
-        var cmdAll = getCommand("resurectall");
-        if (cmdAll != null) {
-            ResurectAllCommand executorAll = new ResurectAllCommand(this);
-            cmdAll.setExecutor(executorAll);
-            cmdAll.setTabCompleter(executorAll);
-        }
-
-        var cmdToggle = getCommand("elimination");
-        if (cmdToggle != null) {
-            EliminationToggleCommand executorToggle = new EliminationToggleCommand(this);
-            cmdToggle.setExecutor(executorToggle);
-            cmdToggle.setTabCompleter(executorToggle);
-        }
 
         getLogger().info("HexElimination loaded.");
     }
@@ -106,6 +95,19 @@ public final class HexEliminationPlugin extends JavaPlugin {
     public void onDisable() {
         if (eliminationService != null) {
             eliminationService.shutdown();
+        }
+    }
+
+    private void registerUiDefaults(Map<String, String> defaults) {
+        try {
+            ui.getClass()
+                    .getMethod("registerDefaults", String.class, Map.class)
+                    .invoke(ui, "elimination", defaults);
+        } catch (NoSuchMethodException e) {
+            getLogger().warning("HexCore UiService nie udostepnia registerDefaults(String, Map). "
+                    + "Pomijam rejestracje domyslnych tekstow; zaktualizuj HexCore.jar albo dodaj teksty w ui.yml.");
+        } catch (ReflectiveOperationException | LinkageError e) {
+            getLogger().warning("Nie mozna zarejestrowac domyslnych tekstow UI: " + e.getMessage());
         }
     }
 

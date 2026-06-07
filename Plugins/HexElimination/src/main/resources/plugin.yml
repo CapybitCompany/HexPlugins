@@ -7,20 +7,12 @@ authors: [HexTeam]
 depend:
   - HexCore
 commands:
-  resurect:
-    description: Resurrect eliminated player
-    usage: /resurect <nick_gracza>
+  hexelimination:
+    description: Manage HexElimination
+    usage: /hexelimination <resurect|resurectall|start|stop|reload>
     permission: hexelimination.admin
-  resurectall:
-    description: Resurrect ALL eliminated players and clear the elimination list
-    usage: /resurectall [survival|creative|adventure|spectator]
-    permission: hexelimination.admin
-  elimination:
-    description: Start or stop the elimination period
-    usage: /elimination <start|stop>
-    permission: hexelimination.admin
+    aliases: [helim]
 permissions:
   hexelimination.admin:
     description: Allows using elimination admin commands
     default: op
-

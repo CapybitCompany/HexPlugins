@@ -1,0 +1,126 @@
+# DeluxeMenus example: town collections menu
+
+menu_title: '&8Kolekcje miasta'
+open_command:
+  - towncollections
+  - kolekcje
+size: 54
+
+items:
+  filler:
+    material: BLACK_STAINED_GLASS_PANE
+    display_name: ' '
+    slots:
+      - 0-53
+
+  back:
+    material: ARROW
+    slot: 45
+    display_name: '&ePowrót'
+    left_click_commands:
+      - '[openguimenu] town_main'
+
+  cobblestone_icon:
+    material: COBBLESTONE
+    slot: 10
+    display_name: '&7Cobblestone Collection'
+    lore:
+      - '&7Poziom: &f%hexcollections_level_mining_cobblestone%&7/7'
+      - '&7Następny poziom: &f%hexcollections_next_level_mining_cobblestone%'
+      - '&7Ilość: &f%hexcollections_amount_mining_cobblestone%'
+      - '&7Do następnego: &f%hexcollections_remaining_mining_cobblestone%'
+      - '&7Procent: &f%hexcollections_progress_percent_mining_cobblestone%%%'
+      - ''
+      - '&a%hexcollections_progress_bar_mining_cobblestone%'
+
+  iron_icon:
+    material: IRON_INGOT
+    slot: 19
+    display_name: '&fIron Collection'
+    lore:
+      - '&7Poziom: &f%hexcollections_level_mining_iron%&7/7'
+      - '&7Następny poziom: &f%hexcollections_next_level_mining_iron%'
+      - '&7Ilość: &f%hexcollections_amount_mining_iron%'
+      - '&7Do następnego: &f%hexcollections_remaining_mining_iron%'
+      - '&7Procent: &f%hexcollections_progress_percent_mining_iron%%%'
+      - ''
+      - '&a%hexcollections_progress_bar_mining_iron%'
+
+  # Cobblestone levels 1-7
+  cobble_level_1:
+    material: '%hexcollections_gui_material_mining_cobblestone_1%'
+    slot: 12
+    display_name: '%hexcollections_gui_display_mining_cobblestone_1%'
+    lore:
+      - '&7Status: &f%hexcollections_gui_state_mining_cobblestone_1%'
+      - '&7Wymagane: &f%hexcollections_required_mining_cobblestone_1%'
+      - '&7Odblokowane: &f%hexcollections_unlocked_mining_cobblestone_1%'
+  cobble_level_2:
+    material: '%hexcollections_gui_material_mining_cobblestone_2%'
+    slot: 13
+    display_name: '%hexcollections_gui_display_mining_cobblestone_2%'
+    lore: ['&7Status: &f%hexcollections_gui_state_mining_cobblestone_2%', '&7Wymagane: &f%hexcollections_required_mining_cobblestone_2%']
+  cobble_level_3:
+    material: '%hexcollections_gui_material_mining_cobblestone_3%'
+    slot: 14
+    display_name: '%hexcollections_gui_display_mining_cobblestone_3%'
+    lore: ['&7Status: &f%hexcollections_gui_state_mining_cobblestone_3%', '&7Wymagane: &f%hexcollections_required_mining_cobblestone_3%']
+  cobble_level_4:
+    material: '%hexcollections_gui_material_mining_cobblestone_4%'
+    slot: 15
+    display_name: '%hexcollections_gui_display_mining_cobblestone_4%'
+    lore: ['&7Status: &f%hexcollections_gui_state_mining_cobblestone_4%', '&7Wymagane: &f%hexcollections_required_mining_cobblestone_4%']
+  cobble_level_5:
+    material: '%hexcollections_gui_material_mining_cobblestone_5%'
+    slot: 16
+    display_name: '%hexcollections_gui_display_mining_cobblestone_5%'
+    lore: ['&7Status: &f%hexcollections_gui_state_mining_cobblestone_5%', '&7Wymagane: &f%hexcollections_required_mining_cobblestone_5%']
+  cobble_level_6:
+    material: '%hexcollections_gui_material_mining_cobblestone_6%'
+    slot: 21
+    display_name: '%hexcollections_gui_display_mining_cobblestone_6%'
+    lore: ['&7Status: &f%hexcollections_gui_state_mining_cobblestone_6%', '&7Wymagane: &f%hexcollections_required_mining_cobblestone_6%']
+  cobble_level_7:
+    material: '%hexcollections_gui_material_mining_cobblestone_7%'
+    slot: 22
+    display_name: '%hexcollections_gui_display_mining_cobblestone_7%'
+    lore: ['&7Status: &f%hexcollections_gui_state_mining_cobblestone_7%', '&7Wymagane: &f%hexcollections_required_mining_cobblestone_7%']
+
+  # Iron levels 1-7
+  iron_level_1:
+    material: '%hexcollections_gui_material_mining_iron_1%'
+    slot: 28
+    display_name: '%hexcollections_gui_display_mining_iron_1%'
+    lore: ['&7Status: &f%hexcollections_gui_state_mining_iron_1%', '&7Wymagane: &f%hexcollections_required_mining_iron_1%']
+  iron_level_2:
+    material: '%hexcollections_gui_material_mining_iron_2%'
+    slot: 29
+    display_name: '%hexcollections_gui_display_mining_iron_2%'
+    lore: ['&7Status: &f%hexcollections_gui_state_mining_iron_2%', '&7Wymagane: &f%hexcollections_required_mining_iron_2%']
+  iron_level_3:
+    material: '%hexcollections_gui_material_mining_iron_3%'
+    slot: 30
+    display_name: '%hexcollections_gui_display_mining_iron_3%'
+    lore: ['&7Status: &f%hexcollections_gui_state_mining_iron_3%', '&7Wymagane: &f%hexcollections_required_mining_iron_3%']
+  iron_level_4:
+    material: '%hexcollections_gui_material_mining_iron_4%'
+    slot: 31
+    display_name: '%hexcollections_gui_display_mining_iron_4%'
+    lore: ['&7Status: &f%hexcollections_gui_state_mining_iron_4%', '&7Wymagane: &f%hexcollections_required_mining_iron_4%']
+  iron_level_5:
+    material: '%hexcollections_gui_material_mining_iron_5%'
+    slot: 32
+    display_name: '%hexcollections_gui_display_mining_iron_5%'
+    lore: ['&7Status: &f%hexcollections_gui_state_mining_iron_5%', '&7Wymagane: &f%hexcollections_required_mining_iron_5%']
+  iron_level_6:
+    material: '%hexcollections_gui_material_mining_iron_6%'
+    slot: 39
+    display_name: '%hexcollections_gui_display_mining_iron_6%'
+    lore: ['&7Status: &f%hexcollections_gui_state_mining_iron_6%', '&7Wymagane: &f%hexcollections_required_mining_iron_6%']
+  iron_level_7:
+    material: '%hexcollections_gui_material_mining_iron_7%'
+    slot: 40
+    display_name: '%hexcollections_gui_display_mining_iron_7%'
+    lore: ['&7Status: &f%hexcollections_gui_state_mining_iron_7%', '&7Wymagane: &f%hexcollections_required_mining_iron_7%']
+
+

@@ -1,0 +1,22 @@
+name: HexTowns
+version: 1.0.0
+main: hex.towns.HexTownsPlugin
+api-version: "1.21"
+
+depend:
+  - HexCore
+
+softdepend:
+  - PlaceholderAPI
+
+commands:
+  town:
+    usage: "/town <create|claim|coop|accept|endcoop|destroy|check|info|here|map|growth|admin syncgrowth>"
+    description: Towns, claims and coop management for Hex SMP
+    permission: hextowns.use
+
+permissions:
+  hextowns.use:
+    default: true
+  hextowns.admin:
+    default: op

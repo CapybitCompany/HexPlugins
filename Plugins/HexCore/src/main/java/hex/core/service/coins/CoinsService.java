@@ -1,10 +1,12 @@
 package hex.core.service.coins;
 
+import hex.core.api.db.DatabaseService;
 import hex.core.database.repository.CoinsRepository;
 
 import java.time.Clock;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -13,23 +15,36 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * Reads coins from external table: xeconomy.balance.
  *
- * TODO: In the future, consider async refresh + anti-stampede if UI calls become very frequent.
+ * Placeholder/UI reads must never block the server thread on DB. Cache misses return
+ * a stale/default value and trigger a single background refresh per UUID.
  */
 public final class CoinsService {
 
     private final CoinsRepository repository;
+    private final DatabaseService database;
 
     private final Map<UUID, CacheEntry> cache = new ConcurrentHashMap<>();
+    private final Set<UUID> refreshInFlight = ConcurrentHashMap.newKeySet();
     private final Clock clock;
     private final long ttlMillis;
 
     /** Default TTL: 15s. */
     public CoinsService(CoinsRepository repository) {
-        this(repository, Clock.systemUTC(), 15_000L);
+        this(repository, null);
+    }
+
+    /** Default TTL: 15s. */
+    public CoinsService(CoinsRepository repository, DatabaseService database) {
+        this(repository, database, Clock.systemUTC(), 15_000L);
     }
 
     public CoinsService(CoinsRepository repository, Clock clock, long ttlMillis) {
+        this(repository, null, clock, ttlMillis);
+    }
+
+    public CoinsService(CoinsRepository repository, DatabaseService database, Clock clock, long ttlMillis) {
         this.repository = repository;
+        this.database = database;
         this.clock = clock;
         this.ttlMillis = Math.max(0L, ttlMillis);
     }
@@ -44,6 +59,11 @@ public final class CoinsService {
             return entry.coins;
         }
 
+        if (database != null) {
+            refreshAsync(uuid);
+            return entry == null ? 0 : entry.coins;
+        }
+
         int coins;
         try {
             coins = repository.findBalanceByUuid(uuid).orElse(0);
@@ -54,6 +74,23 @@ public final class CoinsService {
 
         cache.put(uuid, new CacheEntry(coins, now + ttlMillis));
         return coins;
+    }
+
+    private void refreshAsync(UUID uuid) {
+        if (uuid == null || repository == null || database == null || !refreshInFlight.add(uuid)) {
+            return;
+        }
+
+        database.async(() -> repository.findBalanceByUuid(uuid).orElse(0))
+                .whenComplete((coins, error) -> {
+                    try {
+                        if (error == null && coins != null) {
+                            cache.put(uuid, new CacheEntry(coins, clock.millis() + ttlMillis));
+                        }
+                    } finally {
+                        refreshInFlight.remove(uuid);
+                    }
+                });
     }
 
     /**

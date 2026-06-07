@@ -1,0 +1,53 @@
+# DeluxeMenus: potwierdzenie zniszczenia miasta
+
+menu_title: '&4POTWIERDŹ ZNISZCZENIE'
+size: 27
+
+items:
+  filler:
+    material: RED_STAINED_GLASS_PANE
+    display_name: ' '
+    slots:
+      - 0-26
+
+  warning:
+    material: TNT
+    slot: 13
+    display_name: '&4Zniszczenie miasta: %hextowns_town_name%'
+    lore:
+      - '&cTa akcja usuwa miasto, claimy i członków COOP.'
+      - '&cWysyła też reset danych do pluginów SMP.'
+      - ''
+      - '&7Członkowie: &f%hextowns_members%'
+      - '&7Chunki: &f%hextowns_chunks%'
+      - '&7Czas potwierdzenia: &f%hextowns_confirm_seconds%s'
+      - ''
+      - '&8Jeśli potwierdzenie wygasło, kliknij zniszczenie ponownie.'
+
+  confirm:
+    material: LAVA_BUCKET
+    slot: 11
+    display_name: '&4TAK, ZNISZCZ'
+    lore:
+      - '&cNieodwracalne.'
+      - '&7Wykonuje: &f/town destroy confirm'
+    view_requirement:
+      requirements:
+        owner:
+          type: string equals
+          input: '%hextowns_is_owner%'
+          output: 'true'
+    left_click_commands:
+      - '[player] town destroy confirm'
+      - '[openguimenu] town_main'
+
+  cancel:
+    material: LIME_CONCRETE
+    slot: 15
+    display_name: '&aNie, wróć'
+    lore:
+      - '&7Anuluje akcję po stronie GUI.'
+      - '&7Token potwierdzenia sam wygaśnie.'
+    left_click_commands:
+      - '[openguimenu] town_danger'
+

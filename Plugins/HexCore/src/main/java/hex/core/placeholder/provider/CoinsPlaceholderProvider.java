@@ -11,6 +11,9 @@ public final class CoinsPlaceholderProvider implements PlaceholderProvider {
 
     @Override
     public String resolve(HexPlaceholderContext context) {
+        if (context.player() == null) {
+            return "-";
+        }
         int coins = context.api().coins().getCoins(context.player().getUniqueId());
         return Integer.toString(coins);
     }

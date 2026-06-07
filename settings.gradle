@@ -11,6 +11,14 @@ include 'plugins:WaterDrawn'
 include 'plugins:IcebergEvent'
 include 'plugins:AreaEffects'
 include 'plugins:HexElimination'
+include 'plugins:HexSequence'
+include 'plugins:HexTowns'
+include 'plugins:HexMinions'
+include 'plugins:HexSkills'
+include 'plugins:HexQuests'
+include 'plugins:HexCollections'
+include 'plugins:HexRankExpiry'
+include 'plugins:VishopBroadcast'
 include 'statsapi'
 
 // Physical folder is 'Plugins/...' (capital P), keep logical Gradle path consistent.
@@ -24,4 +32,12 @@ project(':plugins:WaterDrawn').projectDir = file('Plugins/WaterDrawn')
 project(':plugins:IcebergEvent').projectDir = file('Plugins/IcebergEvent')
 project(':plugins:AreaEffects').projectDir = file('Plugins/AreaEffects')
 project(':plugins:HexElimination').projectDir = file('Plugins/HexElimination')
+project(':plugins:HexSequence').projectDir = file('Plugins/HexSequence')
+project(':plugins:HexTowns').projectDir = file('Plugins/HexTowns')
+project(':plugins:HexMinions').projectDir = file('Plugins/HexMinions')
+project(':plugins:HexSkills').projectDir = file('Plugins/HexSkills')
+project(':plugins:HexQuests').projectDir = file('Plugins/HexQuests')
+project(':plugins:HexCollections').projectDir = file('Plugins/HexCollections')
+project(':plugins:HexRankExpiry').projectDir = file('Plugins/HexRankExpiry')
+project(':plugins:VishopBroadcast').projectDir = file('Plugins/VishopBroadcast')
 project(':statsapi').projectDir = file('StatsApi')

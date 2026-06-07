@@ -2,14 +2,19 @@ package hex.elimination.service;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.World;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -17,13 +22,15 @@ public class EliminationService {
 
     private final JavaPlugin plugin;
     private final Set<UUID> eliminated = new HashSet<>();
-    private boolean active = false;
+    private final Map<UUID, Location> deathLocations = new HashMap<>();
+    private boolean active;
 
     private final File storageFile;
     private YamlConfiguration storage;
 
     public EliminationService(JavaPlugin plugin) {
         this.plugin = plugin;
+        this.active = plugin.getConfig().getBoolean("settings.active-on-startup", true);
         this.storageFile = new File(plugin.getDataFolder(), "eliminated.yml");
         load();
     }
@@ -44,11 +51,18 @@ public class EliminationService {
         return eliminated.contains(uuid);
     }
 
+    public boolean shouldProcessDeath(Player player) {
+        boolean includeOps = plugin.getConfig().getBoolean("settings.include-ops-in-elimination", false);
+        return includeOps || !player.isOp();
+    }
+
     public void eliminate(Player player) {
         if (!active) {
             return;
         }
-        eliminated.add(player.getUniqueId());
+        UUID uuid = player.getUniqueId();
+        eliminated.add(uuid);
+        deathLocations.put(uuid, player.getLocation().clone());
         save();
     }
 
@@ -71,20 +85,23 @@ public class EliminationService {
             }
         }
         eliminated.clear();
+        deathLocations.clear();
         save();
         return count;
     }
 
     public boolean resurrect(OfflinePlayer target) {
-        if (target == null || target.getUniqueId() == null) {
+        if (target == null) {
             return false;
         }
 
-        boolean removed = eliminated.remove(target.getUniqueId());
+        UUID uuid = target.getUniqueId();
+        boolean removed = eliminated.remove(uuid);
         if (!removed) {
             return false;
         }
 
+        deathLocations.remove(uuid);
         save();
 
         Player online = target.getPlayer();
@@ -100,6 +117,11 @@ public class EliminationService {
             return;
         }
         player.setGameMode(getEliminatedRespawnGamemode());
+    }
+
+    public Location getDeathLocation(UUID uuid) {
+        Location location = deathLocations.get(uuid);
+        return location == null ? null : location.clone();
     }
 
     public GameMode getEliminatedRespawnGamemode() {
@@ -135,18 +157,24 @@ public class EliminationService {
         return null;
     }
 
+    public void reloadConfig() {
+        load();
+    }
+
     public void shutdown() {
         save();
     }
 
     private void load() {
-        if (!plugin.getDataFolder().exists()) {
-            plugin.getDataFolder().mkdirs();
+        if (!plugin.getDataFolder().exists() && !plugin.getDataFolder().mkdirs()) {
+            plugin.getLogger().warning("Nie mozna utworzyc katalogu danych pluginu: " + plugin.getDataFolder());
         }
 
         if (!storageFile.exists()) {
             try {
-                storageFile.createNewFile();
+                if (!storageFile.createNewFile()) {
+                    plugin.getLogger().warning("Nie mozna utworzyc eliminated.yml.");
+                }
             } catch (IOException e) {
                 plugin.getLogger().warning("Nie mozna utworzyc eliminated.yml: " + e.getMessage());
             }
@@ -154,12 +182,28 @@ public class EliminationService {
 
         this.storage = YamlConfiguration.loadConfiguration(storageFile);
         eliminated.clear();
+        deathLocations.clear();
 
         for (String raw : storage.getStringList("eliminated")) {
             try {
                 eliminated.add(UUID.fromString(raw));
             } catch (IllegalArgumentException ignored) {
                 // skip invalid UUID entry
+            }
+        }
+
+        ConfigurationSection section = storage.getConfigurationSection("death-locations");
+        if (section != null) {
+            for (String raw : section.getKeys(false)) {
+                try {
+                    UUID uuid = UUID.fromString(raw);
+                    Location location = readLocation(section.getConfigurationSection(raw));
+                    if (location != null) {
+                        deathLocations.put(uuid, location);
+                    }
+                } catch (IllegalArgumentException ignored) {
+                    // skip invalid UUID entry
+                }
             }
         }
     }
@@ -170,11 +214,52 @@ public class EliminationService {
         }
 
         storage.set("eliminated", eliminated.stream().map(UUID::toString).toList());
+        storage.set("death-locations", null);
+        for (Map.Entry<UUID, Location> entry : deathLocations.entrySet()) {
+            writeLocation("death-locations." + entry.getKey(), entry.getValue());
+        }
         try {
             storage.save(storageFile);
         } catch (IOException e) {
             plugin.getLogger().warning("Nie mozna zapisac eliminated.yml: " + e.getMessage());
         }
     }
-}
 
+    private Location readLocation(ConfigurationSection section) {
+        if (section == null) {
+            return null;
+        }
+
+        String worldName = section.getString("world");
+        if (worldName == null || worldName.isBlank()) {
+            return null;
+        }
+
+        World world = Bukkit.getWorld(worldName);
+        if (world == null) {
+            return null;
+        }
+
+        return new Location(
+                world,
+                section.getDouble("x"),
+                section.getDouble("y"),
+                section.getDouble("z"),
+                (float) section.getDouble("yaw"),
+                (float) section.getDouble("pitch")
+        );
+    }
+
+    private void writeLocation(String path, Location location) {
+        if (location == null || location.getWorld() == null) {
+            return;
+        }
+
+        storage.set(path + ".world", location.getWorld().getName());
+        storage.set(path + ".x", location.getX());
+        storage.set(path + ".y", location.getY());
+        storage.set(path + ".z", location.getZ());
+        storage.set(path + ".yaw", location.getYaw());
+        storage.set(path + ".pitch", location.getPitch());
+    }
+}

@@ -1,0 +1,19 @@
+name: HexRankExpiry
+version: '1.0.0'
+main: hex.rankexpiry.HexRankExpiryPlugin
+api-version: '1.21'
+description: LuckyPerms timed rank expiry notifier and placeholders for Hex SMP
+authors: [HexTeam]
+depend:
+  - HexCore
+softdepend:
+  - PlaceholderAPI
+commands:
+  hexrankexpiry:
+    description: Manage HexRankExpiry
+    usage: /hexrankexpiry <info|reload|refresh>
+    permission: hexrankexpiry.admin
+permissions:
+  hexrankexpiry.admin:
+    description: Allows managing HexRankExpiry
+    default: op

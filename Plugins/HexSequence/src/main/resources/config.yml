@@ -1,0 +1,43 @@
+# HexSequence
+#
+# Uruchamianie:
+#   /hexsequence <nazwa>
+#   /hexsequence reload
+#
+# Format wpisu tekstowego:
+#   [console] "komenda"
+#   [console] 10.3 "komenda"
+#   [player] "komenda z %player_name%"
+#
+# Czas jest opcjonalny i zawsze liczony względnie od startu sekwencji.
+# Wpis bez czasu używa ostatnio podanego czasu, a jeśli wcześniej go nie było: 0s.
+# Dzięki temu wpisy po tym samym czasie startują w tym samym ticku.
+
+messages:
+  usage: "&eUzycie: /hexsequence <reload|nazwa_sekwencji>"
+  reloaded: "&aHexSequence config przeladowany."
+  no-permission: "&cBrak uprawnien."
+  unknown-sequence: "&cNie znaleziono sekwencji: &f<sequence>&c."
+  parse-error: "&cBlad w sekwencji &f<sequence>&c: <error>"
+  started: "&aUruchomiono sekwencje &f<sequence>&a (&e<count>&a komend)."
+  no-player-context: "&cTa sekwencja zawiera wpis [player], wiec musi zostac uruchomiona przez gracza."
+
+sequences:
+  sekwencja:
+    - '[console] "/iceberg start"'
+    - '[console] 10.3 "/areaeffects start explosion"'
+    - '[console] "/say Ten wpis startuje razem z poprzednim, po 10.3s"'
+    - '[player] 12.0 "/say Sekwencje uruchomil %player_name%"'
+
+  natychmiastowa:
+    - '[console] "/say Pierwsza komenda od razu"'
+    - '[console] "/say Druga komenda od razu"'
+
+  # Alternatywny format mapy, wygodny gdy komenda zawiera duzo cudzyslowow:
+  map-example:
+    - executor: console
+      time: 1.5
+      command: "/say Po 1.5 sekundy"
+    - executor: player
+      command: "/say Ten wpis startuje tez po 1.5 sekundy: %player_name%"
+

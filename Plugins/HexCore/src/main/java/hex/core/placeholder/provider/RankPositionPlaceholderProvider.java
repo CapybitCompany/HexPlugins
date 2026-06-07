@@ -25,6 +25,9 @@ public final class RankPositionPlaceholderProvider implements PlaceholderProvide
 
     @Override
     public String resolve(HexPlaceholderContext context) {
+        if (context.player() == null) {
+            return "-";
+        }
         var uuid = context.player().getUniqueId();
         int pos = identifier.equalsIgnoreCase("rank_global")
                 ? service.getGlobalRank(uuid)

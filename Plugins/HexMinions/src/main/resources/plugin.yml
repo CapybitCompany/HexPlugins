@@ -1,0 +1,25 @@
+name: HexMinions
+version: 1.0.0
+main: hex.minions.HexMinionsPlugin
+api-version: "1.21"
+
+depend:
+  - HexCore
+  - HexTowns
+
+softdepend:
+  - HexCollections
+  - PlaceholderAPI
+
+commands:
+  minion:
+    usage: "/minion <help|give|list|pickup|move|select|select-index|action|reload|admin>"
+    description: Miniony miast Hex SMP
+    permission: hexminions.use
+
+permissions:
+  hexminions.use:
+    default: true
+  hexminions.admin:
+    default: op
+

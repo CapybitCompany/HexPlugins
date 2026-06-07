@@ -1,0 +1,175 @@
+# VishopBroadcast
+# Komenda: /vishopbroadcast <nick> <usluga> [liczba] [kwota] [opcjonalneId]
+# Przykłady:
+#   /vishopbroadcast HaViX Elita - 49.99
+#   /vishopbroadcast HaViX Coins 1000 19.99
+#   /vishopbroadcast HaViX Dar 50
+#
+# Format wiadomości obsługuje MiniMessage oraz placeholdery:
+# {player}, {uuid}, {service}, {service_raw}, {amount}, {price}, {amount_part}, {price_part}, {info}, {date}, {server}
+
+settings:
+  poll-interval-seconds: 15
+  fetch-limit: 100
+  # true = po starcie serwera nie odtwarza starych logów, tylko czeka na nowe zakupy.
+  skip-existing-logs-on-startup: true
+  # Minimalna przerwa między kolejnymi wiadomościami, jeśli dana usługa pokazuje się wyłącznie na czacie.
+  min-chat-only-interval-seconds: 1
+  cleanup:
+    enabled: true
+    hour: 3
+    minute: 0
+    retention-days: 30
+  # Zabezpiecza przed sytuacją, w której ViShop wykona tę samą komendę na kilku serwerach naraz.
+  # Bez ID zakupu plugin uznaje za duplikat taki sam zakup: gracz + usługa + liczba + kwota,
+  # wykonany w tym krótkim oknie czasu. Jeśli ViShop kiedyś udostępni stabilne ID transakcji,
+  # możesz je podać jako ostatni argument komendy i wtedy deduplikacja jest dokładna po ID.
+  dedupe:
+    enabled: true
+    window-seconds: 10
+
+tables:
+  player-totals: "vishop_player_totals"
+  purchase-logs: "vishop_purchase_logs"
+  purchase-dedupe: "vishop_purchase_dedupe"
+
+messages:
+  no-permission: "<red>Nie masz uprawnień do tej komendy."
+  usage: "<red>Użycie: <white>/vishopbroadcast [nick] [usluga] [liczba] [kwota]"
+  unknown-service: "<red>Nieznana lub wyłączona usługa: <white>{service}</white>."
+  amount-required: "<red>Ta usługa wymaga podania liczby: <white>/vishopbroadcast [nick] {service} [liczba] [kwota]"
+  price-required: "<red>Ta usługa wymaga podania kwoty: <white>/vishopbroadcast [nick] {service} [liczba] [kwota]"
+  invalid-price: "<red>Kwota musi być liczbą, np. <white>19.99</white>."
+  queued: "<green>Zapisano zakup <white>{service}</white> dla gracza <white>{player}</white>."
+  duplicate: "<yellow>Pominięto duplikat zakupu <white>{purchase_id}</white> — suma wydatków nie została naliczona ponownie."
+  duplicate-auto: "<yellow>Pominięto automatycznie wykryty duplikat zakupu — suma wydatków nie została naliczona ponownie."
+  reloaded: "<green>Przeładowano konfigurację VishopBroadcast."
+  db-error: "<red>Nie udało się zapisać zakupu w bazie danych. Sprawdź konsolę."
+
+format:
+  date-pattern: "yyyy-MM-dd HH:mm:ss"
+  price-decimals: 2
+  amount-part: " <dark_gray>x</dark_gray><white>{amount}</white>"
+  price-part: " <gray>za</gray> <green>{price} zł</green>"
+  no-amount: ""
+  no-price: ""
+  log-info: "{player} kupił {service}{amount_part}{price_part}"
+
+# Obsługiwane usługi. Klucz sekcji jest kanoniczną nazwą usługi zapisywaną w logach.
+services:
+  Vip:
+    enabled: true
+    aliases: ["vip", "VIP"]
+    display-name: "<yellow>VIP</yellow>"
+    amount-required: false
+    price-required: false
+    price-from-amount-when-price-missing: false
+    display:
+      channels: ["CHAT"]
+      duration-seconds: 4
+      chat:
+        lines:
+          - ""
+          - "<dark_gray>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          - "<gold><bold>SKLEP</bold></gold> <gray>Gracz <white>{player}</white> kupił rangę {service}{price_part}!"
+          - "<dark_gray>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          - ""
+      actionbar: "<gold>{player}</gold> <yellow>kupił {service}</yellow>{price_part}"
+      title: "<gold><bold>NOWY ZAKUP</bold></gold>"
+      subtitle: "<white>{player}</white> <gray>kupił</gray> {service}"
+      title-times:
+        fade-in-ticks: 10
+        stay-ticks: 60
+        fade-out-ticks: 20
+  SVIP:
+    enabled: true
+    aliases: ["svip", "SVIP"]
+    display-name: "<aqua>SVIP</aqua>"
+    amount-required: false
+    price-required: false
+    price-from-amount-when-price-missing: false
+    display:
+      channels: ["CHAT"]
+      duration-seconds: 5
+      chat:
+        lines:
+          - ""
+          - "<dark_aqua>✦ <aqua><bold>VI SHOP</bold></aqua> <dark_aqua>✦"
+          - "<gray>Dziękujemy! <white>{player}</white> kupił rangę {service}{price_part}."
+          - ""
+      actionbar: "<aqua>✦</aqua> <white>{player}</white> <gray>kupił</gray> {service}<aqua> ✦</aqua>"
+      title: "<aqua><bold>SVIP</bold></aqua>"
+      subtitle: "<white>{player}</white> <gray>wspiera serwer</gray>"
+      title-times:
+        fade-in-ticks: 10
+        stay-ticks: 70
+        fade-out-ticks: 20
+  Elita:
+    enabled: true
+    aliases: ["elita", "Elita", "ELITA"]
+    display-name: "<gradient:#ff55ff:#ffaa00><bold>ELITA</bold></gradient>"
+    amount-required: false
+    price-required: false
+    price-from-amount-when-price-missing: false
+    display:
+      # Wszystkie domyślne komunikaty ViShop są wyświetlane wyłącznie na czacie.
+      channels: ["CHAT"]
+      duration-seconds: 6
+      chat:
+        lines:
+          - "<light_purple>{player}</light_purple> <gray>kupił</gray> {service}{price_part}<gray>!"
+      actionbar: "<gradient:#ff55ff:#ffaa00>★ {player} kupił ELITĘ ★</gradient>"
+      title: "<gradient:#ff55ff:#ffaa00><bold>ELITA</bold></gradient>"
+      subtitle: "<white>{player}</white> <gray>odblokował najwyższą rangę</gray>"
+      title-times:
+        fade-in-ticks: 10
+        stay-ticks: 90
+        fade-out-ticks: 20
+  Coins:
+    enabled: true
+    aliases: ["coins", "monety", "Monety", "COINS"]
+    display-name: "<gold>monety</gold>"
+    amount-required: true
+    price-required: false
+    price-from-amount-when-price-missing: false
+    amount-part: " <gray>w liczbie</gray> <yellow>{amount}</yellow>"
+    display:
+      channels: ["CHAT"]
+      duration-seconds: 3
+      chat:
+        lines:
+          - "<gold>⛃</gold> <white>{player}</white> <gray>kupił</gray>{amount_part} {service}{price_part}<gray>!</gray>"
+      actionbar: "<gold>{player}</gold> <gray>kupił</gray>{amount_part} {service}"
+      title: "<gold>MONETY</gold>"
+      subtitle: "<white>{player}</white>{amount_part}"
+      title-times:
+        fade-in-ticks: 5
+        stay-ticks: 50
+        fade-out-ticks: 10
+  Dar:
+    enabled: true
+    aliases: ["dar", "donate", "darowizna", "Dar"]
+    display-name: "<green>darowiznę</green>"
+    amount-required: true
+    price-required: false
+    # /vishopbroadcast HaViX Dar 50 potraktuje 50 jednocześnie jako liczbę i kwotę dodawaną do sumy wydatków.
+    price-from-amount-when-price-missing: true
+    amount-part: " <gray>w kwocie</gray> <green>{amount} zł</green>"
+    price-part: ""
+    display:
+      channels: ["CHAT"]
+      duration-seconds: 6
+      chat:
+        lines:
+          - ""
+          - "<green><bold>DAROWIZNA</bold></green> <dark_gray>»</dark_gray> <white>{player}</white>{amount_part} <gray>wsparł serwer. Dziękujemy!</gray>"
+          - ""
+      actionbar: "<green>Dziękujemy {player} za wsparcie!</green>"
+      title: "<green><bold>DZIĘKUJEMY!</bold></green>"
+      subtitle: "<white>{player}</white>{amount_part}"
+      title-times:
+        fade-in-ticks: 10
+        stay-ticks: 80
+        fade-out-ticks: 20
+
+

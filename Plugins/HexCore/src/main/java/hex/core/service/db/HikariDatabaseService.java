@@ -17,14 +17,12 @@ import java.util.function.Supplier;
 public final class HikariDatabaseService implements DatabaseService {
 
     private final Plugin plugin;
-    private final DbConfig cfg;
     private final HikariDataSource ds;
     private final ExecutorService executor;
     private final Db client;
 
     public HikariDatabaseService(Plugin plugin, DbConfig cfg) {
         this.plugin = plugin;
-        this.cfg = cfg;
 
         HikariConfig hc = new HikariConfig();
         hc.setPoolName("HexCore-DB");
@@ -83,8 +81,17 @@ public final class HikariDatabaseService implements DatabaseService {
 
     @Override
     public void shutdown() {
-        executor.shutdownNow();
-        ds.close();
+        executor.shutdown();
+        try {
+            if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
+                executor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            executor.shutdownNow();
+            Thread.currentThread().interrupt();
+        } finally {
+            ds.close();
+        }
     }
 
     public javax.sql.DataSource dataSource() {
@@ -130,9 +137,18 @@ public final class HikariDatabaseService implements DatabaseService {
 
         @Override
         public <T> Optional<T> queryOne(String sql, RowMapper<T> mapper, Object... params) {
-            List<T> list = query(sql, mapper, params);
-            if (list.isEmpty()) return Optional.empty();
-            return Optional.of(list.get(0));
+
+            try (Connection c = ds.getConnection();
+                 PreparedStatement ps = c.prepareStatement(sql)) {
+                ps.setMaxRows(1);
+                bind(ps, params);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (!rs.next()) return Optional.empty();
+                    return Optional.ofNullable(mapper.map(rs));
+                }
+            } catch (SQLException e) {
+                throw wrap("queryOne", sql, e);
+            }
         }
 
         @Override
@@ -182,7 +198,10 @@ public final class HikariDatabaseService implements DatabaseService {
         private static SqlException wrap(String op, String sql, SQLException e) {
             String safe = sql == null ? "" : sql.replaceAll("\\s+", " ").trim();
             if (safe.length() > 220) safe = safe.substring(0, 220) + "...";
-            return new SqlException("DB " + op + " failed: " + safe, e);
+            return new SqlException("DB " + op + " failed: " + safe
+                    + " | SQLState=" + e.getSQLState()
+                    + " | code=" + e.getErrorCode()
+                    + " | cause=" + e.getMessage(), e);
         }
     }
 
@@ -224,9 +243,16 @@ public final class HikariDatabaseService implements DatabaseService {
 
         @Override
         public <T> Optional<T> queryOne(String sql, RowMapper<T> mapper, Object... params) {
-            List<T> list = query(sql, mapper, params);
-            if (list.isEmpty()) return Optional.empty();
-            return Optional.of(list.get(0));
+            try (PreparedStatement ps = c.prepareStatement(sql)) {
+                ps.setMaxRows(1);
+                bind(ps, params);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (!rs.next()) return Optional.empty();
+                    return Optional.ofNullable(mapper.map(rs));
+                }
+            } catch (SQLException e) {
+                throw DbImpl.wrap("queryOne(tx)", sql, e);
+            }
         }
 
         @Override

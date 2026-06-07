@@ -1,0 +1,25 @@
+name: HexSequence
+version: '1.0.0'
+main: hex.sequence.HexSequencePlugin
+api-version: '1.21'
+description: Configurable timed event command sequences
+authors: [HexTeam]
+softdepend:
+  - HexCore
+commands:
+  hexsequence:
+    description: Runs configured timed command sequence
+    usage: /hexsequence <reload|sequence>
+    aliases:
+      - hexeventsequence
+      - eventsequence
+      - hexsekwencja
+    permission: hexsequence.use
+permissions:
+  hexsequence.use:
+    description: Allows running configured sequences
+    default: op
+  hexsequence.admin:
+    description: Allows reloading HexSequence config
+    default: op
+

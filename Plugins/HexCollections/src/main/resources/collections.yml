@@ -1,0 +1,33 @@
+schema-version: 1
+
+collections:
+  cobblestone:
+    enabled: true
+    display-name: "Bruk"
+    scope: TOWN
+    sources:
+      - trigger: minecraft.block.break
+        amount: 1
+        filters:
+          material: COBBLESTONE
+      - trigger: minions.resource.generated
+        amount-from: amount
+        filters:
+          resource-id: minecraft:cobblestone
+    tiers:
+      - amount: 100
+      - amount: 1000
+
+  ice_creatures:
+    enabled: true
+    display-name: "Lodowe stworzenia"
+    scope: TOWN
+    sources:
+      - trigger: custom.mob.kill
+        amount: 1
+        filters:
+          mob-id: hex:ice_beast
+    tiers:
+      - amount: 10
+      - amount: 100
+

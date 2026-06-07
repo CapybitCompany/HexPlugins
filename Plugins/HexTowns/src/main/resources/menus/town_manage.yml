@@ -1,0 +1,156 @@
+# DeluxeMenus: panel zarządzania istniejącym miastem
+
+menu_title: '&8Miasto &7- zarządzanie'
+open_command:
+  - townmanage
+  - miastozarzadzanie
+size: 54
+
+items:
+  filler:
+    material: BLACK_STAINED_GLASS_PANE
+    display_name: ' '
+    slots:
+      - 0-53
+
+  summary:
+    material: BELL
+    slot: 4
+    display_name: '&6%hextowns_town_name%'
+    lore:
+      - '&7Rola: &f%hextowns_role_display%'
+      - '&7Właściciel: &f%hextowns_owner_name%'
+      - '&7UUID: &8%hextowns_town_uuid%'
+      - ''
+      - '&7Świat: &f%hextowns_world%'
+      - '&7Serce: &f%hextowns_heart%'
+      - '&7Utworzono: &f%hextowns_created_at%'
+      - ''
+      - '&7Członkowie: &f%hextowns_members%&7/&f%hextowns_max_members%'
+      - '&7Chunki: &f%hextowns_chunks%&7/&f%hextowns_max_chunks%'
+      - '&7Growth points: &a%hextowns_growth%'
+
+  info:
+    material: OAK_SIGN
+    slot: 19
+    display_name: '&eInformacje w czacie'
+    lore:
+      - '&7Pokazuje pełne /town info.'
+      - ''
+      - '&eKliknij: /town info'
+    left_click_commands:
+      - '[player] town info'
+
+  claims:
+    material: GRASS_BLOCK
+    slot: 20
+    display_name: '&aTeren i claimy'
+    lore:
+      - '&7Claim chunków, mapa i sprawdzanie terenu.'
+      - '&7Aktualny chunk: &f%hextowns_current_chunk%'
+      - '&7Teren tutaj: &f%hextowns_here_town_name%'
+      - ''
+      - '&eKliknij, aby otworzyć.'
+    left_click_commands:
+      - '[openguimenu] town_claims'
+
+  coop:
+    material: WRITABLE_BOOK
+    slot: 21
+    display_name: '&dCOOP'
+    lore:
+      - '&7Członkowie: &f%hextowns_members%&7/&f%hextowns_max_members%'
+      - '&7Zarządzaj dołączaniem i opuszczaniem COOP.'
+      - ''
+      - '&eKliknij, aby otworzyć.'
+    left_click_commands:
+      - '[openguimenu] town_coop'
+
+  collections:
+    material: BOOK
+    slot: 23
+    display_name: '&aKolekcje'
+    lore:
+      - '&7Cobblestone: &f%hexcollections_level_mining_cobblestone%&7/7'
+      - '&7Iron: &f%hexcollections_level_mining_iron%&7/7'
+      - ''
+      - '&eKliknij, aby otworzyć.'
+    left_click_commands:
+      - '[openguimenu] town_collections'
+
+  minions:
+    material: PLAYER_HEAD
+    slot: 24
+    display_name: '&bMiniony'
+    lore:
+      - '&7Aktywne: &f%hexminions_count%&7/&f%hexminions_limit%'
+      - '&7Wolne sloty: &f%hexminions_remaining%'
+      - ''
+      - '&eKliknij, aby otworzyć.'
+    left_click_commands:
+      - '[openguimenu] town_minions'
+
+  growth:
+    material: EXPERIENCE_BOTTLE
+    slot: 25
+    display_name: '&aPunkty rozwoju'
+    lore:
+      - '&7Aktualnie: &a%hextowns_growth% GP'
+      - '&7Claim nowego chunka kosztuje: &f%hextowns_claim_cost_growth% GP'
+      - ''
+      - '&eKliknij: /town growth'
+    left_click_commands:
+      - '[player] town growth'
+
+  danger_owner:
+    material: TNT
+    slot: 31
+    priority: 2
+    display_name: '&cStrefa ryzyka'
+    lore:
+      - '&7Akcje właściciela miasta.'
+      - '&cZniszczenie miasta resetuje dane SMP/COOP.'
+      - ''
+      - '&eKliknij, aby otworzyć.'
+    view_requirement:
+      requirements:
+        owner:
+          type: string equals
+          input: '%hextowns_is_owner%'
+          output: 'true'
+    left_click_commands:
+      - '[openguimenu] town_danger'
+
+  danger_coop:
+    material: RED_BED
+    slot: 31
+    priority: 1
+    display_name: '&cOpuść COOP'
+    lore:
+      - '&7Akcje gracza COOP.'
+      - '&cOdejście z COOP resetuje twoje dane SMP.'
+      - ''
+      - '&eKliknij, aby otworzyć.'
+    view_requirement:
+      requirements:
+        coop:
+          type: string equals
+          input: '%hextowns_is_coop%'
+          output: 'true'
+    left_click_commands:
+      - '[openguimenu] town_danger'
+
+  back:
+    material: ARROW
+    slot: 45
+    display_name: '&ePowrót'
+    left_click_commands:
+      - '[openguimenu] town_main'
+
+  close:
+    material: BARRIER
+    slot: 49
+    display_name: '&cZamknij'
+    left_click_commands:
+      - '[close]'
+

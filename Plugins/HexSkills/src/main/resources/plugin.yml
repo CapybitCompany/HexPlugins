@@ -1,0 +1,19 @@
+name: HexSkills
+version: '1.0.0'
+main: hex.skills.HexSkillsPlugin
+api-version: '1.21'
+description: Config-driven skill engine for Hex SMP
+authors: [HexTeam]
+depend:
+  - HexCore
+  - HexTowns
+commands:
+  hexskills:
+    description: Manage HexSkills
+    usage: /hexskills <reload|info>
+    permission: hexskills.admin
+permissions:
+  hexskills.admin:
+    description: Allows managing HexSkills
+    default: op
+
