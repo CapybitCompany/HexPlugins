@@ -1,0 +1,39 @@
+schema-version: 1
+
+quests:
+  daily_miner_01:
+    enabled: true
+    type: DAILY
+    pool: mining_easy
+    weight: 100
+    scope: TOWN_PLAYER
+    title: "Górnicza rozgrzewka"
+    objectives:
+      - id: break_stone
+        trigger: minecraft.block.break
+        filters:
+          material: STONE
+        amount: 128
+    rewards:
+      - type: town.growth.add
+        amount: 1
+        source: quest:daily_miner_01
+
+  daily_ice_beast_01:
+    enabled: true
+    type: DAILY
+    pool: combat_medium
+    weight: 20
+    scope: TOWN_PLAYER
+    title: "Polowanie na Lodowe Bestie"
+    objectives:
+      - id: kill_ice_beasts
+        trigger: custom.mob.kill
+        filters:
+          mob-id: hex:ice_beast
+        amount: 10
+    rewards:
+      - type: town.growth.add
+        amount: 2
+        source: quest:daily_ice_beast_01
+

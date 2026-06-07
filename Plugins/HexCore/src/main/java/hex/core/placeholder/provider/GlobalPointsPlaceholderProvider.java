@@ -11,6 +11,9 @@ public final class GlobalPointsPlaceholderProvider implements PlaceholderProvide
 
     @Override
     public String resolve(HexPlaceholderContext context) {
+        if (context.player() == null) {
+            return "-";
+        }
         int points = context.api().rankingPoints().getGlobalPoints(context.player().getUniqueId());
         return Integer.toString(points);
     }

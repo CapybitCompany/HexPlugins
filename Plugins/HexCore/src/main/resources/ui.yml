@@ -1,7 +1,8 @@
 prefix: "<gray>[</gray><gold><bold>HEX</bold></gold><gray>]</gray> "
 
 # Optional per-namespace chat prefixes, e.g. elimination/drawn/iceberg.
-prefixes: {}
+prefixes:
+  towns: "<gray>[</gray><green><bold>TOWNS</bold></green><gray>]</gray> "
 
 # Admin overrides that win over runtime plugin defaults.
 overrides: {}
@@ -38,6 +39,72 @@ templates:
   test.action: "<gold><bold>Actionbar działa!</bold></gold>"
   test.subtitle: "<yellow><bold>Subtitle działa!</bold></yellow>"
 
+  # HexElimination
+  elimination.kill.announce: "<dark_gray>[<red><bold>ELIMINACJA</bold></red>]</dark_gray> <white>Gracz</white> <yellow><victim></yellow> <white>został</white> <red><bold>WYELIMINOWANY</bold></red><white>!</white>"
+  elimination.resurect.announce: "<dark_gray>[<green><bold>WSKRZESZENIE</bold></green>]</dark_gray> <white>Gracz</white> <yellow><target></yellow> <white>został wskrzeszony przez</white> <aqua><by></aqua><white>.</white>"
+  elimination.resurect.ok: "<green>Wskrzeszono gracza: <white><target></white></green>"
+  elimination.resurect.usage: "<yellow>Użycie: <white>/hexelimination resurect [nick_gracza]</white></yellow>"
+  elimination.error.not_eliminated: "<red>Ten gracz nie jest wyeliminowany.</red>"
+  elimination.error.player_not_found: "<red>Nie znaleziono gracza: <white><nick></white></red>"
+  elimination.resurectall.announce: "<dark_gray>[<green><bold>WSKRZESZENIE</bold></green>]</dark_gray> <aqua><by></aqua> <white>wskrzesił wszystkich wyeliminowanych graczy (<yellow><count></yellow>). Tryb: <yellow><gamemode></yellow></white>"
+  elimination.resurectall.ok: "<green>Wskrzeszono <white><count></white> graczy.</green>"
+  elimination.resurectall.empty: "<yellow>Lista wyeliminowanych graczy jest już pusta.</yellow>"
+  elimination.resurectall.usage: "<yellow>Użycie: <white>/hexelimination resurectall [survival|creative|adventure|spectator]</white></yellow>"
+  elimination.resurectall.invalid_gamemode: "<red>Nieznany tryb gry: <white><input></white>. Dostępne: <yellow>survival, creative, adventure, spectator</yellow>.</red>"
+  elimination.toggle.started: "<dark_gray>[<gold><bold>ELIMINACJA</bold></gold>]</dark_gray> <green>Okres eliminacji <bold>ROZPOCZĘTY</bold></green> <gray>przez</gray> <aqua><by></aqua><white>.</white>"
+  elimination.toggle.stopped: "<dark_gray>[<gold><bold>ELIMINACJA</bold></gold>]</dark_gray> <red>Okres eliminacji <bold>ZAKOŃCZONY</bold></red> <gray>przez</gray> <aqua><by></aqua><white>.</white>"
+  elimination.toggle.already_started: "<yellow>Okres eliminacji jest już aktywny.</yellow>"
+  elimination.toggle.already_stopped: "<yellow>Okres eliminacji jest już nieaktywny.</yellow>"
+  elimination.toggle.usage: "<yellow>Użycie: <white>/hexelimination [start|stop]</white></yellow>"
+  elimination.reload.ok: "<green><bold>HexElimination</bold></green><gray>:</gray> <white>konfiguracja została przeładowana.</white>"
+  elimination.usage: "<yellow>Użycie: <white>/hexelimination [resurect|resurectall|start|stop|reload]</white></yellow>"
+
+  # HexTowns
+  towns.help: "<gold><bold>Miasta</bold></gold> <gray>|</gray> <yellow>/town create [nazwa]</yellow><gray>,</gray> <yellow>/town claim</yellow><gray>,</gray> <yellow>/town coop</yellow><gray>,</gray> <yellow>/town accept [gracz]</yellow><gray>,</gray> <yellow>/town endcoop</yellow><gray>,</gray> <yellow>/town destroy</yellow><gray>,</gray> <yellow>/town check</yellow><gray>,</gray> <yellow>/town info</yellow><gray>,</gray> <yellow>/town here</yellow><gray>,</gray> <yellow>/town map</yellow><gray>,</gray> <yellow>/town growth</yellow>"
+  towns.error.player-only: "<red>Ta komenda jest dostępna tylko dla gracza.</red>"
+  towns.error.no-town: "<red>Nie należysz do żadnego miasta.</red>"
+  towns.error.not-owner: "<red>Tylko właściciel miasta może to zrobić.</red>"
+  towns.error.world-disabled: "<red>W tym świecie nie można zakładać ani powiększać miasta.</red>"
+  towns.error.player-not-found: "<red>Nie znaleziono gracza <white><player></white>.</red>"
+  towns.error.db: "<red>Wystąpił błąd bazy danych: <white><error></white></red>"
+  towns.confirm.expired: "<red>Potwierdzenie wygasło. Użyj komendy ponownie.</red>"
+  towns.create.success: "<green>Założono miasto <yellow><town></yellow>.</green>"
+  towns.create.too-close: "<red>Jesteś za blisko innego miasta. Minimalna odległość to <white><distance></white> chunków.</red>"
+  towns.create.already-member: "<red>Jesteś już w mieście albo COOP-ie. Nie możesz założyć kolejnego.</red>"
+  towns.create.confirm: "<gold>Założenie miasta <yellow><town></yellow> oznacza, że odejście lub zniszczenie miasta może zresetować statystyki. </gold><click:run_command:'/town create confirm'><green><bold>[POTWIERDŹ]</bold></green></click> <gray>albo wpisz: <white>/town create confirm</white></gray>"
+  towns.claim.success: "<green>Zajęto chunk <white><cx>, <cz></white> dla twojego miasta.</green>"
+  towns.claim.no-growth: "<red>Miasto nie ma punktów rozwoju potrzebnych do zajęcia kolejnego chunka.</red>"
+  towns.claim.not-adjacent: "<red>Ten chunk musi przylegać bokiem do twojego miasta.</red>"
+  towns.claim.buffer-violation: "<red>Ten chunk jest za blisko cudzego miasta. Musi zostać przynajmniej 1 pusty chunk przerwy.</red>"
+  towns.claim.limit-reached: "<red>Miasto osiągnęło limit <white><max></white> chunków.</red>"
+  towns.claim.already-claimed: "<red>Ten chunk jest już zajęty.</red>"
+  towns.claim.world-mismatch: "<red>Miasto znajduje się w innym świecie.</red>"
+  towns.coop.request-sent: "<aqua><player></aqua> prosi o dołączenie do twojego miasta. <click:run_command:'/town accept <player>'><green><bold>[AKCEPTUJ]</bold></green></click>"
+  towns.coop.request-created: "<green>Wysłano prośbę o dołączenie do miasta <yellow><town></yellow>.</green>"
+  towns.coop.not-in-town: "<red>Musisz stać w cudzym mieście, żeby poprosić o COOP.</red>"
+  towns.coop.already-member: "<red>Jesteś już członkiem tego miasta.</red>"
+  towns.coop.requester-has-town: "<red>Ten gracz posiada już miasto albo jest w COOP-ie.</red>"
+  towns.coop.full: "<red>Miasto ma już maksymalną liczbę członków.</red>"
+  towns.accept.success: "<green>Dodano <aqua><player></aqua> do COOP.</green>"
+  towns.accept.no-request: "<red>Ten gracz nie ma aktywnej prośby o COOP.</red>"
+  towns.accept.must-stand-in-town: "<red>Musisz stać w swoim mieście, żeby zaakceptować COOP.</red>"
+  towns.endcoop.warn: "<red>Odejście z COOP może zresetować twoje statystyki SMP i ekwipunek. </red><click:run_command:'/town endcoop confirm'><dark_red><bold>[POTWIERDŹ]</bold></dark_red></click> <gray>albo wpisz: <white>/town endcoop confirm</white></gray>"
+  towns.endcoop.not-coop: "<red>Nie jesteś graczem COOP.</red>"
+  towns.endcoop.success: "<green>Opuściłeś COOP. Reset statystyk został zgłoszony do pluginów SMP.</green>"
+  towns.destroy.warn: "<red>Zniszczenie miasta może zresetować statystyki tobie i graczom COOP oraz wyczyścić dane miasta z innych pluginów. </red><click:run_command:'/town destroy confirm'><dark_red><bold>[POTWIERDŹ]</bold></dark_red></click> <gray>albo wpisz: <white>/town destroy confirm</white></gray>"
+  towns.destroy.success: "<green>Zniszczono miasto <yellow><town></yellow>.</green>"
+  towns.protect.no-build: "<red>Nie możesz tu budować. To teren miasta <yellow><town></yellow>.</red>"
+  towns.check.on: "<green>Podgląd granic miast został włączony.</green> <gray>Chunki miasta są teraz oznaczone wizualnie.</gray>"
+  towns.check.off: "<gray>Podgląd granic miast został wyłączony.</gray>"
+  towns.info: "<gold><bold><town></bold></gold> <gray>| właściciel:</gray> <white><owner></white> <gray>| członkowie:</gray> <white><members></white> <gray>| chunki:</gray> <white><chunks></white> <gray>| rozwój:</gray> <white><growth></white>"
+  towns.here.none: "<gray>Ten chunk nie należy do żadnego miasta.</gray>"
+  towns.here: "<gray>Ten chunk należy do miasta</gray> <yellow><town></yellow><gray>.</gray>"
+  towns.map.line: "<dark_gray><line></dark_gray>"
+  towns.growth: "<gray>Punkty rozwoju miasta:</gray> <white><growth></white>"
+  towns.admin.metrics: "<gray>Liczba miast:</gray> <white><towns></white>"
+  towns.admin.growth-sync: "<green>Zsynchronizowano punkty rozwoju.</green> <gray>Sprawdzono:</gray> <white><scanned></white><gray>, zmieniono:</gray> <white><changed></white>"
+  towns.admin.growth-sync.skipped: "<yellow>Synchronizacja punktów rozwoju jest już w toku.</yellow>"
+
 templateArgs:
   lobby.actionbar.waiting: ["game", "current", "max", "min"]
   lobby.actionbar.countdown: ["game", "seconds", "current", "max"]
@@ -46,3 +113,30 @@ templateArgs:
   core.reload.fail: ["id"]
   core.echo: ["text"]
   core.minigame.score: ["player", "score", "max"]
+  elimination.kill.announce: ["victim"]
+  elimination.resurect.announce: ["target", "by"]
+  elimination.resurect.ok: ["target"]
+  elimination.error.player_not_found: ["nick"]
+  elimination.resurectall.announce: ["by", "count", "gamemode"]
+  elimination.resurectall.ok: ["count"]
+  elimination.resurectall.invalid_gamemode: ["input"]
+  elimination.toggle.started: ["by"]
+  elimination.toggle.stopped: ["by"]
+  towns.error.player-not-found: ["player"]
+  towns.error.db: ["error"]
+  towns.create.success: ["town"]
+  towns.create.too-close: ["distance"]
+  towns.create.confirm: ["town"]
+  towns.claim.success: ["cx", "cz"]
+  towns.claim.limit-reached: ["max"]
+  towns.coop.request-sent: ["player"]
+  towns.coop.request-created: ["town"]
+  towns.accept.success: ["player"]
+  towns.destroy.success: ["town"]
+  towns.protect.no-build: ["town"]
+  towns.info: ["town", "owner", "members", "chunks", "growth"]
+  towns.here: ["town"]
+  towns.map.line: ["line"]
+  towns.growth: ["growth"]
+  towns.admin.metrics: ["towns"]
+  towns.admin.growth-sync: ["scanned", "changed"]

@@ -24,8 +24,8 @@ public final class HexApiImpl implements HexApi {
     private final UiService ui;
     private final RegionService regions;
     private final DatabaseService db;
-    private final RankingPointsService rankingPoints;
-    private final CoinsService coins;
+    private volatile RankingPointsService rankingPoints;
+    private volatile CoinsService coins;
     private final Map<Class<?>, Object> services = new ConcurrentHashMap<>();
 
     public HexApiImpl(ConfigService configs,
@@ -82,6 +82,24 @@ public final class HexApiImpl implements HexApi {
         Objects.requireNonNull(service, "service");
         services.put(type, service);
         return this;
+    }
+
+    public void updateDatabaseBackedServices(RankingPointsService rankingPoints,
+                                             CoinsService coins,
+                                             RankingPositionService rankingPosition,
+                                             RankingTopService rankingTop) {
+        this.rankingPoints = Objects.requireNonNull(rankingPoints, "rankingPoints");
+        this.coins = Objects.requireNonNull(coins, "coins");
+        registerService(RankingPointsService.class, rankingPoints);
+        registerService(CoinsService.class, coins);
+        if (rankingPosition != null) {
+            registerService(RankingPositionService.class, rankingPosition);
+        }
+        if (rankingTop != null) {
+            registerService(RankingTopService.class, rankingTop);
+        }
+        registerService(PlayerStatsCacheService.class,
+                new PlayerStatsCacheService(coins, rankingPoints, rankingPosition, rankingTop));
     }
 
     @Override

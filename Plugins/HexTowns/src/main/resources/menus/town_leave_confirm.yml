@@ -1,0 +1,49 @@
+# DeluxeMenus: potwierdzenie opuszczenia COOP
+
+menu_title: '&4POTWIERDŹ ODEJŚCIE Z COOP'
+size: 27
+
+items:
+  filler:
+    material: RED_STAINED_GLASS_PANE
+    display_name: ' '
+    slots:
+      - 0-26
+
+  warning:
+    material: RED_BED
+    slot: 13
+    display_name: '&cOpuść COOP miasta %hextowns_town_name%'
+    lore:
+      - '&cOdejście z COOP resetuje twoje statystyki SMP/EQ.'
+      - '&7Nie niszczy miasta właściciela.'
+      - ''
+      - '&7Czas potwierdzenia: &f%hextowns_confirm_seconds%s'
+      - '&8Jeśli potwierdzenie wygasło, kliknij odejście ponownie.'
+
+  confirm:
+    material: LAVA_BUCKET
+    slot: 11
+    display_name: '&4TAK, OPUŚĆ COOP'
+    lore:
+      - '&7Wykonuje: &f/town endcoop confirm'
+    view_requirement:
+      requirements:
+        coop:
+          type: string equals
+          input: '%hextowns_is_coop%'
+          output: 'true'
+    left_click_commands:
+      - '[player] town endcoop confirm'
+      - '[openguimenu] town_main'
+
+  cancel:
+    material: LIME_CONCRETE
+    slot: 15
+    display_name: '&aNie, wróć'
+    lore:
+      - '&7Anuluje akcję po stronie GUI.'
+      - '&7Token potwierdzenia sam wygaśnie.'
+    left_click_commands:
+      - '[openguimenu] town_danger'
+

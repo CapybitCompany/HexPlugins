@@ -1,0 +1,60 @@
+id: "mining.dirt"
+aliases: ["mining_dirt", "dirt", "minecraft:dirt"]
+enabled: true
+
+display:
+  name: "&6Dirt"
+  category: "mining"
+  menu_slot: 11
+  icon:
+    material: DIRT
+
+tracked_items:
+  base:
+    material: DIRT
+    amount_value: 1
+
+valid_sources: [NATURAL_BLOCK_BREAK, MINION_COLLECT, CUSTOM_PLUGIN_GRANTED]
+
+sources:
+  - trigger: minions.resource.claimed
+    amount-from: amount
+    filters:
+      collectionId: mining.dirt
+      resourceId: dirt
+  - trigger: minions.resource.generated
+    amount-from: amount
+    filters:
+      collectionId: mining.dirt
+      resourceId: dirt
+
+source_rules:
+  NATURAL_BLOCK_BREAK:
+    allowed_materials: [DIRT, GRASS_BLOCK, COARSE_DIRT, ROOTED_DIRT]
+    allowed_worlds: [world, resource_world, mining_world]
+    blocked_worlds: [spawn]
+    allow_in_town_claims: false
+    deny_player_placed_blocks: true
+    deny_recently_broken_blocks: true
+  MINION_COLLECT:
+    allowed_minion_types: [DIRT_MINION, dirt]
+    allow_in_town_claims: true
+
+levels:
+  1:
+    required: 50
+    display_name: "&6Dirt I"
+  2:
+    required: 250
+    display_name: "&6Dirt II"
+  3:
+    required: 1000
+    display_name: "&6Dirt III"
+
+reward_claim_mode: AUTO
+placeholder:
+  progress_bar:
+    length: 20
+    filled_char: "■"
+    empty_char: "□"
+

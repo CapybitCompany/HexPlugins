@@ -1,8 +1,13 @@
 settings:
+  active-on-startup: true
   strike-lightning-on-death: true
   respawn-gamemode-for-eliminated: "SPECTATOR"
   resurrect-gamemode: "SURVIVAL"
+  include-ops-in-elimination: false
 
+# active-on-startup: true oznacza, że eliminacje działają od razu po włączeniu pluginu.
+# Ustaw false, jeśli okres eliminacji ma ruszać dopiero po /hexelimination start.
+# include-ops-in-elimination: false oznacza, że OP nie zostanie wyeliminowany podczas testów.
 # Teksty sa teraz w HexCore (registerDefaults, namespace: elimination).
 # Admin nadpisuje je w ui.yml > overrides, np.:
 #   overrides:

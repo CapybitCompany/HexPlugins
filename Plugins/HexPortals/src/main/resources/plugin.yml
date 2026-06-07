@@ -7,5 +7,10 @@ description: Portal z lobby na backend event przez Velocity
 
 commands:
   hexconnect:
-    description: Laczy wskazanego gracza z wybranym serwerem backend.
-    usage: /hexconnect <nazwaserwera> <gracz>
+    description: Laczy wskazanego gracza (lub all) z wybranym serwerem backend.
+    usage: /hexconnect <reload|<nazwaserwera> <gracz|all>>
+    permission: hexportalconnect.admin
+permissions:
+  hexportalconnect.admin:
+    description: Allows using /hexconnect command
+    default: op

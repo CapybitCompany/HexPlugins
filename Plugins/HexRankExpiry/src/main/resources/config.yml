@@ -1,0 +1,39 @@
+# HexRankExpiry
+# Plugin korzysta z połączenia DB wystawianego przez HexCore i czyta tabelę LuckyPerms.
+
+luckyperms:
+  # Standardowa tabela LuckyPerms to zwykle "luckperms_user_permissions".
+  # Plugin ma fallback kompatybilności do "luckyperms_user_permissions", jeśli ktoś używa niestandardowej nazwy.
+  user-permissions-table: "luckperms_user_permissions"
+
+# Kolejność oznacza priorytet wyświetlania, gdy gracz ma kilka rang czasowych jednocześnie.
+# Plugin sprawdza wyłącznie wpisy z expiry > aktualny unix timestamp oraz value = 1.
+ranks:
+  - permission: "nte.elita"
+    display: "&dELITA"
+  - permission: "nte.svip"
+    display: "&bSVIP"
+  - permission: "nte.vip"
+    display: "&6VIP"
+
+cache:
+  # Jak długo wynik ma być trzymany w cache dla placeholderów.
+  ttl-seconds: 60
+
+join-message:
+  enabled: true
+  # Opóźnienie po PlayerJoinEvent, żeby wiadomość nie zginęła wśród komunikatów logowania.
+  delay-ticks: 40
+  lines:
+    - "&8&m----------------------------------------"
+    - "&e&lTwoja ranga czasowa"
+    - "&7Ranga: {rank}"
+    - "&7Do końca pozostało: &a{days} {day_word}"
+    - "&8&m----------------------------------------"
+
+placeholders:
+  loading: "..."
+  no-rank: "-"
+  expired: "0"
+  message: "&7Ranga: {rank} &8| &7Wygasa za: &a{days} {day_word}"
+

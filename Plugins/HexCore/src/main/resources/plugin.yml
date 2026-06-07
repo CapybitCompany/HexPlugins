@@ -8,8 +8,8 @@ softdepend:
 
 commands:
   hexcore:
-    description: Test command
-    usage: /hexcore
+    description: HexCore version and reload commands
+    usage: /hexcore reload <ui|flags|db|all>
   hexdebugdb:
     description: Debug DB read for coins and ranking points
     usage: /hexdebugdb
@@ -35,4 +35,6 @@ permissions:
   hexcore.debugdb:
     default: op
   hexcore.cache.coins:
+    default: op
+  hexcore.reload:
     default: op

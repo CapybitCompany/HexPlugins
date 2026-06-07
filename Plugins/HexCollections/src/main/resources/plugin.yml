@@ -1,0 +1,21 @@
+name: HexCollections
+version: '1.0.0'
+main: hex.collections.HexCollectionsPlugin
+api-version: '1.21'
+description: Config-driven collection engine for Hex SMP
+authors: [HexTeam]
+depend:
+  - HexCore
+  - HexTowns
+softdepend:
+  - PlaceholderAPI
+commands:
+  hexcollections:
+    description: Manage HexCollections
+    usage: /hexcollections <reload|info|flush>
+    permission: hexcollections.admin
+permissions:
+  hexcollections.admin:
+    description: Allows managing HexCollections
+    default: op
+

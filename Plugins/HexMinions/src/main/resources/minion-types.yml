@@ -1,0 +1,154 @@
+minion-types:
+  cobblestone:
+    enabled: true
+    display-name: "<gray>Cobblestone Minion</gray>"
+    category: mining
+    item:
+      material: PLAYER_HEAD
+      display-name: "<gray>Cobblestone Minion <yellow>Tier <tier></yellow></gray>"
+      lore:
+        - "<dark_gray>Minion miasta</dark_gray>"
+        - "<gray>Generuje: <white>Cobblestone</white></gray>"
+        - "<gray>Postaw na terenie swojego miasta.</gray>"
+      custom-model-data: 0
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials: [WATER, LAVA]
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: cobblestone_default
+    menu: default_minion
+    resource-table:
+      - resource: cobblestone
+        amount-min: 1
+        amount-max: 1
+        chance: 1.0
+    tiers:
+      1:
+        action-time-seconds: 14
+        storage: 64
+        storage-slots: 1
+        upgrade-cost:
+          resources:
+            cobblestone: 80
+      2:
+        action-time-seconds: 13
+        storage: 128
+        storage-slots: 2
+        upgrade-cost:
+          resources:
+            cobblestone: 160
+      3:
+        action-time-seconds: 12
+        storage: 192
+        storage-slots: 3
+        upgrade-cost:
+          resources:
+            cobblestone: 320
+    max-tier: 3
+
+  iron:
+    enabled: true
+    display-name: "<white>Iron Minion</white>"
+    category: mining
+    item:
+      material: PLAYER_HEAD
+      display-name: "<white>Iron Minion <yellow>Tier <tier></yellow></white>"
+      lore:
+        - "<dark_gray>Minion miasta</dark_gray>"
+        - "<gray>Generuje: <white>Iron Ingot</white></gray>"
+        - "<gray>Postaw na terenie swojego miasta.</gray>"
+      custom-model-data: 0
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials: [WATER, LAVA]
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: cobblestone_default
+    menu: default_minion
+    resource-table:
+      - resource: iron
+        amount-min: 1
+        amount-max: 1
+        chance: 1.0
+    tiers:
+      1:
+        action-time-seconds: 24
+        storage: 64
+        storage-slots: 1
+        upgrade-cost:
+          resources:
+            iron: 80
+      2:
+        action-time-seconds: 22
+        storage: 128
+        storage-slots: 2
+        upgrade-cost:
+          resources:
+            iron: 160
+      3:
+        action-time-seconds: 20
+        storage: 192
+        storage-slots: 3
+        upgrade-cost:
+          resources:
+            iron: 320
+    max-tier: 3
+
+  dirt:
+    enabled: true
+    display-name: "<gold>Dirt Minion</gold>"
+    category: mining
+    item:
+      material: PLAYER_HEAD
+      display-name: "<gold>Dirt Minion <yellow>Tier <tier></yellow></gold>"
+      lore:
+        - "<dark_gray>Minion miasta</dark_gray>"
+        - "<gray>Generuje: <gold>Dirt</gold></gray>"
+        - "<gray>Postaw na terenie swojego miasta.</gray>"
+      custom-model-data: 0
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials: [WATER, LAVA]
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: dirt_default
+    menu: default_minion
+    resource-table:
+      - resource: dirt
+        amount-min: 1
+        amount-max: 1
+        chance: 1.0
+    tiers:
+      1:
+        action-time-seconds: 12
+        storage: 64
+        storage-slots: 1
+        upgrade-cost:
+          resources:
+            dirt: 80
+      2:
+        action-time-seconds: 11
+        storage: 128
+        storage-slots: 2
+        upgrade-cost:
+          resources:
+            dirt: 160
+      3:
+        action-time-seconds: 10
+        storage: 192
+        storage-slots: 3
+        upgrade-cost:
+          resources:
+            dirt: 320
+    max-tier: 3
+

@@ -1,0 +1,42 @@
+resources:
+  cobblestone:
+    display-name: "<gray>Cobblestone</gray>"
+    material: COBBLESTONE
+    collection-id: mining.cobblestone
+    worth: 1.0
+    stack-size: 64
+    tags: [mining, block]
+
+  enchanted_cobblestone:
+    display-name: "<aqua>Enchanted Cobblestone</aqua>"
+    material: COBBLESTONE
+    custom-model-data: 10001
+    collection-id: mining.cobblestone
+    worth: 160.0
+    stack-size: 64
+    tags: [mining, enchanted]
+
+  diamond:
+    display-name: "<aqua>Diamond</aqua>"
+    material: DIAMOND
+    collection-id: mining_diamond
+    worth: 8.0
+    stack-size: 64
+    tags: [mining, gem]
+
+  iron:
+    display-name: "<white>Iron Ingot</white>"
+    material: IRON_INGOT
+    collection-id: mining.iron
+    worth: 2.0
+    stack-size: 64
+    tags: [mining, ingot]
+
+  dirt:
+    display-name: "<gold>Dirt</gold>"
+    material: DIRT
+    collection-id: mining.dirt
+    worth: 0.5
+    stack-size: 64
+    tags: [mining, block]
+

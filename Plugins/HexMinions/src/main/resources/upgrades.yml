@@ -1,0 +1,32 @@
+upgrades:
+  enchanted_lava_bucket:
+    type: FUEL
+    display-name: "<gold>Enchanted Lava Bucket</gold>"
+    item:
+      material: LAVA_BUCKET
+      custom-model-data: 20001
+    effects:
+      speed-multiplier: 1.25
+    duration-seconds: -1
+
+  diamond_spreading:
+    type: OUTPUT_BONUS
+    display-name: "<aqua>Diamond Spreading</aqua>"
+    item:
+      material: DIAMOND
+      custom-model-data: 20002
+    effects:
+      extra-resource:
+        resource: diamond
+        chance: 0.1
+        amount: 1
+
+  compactor:
+    type: COMPACTOR
+    display-name: "<green>Compactor</green>"
+    effects:
+      recipes:
+        cobblestone: enchanted_cobblestone
+      input-amount: 160
+      output-amount: 1
+

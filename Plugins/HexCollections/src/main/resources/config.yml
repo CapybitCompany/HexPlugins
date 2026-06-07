@@ -1,0 +1,45 @@
+storage:
+  provider: HEXCORE
+  flush_interval_seconds: 45
+  flush_on_level_up: true
+  load_on_player_join: true
+
+cache:
+  enabled: true
+  placeholder_cache_ttl_ms: 1000
+  preload_town_on_member_join: true
+
+placeholders:
+  prefix: "hexcollections"
+  support_aliases: true
+  decimal_percent_format: "0.00"
+
+anti_exploit:
+  enabled: true
+  recently_broken:
+    enabled: true
+    ttl_ms: 30000
+    cleanup_interval_ticks: 1200
+  deny_sources:
+    - PLAYER_TRADE
+    - AUCTION_HOUSE
+    - NPC_SHOP
+    - PLAYER_PLACED_BLOCK
+    - UNKNOWN
+  private_town_rules:
+    block_break_collection_enabled: false
+    minion_collection_enabled: true
+  debug:
+    log_denied_progress: false
+    log_level_ups: true
+
+integration:
+  hexcore:
+    register_placeholders: true
+    register_public_api: true
+  hextowns:
+    delete_collection_data_on_town_delete: true
+  minions:
+    enabled: true
+    trusted_source: MINION_COLLECT
+

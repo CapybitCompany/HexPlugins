@@ -1,0 +1,21 @@
+name: VishopBroadcast
+version: '1.0.0'
+main: hex.vishopbroadcast.VishopBroadcastPlugin
+api-version: '1.21'
+description: Configurable vishop purchase broadcaster with shared DB queue
+authors: [HexTeam]
+depend:
+  - HexCore
+commands:
+  vishopbroadcast:
+    description: Registers a vishop purchase and broadcasts it on all servers using this plugin
+    usage: /vishopbroadcast <nick> <usluga> [liczba] [kwota]
+    permission: vishopbroadcast.command
+permissions:
+  vishopbroadcast.command:
+    description: Allows registering purchases from vishop
+    default: op
+  vishopbroadcast.admin:
+    description: Allows reloading VishopBroadcast config
+    default: op
+

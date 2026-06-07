@@ -51,6 +51,8 @@ public final class HexPortalConnect extends JavaPlugin implements Listener {
     private String commandUsageMessage;
     private String commandInvalidServerMessage;
     private String commandPlayerNotFoundMessage;
+    private String commandAllSentMessage;
+    private String commandReloadedMessage;
 
     @Override
     public void onEnable() {
@@ -119,9 +121,11 @@ public final class HexPortalConnect extends JavaPlugin implements Listener {
         portal2TargetServer = config.getString("portal-2.target-server", "superflat");
 
         commandPlayerOnlyMessage = color(config.getString("messages.console-only", "&cTej komendy nie moze uzyc gracz."));
-        commandUsageMessage = color(config.getString("messages.hexconnect-usage", "&eUzycie: /hexconnect <nazwaserwera> <gracz>"));
+        commandUsageMessage = color(config.getString("messages.hexconnect-usage", "&eUzycie: /hexconnect <nazwaserwera> <gracz|all>"));
         commandInvalidServerMessage = color(config.getString("messages.invalid-server", "&cNiepoprawna nazwa serwera."));
         commandPlayerNotFoundMessage = color(config.getString("messages.player-not-found", "&cPodany gracz nie jest online."));
+        commandAllSentMessage = color(config.getString("messages.all-sent", "&aPrzeslano &e<count> &agracze(y) na serwer &e<server>&a."));
+        commandReloadedMessage = color(config.getString("messages.reloaded", "&aHexPortalConnect config przeladowany."));
     }
 
     @EventHandler
@@ -213,11 +217,18 @@ public final class HexPortalConnect extends JavaPlugin implements Listener {
             return false;
         }
 
-        if (sender instanceof Player) {
-            sender.sendMessage(commandPlayerOnlyMessage);
+        // /hexconnect reload
+        if (args.length == 1 && args[0].equalsIgnoreCase("reload")) {
+            if (!hasAdminPermission(sender)) {
+                sender.sendMessage(ChatColor.RED + "Brak uprawnien.");
+                return true;
+            }
+            loadPortalConfig();
+            sender.sendMessage(commandReloadedMessage);
             return true;
         }
 
+        // /hexconnect <server> all  OR  /hexconnect <server> <gracz>
         if (args.length != 2) {
             sender.sendMessage(commandUsageMessage);
             return true;
@@ -229,8 +240,36 @@ public final class HexPortalConnect extends JavaPlugin implements Listener {
             return true;
         }
 
-        String playerName = args[1].trim();
-        Player targetPlayer = Bukkit.getPlayerExact(playerName);
+        String target = args[1].trim();
+
+        if (target.equalsIgnoreCase("all")) {
+            // Tylko admin lub konsola może użyć "all"
+            if (!hasAdminPermission(sender)) {
+                sender.sendMessage(ChatColor.RED + "Brak uprawnien.");
+                return true;
+            }
+
+            int count = 0;
+            for (Player p : Bukkit.getOnlinePlayers()) {
+                if (!p.isOp()) {
+                    connectPlayerToServer(p, serverName);
+                    count++;
+                }
+            }
+            String msg = commandAllSentMessage
+                    .replace("<count>", String.valueOf(count))
+                    .replace("<server>", serverName);
+            sender.sendMessage(msg);
+            return true;
+        }
+
+        // Pojedynczy gracz – tylko konsola lub admin
+        if (sender instanceof Player && !hasAdminPermission(sender)) {
+            sender.sendMessage(commandPlayerOnlyMessage);
+            return true;
+        }
+
+        Player targetPlayer = Bukkit.getPlayerExact(target);
         if (targetPlayer == null || !targetPlayer.isOnline()) {
             sender.sendMessage(commandPlayerNotFoundMessage);
             return true;
@@ -238,6 +277,13 @@ public final class HexPortalConnect extends JavaPlugin implements Listener {
 
         connectPlayerToServer(targetPlayer, serverName);
         return true;
+    }
+
+    private boolean hasAdminPermission(CommandSender sender) {
+        // Konsola zawsze ma dostęp
+        if (!(sender instanceof Player)) return true;
+        Player p = (Player) sender;
+        return p.isOp() || p.hasPermission("hexportalconnect.admin");
     }
 
     // Dopuszczamy znaki najczesciej spotykane w nazwach backendow/proxy.

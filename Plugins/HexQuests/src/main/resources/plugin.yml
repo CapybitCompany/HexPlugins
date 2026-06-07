@@ -1,0 +1,19 @@
+name: HexQuests
+version: '1.0.0'
+main: hex.quests.HexQuestsPlugin
+api-version: '1.21'
+description: Config-driven quest and daily quest engine for Hex SMP
+authors: [HexTeam]
+depend:
+  - HexCore
+  - HexTowns
+commands:
+  hexquests:
+	description: Manage HexQuests
+	usage: /hexquests <reload|info|daily>
+	permission: hexquests.admin
+permissions:
+  hexquests.admin:
+	description: Allows managing HexQuests
+	default: op
+

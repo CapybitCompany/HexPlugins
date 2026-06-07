@@ -6,6 +6,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -23,6 +24,14 @@ public class EliminationListener implements Listener {
     public void onDeath(PlayerDeathEvent event) {
         Player player = event.getEntity();
 
+        if (!plugin.getEliminationService().isActive()) {
+            return;
+        }
+
+        if (!plugin.getEliminationService().shouldProcessDeath(player)) {
+            return;
+        }
+
         plugin.getEliminationService().eliminate(player);
 
         if (plugin.getConfig().getBoolean("settings.strike-lightning-on-death", true)) {
@@ -34,9 +43,13 @@ public class EliminationListener implements Listener {
                 UiTokens.of("victim", player.getName()));
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onRespawn(PlayerRespawnEvent event) {
         Player player = event.getPlayer();
+        Location deathLocation = plugin.getEliminationService().getDeathLocation(player.getUniqueId());
+        if (deathLocation != null) {
+            event.setRespawnLocation(deathLocation);
+        }
         Bukkit.getScheduler().runTask(plugin, () -> plugin.getEliminationService().applyRespawnRule(player));
     }
 

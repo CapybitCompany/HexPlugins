@@ -1,10 +1,13 @@
 package hex.core.service.ranking;
 
+import hex.core.api.db.DatabaseService;
 import hex.core.database.model.RankingTopEntry;
 import hex.core.database.repository.RankingPointsRepository;
 
 import java.time.Clock;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Leaderboards cache for TOP N queries.
@@ -21,19 +24,31 @@ public final class RankingTopService {
     private static final int TOP_LIMIT = 5;
 
     private final RankingPointsRepository repository;
+    private final DatabaseService database;
     private final Clock clock;
     private final long ttlMillis;
+    private final Set<Scope> refreshInFlight = ConcurrentHashMap.newKeySet();
 
     private volatile CacheEntry globalCache;
     private volatile CacheEntry seasonCache;
 
     /** Default TTL: 15s. */
     public RankingTopService(RankingPointsRepository repository) {
-        this(repository, Clock.systemUTC(), 15_000L);
+        this(repository, null);
+    }
+
+    /** Default TTL: 15s. */
+    public RankingTopService(RankingPointsRepository repository, DatabaseService database) {
+        this(repository, database, Clock.systemUTC(), 15_000L);
     }
 
     public RankingTopService(RankingPointsRepository repository, Clock clock, long ttlMillis) {
+        this(repository, null, clock, ttlMillis);
+    }
+
+    public RankingTopService(RankingPointsRepository repository, DatabaseService database, Clock clock, long ttlMillis) {
         this.repository = repository;
+        this.database = database;
         this.clock = clock;
         this.ttlMillis = Math.max(0L, ttlMillis);
     }
@@ -64,8 +79,15 @@ public final class RankingTopService {
         long now = clock.millis();
         CacheEntry cache = (scope == Scope.GLOBAL) ? globalCache : seasonCache;
         if (cache == null || now >= cache.expiresAtMillis) {
-            cache = refresh(scope, now);
-            if (scope == Scope.GLOBAL) globalCache = cache; else seasonCache = cache;
+            if (database != null) {
+                refreshAsync(scope);
+                if (cache == null) {
+                    return empty(position);
+                }
+            } else {
+                cache = refresh(scope, now);
+                if (scope == Scope.GLOBAL) globalCache = cache; else seasonCache = cache;
+            }
         }
 
         if (idx >= cache.entries.size()) {
@@ -84,6 +106,26 @@ public final class RankingTopService {
             // TODO log rate-limit. Fallback to empty list.
             return new CacheEntry(List.of(), now + ttlMillis);
         }
+    }
+
+    private void refreshAsync(Scope scope) {
+        if (repository == null || database == null || !refreshInFlight.add(scope)) {
+            return;
+        }
+
+        database.async(() -> (scope == Scope.GLOBAL)
+                        ? repository.findTopGlobal(TOP_LIMIT)
+                        : repository.findTopSeason(TOP_LIMIT))
+                .whenComplete((list, error) -> {
+                    try {
+                        if (error == null && list != null) {
+                            CacheEntry cache = new CacheEntry(list, clock.millis() + ttlMillis);
+                            if (scope == Scope.GLOBAL) globalCache = cache; else seasonCache = cache;
+                        }
+                    } finally {
+                        refreshInFlight.remove(scope);
+                    }
+                });
     }
 
     private static RankingTopEntry empty(int position) {

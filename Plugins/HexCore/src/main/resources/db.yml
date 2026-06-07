@@ -20,4 +20,4 @@ options:
   useSSL: false
   serverTimezone: "UTC"
 
-tablePrefix: "hex_"
+tablePrefix: ""

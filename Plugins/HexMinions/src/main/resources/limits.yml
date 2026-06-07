@@ -1,0 +1,22 @@
+limits:
+  default: 5
+  by-town-meta:
+    enabled: true
+    key: "minions.limit"
+  by-permission:
+    enabled: true
+    values:
+      hexminions.limit.5: 5
+      hexminions.limit.10: 10
+      hexminions.limit.15: 15
+  by-town-growth:
+    enabled: false
+    tiers:
+      - min-growth: 0
+        limit: 5
+      - min-growth: 100
+        limit: 7
+      - min-growth: 250
+        limit: 10
+  hard-cap: 30
+

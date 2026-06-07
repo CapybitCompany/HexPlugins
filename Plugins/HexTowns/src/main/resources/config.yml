@@ -1,0 +1,69 @@
+towns:
+  world-whitelist: ["world"]
+
+  size:
+    initial-radius: 1
+    max-chunks: 49
+    buffer-chunks-between-towns: 1
+
+  creation:
+    min-distance-chunks: 10
+    cost-coins: 0
+    confirm-required: true
+
+  coop:
+    max-members: 3
+    request-ttl-seconds: 120
+
+  protection:
+    block-place: true
+    block-break: true
+    interact-containers: true
+    interact-doors: false
+    pvp: false
+    explosion: true
+    fire-spread: true
+    item-pickup-window-seconds: 60
+
+  growth:
+    starting-points: 0
+    sync:
+      enabled: true
+      # Co ile ticków HexTowns ma pobrać z DB aktualne growth_points do cache w pamięci.
+      # 200 ticków = ok. 10 sekund. Ustaw 0/false przez enabled, jeśli chcesz tylko ręczny sync admina.
+      interval-ticks: 200
+
+  visual-check:
+    enabled: true
+    block: "LIME_STAINED_GLASS"
+    radius-chunks: 6
+    # Co ile tickow sprawdzamy, czy gracz zmienil chunk i trzeba przerysowac granice.
+    # 40 tickow = ok. 2 sekundy.
+    refresh-ticks: 40
+    # Co ile tickow WYMUSZAMY pelne przerysowanie stanu miasta (nowe/zniszczone claimy),
+    # nawet jesli gracz stoi w tym samym chunku. Rzadziej = mniej pakietow i mniejsze zuzycie zasobow.
+    # 200 tickow = ok. 10 sekund. Ustaw 0, zeby wylaczyc wymuszone odswiezanie stanu.
+    state-refresh-ticks: 200
+    pillar-height: 18
+    # Odleglosc w blokach (pionowo) miedzy kolejnymi blokami szkla w slupie naroznika.
+    # Domyslnie co 4 bloki.
+    pillar-step: 4
+    # Odleglosc w blokach (poziomo) miedzy blokami szkla w gornej ramce chunka.
+    edge-step: 4
+    max-blocks-per-tick-global: 20000
+
+  destroy:
+    confirm-window-seconds: 30
+    publish-reset-event: true
+    purge-grace-seconds: 60
+
+  cache:
+    town-cache-size: 5000
+    member-cache-size: 1000
+    metrics-enabled: true
+
+  scale:
+    growth-flush-interval-ms: 1000
+    meta-flush-interval-ms: 250
+    coop-request-purge-interval-seconds: 300
+    distance-check-bucket-size: 16

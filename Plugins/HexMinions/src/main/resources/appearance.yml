@@ -1,0 +1,75 @@
+appearances:
+  # Główki można ustawiać na trzy sposoby:
+  # helmet.player-name: Notch
+  # helmet.texture-url: "https://textures.minecraft.net/texture/..."
+  # helmet.texture-base64: "..."
+  cobblestone_default:
+    base:
+      type: ARMOR_STAND
+      marker: false
+      small: true
+      invisible: false
+      invulnerable: true
+      no-gravity: true
+      arms: true
+      equipment-locked: true
+      equipment:
+        helmet:
+          material: COBBLESTONE
+        chestplate:
+          material: LEATHER_CHESTPLATE
+          color: "#777777"
+        leggings:
+          material: LEATHER_LEGGINGS
+          color: "#555555"
+        boots:
+          material: LEATHER_BOOTS
+          color: "#333333"
+        main-hand:
+          material: WOODEN_PICKAXE
+    attachments:
+      - id: block_backpack
+        type: BLOCK_DISPLAY
+        material: COBBLESTONE
+        offset: [0.0, 0.65, -0.25]
+        scale: [0.45, 0.45, 0.45]
+    label:
+      type: TEXT_DISPLAY
+      offset: [0.0, 1.65, 0.0]
+      billboard: CENTER
+      text: "<yellow><name></yellow> <gray>Tier <tier></gray>\n<storage_bar>"
+      shadowed: true
+      see-through: false
+
+  dirt_default:
+    base:
+      type: ARMOR_STAND
+      marker: false
+      small: true
+      invisible: false
+      invulnerable: true
+      no-gravity: true
+      arms: true
+      equipment-locked: true
+      equipment:
+        helmet:
+          material: DIRT
+        chestplate:
+          material: LEATHER_CHESTPLATE
+          color: "#8B5A2B"
+        leggings:
+          material: LEATHER_LEGGINGS
+          color: "#6F4518"
+        boots:
+          material: LEATHER_BOOTS
+          color: "#4A2C12"
+        main-hand:
+          material: WOODEN_SHOVEL
+    label:
+      type: TEXT_DISPLAY
+      offset: [0.0, 1.65, 0.0]
+      billboard: CENTER
+      text: "<gold><name></gold> <gray>Tier <tier></gray>\n<storage_bar>"
+      shadowed: true
+      see-through: false
+

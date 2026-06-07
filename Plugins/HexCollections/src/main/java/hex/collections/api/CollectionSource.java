@@ -1,0 +1,17 @@
+package hex.collections.api;
+
+public enum CollectionSource {
+    NATURAL_BLOCK_BREAK,
+    NATURAL_CROP_HARVEST,
+    NATURAL_MOB_DROP,
+    NATURAL_FISHING,
+    MINION_COLLECT,
+    CUSTOM_PLUGIN_GRANTED,
+    PLAYER_TRADE,
+    AUCTION_HOUSE,
+    NPC_SHOP,
+    PLAYER_PLACED_BLOCK,
+    COMMAND_ADMIN,
+    UNKNOWN
+}
+

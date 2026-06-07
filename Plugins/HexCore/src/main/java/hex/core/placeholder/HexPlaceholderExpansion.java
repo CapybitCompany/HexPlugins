@@ -2,6 +2,7 @@ package hex.core.placeholder;
 
 import hex.core.api.HexApi;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
@@ -41,14 +42,27 @@ public final class HexPlaceholderExpansion extends PlaceholderExpansion {
 
     @Override
     public @Nullable String onPlaceholderRequest(Player player, @NotNull String identifier) {
-        if (player == null) {
-            return "";
-        }
+        return resolve(player, identifier);
+    }
 
-        HexPlaceholderContext context = new HexPlaceholderContext(api, player, identifier);
-        return registry.find(identifier)
+    @Override
+    public @Nullable String onRequest(OfflinePlayer player, @NotNull String identifier) {
+        return resolve(player instanceof Player online ? online : null, identifier);
+    }
+
+    private @Nullable String resolve(@Nullable Player player, @NotNull String identifier) {
+        String normalizedIdentifier = normalizeIdentifier(identifier);
+        HexPlaceholderContext context = new HexPlaceholderContext(api, player, normalizedIdentifier);
+        return registry.find(normalizedIdentifier)
                 .map(provider -> provider.resolve(context))
                 .orElse(null);
+    }
+
+    private String normalizeIdentifier(String identifier) {
+        if (identifier == null || identifier.isBlank()) {
+            return "";
+        }
+        return identifier.startsWith(":") ? identifier.substring(1) : identifier;
     }
 }
 

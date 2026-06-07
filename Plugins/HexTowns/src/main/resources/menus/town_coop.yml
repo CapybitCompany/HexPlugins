@@ -1,0 +1,160 @@
+# DeluxeMenus: COOP miasta i komendy członkostwa
+
+menu_title: '&8Miasto &7- COOP'
+open_command:
+  - towncoop
+  - coopmiasto
+size: 54
+
+items:
+  filler:
+    material: BLACK_STAINED_GLASS_PANE
+    display_name: ' '
+    slots:
+      - 0-53
+
+  coop_status:
+    material: WRITABLE_BOOK
+    slot: 4
+    display_name: '&dCOOP miasta'
+    lore:
+      - '&7Miasto: &e%hextowns_town_name%'
+      - '&7Właściciel: &f%hextowns_owner_name%'
+      - '&7Twoja rola: &f%hextowns_role_display%'
+      - '&7Członkowie: &f%hextowns_members%&7/&f%hextowns_max_members%'
+      - ''
+      - '&8Prośby COOP wysyła gracz stojąc w cudzym mieście.'
+      - '&8Właściciel akceptuje je komendą /town accept <nick>.'
+
+  request_join:
+    material: OAK_DOOR
+    slot: 20
+    priority: 1
+    display_name: '&bPoproś o dołączenie'
+    lore:
+      - '&7Dostępne, gdy nie należysz do miasta.'
+      - '&7Stań w cudzym mieście i kliknij.'
+      - ''
+      - '&eWykonuje: /town coop'
+    view_requirement:
+      requirements:
+        no_town:
+          type: string equals
+          input: '%hextowns_has_town%'
+          output: 'false'
+    left_click_commands:
+      - '[player] town coop'
+
+  accept_info:
+    material: LIME_DYE
+    slot: 20
+    priority: 2
+    display_name: '&aAkceptuj prośbę COOP'
+    lore:
+      - '&7Gdy ktoś poprosi o COOP, właściciel'
+      - '&7dostaje klikalną wiadomość na czacie.'
+      - ''
+      - '&7Komenda ręczna:'
+      - '&f/town accept <nick>'
+      - ''
+      - '&eKliknij, aby zamknąć i wpisać nick.'
+    view_requirement:
+      requirements:
+        owner:
+          type: string equals
+          input: '%hextowns_is_owner%'
+          output: 'true'
+    left_click_commands:
+      - '[close]'
+      - '[message] &eWpisz na czacie: &f/town accept <nick>'
+
+  leave_coop:
+    material: RED_BED
+    slot: 24
+    display_name: '&cOpuść COOP'
+    lore:
+      - '&7Dostępne tylko dla członka COOP.'
+      - '&cOdejście resetuje twoje statystyki SMP/EQ.'
+      - ''
+      - '&eKliknij, aby przejść do potwierdzenia.'
+    view_requirement:
+      requirements:
+        coop:
+          type: string equals
+          input: '%hextowns_is_coop%'
+          output: 'true'
+    left_click_commands:
+      - '[player] town endcoop'
+      - '[openguimenu] town_leave_confirm'
+
+  owner_note:
+    material: PAPER
+    slot: 24
+    display_name: '&eInformacja dla właściciela'
+    lore:
+      - '&7Aktualne MVP HexTowns obsługuje:'
+      - '&f/town coop &8- prośba gracza'
+      - '&f/town accept <nick> &8- akceptacja'
+      - '&f/town endcoop &8- odejście COOP'
+      - ''
+      - '&8Wyrzucanie, transfer i zaproszenia są przewidziane w planie,'
+      - '&8ale nie są jeszcze komendami gracza w kodzie.'
+    view_requirement:
+      requirements:
+        owner:
+          type: string equals
+          input: '%hextowns_is_owner%'
+          output: 'true'
+
+  danger:
+    material: TNT
+    slot: 31
+    display_name: '&cStrefa ryzyka'
+    lore:
+      - '&7Destroy miasta lub opuszczenie COOP.'
+      - ''
+      - '&eKliknij, aby otworzyć.'
+    view_requirement:
+      requirements:
+        has_town:
+          type: string equals
+          input: '%hextowns_has_town%'
+          output: 'true'
+    left_click_commands:
+      - '[openguimenu] town_danger'
+
+  back_existing:
+    material: ARROW
+    slot: 45
+    priority: 2
+    display_name: '&ePowrót'
+    view_requirement:
+      requirements:
+        has_town:
+          type: string equals
+          input: '%hextowns_has_town%'
+          output: 'true'
+    left_click_commands:
+      - '[openguimenu] town_manage'
+
+  back_main:
+    material: ARROW
+    slot: 45
+    priority: 1
+    display_name: '&ePowrót'
+    view_requirement:
+      requirements:
+        no_town:
+          type: string equals
+          input: '%hextowns_has_town%'
+          output: 'false'
+    left_click_commands:
+      - '[openguimenu] town_main'
+
+  close:
+    material: BARRIER
+    slot: 49
+    display_name: '&cZamknij'
+    left_click_commands:
+      - '[close]'
+
