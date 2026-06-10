@@ -1,5 +1,6 @@
 package hexnpc;
 
+import com.github.retrooper.packetevents.event.PacketListenerCommon;
 import hexnpc.action.ConsoleCommandHandler;
 import hexnpc.action.MessageHandler;
 import hexnpc.action.PlayerCommandHandler;
@@ -18,8 +19,8 @@ import hexnpc.service.NpcActionRegistry;
 import hexnpc.service.NpcInteractionService;
 import hexnpc.service.NpcProximityService;
 import hexnpc.service.NpcService;
+import hexnpc.service.skin.SkinResolver;
 import hexnpc.storage.YamlNpcStorage;
-import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -31,19 +32,35 @@ public class HexNpcPlugin extends JavaPlugin {
     private final HexNpcConfigLoader configLoader = new HexNpcConfigLoader();
     private final AtomicReference<HexNpcConfig> configRef = new AtomicReference<>();
 
+    // Built ONCE per lifecycle (onEnable -> onDisable). Survives reload.
+    private NpcActionRegistry actionRegistry;
+    private HexCoreBridge hexCoreBridge;
+    private SkinResolver skinResolver;
+    private PacketListenerCommon packetClickListener;
+
+    // Rebuilt every reload.
     private YamlNpcStorage storage;
     private NpcRenderer renderer;
     private NpcService npcService;
-    private NpcActionRegistry actionRegistry;
     private DialogueService dialogueService;
     private NpcInteractionService interactionService;
     private NpcProximityService proximityService;
-    private HexCoreBridge hexCoreBridge;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
         ensureNpcsFile();
+
+        // Built once: action registry survives reload so external plugins keep theirs.
+        this.actionRegistry = new NpcActionRegistry();
+        actionRegistry.register(new MessageHandler());
+        actionRegistry.register(new ConsoleCommandHandler());
+        actionRegistry.register(new PlayerCommandHandler());
+        getServer().getServicesManager().register(
+                NpcActionRegistry.class, actionRegistry, this, ServicePriority.Normal);
+
+        this.hexCoreBridge = new HexCoreBridge(getLogger());
+        this.skinResolver = new SkinResolver(getLogger());
 
         if (!initializeRuntime()) {
             getLogger().severe("Failed to initialize HexNPC. Disabling plugin.");
@@ -55,12 +72,30 @@ public class HexNpcPlugin extends JavaPlugin {
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
+
+        // Listeners registered once. They look up swappable services through this plugin.
+        getServer().getPluginManager().registerEvents(new PlayerLifecycleListener(this), this);
+        registerPacketClickListenerOnce();
+
         getLogger().info("HexNPC enabled.");
     }
 
     @Override
     public void onDisable() {
         shutdownRuntime();
+        if (packetClickListener != null) {
+            PacketEventsBootstrap.unregisterListener(packetClickListener);
+            packetClickListener = null;
+        }
+        if (actionRegistry != null) {
+            getServer().getServicesManager().unregister(NpcActionRegistry.class, actionRegistry);
+            actionRegistry = null;
+        }
+        if (skinResolver != null) {
+            skinResolver.shutdown();
+            skinResolver = null;
+        }
+        hexCoreBridge = null;
         getLogger().info("HexNPC disabled.");
     }
 
@@ -102,32 +137,34 @@ public class HexNpcPlugin extends JavaPlugin {
         return hexCoreBridge;
     }
 
+    public SkinResolver skinResolver() {
+        return skinResolver;
+    }
+
     private boolean initializeRuntime() {
         HexNpcConfig loaded = configLoader.load(getConfig());
         configRef.set(loaded);
 
-        this.hexCoreBridge = new HexCoreBridge(getLogger());
-        if (hexCoreBridge.isAvailable()) {
+        if (hexCoreBridge != null && hexCoreBridge.isAvailable()) {
             getLogger().info("HexCore detected — HexCoreBridge ready (read-only).");
         }
 
         this.storage = new YamlNpcStorage(new File(getDataFolder(), "npcs.yml"), getLogger());
         this.renderer = createRenderer(loaded);
         this.renderer.start();
-        this.npcService = new NpcService(storage, renderer, getLogger());
-
-        this.actionRegistry = new NpcActionRegistry();
-        actionRegistry.register(new MessageHandler());
-        actionRegistry.register(new ConsoleCommandHandler());
-        actionRegistry.register(new PlayerCommandHandler());
-        getServer().getServicesManager().register(
-                NpcActionRegistry.class, actionRegistry, this, ServicePriority.Normal);
+        this.npcService = new NpcService(storage, renderer, configRef::get, getLogger());
 
         this.dialogueService = new DialogueService(this, configRef::get);
-        this.interactionService = new NpcInteractionService(dialogueService, actionRegistry, getLogger());
+        this.interactionService = new NpcInteractionService(dialogueService, actionRegistry, configRef::get, getLogger());
 
         try {
-            npcService.loadAndSpawnAll();
+            if (loaded.enabled()) {
+                npcService.loadAndSpawnAll();
+            } else {
+                // Still load into memory so list/edit commands work; just don't render.
+                npcService.loadOnly();
+                getLogger().info("HexNPC: enabled=false — NPCs loaded but not rendered.");
+            }
         } catch (Exception ex) {
             getLogger().severe("Failed to load NPCs: " + ex.getMessage());
             ex.printStackTrace();
@@ -136,9 +173,6 @@ public class HexNpcPlugin extends JavaPlugin {
 
         this.proximityService = new NpcProximityService(this, npcService, interactionService, configRef::get);
         proximityService.start();
-
-        getServer().getPluginManager().registerEvents(new PlayerLifecycleListener(this), this);
-        registerPacketClickListener();
         return true;
     }
 
@@ -156,20 +190,23 @@ public class HexNpcPlugin extends JavaPlugin {
         }
     }
 
-    private void registerPacketClickListener() {
-        if (!(renderer instanceof PacketNpcRenderer)) {
+    private void registerPacketClickListenerOnce() {
+        if (packetClickListener != null) {
+            return;
+        }
+        if (!PacketEventsBootstrap.isAvailable()) {
             return;
         }
         try {
-            PacketEventsBootstrap.registerListener(
-                    new NpcClickPacketListener(this, renderer, npcService, interactionService));
+            NpcClickPacketListener listener = new NpcClickPacketListener(this);
+            PacketEventsBootstrap.registerListener(listener);
+            packetClickListener = listener;
         } catch (Throwable t) {
             getLogger().warning("Failed to register packet click listener: " + t.getMessage());
         }
     }
 
     private void shutdownRuntime() {
-        hexCoreBridge = null;
         if (proximityService != null) {
             proximityService.stop();
             proximityService = null;
@@ -179,10 +216,6 @@ public class HexNpcPlugin extends JavaPlugin {
             dialogueService = null;
         }
         interactionService = null;
-        if (actionRegistry != null) {
-            getServer().getServicesManager().unregister(NpcActionRegistry.class, actionRegistry);
-            actionRegistry = null;
-        }
         if (npcService != null) {
             npcService.despawnAll();
             npcService = null;
@@ -195,7 +228,7 @@ public class HexNpcPlugin extends JavaPlugin {
     }
 
     private boolean registerCommand() {
-        PluginCommand command = getCommand("hexnpc");
+        var command = getCommand("hexnpc");
         if (command == null) {
             getLogger().severe("Command 'hexnpc' missing from plugin.yml.");
             return false;

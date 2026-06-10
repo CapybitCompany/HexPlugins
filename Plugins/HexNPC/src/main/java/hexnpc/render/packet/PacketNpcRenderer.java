@@ -27,6 +27,7 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -59,6 +60,7 @@ public final class PacketNpcRenderer implements NpcRenderer {
 
     private final Map<NpcId, RenderedNpc> bySupervisor = new HashMap<>();
     private final Map<Integer, NpcId> byEntityId = new HashMap<>();
+    private BukkitTask refreshTask;
 
     public PacketNpcRenderer(Plugin plugin,
                              Supplier<HexNpcConfig> configSupplier,
@@ -70,11 +72,21 @@ public final class PacketNpcRenderer implements NpcRenderer {
 
     @Override
     public void start() {
-        // Packet listeners are registered by HexNpcPlugin once PacketEvents is initialized.
+        // Visibility refresh: pick up players that walked into / out of range.
+        // The click packet listener itself is registered once by HexNpcPlugin.
+        if (refreshTask != null) {
+            return;
+        }
+        refreshTask = plugin.getServer().getScheduler().runTaskTimer(
+                plugin, this::refreshVisibility, 20L, 10L);
     }
 
     @Override
     public void stop() {
+        if (refreshTask != null) {
+            refreshTask.cancel();
+            refreshTask = null;
+        }
         for (RenderedNpc rendered : new ArrayList<>(bySupervisor.values())) {
             for (UUID viewerId : new ArrayList<>(rendered.viewers)) {
                 Player viewer = Bukkit.getPlayer(viewerId);
@@ -87,6 +99,39 @@ public final class PacketNpcRenderer implements NpcRenderer {
         byEntityId.clear();
     }
 
+    private synchronized void refreshVisibility() {
+        HexNpcConfig config = configSupplier.get();
+        if (config == null) {
+            return;
+        }
+        if (!config.enabled()) {
+            // While disabled, all NPCs must be hidden from every viewer.
+            for (RenderedNpc rendered : bySupervisor.values()) {
+                for (UUID viewerId : new ArrayList<>(rendered.viewers)) {
+                    Player viewer = Bukkit.getPlayer(viewerId);
+                    if (viewer != null) {
+                        sendDestroy(viewer, rendered.entityId);
+                    }
+                    rendered.viewers.remove(viewerId);
+                }
+            }
+            return;
+        }
+        double radius = config.render().viewDistanceBlocks();
+        for (RenderedNpc rendered : bySupervisor.values()) {
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                boolean visible = rendered.viewers.contains(player.getUniqueId());
+                boolean shouldBeVisible = inSameWorld(player, rendered) && inRange(player, rendered, radius);
+                if (visible && !shouldBeVisible) {
+                    rendered.viewers.remove(player.getUniqueId());
+                    sendDestroy(player, rendered.entityId);
+                } else if (!visible && shouldBeVisible) {
+                    renderFor(player, rendered);
+                }
+            }
+        }
+    }
+
     @Override
     public synchronized NpcHandle spawn(NpcDefinition definition) {
         RenderedNpc existing = bySupervisor.get(definition.id());
@@ -94,11 +139,17 @@ public final class PacketNpcRenderer implements NpcRenderer {
             existing.definition = definition;
             return existing;
         }
+        // Always allocate the handle so reverse-lookup / refresh works when
+        // the plugin is re-enabled later. Only send packets if currently enabled.
         RenderedNpc rendered = new RenderedNpc(ENTITY_ID.getAndIncrement(), definition, randomNpcUuid());
         bySupervisor.put(definition.id(), rendered);
         byEntityId.put(rendered.entityId, definition.id());
 
-        double radius = configSupplier.get().render().viewDistanceBlocks();
+        HexNpcConfig config = configSupplier.get();
+        if (config == null || !config.enabled()) {
+            return rendered;
+        }
+        double radius = config.render().viewDistanceBlocks();
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (inSameWorld(player, rendered) && inRange(player, rendered, radius)) {
                 renderFor(player, rendered);
@@ -177,7 +228,11 @@ public final class PacketNpcRenderer implements NpcRenderer {
 
     @Override
     public synchronized void showTo(Player player) {
-        double radius = configSupplier.get().render().viewDistanceBlocks();
+        HexNpcConfig config = configSupplier.get();
+        if (config == null || !config.enabled()) {
+            return;
+        }
+        double radius = config.render().viewDistanceBlocks();
         for (RenderedNpc rendered : bySupervisor.values()) {
             if (!inSameWorld(player, rendered)) {
                 continue;

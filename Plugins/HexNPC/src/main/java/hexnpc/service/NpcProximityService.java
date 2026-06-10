@@ -54,8 +54,13 @@ public final class NpcProximityService {
     }
 
     private void scan() {
+        HexNpcConfig config = configSupplier.get();
+        if (config == null || !config.enabled()) {
+            return;
+        }
         long now = plugin.getServer().getCurrentTick();
-        int fallbackCooldown = configSupplier.get().proximity().defaultCooldownTicks();
+        double defaultRadius = config.proximity().defaultRadius();
+        int defaultCooldown = config.proximity().defaultCooldownTicks();
         for (NpcDefinition npc : npcService.list()) {
             if (!npc.interaction().proximityEnabled()) {
                 continue;
@@ -68,11 +73,9 @@ public final class NpcProximityService {
             if (world == null) {
                 continue;
             }
-            double radius = npc.interaction().proximityRadius();
+            double radius = npc.interaction().effectiveRadius(defaultRadius);
             double radiusSquared = radius * radius;
-            int cooldown = npc.interaction().proximityCooldownTicks() > 0
-                    ? npc.interaction().proximityCooldownTicks()
-                    : fallbackCooldown;
+            int cooldown = npc.interaction().effectiveCooldownTicks(defaultCooldown);
 
             for (Player player : world.getPlayers()) {
                 if (player.getLocation().distanceSquared(npcLocation) > radiusSquared) {

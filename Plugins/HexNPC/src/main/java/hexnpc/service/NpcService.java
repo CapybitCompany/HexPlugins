@@ -1,9 +1,12 @@
 package hexnpc.service;
 
+import hexnpc.config.HexNpcConfig;
 import hexnpc.model.Dialogue;
 import hexnpc.model.DialogueLine;
 import hexnpc.model.InteractionSettings;
+import hexnpc.model.InteractionTrigger;
 import hexnpc.model.NpcAction;
+import hexnpc.model.NpcActions;
 import hexnpc.model.NpcDefinition;
 import hexnpc.model.NpcId;
 import hexnpc.model.NpcLocation;
@@ -16,22 +19,50 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 public final class NpcService {
 
     private final NpcStorage storage;
     private final NpcRenderer renderer;
+    private final Supplier<HexNpcConfig> configSupplier;
     private final Logger logger;
 
-    public NpcService(NpcStorage storage, NpcRenderer renderer, Logger logger) {
+    public NpcService(NpcStorage storage,
+                      NpcRenderer renderer,
+                      Supplier<HexNpcConfig> configSupplier,
+                      Logger logger) {
         this.storage = Objects.requireNonNull(storage, "storage");
         this.renderer = Objects.requireNonNull(renderer, "renderer");
+        this.configSupplier = Objects.requireNonNull(configSupplier, "configSupplier");
         this.logger = Objects.requireNonNull(logger, "logger");
+    }
+
+    private boolean renderingEnabled() {
+        HexNpcConfig config = configSupplier.get();
+        return config != null && config.enabled();
     }
 
     public void loadAndSpawnAll() throws Exception {
         storage.load();
+        if (!renderingEnabled()) {
+            return;
+        }
+        for (NpcDefinition def : storage.all()) {
+            renderer.spawn(def);
+        }
+    }
+
+    /** Used when enabled=false: load NPCs into memory but do not render. */
+    public void loadOnly() throws Exception {
+        storage.load();
+    }
+
+    public void spawnAll() {
+        if (!renderingEnabled()) {
+            return;
+        }
         for (NpcDefinition def : storage.all()) {
             renderer.spawn(def);
         }
@@ -61,10 +92,12 @@ public final class NpcService {
                 location,
                 InteractionSettings.defaultClick(),
                 Dialogue.empty(),
-                List.of()
+                NpcActions.empty()
         );
         storage.save(def);
-        renderer.spawn(def);
+        if (renderingEnabled()) {
+            renderer.spawn(def);
+        }
         return def;
     }
 
@@ -83,7 +116,9 @@ public final class NpcService {
         }
         NpcDefinition updated = current.get().withLocation(newLocation);
         storage.save(updated);
-        renderer.move(updated);
+        if (renderingEnabled()) {
+            renderer.move(updated);
+        }
         return Optional.of(updated);
     }
 
@@ -94,7 +129,9 @@ public final class NpcService {
         }
         NpcDefinition updated = current.get().withLocation(current.get().location().withRotation(yaw, pitch));
         storage.save(updated);
-        renderer.rotate(updated);
+        if (renderingEnabled()) {
+            renderer.rotate(updated);
+        }
         return Optional.of(updated);
     }
 
@@ -106,8 +143,10 @@ public final class NpcService {
         NpcDefinition updated = current.get().withSkin(skin);
         storage.save(updated);
         // Skin changes require a full respawn at the renderer level.
-        renderer.despawn(id);
-        renderer.spawn(updated);
+        if (renderingEnabled()) {
+            renderer.despawn(id);
+            renderer.spawn(updated);
+        }
         return Optional.of(updated);
     }
 
@@ -155,26 +194,47 @@ public final class NpcService {
         return Optional.of(updated);
     }
 
-    public Optional<NpcDefinition> addAction(NpcId id, NpcAction action) throws Exception {
+    public Optional<NpcDefinition> addAction(NpcId id, InteractionTrigger trigger, NpcAction action) throws Exception {
         Optional<NpcDefinition> current = storage.find(id);
         if (current.isEmpty()) {
             return Optional.empty();
         }
-        List<NpcAction> actions = new ArrayList<>(current.get().actions());
-        actions.add(action);
-        NpcDefinition updated = current.get().withActions(actions);
-        storage.save(updated);
-        return Optional.of(updated);
+        NpcActions actions = current.get().actions();
+        List<NpcAction> existing = actions.forTrigger(trigger);
+        List<NpcAction> next = new ArrayList<>(existing);
+        next.add(action);
+        NpcActions updated = switch (trigger) {
+            case CLICK -> actions.withOnClick(next);
+            case PROXIMITY -> actions.withOnProximity(next);
+        };
+        NpcDefinition def = current.get().withActions(updated);
+        storage.save(def);
+        return Optional.of(def);
     }
 
-    public Optional<NpcDefinition> clearActions(NpcId id) throws Exception {
+    public Optional<NpcDefinition> clearActions(NpcId id, InteractionTrigger trigger) throws Exception {
         Optional<NpcDefinition> current = storage.find(id);
         if (current.isEmpty()) {
             return Optional.empty();
         }
-        NpcDefinition updated = current.get().withActions(List.of());
-        storage.save(updated);
-        return Optional.of(updated);
+        NpcActions actions = current.get().actions();
+        NpcActions updated = switch (trigger) {
+            case CLICK -> actions.withOnClick(List.of());
+            case PROXIMITY -> actions.withOnProximity(List.of());
+        };
+        NpcDefinition def = current.get().withActions(updated);
+        storage.save(def);
+        return Optional.of(def);
+    }
+
+    public Optional<NpcDefinition> clearAllActions(NpcId id) throws Exception {
+        Optional<NpcDefinition> current = storage.find(id);
+        if (current.isEmpty()) {
+            return Optional.empty();
+        }
+        NpcDefinition def = current.get().withActions(NpcActions.empty());
+        storage.save(def);
+        return Optional.of(def);
     }
 
     public Logger logger() {

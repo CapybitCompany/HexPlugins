@@ -23,4 +23,12 @@ public final class PacketEventsBootstrap {
     public static void registerListener(PacketListenerCommon listener) {
         PacketEvents.getAPI().getEventManager().registerListener(listener);
     }
+
+    public static void unregisterListener(PacketListenerCommon listener) {
+        try {
+            PacketEvents.getAPI().getEventManager().unregisterListener(listener);
+        } catch (Throwable ignored) {
+            // PacketEvents may have already shut down or never been started.
+        }
+    }
 }

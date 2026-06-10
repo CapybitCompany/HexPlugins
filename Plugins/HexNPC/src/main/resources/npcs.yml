@@ -30,8 +30,14 @@
 #         - { text: "&aHello, <player>!", delay-ticks: 0 }
 #         - { text: "&7Welcome.", delay-ticks: 30 }
 #     actions:
-#       - { type: message,         text: "&eYou clicked me." }
-#       - { type: console-command, command: "say <player> spoke to example" }
-#       - { type: player-command,  command: "spawn" }
+#       on-click:
+#         - { type: message,         text: "&eYou clicked me." }
+#         - { type: console-command, command: "say <player> spoke to example" }
+#         - { type: player-command,  command: "spawn" }
+#       on-proximity:
+#         - { type: message,         text: "&7You feel watched..." }
+#
+# Backwards-compat: a flat list under "actions:" is treated as on-click only.
+# New NPCs are written in the map form above.
 
 npcs: {}

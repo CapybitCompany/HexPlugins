@@ -1,6 +1,5 @@
 package hexnpc.model;
 
-import java.util.List;
 import java.util.Objects;
 
 public record NpcDefinition(
@@ -9,7 +8,7 @@ public record NpcDefinition(
         NpcLocation location,
         InteractionSettings interaction,
         Dialogue dialogue,
-        List<NpcAction> actions
+        NpcActions actions
 ) {
     public NpcDefinition {
         id = Objects.requireNonNull(id, "id");
@@ -17,7 +16,7 @@ public record NpcDefinition(
         location = Objects.requireNonNull(location, "location");
         interaction = interaction == null ? InteractionSettings.defaultClick() : interaction;
         dialogue = dialogue == null ? Dialogue.empty() : dialogue;
-        actions = actions == null ? List.of() : List.copyOf(actions);
+        actions = actions == null ? NpcActions.empty() : actions;
     }
 
     public NpcDefinition withLocation(NpcLocation newLocation) {
@@ -36,7 +35,7 @@ public record NpcDefinition(
         return new NpcDefinition(id, skin, location, interaction, newDialogue, actions);
     }
 
-    public NpcDefinition withActions(List<NpcAction> newActions) {
+    public NpcDefinition withActions(NpcActions newActions) {
         return new NpcDefinition(id, skin, location, interaction, dialogue, newActions);
     }
 }

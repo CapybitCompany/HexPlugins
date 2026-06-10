@@ -3,6 +3,7 @@ package hexnpc.command;
 import hexnpc.HexNpcPlugin;
 import hexnpc.model.DialogueLine;
 import hexnpc.model.InteractionSettings;
+import hexnpc.model.InteractionTrigger;
 import hexnpc.model.NpcAction;
 import hexnpc.model.NpcDefinition;
 import hexnpc.model.NpcId;
@@ -235,16 +236,41 @@ public final class HexNpcCommand implements CommandExecutor, TabCompleter {
         if (id == null) {
             return true;
         }
-        NpcSkin skin;
-        if (args[2].equalsIgnoreCase("raw") && args.length >= 5) {
-            skin = NpcSkin.ofTexture(args[3], args[4]);
-        } else {
-            skin = NpcSkin.ofName(args[2]);
+        if (args[2].equalsIgnoreCase("raw")) {
+            if (args.length < 5) {
+                sender.sendMessage(LegacyFormat.component("&cUsage: /hexnpc skin <id> raw <value> <signature>"));
+                return true;
+            }
+            NpcSkin skin = NpcSkin.ofTexture(args[3], args[4]);
+            Optional<NpcDefinition> updated = plugin.npcService().setSkin(id, skin);
+            sender.sendMessage(LegacyFormat.component(updated.isPresent()
+                    ? "&aUpdated skin for &f" + id
+                    : "&cNo NPC with id &f" + id));
+            return true;
         }
-        Optional<NpcDefinition> updated = plugin.npcService().setSkin(id, skin);
-        sender.sendMessage(LegacyFormat.component(updated.isPresent()
-                ? "&aUpdated skin for &f" + id
-                : "&cNo NPC with id &f" + id));
+
+        // Player-name path: kick off async Mojang lookup, then apply on main thread.
+        String playerName = args[2];
+        sender.sendMessage(LegacyFormat.component("&7Resolving skin for &f" + playerName + "&7..."));
+        plugin.skinResolver().resolve(playerName).whenComplete((resolved, ex) -> {
+            plugin.getServer().getScheduler().runTask(plugin, () -> {
+                try {
+                    NpcSkin skin = (resolved != null) ? resolved : NpcSkin.ofName(playerName);
+                    Optional<NpcDefinition> updated = plugin.npcService().setSkin(id, skin);
+                    if (updated.isEmpty()) {
+                        sender.sendMessage(LegacyFormat.component("&cNo NPC with id &f" + id));
+                        return;
+                    }
+                    if (skin.hasTexture()) {
+                        sender.sendMessage(LegacyFormat.component("&aSkin applied for &f" + id + " &7(textures cached)"));
+                    } else {
+                        sender.sendMessage(LegacyFormat.component("&eSkin name applied for &f" + id + " &7(textures unavailable, fell back to default)"));
+                    }
+                } catch (Exception failure) {
+                    sender.sendMessage(LegacyFormat.component("&cFailed to apply skin: " + failure.getMessage()));
+                }
+            });
+        });
         return true;
     }
 
@@ -381,17 +407,20 @@ public final class HexNpcCommand implements CommandExecutor, TabCompleter {
         String op = args[2].toLowerCase(Locale.ROOT);
         switch (op) {
             case "add" -> {
-                if (args.length < 5) {
+                if (args.length < 6) {
                     sender.sendMessage(LegacyFormat.component(
-                            "&cUsage: /hexnpc action <id> add <type> key=value [key=value ...]"));
+                            "&cUsage: /hexnpc action <id> add <click|proximity> <type> key=value [key=value ...]"));
                     return true;
                 }
-                String type = args[3];
+                InteractionTrigger trigger = parseTrigger(sender, args[3]);
+                if (trigger == null) {
+                    return true;
+                }
+                String type = args[4];
                 Map<String, Object> argsMap = new LinkedHashMap<>();
-                for (int i = 4; i < args.length; i++) {
+                for (int i = 5; i < args.length; i++) {
                     int eq = args[i].indexOf('=');
                     if (eq <= 0) {
-                        // treat as appended value of previous key, joined with spaces
                         if (!argsMap.isEmpty()) {
                             String lastKey = lastKey(argsMap);
                             argsMap.put(lastKey, argsMap.get(lastKey) + " " + args[i]);
@@ -406,13 +435,28 @@ public final class HexNpcCommand implements CommandExecutor, TabCompleter {
                     argsMap.put(key, value);
                 }
                 Optional<NpcDefinition> updated = plugin.npcService()
-                        .addAction(id, new NpcAction(type, argsMap));
+                        .addAction(id, trigger, new NpcAction(type, argsMap));
                 sender.sendMessage(LegacyFormat.component(updated.isPresent()
-                        ? "&aAdded action."
+                        ? "&aAdded " + trigger.name().toLowerCase(Locale.ROOT) + " action."
                         : "&cNo NPC with id &f" + id));
             }
             case "clear" -> {
-                Optional<NpcDefinition> updated = plugin.npcService().clearActions(id);
+                if (args.length < 4) {
+                    sender.sendMessage(LegacyFormat.component(
+                            "&cUsage: /hexnpc action <id> clear <click|proximity|all>"));
+                    return true;
+                }
+                String scope = args[3].toLowerCase(Locale.ROOT);
+                Optional<NpcDefinition> updated;
+                if (scope.equals("all")) {
+                    updated = plugin.npcService().clearAllActions(id);
+                } else {
+                    InteractionTrigger trigger = parseTrigger(sender, args[3]);
+                    if (trigger == null) {
+                        return true;
+                    }
+                    updated = plugin.npcService().clearActions(id, trigger);
+                }
                 sender.sendMessage(LegacyFormat.component(updated.isPresent()
                         ? "&aCleared actions."
                         : "&cNo NPC with id &f" + id));
@@ -420,6 +464,17 @@ public final class HexNpcCommand implements CommandExecutor, TabCompleter {
             default -> sender.sendMessage(LegacyFormat.component("&cUnknown op. Use add|clear."));
         }
         return true;
+    }
+
+    private InteractionTrigger parseTrigger(CommandSender sender, String raw) {
+        return switch (raw.toLowerCase(Locale.ROOT)) {
+            case "click", "on-click", "onclick" -> InteractionTrigger.CLICK;
+            case "proximity", "on-proximity", "onproximity" -> InteractionTrigger.PROXIMITY;
+            default -> {
+                sender.sendMessage(LegacyFormat.component("&cUnknown trigger: " + raw + " (use click or proximity)"));
+                yield null;
+            }
+        };
     }
 
     private static String lastKey(Map<String, Object> map) {
@@ -457,7 +512,8 @@ public final class HexNpcCommand implements CommandExecutor, TabCompleter {
                 "&7/" + label + " skin <id> <playerName>  | raw <value> <signature>",
                 "&7/" + label + " dialogue <id> <add|clear|cooldown> ...",
                 "&7/" + label + " trigger <id> <click|proximity> <on|off> [radius] [cooldown]",
-                "&7/" + label + " action <id> <add|clear> ...",
+                "&7/" + label + " action <id> add <click|proximity> <type> key=value...",
+                "&7/" + label + " action <id> clear <click|proximity|all>",
                 "&7/" + label + " reload"
         }) {
             sender.sendMessage(LegacyFormat.component(line));
@@ -496,8 +552,16 @@ public final class HexNpcCommand implements CommandExecutor, TabCompleter {
         if (args.length == 4 && sub.equals("trigger")) {
             return filterPrefix(List.of("on", "off"), args[3]);
         }
-        if (args.length == 4 && sub.equals("action") && args[2].equalsIgnoreCase("add")) {
-            return filterPrefix(List.of("message", "console-command", "player-command"), args[3]);
+        if (args.length == 4 && sub.equals("action")) {
+            if (args[2].equalsIgnoreCase("add")) {
+                return filterPrefix(List.of("click", "proximity"), args[3]);
+            }
+            if (args[2].equalsIgnoreCase("clear")) {
+                return filterPrefix(List.of("click", "proximity", "all"), args[3]);
+            }
+        }
+        if (args.length == 5 && sub.equals("action") && args[2].equalsIgnoreCase("add")) {
+            return filterPrefix(List.of("message", "console-command", "player-command"), args[4]);
         }
         return List.of();
     }

@@ -4,6 +4,7 @@ import hexnpc.model.Dialogue;
 import hexnpc.model.DialogueLine;
 import hexnpc.model.InteractionSettings;
 import hexnpc.model.NpcAction;
+import hexnpc.model.NpcActions;
 import hexnpc.model.NpcDefinition;
 import hexnpc.model.NpcId;
 import hexnpc.model.NpcLocation;
@@ -110,7 +111,7 @@ public final class YamlNpcStorage implements NpcStorage {
         NpcLocation location = readLocation(section.getConfigurationSection("location"));
         InteractionSettings interaction = readInteraction(section.getConfigurationSection("interaction"));
         Dialogue dialogue = readDialogue(section.getConfigurationSection("dialogue"));
-        List<NpcAction> actions = readActions(section.getMapList("actions"));
+        NpcActions actions = readActions(section);
         return new NpcDefinition(id, skin, location, interaction, dialogue, actions);
     }
 
@@ -147,13 +148,14 @@ public final class YamlNpcStorage implements NpcStorage {
         boolean click = section.getBoolean("click", true);
         ConfigurationSection proximity = section.getConfigurationSection("proximity");
         if (proximity == null) {
-            return new InteractionSettings(click, false, 3.0D, 600);
+            // No proximity block at all -> use global config defaults via 0 sentinels.
+            return new InteractionSettings(click, false, 0.0D, 0);
         }
         return new InteractionSettings(
                 click,
                 proximity.getBoolean("enabled", false),
-                proximity.getDouble("radius", 3.0D),
-                proximity.getInt("cooldown-ticks", 600)
+                proximity.getDouble("radius", 0.0D),
+                proximity.getInt("cooldown-ticks", 0)
         );
     }
 
@@ -176,7 +178,23 @@ public final class YamlNpcStorage implements NpcStorage {
         return new Dialogue(lines, cooldown);
     }
 
-    private List<NpcAction> readActions(List<Map<?, ?>> raw) {
+    private NpcActions readActions(ConfigurationSection parent) {
+        if (parent == null) {
+            return NpcActions.empty();
+        }
+        // New map format: actions: { on-click: [...], on-proximity: [...] }
+        ConfigurationSection actionsSection = parent.getConfigurationSection("actions");
+        if (actionsSection != null) {
+            List<NpcAction> click = readActionList(actionsSection.getMapList("on-click"));
+            List<NpcAction> proximity = readActionList(actionsSection.getMapList("on-proximity"));
+            return new NpcActions(click, proximity);
+        }
+        // Legacy flat list: actions: [...]. Backwards-compat: treat as on-click.
+        List<NpcAction> legacy = readActionList(parent.getMapList("actions"));
+        return new NpcActions(legacy, List.of());
+    }
+
+    private List<NpcAction> readActionList(List<Map<?, ?>> raw) {
         if (raw == null || raw.isEmpty()) {
             return List.of();
         }
@@ -204,7 +222,9 @@ public final class YamlNpcStorage implements NpcStorage {
         writeLocation(section.createSection("location"), def.location());
         writeInteraction(section.createSection("interaction"), def.interaction());
         writeDialogue(section.createSection("dialogue"), def.dialogue());
-        section.set("actions", toActionList(def.actions()));
+        ConfigurationSection actions = section.createSection("actions");
+        actions.set("on-click", toActionList(def.actions().onClick()));
+        actions.set("on-proximity", toActionList(def.actions().onProximity()));
     }
 
     private void writeSkin(ConfigurationSection section, NpcSkin skin) {
