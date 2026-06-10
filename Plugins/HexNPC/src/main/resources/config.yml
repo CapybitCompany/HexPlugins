@@ -1,0 +1,31 @@
+# ==========================================================
+# HexNPC - global defaults
+# ==========================================================
+
+# Master switch. false = plugin stays loaded but does not render or react to NPCs.
+enabled: true
+
+# Logs decisions about proximity scans, dialogue triggers, render show/hide.
+debug: false
+
+dialogue:
+  # Delay between dialogue lines when an NPC dialogue does not override it.
+  default-line-delay-ticks: 20      # 20 ticks = 1s
+  # Per-player cooldown before the same NPC will fire dialogue again.
+  default-cooldown-ticks: 200       # 10s
+  # Optional prefix prepended to every dialogue line. Empty = no prefix.
+  prefix: "&7[NPC] "
+
+proximity:
+  # How often the proximity scanner ticks.
+  scan-interval-ticks: 10
+  # Default radius (blocks) when an NPC enables proximity without overriding.
+  default-radius: 3.0
+  # Default proximity cooldown per player.
+  default-cooldown-ticks: 600       # 30s
+
+render:
+  # NPCs are hidden for a player past this distance to keep packet traffic low.
+  view-distance-blocks: 48
+  # Delay (ticks) after spawn before the fake player is removed from tablist.
+  tablist-remove-delay-ticks: 40

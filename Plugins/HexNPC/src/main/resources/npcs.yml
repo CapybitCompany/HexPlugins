@@ -1,0 +1,37 @@
+# ==========================================================
+# HexNPC - persisted NPC definitions
+# ==========================================================
+# This file is managed by /hexnpc commands. Manual edits require /hexnpc reload.
+#
+# Format reference (filled in once you create your first NPC via /hexnpc create <id>):
+#
+# npcs:
+#   example:
+#     skin:
+#       name: "Notch"               # OR: value + signature for cached textures
+#       # value: "ewogIC..."
+#       # signature: "abcd..."
+#     location:
+#       world: world
+#       x: 0.5
+#       y: 65.0
+#       z: 0.5
+#       yaw: 0.0
+#       pitch: 0.0
+#     interaction:
+#       click: true
+#       proximity:
+#         enabled: false
+#         radius: 3.0
+#         cooldown-ticks: 600
+#     dialogue:
+#       cooldown-ticks: 200
+#       lines:
+#         - { text: "&aHello, <player>!", delay-ticks: 0 }
+#         - { text: "&7Welcome.", delay-ticks: 30 }
+#     actions:
+#       - { type: message,         text: "&eYou clicked me." }
+#       - { type: console-command, command: "say <player> spoke to example" }
+#       - { type: player-command,  command: "spawn" }
+
+npcs: {}

@@ -1,0 +1,22 @@
+name: HexNPC
+version: '1.0.0'
+main: hexnpc.HexNpcPlugin
+api-version: '1.21.11'
+description: Player-skin NPCs with dialogue, click and proximity interaction, and a pluggable action registry.
+authors: [HexDevTeam]
+softdepend: [HexCore, packetevents]
+
+commands:
+  hexnpc:
+    description: Manage HexNPC NPCs
+    usage: /hexnpc <create|remove|list|tp|move|rotate|skin|dialogue|trigger|reload>
+    aliases: [ hnpc, npc ]
+    permission: hexnpc.admin
+
+permissions:
+  hexnpc.admin:
+    description: Allows configuring NPCs
+    default: op
+  hexnpc.use:
+    description: Allows interacting with NPCs
+    default: true
