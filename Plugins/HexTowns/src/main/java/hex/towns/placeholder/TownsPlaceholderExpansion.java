@@ -74,6 +74,8 @@ public final class TownsPlaceholderExpansion extends PlaceholderExpansion {
             case "buffer_chunks" -> String.valueOf(config.bufferChunks());
             case "confirm_seconds" -> String.valueOf(config.confirmWindowSeconds());
             case "visual_radius" -> String.valueOf(config.visualRadiusChunks());
+            case "name_max_length", "max_name_length" -> String.valueOf(config.maxNameLength());
+            case "default_name_template" -> config.defaultNameTemplate();
             default -> "";
         };
     }

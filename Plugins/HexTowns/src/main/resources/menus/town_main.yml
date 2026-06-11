@@ -44,7 +44,7 @@ items:
       - '&7Min. dystans: &f%hextowns_create_min_distance% chunków'
       - ''
       - '&eKliknij, aby rozpocząć zakładanie.'
-      - '&8Nazwa domyślna: twój nick.'
+      - '&8Nazwa domyślna: %hextowns_default_name_template%'
       - '&8Własna nazwa: /town create <nazwa>'
     view_requirement:
       requirements:
@@ -143,6 +143,7 @@ items:
       - ''
       - '&7Cobblestone: &f%hexcollections_level_mining_cobblestone%&7/7'
       - '&7Iron: &f%hexcollections_level_mining_iron%&7/7'
+      - '&7Dirt: &f%hexcollections_level_mining_dirt%&7/3'
       - ''
       - '&eKliknij, aby otworzyć.'
     view_requirement:

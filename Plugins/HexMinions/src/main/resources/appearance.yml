@@ -15,7 +15,8 @@ appearances:
       equipment-locked: true
       equipment:
         helmet:
-          material: COBBLESTONE
+          material: PLAYER_HEAD
+          texture-base64: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19"
         chestplate:
           material: LEATHER_CHESTPLATE
           color: "#777777"
@@ -53,7 +54,8 @@ appearances:
       equipment-locked: true
       equipment:
         helmet:
-          material: DIRT
+          material: PLAYER_HEAD
+          texture-base64: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19"
         chestplate:
           material: LEATHER_CHESTPLATE
           color: "#8B5A2B"

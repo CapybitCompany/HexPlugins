@@ -1,0 +1,53 @@
+# Gotowe menu dla DeluxeMenus.
+# Po zbudowaniu/skopiowaniu pluginu plik pojawi się w: plugins/HexSkills/deluxemenus/hexskills.yml
+# Skopiuj ten plik do folderu gui_menus DeluxeMenus i dodaj go w configu DeluxeMenus,
+# albo przenieś zawartość do istniejącej konfiguracji menu.
+menu_title: '&8Twoje skille'
+open_command:
+  - skills
+  - skille
+size: 27
+update_interval: 20
+items:
+  filler:
+    material: BLACK_STAINED_GLASS_PANE
+    display_name: ' '
+    slots:
+      - 0-26
+
+  mining:
+    material: IRON_PICKAXE
+    slot: 11
+    display_name: '&e%hexskills_mining_display_name%'
+    lore:
+      - '&7Poziom: &f%hexskills_mining_level%&7/&f%hexskills_mining_max_level%'
+      - '&7XP: &f%hexskills_mining_xp%'
+      - '&7Do następnego: &f%hexskills_mining_xp_to_next% XP'
+      - '&7Postęp: &a%hexskills_mining_progress_percent%%'
+      - '&8[%hexskills_mining_progress_bar%&8]'
+      - ''
+      - '&7Źródła XP są zdefiniowane w &fskills.yml&7.'
+
+  combat:
+    material: IRON_SWORD
+    slot: 15
+    display_name: '&e%hexskills_combat_display_name%'
+    lore:
+      - '&7Poziom: &f%hexskills_combat_level%&7/&f%hexskills_combat_max_level%'
+      - '&7XP: &f%hexskills_combat_xp%'
+      - '&7Do następnego: &f%hexskills_combat_xp_to_next% XP'
+      - '&7Postęp: &a%hexskills_combat_progress_percent%%'
+      - '&8[%hexskills_combat_progress_bar%&8]'
+      - ''
+      - '&7Źródła XP są zdefiniowane w &fskills.yml&7.'
+
+  summary:
+    material: BOOK
+    slot: 22
+    display_name: '&6Podsumowanie'
+    lore:
+      - '&7Liczba skillów: &f%hexskills_count%'
+      - '&7Dostępne: &f%hexskills_list%'
+      - ''
+      - '&8Placeholdery: %hexskills_<skill>_level%,'
+      - '&8%hexskills_<skill>_xp_to_next%, %hexskills_<skill>_progress_bar%'

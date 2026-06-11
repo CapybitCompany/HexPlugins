@@ -7,12 +7,18 @@ import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.entity.BlockDisplay;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.util.Transformation;
+import org.joml.AxisAngle4f;
+import org.joml.Vector3f;
 
 import java.util.Map;
 import java.util.Set;
@@ -20,6 +26,9 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class VisualCheckService implements Listener {
+    private static final AxisAngle4f NO_ROTATION = new AxisAngle4f(0.0f, 0.0f, 1.0f, 0.0f);
+
+    private final Plugin plugin;
     private final TownsService service;
     private final TownsConfig config;
     private final Map<UUID, VisualSession> active = new ConcurrentHashMap<>();
@@ -28,6 +37,7 @@ public final class VisualCheckService implements Listener {
     private long ticksElapsed;
 
     public VisualCheckService(Plugin plugin, TownsService service, TownsConfig config) {
+        this.plugin = plugin;
         this.service = service;
         this.config = config;
         this.visualData = config.visualBlock().createBlockData();
@@ -50,6 +60,11 @@ public final class VisualCheckService implements Listener {
             Player player = Bukkit.getPlayer(id);
             if (player != null) {
                 clear(player);
+            } else {
+                VisualSession session = active.remove(id);
+                if (session != null) {
+                    removeDisplays(session.displays);
+                }
             }
         }
         refreshTask.cancel();
@@ -57,7 +72,25 @@ public final class VisualCheckService implements Listener {
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
-        active.remove(event.getPlayer().getUniqueId());
+        clear(event.getPlayer());
+    }
+
+    @EventHandler
+    public void onJoin(PlayerJoinEvent event) {
+        // BlockDisplay encje sa realnymi encjami w swiecie. Ukrywamy aktualne wizualizacje
+        // przed dolaczajacym graczem, bo /town check ma byc widoczne tylko dla wlasciciela sesji.
+        Player joining = event.getPlayer();
+        for (Map.Entry<UUID, VisualSession> entry : active.entrySet()) {
+            if (entry.getKey().equals(joining.getUniqueId())) {
+                continue;
+            }
+            for (UUID displayId : entry.getValue().displays) {
+                Entity entity = Bukkit.getEntity(displayId);
+                if (entity != null) {
+                    joining.hideEntity(plugin, entity);
+                }
+            }
+        }
     }
 
     private void refreshAll() {
@@ -101,8 +134,8 @@ public final class VisualCheckService implements Listener {
             return;
         }
 
-        clearMarkers(player, session.markers);
-        session.markers.clear();
+        removeDisplays(session.displays);
+        session.displays.clear();
         session.remember(worldName, centerX, centerZ);
 
         int radius = config.visualRadiusChunks();
@@ -113,25 +146,26 @@ public final class VisualCheckService implements Listener {
                     return;
                 }
                 if (player.getWorld().isChunkLoaded(cx, cz) && service.townAt(worldName, cx, cz).isPresent()) {
-                    addChunkBeaconFrame(player, session.markers, cx, cz, budget);
+                    addChunkDisplayFrame(player, session.displays, cx, cz, budget);
                 }
             }
         }
     }
 
-    private void addChunkBeaconFrame(Player player, Set<BlockMarker> markers, int chunkX, int chunkZ, RenderBudget budget) {
+    private void addChunkDisplayFrame(Player player, Set<UUID> displays, int chunkX, int chunkZ, RenderBudget budget) {
         World world = player.getWorld();
         int minX = chunkX << 4;
         int minZ = chunkZ << 4;
-        int maxX = minX + 15;
-        int maxZ = minZ + 15;
-        int topY = Math.min(world.getMaxHeight() - 2, highestCornerBase(world, minX, minZ, maxX, maxZ) + config.visualPillarHeight());
+        int maxX = minX + 16;
+        int maxZ = minZ + 16;
+        int highestBase = highestCornerBase(world, minX, minZ, maxX - 1, maxZ - 1);
+        int topY = Math.min(world.getMaxHeight() - 2, highestBase + config.visualPillarHeight());
 
-        addCornerPillar(player, markers, minX, minZ, topY, budget);
-        addCornerPillar(player, markers, minX, maxZ, topY, budget);
-        addCornerPillar(player, markers, maxX, minZ, topY, budget);
-        addCornerPillar(player, markers, maxX, maxZ, topY, budget);
-        addTopFrame(player, markers, minX, minZ, maxX, maxZ, topY, budget);
+        addCornerDisplay(player, displays, minX, minZ, topY, budget);
+        addCornerDisplay(player, displays, minX, maxZ, topY, budget);
+        addCornerDisplay(player, displays, maxX, minZ, topY, budget);
+        addCornerDisplay(player, displays, maxX, maxZ, topY, budget);
+        addTopFrameDisplays(player, displays, minX, minZ, maxX, maxZ, topY, budget);
         addCenterSpark(player, chunkX, chunkZ, topY);
     }
 
@@ -142,29 +176,56 @@ public final class VisualCheckService implements Listener {
         );
     }
 
-    private void addCornerPillar(Player player, Set<BlockMarker> markers, int x, int z, int topY, RenderBudget budget) {
+    private void addCornerDisplay(Player player, Set<UUID> displays, int x, int z, int topY, RenderBudget budget) {
         int baseY = surfaceBase(player.getWorld(), x, z);
-        int step = config.visualPillarStep();
-        for (int y = baseY; y <= topY; y += step) {
-            if (!sendFake(player, markers, x, y, z, budget)) {
-                return;
-            }
-            spawnSpark(player, x + 0.5, y + 0.5, z + 0.5);
-        }
-        sendFake(player, markers, x, topY, z, budget);
+        float width = config.visualDisplayWidth();
+        float height = Math.max(1.0f, topY - baseY + config.visualEdgeThickness());
+        Location location = new Location(player.getWorld(), x + 0.5 - width / 2.0, baseY, z + 0.5 - width / 2.0);
+        spawnDisplay(player, displays, location, new Vector3f(width, height, width), budget);
+        spawnSpark(player, x + 0.5, topY + 0.5, z + 0.5);
     }
 
-    private void addTopFrame(Player player, Set<BlockMarker> markers, int minX, int minZ, int maxX, int maxZ, int topY, RenderBudget budget) {
-        int step = config.visualEdgeStep();
-        for (int offset = 0; offset < 16; offset += step) {
-            if (!sendFake(player, markers, minX + offset, topY, minZ, budget)) return;
-            if (!sendFake(player, markers, minX + offset, topY, maxZ, budget)) return;
-            if (!sendFake(player, markers, minX, topY, minZ + offset, budget)) return;
-            if (!sendFake(player, markers, maxX, topY, minZ + offset, budget)) return;
+    private void addTopFrameDisplays(Player player, Set<UUID> displays, int minX, int minZ, int maxX, int maxZ, int topY, RenderBudget budget) {
+        float width = config.visualDisplayWidth();
+        float thickness = config.visualEdgeThickness();
+        float length = 16.0f;
+        double y = topY + 0.5 - thickness / 2.0;
+
+        spawnDisplay(player, displays, new Location(player.getWorld(), minX + 0.5, y, minZ + 0.5 - width / 2.0), new Vector3f(length, thickness, width), budget);
+        spawnDisplay(player, displays, new Location(player.getWorld(), minX + 0.5, y, maxZ + 0.5 - width / 2.0), new Vector3f(length, thickness, width), budget);
+        spawnDisplay(player, displays, new Location(player.getWorld(), minX + 0.5 - width / 2.0, y, minZ + 0.5), new Vector3f(width, thickness, length), budget);
+        spawnDisplay(player, displays, new Location(player.getWorld(), maxX + 0.5 - width / 2.0, y, minZ + 0.5), new Vector3f(width, thickness, length), budget);
+    }
+
+    private boolean spawnDisplay(Player viewer, Set<UUID> displays, Location location, Vector3f scale, RenderBudget budget) {
+        if (!budget.tryConsume() || location.getWorld() == null || !location.getWorld().isChunkLoaded(location.getBlockX() >> 4, location.getBlockZ() >> 4)) {
+            return false;
         }
-        sendFake(player, markers, maxX, topY, minZ, budget);
-        sendFake(player, markers, maxX, topY, maxZ, budget);
-        sendFake(player, markers, minX, topY, maxZ, budget);
+
+        BlockDisplay display = location.getWorld().spawn(location, BlockDisplay.class, entity -> {
+            entity.setBlock(visualData);
+            entity.setPersistent(false);
+            entity.setInvulnerable(true);
+            entity.setGravity(false);
+            entity.setSilent(true);
+            entity.setViewRange(config.visualDisplayViewRange());
+            entity.setTransformation(new Transformation(
+                    new Vector3f(0.0f, 0.0f, 0.0f),
+                    NO_ROTATION,
+                    scale,
+                    NO_ROTATION
+            ));
+        });
+
+        displays.add(display.getUniqueId());
+        for (Player other : Bukkit.getOnlinePlayers()) {
+            if (other.getUniqueId().equals(viewer.getUniqueId())) {
+                other.showEntity(plugin, display);
+            } else {
+                other.hideEntity(plugin, display);
+            }
+        }
+        return true;
     }
 
     private int surfaceBase(World world, int x, int z) {
@@ -183,39 +244,24 @@ public final class VisualCheckService implements Listener {
         player.spawnParticle(Particle.END_ROD, x, y, z, 1, 0.03, 0.08, 0.03, 0.0);
     }
 
-    private boolean sendFake(Player player, Set<BlockMarker> markers, int x, int y, int z, RenderBudget budget) {
-        if (!budget.tryConsume()) {
-            return false;
-        }
-        BlockMarker marker = new BlockMarker(player.getWorld().getName(), x, y, z);
-        if (markers.add(marker)) {
-            player.sendBlockChange(new Location(player.getWorld(), x, y, z), visualData);
-        }
-        return true;
-    }
-
     private void clear(Player player) {
         VisualSession session = active.remove(player.getUniqueId());
         if (session != null) {
-            clearMarkers(player, session.markers);
+            removeDisplays(session.displays);
         }
     }
 
-    private void clearMarkers(Player player, Set<BlockMarker> markers) {
-        for (BlockMarker marker : markers) {
-            World world = Bukkit.getWorld(marker.world());
-            if (world != null && world.equals(player.getWorld()) && world.isChunkLoaded(marker.x() >> 4, marker.z() >> 4)) {
-                Location location = new Location(world, marker.x(), marker.y(), marker.z());
-                player.sendBlockChange(location, world.getBlockAt(location).getBlockData());
+    private void removeDisplays(Set<UUID> displays) {
+        for (UUID displayId : displays) {
+            Entity entity = Bukkit.getEntity(displayId);
+            if (entity != null) {
+                entity.remove();
             }
         }
     }
 
-    private record BlockMarker(String world, int x, int y, int z) {
-    }
-
     private static final class VisualSession {
-        private final Set<BlockMarker> markers = ConcurrentHashMap.newKeySet();
+        private final Set<UUID> displays = ConcurrentHashMap.newKeySet();
         private String world;
         private int chunkX;
         private int chunkZ;

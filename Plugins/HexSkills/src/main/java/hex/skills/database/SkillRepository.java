@@ -27,9 +27,10 @@ public final class SkillRepository {
                 ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin");
     }
 
-    public Progress addXp(UUID townId, UUID playerUuid, SkillDefinition skill, long delta) {
+    public XpChange addXp(UUID townId, UUID playerUuid, SkillDefinition skill, long delta) {
         if (delta <= 0L) {
-            return getProgress(townId, playerUuid, skill.id()).orElse(new Progress(0L, 0));
+            Progress current = getProgress(townId, playerUuid, skill.id()).orElse(new Progress(0L, 0));
+            return new XpChange(current, current);
         }
         return db.tx(tx -> {
             Optional<Progress> existing = tx.queryOne("SELECT xp, level FROM " + tx.t("skills_progress") +
@@ -49,7 +50,7 @@ public final class SkillRepository {
                                 " SET xp=?, level=?, updated_at=? WHERE town_id=? AND player_uuid=? AND skill_id=?",
                         xp, level, System.currentTimeMillis(), townId.toString(), playerUuid.toString(), skill.id());
             }
-            return new Progress(xp, level);
+            return new XpChange(current, new Progress(xp, level));
         });
     }
 
@@ -65,6 +66,9 @@ public final class SkillRepository {
     }
 
     public record Progress(long xp, int level) {
+    }
+
+    public record XpChange(Progress before, Progress after) {
     }
 }
 

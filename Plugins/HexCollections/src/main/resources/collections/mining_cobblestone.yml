@@ -1,9 +1,9 @@
 id: "mining.cobblestone"
-aliases: ["mining_cobblestone", "cobblestone", "minecraft:cobblestone"]
+aliases: ["mining_cobblestone", "cobblestone", "cabblestone", "minecraft:cobblestone"]
 enabled: true
 
 display:
-  name: "&7Cobblestone"
+  name: "&7Cabblestone"
   category: "mining"
   menu_slot: 10
   icon:

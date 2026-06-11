@@ -9,6 +9,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -39,6 +40,11 @@ public final class SkillRegistry {
 
     public Collection<SkillDefinition> all() {
         return skills.values();
+    }
+
+    public Optional<SkillDefinition> byId(String id) {
+        if (id == null) return Optional.empty();
+        return Optional.ofNullable(skills.get(id.toLowerCase(java.util.Locale.ROOT)));
     }
 
     public Set<String> triggerIds() {

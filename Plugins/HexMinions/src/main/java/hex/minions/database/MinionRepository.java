@@ -6,6 +6,13 @@ import hex.minions.model.MinionLocation;
 import hex.minions.model.MinionState;
 import hex.minions.util.UuidBytes;
 
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.io.BukkitObjectInputStream;
+import org.bukkit.util.io.BukkitObjectOutputStream;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.util.Base64;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -74,12 +81,15 @@ public final class MinionRepository {
                 "town_id BIGINT UNSIGNED NOT NULL," +
                 "type_id VARCHAR(64) NOT NULL," +
                 "placed_count INT NOT NULL DEFAULT 0," +
+                "max_tier SMALLINT UNSIGNED NOT NULL DEFAULT 0," +
                 "total_actions BIGINT NOT NULL DEFAULT 0," +
                 "total_output BIGINT NOT NULL DEFAULT 0," +
                 "updated_at BIGINT NOT NULL," +
                 "PRIMARY KEY (town_id, type_id)," +
-                "KEY idx_town (town_id)" +
+                "KEY idx_town (town_id)," +
+                "KEY idx_town_type_tier (town_id, type_id, max_tier)" +
                 ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin");
+        try { db.update("ALTER TABLE " + db.t("town_minion_stats") + " ADD COLUMN max_tier SMALLINT UNSIGNED NOT NULL DEFAULT 0 AFTER placed_count"); } catch (Exception ignored) {}
 
         db.update("CREATE TABLE IF NOT EXISTS " + db.t("minion_audit_log") + " (" +
                 "id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT," +
@@ -114,6 +124,17 @@ public final class MinionRepository {
                         rs.getInt("storage_limit"),
                         rs.getString("appearance_id")
                 ));
+    }
+
+    public Map<String, ItemStack> loadAddonItems(UUID minionId) {
+        Map<String, ItemStack> result = new LinkedHashMap<>();
+        db.query("SELECT slot, data_json FROM " + db.t("minion_upgrades") + " WHERE minion_id=? AND upgrade_id='MENU_ITEM'", rs -> {
+            String slot = rs.getString("slot");
+            ItemStack item = deserializeItem(rs.getString("data_json"));
+            if (slot != null && item != null && !item.getType().isAir()) result.put(slot, item);
+            return null;
+        }, UuidBytes.toBytes(minionId));
+        return result;
     }
 
     public Map<String, Long> loadStorage(UUID minionId) {
@@ -162,6 +183,39 @@ public final class MinionRepository {
         });
     }
 
+    public void upsertAddonItems(UUID minionId, Map<String, ItemStack> addonItems) {
+        db.tx(tx -> {
+            tx.update("DELETE FROM " + tx.t("minion_upgrades") + " WHERE minion_id=? AND upgrade_id='MENU_ITEM'", UuidBytes.toBytes(minionId));
+            List<Object[]> batch = new ArrayList<>();
+            long now = System.currentTimeMillis();
+            for (Map.Entry<String, ItemStack> entry : addonItems.entrySet()) {
+                ItemStack item = entry.getValue();
+                if (entry.getKey() == null || entry.getKey().isBlank() || item == null || item.getType().isAir()) continue;
+                batch.add(new Object[]{UuidBytes.toBytes(minionId), entry.getKey(), "MENU_ITEM", 1, serializeItem(item), now});
+            }
+            if (!batch.isEmpty()) {
+                tx.batch("INSERT INTO " + tx.t("minion_upgrades") + " (minion_id, slot, upgrade_id, level, data_json, installed_at) VALUES (?, ?, ?, ?, ?, ?)", batch);
+            }
+            return null;
+        });
+    }
+
+    public void recordTownMinionTier(long townId, String typeId, int tier) {
+        db.update("INSERT INTO " + db.t("town_minion_stats") + " (town_id, type_id, placed_count, max_tier, updated_at) VALUES (?, ?, 1, ?, ?) " +
+                        "ON DUPLICATE KEY UPDATE placed_count=placed_count+1, max_tier=GREATEST(max_tier, VALUES(max_tier)), updated_at=VALUES(updated_at)",
+                townId, typeId, tier, System.currentTimeMillis());
+    }
+
+    public void updateTownMinionMaxTier(long townId, String typeId, int tier) {
+        db.update("INSERT INTO " + db.t("town_minion_stats") + " (town_id, type_id, placed_count, max_tier, updated_at) VALUES (?, ?, 0, ?, ?) " +
+                        "ON DUPLICATE KEY UPDATE max_tier=GREATEST(max_tier, VALUES(max_tier)), updated_at=VALUES(updated_at)",
+                townId, typeId, tier, System.currentTimeMillis());
+    }
+
+    public int townMinionMaxTier(long townId, String typeId) {
+        return db.queryOne("SELECT max_tier FROM " + db.t("town_minion_stats") + " WHERE town_id=? AND type_id=?", rs -> rs.getInt("max_tier"), townId, typeId).orElse(0);
+    }
+
     public void deleteMinion(UUID minionId) {
         db.tx(tx -> {
             tx.update("DELETE FROM " + tx.t("minion_storage") + " WHERE minion_id=?", UuidBytes.toBytes(minionId));
@@ -191,6 +245,31 @@ public final class MinionRepository {
     public void audit(UUID minionId, long townId, UUID actor, String action, String data) {
         db.update("INSERT INTO " + db.t("minion_audit_log") + " (minion_id, town_id, actor_uuid, action, data_json, created_at) VALUES (?, ?, ?, ?, ?, ?)",
                 minionId == null ? null : UuidBytes.toBytes(minionId), townId, actor == null ? null : UuidBytes.toBytes(actor), action, data, System.currentTimeMillis());
+    }
+
+    private String serializeItem(ItemStack item) {
+        try {
+            ByteArrayOutputStream output = new ByteArrayOutputStream();
+            try (BukkitObjectOutputStream data = new BukkitObjectOutputStream(output)) {
+                data.writeObject(item);
+            }
+            return Base64.getEncoder().encodeToString(output.toByteArray());
+        } catch (Exception exception) {
+            return "";
+        }
+    }
+
+    private ItemStack deserializeItem(String raw) {
+        if (raw == null || raw.isBlank()) return null;
+        try {
+            byte[] bytes = Base64.getDecoder().decode(raw);
+            try (BukkitObjectInputStream data = new BukkitObjectInputStream(new ByteArrayInputStream(bytes))) {
+                Object object = data.readObject();
+                return object instanceof ItemStack item ? item : null;
+            }
+        } catch (Exception exception) {
+            return null;
+        }
     }
 
     private MinionState parseState(String raw) {

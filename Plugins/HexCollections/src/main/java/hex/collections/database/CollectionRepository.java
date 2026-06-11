@@ -2,8 +2,11 @@ package hex.collections.database;
 
 import hex.core.api.db.Db;
 import hex.collections.api.CollectionProgress;
+import hex.collections.api.TopCollectionEntry;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -67,6 +70,15 @@ public final class CollectionRepository {
 		return db.queryOne("SELECT amount, level FROM " + db.t("collection_progress") +
 						" WHERE town_id=? AND collection_id=?",
 				rs -> new CollectionProgress(collectionId, rs.getLong("amount"), rs.getInt("level")), townId.toString(), collectionId);
+	}
+
+
+	public List<TopCollectionEntry> top(String collectionId, int limit) {
+		int capped = Math.max(1, Math.min(limit, 25));
+		return db.query("SELECT town_id, collection_id, amount, level FROM " + db.t("collection_progress") +
+				" WHERE collection_id=? ORDER BY amount DESC, level DESC LIMIT ?",
+				rs -> new TopCollectionEntry(UUID.fromString(rs.getString("town_id")), rs.getString("collection_id"), rs.getLong("amount"), rs.getInt("level")),
+				collectionId, capped);
 	}
 
 	public void purgeTown(UUID townId) {

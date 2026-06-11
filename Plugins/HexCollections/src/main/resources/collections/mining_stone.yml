@@ -1,0 +1,59 @@
+id: "mining.stone"
+aliases: ["mining_stone", "stone", "minecraft:stone"]
+enabled: true
+
+display:
+  name: "&7Stone"
+  category: "mining"
+  menu_slot: 11
+  icon:
+    material: STONE
+
+tracked_items:
+  base:
+    material: STONE
+    amount_value: 1
+
+valid_sources: [NATURAL_BLOCK_BREAK, MINION_COLLECT, CUSTOM_PLUGIN_GRANTED]
+
+sources:
+  - trigger: minions.resource.claimed
+    amount-from: amount
+    filters:
+      collectionId: mining.stone
+      resourceId: stone
+  - trigger: minions.resource.generated
+    amount-from: amount
+    filters:
+      collectionId: mining.stone
+      resourceId: stone
+
+source_rules:
+  NATURAL_BLOCK_BREAK:
+    allowed_materials: [STONE]
+    allowed_worlds: [world, resource_world, mining_world]
+    blocked_worlds: [spawn]
+    allow_in_town_claims: false
+    deny_player_placed_blocks: true
+    deny_recently_broken_blocks: true
+  MINION_COLLECT:
+    allowed_minion_types: [stone]
+    allow_in_town_claims: true
+  CUSTOM_PLUGIN_GRANTED:
+    allow_in_town_claims: true
+
+levels:
+  1: {required: 50, display_name: "&7Stone I"}
+  2: {required: 250, display_name: "&7Stone II"}
+  3: {required: 1000, display_name: "&7Stone III"}
+  4: {required: 2500, display_name: "&7Stone IV"}
+  5: {required: 7500, display_name: "&7Stone V"}
+  6: {required: 15000, display_name: "&7Stone VI"}
+  7: {required: 30000, display_name: "&7Stone VII"}
+
+reward_claim_mode: AUTO
+placeholder:
+  progress_bar:
+    length: 20
+    filled_char: "■"
+    empty_char: "□"

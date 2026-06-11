@@ -1,20 +1,23 @@
 minion-types:
   cobblestone:
     enabled: true
-    display-name: "<gray>Cobblestone Minion</gray>"
+    display-name: <gray>Cabblestone Minion</gray>
     category: mining
     item:
       material: PLAYER_HEAD
-      display-name: "<gray>Cobblestone Minion <yellow>Tier <tier></yellow></gray>"
+      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19
+      display-name: <gray>Cobblestone Minion <yellow>Tier <tier></yellow></gray>
       lore:
-        - "<dark_gray>Minion miasta</dark_gray>"
-        - "<gray>Generuje: <white>Cobblestone</white></gray>"
-        - "<gray>Postaw na terenie swojego miasta.</gray>"
+      - <dark_gray>Minion miasta</dark_gray>
+      - '<gray>Generuje: <white>Cobblestone</white></gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
       custom-model-data: 0
     placement:
       footprint-radius-blocks: 1
       require-solid-ground: true
-      blocked-materials: [WATER, LAVA]
+      blocked-materials:
+      - WATER
+      - LAVA
     work-area:
       radius: 2
       height: 2
@@ -22,50 +25,80 @@ minion-types:
     appearance: cobblestone_default
     menu: default_minion
     resource-table:
-      - resource: cobblestone
-        amount-min: 1
-        amount-max: 1
-        chance: 1.0
+    - resource: cobblestone
+      amount-min: 1
+      amount-max: 1
+      chance: 1.0
     tiers:
       1:
         action-time-seconds: 14
         storage: 64
         storage-slots: 1
-        upgrade-cost:
-          resources:
-            cobblestone: 80
+        upgrade-requirements:
+          collections:
+            mining.cobblestone: 80
+          items: {}
       2:
         action-time-seconds: 13
         storage: 128
         storage-slots: 2
-        upgrade-cost:
-          resources:
-            cobblestone: 160
+        upgrade-requirements:
+          collections:
+            mining.cobblestone: 160
+          items:
+            upgrade_core:
+              material: NETHER_STAR
+              amount: 1
+              display-name: Upgrade Core
+              consume: true
       3:
         action-time-seconds: 12
         storage: 192
         storage-slots: 3
-        upgrade-cost:
-          resources:
-            cobblestone: 320
-    max-tier: 3
-
+        upgrade-requirements:
+          collections:
+            mining.cobblestone: 320
+          items: {}
+      4:
+        action-time-seconds: 11
+        storage: 256
+        storage-slots: 4
+        upgrade-requirements:
+          collections:
+            mining.cobblestone: 640
+          items: {}
+      5:
+        action-time-seconds: 10
+        storage: 320
+        storage-slots: 5
+        upgrade-requirements:
+          collections:
+            mining.cobblestone: 1280
+          items: {}
+    max-tier: 5
+    wiki:
+      special-items:
+      - compressed_cobblestone
+      - basic_storage
   iron:
     enabled: true
-    display-name: "<white>Iron Minion</white>"
+    display-name: <white>Iron Minion</white>
     category: mining
     item:
       material: PLAYER_HEAD
-      display-name: "<white>Iron Minion <yellow>Tier <tier></yellow></white>"
+      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19
+      display-name: <white>Iron Minion <yellow>Tier <tier></yellow></white>
       lore:
-        - "<dark_gray>Minion miasta</dark_gray>"
-        - "<gray>Generuje: <white>Iron Ingot</white></gray>"
-        - "<gray>Postaw na terenie swojego miasta.</gray>"
+      - <dark_gray>Minion miasta</dark_gray>
+      - '<gray>Generuje: <white>Iron Ingot</white></gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
       custom-model-data: 0
     placement:
       footprint-radius-blocks: 1
       require-solid-ground: true
-      blocked-materials: [WATER, LAVA]
+      blocked-materials:
+      - WATER
+      - LAVA
     work-area:
       radius: 2
       height: 2
@@ -73,50 +106,55 @@ minion-types:
     appearance: cobblestone_default
     menu: default_minion
     resource-table:
-      - resource: iron
-        amount-min: 1
-        amount-max: 1
-        chance: 1.0
+    - resource: iron
+      amount-min: 1
+      amount-max: 1
+      chance: 1.0
     tiers:
       1:
         action-time-seconds: 24
         storage: 64
         storage-slots: 1
-        upgrade-cost:
-          resources:
-            iron: 80
+        upgrade-requirements:
+          collections:
+            mining.iron: 80
+          items: {}
       2:
         action-time-seconds: 22
         storage: 128
         storage-slots: 2
-        upgrade-cost:
-          resources:
-            iron: 160
+        upgrade-requirements:
+          collections:
+            mining.iron: 160
+          items: {}
       3:
         action-time-seconds: 20
         storage: 192
         storage-slots: 3
-        upgrade-cost:
-          resources:
-            iron: 320
+        upgrade-requirements:
+          collections:
+            mining.iron: 320
+          items: {}
     max-tier: 3
-
   dirt:
     enabled: true
-    display-name: "<gold>Dirt Minion</gold>"
+    display-name: <gold>Dirt Minion</gold>
     category: mining
     item:
       material: PLAYER_HEAD
-      display-name: "<gold>Dirt Minion <yellow>Tier <tier></yellow></gold>"
+      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19
+      display-name: <gold>Dirt Minion <yellow>Tier <tier></yellow></gold>
       lore:
-        - "<dark_gray>Minion miasta</dark_gray>"
-        - "<gray>Generuje: <gold>Dirt</gold></gray>"
-        - "<gray>Postaw na terenie swojego miasta.</gray>"
+      - <dark_gray>Minion miasta</dark_gray>
+      - '<gray>Generuje: <gold>Dirt</gold></gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
       custom-model-data: 0
     placement:
       footprint-radius-blocks: 1
       require-solid-ground: true
-      blocked-materials: [WATER, LAVA]
+      blocked-materials:
+      - WATER
+      - LAVA
     work-area:
       radius: 2
       height: 2
@@ -124,31 +162,133 @@ minion-types:
     appearance: dirt_default
     menu: default_minion
     resource-table:
-      - resource: dirt
-        amount-min: 1
-        amount-max: 1
-        chance: 1.0
+    - resource: dirt
+      amount-min: 1
+      amount-max: 1
+      chance: 1.0
     tiers:
       1:
         action-time-seconds: 12
         storage: 64
         storage-slots: 1
-        upgrade-cost:
-          resources:
-            dirt: 80
+        upgrade-requirements:
+          collections:
+            mining.dirt: 80
+          items: {}
       2:
         action-time-seconds: 11
         storage: 128
         storage-slots: 2
-        upgrade-cost:
-          resources:
-            dirt: 160
+        upgrade-requirements:
+          collections:
+            mining.dirt: 160
+          items: {}
       3:
         action-time-seconds: 10
         storage: 192
         storage-slots: 3
-        upgrade-cost:
-          resources:
-            dirt: 320
-    max-tier: 3
-
+        upgrade-requirements:
+          collections:
+            mining.dirt: 320
+          items: {}
+      4:
+        action-time-seconds: 9
+        storage: 256
+        storage-slots: 4
+        upgrade-requirements:
+          collections:
+            mining.dirt: 640
+          items: {}
+      5:
+        action-time-seconds: 8
+        storage: 320
+        storage-slots: 5
+        upgrade-requirements:
+          collections:
+            mining.dirt: 1280
+          items: {}
+    max-tier: 5
+    wiki:
+      special-items:
+      - enchanted_crafting_table
+  stone:
+    enabled: true
+    display-name: <gray>Stone Minion</gray>
+    category: mining
+    item:
+      material: PLAYER_HEAD
+      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19
+      display-name: <gray>Stone Minion <yellow>Tier <tier></yellow></gray>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - '<gray>Generuje: <white>Stone</white></gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
+      custom-model-data: 0
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: cobblestone_default
+    menu: default_minion
+    resource-table:
+    - resource: stone
+      amount-min: 1
+      amount-max: 1
+      chance: 1.0
+    tiers:
+      1:
+        action-time-seconds: 14
+        storage: 64
+        storage-slots: 1
+        upgrade-requirements:
+          collections:
+            mining.stone: 80
+          items: {}
+      2:
+        action-time-seconds: 13
+        storage: 128
+        storage-slots: 2
+        upgrade-requirements:
+          collections:
+            mining.stone: 160
+          items:
+            upgrade_core:
+              material: NETHER_STAR
+              amount: 1
+              display-name: Upgrade Core
+              consume: true
+      3:
+        action-time-seconds: 12
+        storage: 192
+        storage-slots: 3
+        upgrade-requirements:
+          collections:
+            mining.stone: 320
+          items: {}
+      4:
+        action-time-seconds: 11
+        storage: 256
+        storage-slots: 4
+        upgrade-requirements:
+          collections:
+            mining.stone: 640
+          items: {}
+      5:
+        action-time-seconds: 10
+        storage: 320
+        storage-slots: 5
+        upgrade-requirements:
+          collections:
+            mining.stone: 1280
+          items: {}
+    max-tier: 5
+    wiki:
+      special-items:
+      - compressed_cobblestone
+      - basic_storage

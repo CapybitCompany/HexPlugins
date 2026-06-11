@@ -147,6 +147,7 @@ public final class TownsService {
     }
 
     public OperationResult previewCreate(Player player, String name) {
+        String previewName = normalizeTownName(name, defaultTownName());
         if (!config.isWorldAllowed(player.getWorld().getName())) {
             return OperationResult.fail("towns.error.world-disabled");
         }
@@ -157,7 +158,7 @@ public final class TownsService {
         if (worldId != null && isTooClose(worldId, initialChunks(player.getChunk().getX(), player.getChunk().getZ()), config.minDistanceChunks())) {
             return OperationResult.fail("towns.create.too-close", UiTokens.of("distance", String.valueOf(config.minDistanceChunks())));
         }
-        return OperationResult.ok("towns.create.confirm", UiTokens.of("town", name));
+        return OperationResult.ok("towns.create.confirm", UiTokens.of("town", previewName));
     }
 
     public CompletableFuture<OperationResult> createTown(Player player, String requestedName) {
@@ -166,7 +167,7 @@ public final class TownsService {
         String worldName = player.getWorld().getName();
         int centerX = player.getChunk().getX();
         int centerZ = player.getChunk().getZ();
-        String townName = normalizeTownName(requestedName, ownerName);
+        String townName = normalizeTownName(requestedName, defaultTownName());
 
         return api.db().async(() -> {
             synchronized (mutationLock) {
@@ -354,6 +355,38 @@ public final class TownsService {
                 repository.destroyTown(town.internalId());
                 removeTownCaches(town);
                 return OperationResult.ok("towns.destroy.success", UiTokens.of("town", town.name()));
+            }
+        });
+    }
+
+
+    public CompletableFuture<OperationResult> renameTown(Player player, String requestedName) {
+        UUID playerId = player.getUniqueId();
+        String newName = normalizeTownName(requestedName, "");
+        if (newName.isBlank()) {
+            return CompletableFuture.completedFuture(OperationResult.fail("towns.rename.invalid", UiTokens.of("max", String.valueOf(config.maxNameLength()))));
+        }
+        return api.db().async(() -> {
+            synchronized (mutationLock) {
+                Membership membership = playerIndex.get(playerId);
+                if (membership == null) {
+                    return OperationResult.fail("towns.error.no-town");
+                }
+                if (membership.role() != TownRole.OWNER) {
+                    return OperationResult.fail("towns.error.not-owner");
+                }
+                Town town = townsByInternalId.get(membership.townId());
+                if (town == null || town.status() != TownStatus.ACTIVE) {
+                    return OperationResult.fail("towns.error.no-town");
+                }
+                repository.renameTown(town.internalId(), newName);
+                town.setName(newName);
+                publish("towns.renamed", HexMessageData.builder()
+                        .put("townId", town.id().toString())
+                        .put("name", newName)
+                        .put("byUuid", playerId.toString())
+                        .build());
+                return OperationResult.ok("towns.rename.success", UiTokens.of("town", newName));
             }
         });
     }
@@ -574,11 +607,27 @@ public final class TownsService {
 
     private String normalizeTownName(String requestedName, String fallback) {
         String source = requestedName == null || requestedName.isBlank() ? fallback : requestedName;
-        String cleaned = source.replaceAll("[^A-Za-z0-9_]", "");
-        if (cleaned.length() < 3) {
-            cleaned = fallback;
+        if (source == null) {
+            return "";
         }
-        return cleaned.length() > 32 ? cleaned.substring(0, 32) : cleaned;
+        String cleaned = source.strip()
+                .replace("&", "")
+                .replace("§", "")
+                .replaceAll("\\s+", " ")
+                .replaceAll("[^\\p{L}\\p{N}_\\- ]", "");
+        if (cleaned.length() > config.maxNameLength()) {
+            cleaned = cleaned.substring(0, config.maxNameLength()).strip();
+        }
+        if (cleaned.length() < 3) {
+            return fallback == null ? "" : fallback;
+        }
+        return cleaned;
+    }
+
+    private String defaultTownName() {
+        int number = Math.max(1, townsByInternalId.size() + 1);
+        String template = config.defaultNameTemplate() == null || config.defaultNameTemplate().isBlank() ? "Town {number}" : config.defaultNameTemplate();
+        return normalizeTownName(template.replace("{number}", String.valueOf(number)), "Town " + number);
     }
 
     private void publishCreated(Town town, UUID ownerId) {

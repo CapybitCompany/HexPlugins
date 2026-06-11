@@ -6,9 +6,9 @@ api-version: "1.21"
 depend:
   - HexCore
   - HexTowns
+  - HexCollections
 
 softdepend:
-  - HexCollections
   - PlaceholderAPI
 
 commands:

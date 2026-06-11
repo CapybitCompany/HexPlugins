@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Locale;
 
 public final class DefinitionLoader {
     private final Plugin plugin;
@@ -55,6 +56,41 @@ public final class DefinitionLoader {
         return result;
     }
 
+
+    private UpgradeRequirements loadUpgradeRequirements(ConfigurationSection tierSection) {
+        Map<String, Long> collections = new LinkedHashMap<>();
+        ConfigurationSection modernCollections = tierSection.getConfigurationSection("upgrade-requirements.collections");
+        if (modernCollections != null) {
+            for (String collectionId : modernCollections.getKeys(false)) {
+                collections.put(collectionId, modernCollections.getLong(collectionId));
+            }
+        }
+
+        // Backward compatibility: old upgrade-cost.resources entries are now treated as
+        // town collection requirements. Resource ids are resolved through resources.yml
+        // so e.g. cobblestone -> mining.cobblestone.
+        ConfigurationSection legacyResources = tierSection.getConfigurationSection("upgrade-cost.resources");
+        if (legacyResources != null) {
+            Map<String, ResourceDefinition> resources = loadResources();
+            for (String resourceId : legacyResources.getKeys(false)) {
+                ResourceDefinition resource = resources.get(resourceId);
+                String collectionId = resource == null ? resourceId : resource.collectionId();
+                collections.merge(collectionId, legacyResources.getLong(resourceId), Long::sum);
+            }
+        }
+
+        List<ItemRequirement> items = new ArrayList<>();
+        ConfigurationSection itemSection = tierSection.getConfigurationSection("upgrade-requirements.items");
+        if (itemSection == null) itemSection = tierSection.getConfigurationSection("upgrade-cost.items");
+        if (itemSection != null) {
+            for (String id : itemSection.getKeys(false)) {
+                ConfigurationSection section = itemSection.getConfigurationSection(id);
+                if (section != null) items.add(ItemRequirement.fromConfig(id.toLowerCase(Locale.ROOT), section));
+            }
+        }
+        return new UpgradeRequirements(Map.copyOf(collections), List.copyOf(items));
+    }
+
     private double labelOffsetY(ConfigurationSection label) {
         if (label == null) return 1.65D;
         List<Double> offset = label.getDoubleList("offset");
@@ -92,7 +128,7 @@ public final class DefinitionLoader {
         for (String id : root.getKeys(false)) {
             ConfigurationSection s = root.getConfigurationSection(id);
             if (s == null) continue;
-            Material itemMaterial = parseMaterial(s.getString("item.material", "PLAYER_HEAD"), Material.PLAYER_HEAD);
+            ItemSpec itemSpec = ItemSpec.fromConfig(s.getConfigurationSection("item"), Material.PLAYER_HEAD);
             List<Material> blocked = new ArrayList<>();
             for (String raw : s.getStringList("placement.blocked-materials")) {
                 blocked.add(parseMaterial(raw, Material.AIR));
@@ -113,26 +149,19 @@ public final class DefinitionLoader {
                     int tier = parseInt(key);
                     ConfigurationSection ts = tiersSection.getConfigurationSection(key);
                     if (ts == null) continue;
-                    Map<String, Long> cost = new LinkedHashMap<>();
-                    ConfigurationSection resources = ts.getConfigurationSection("upgrade-cost.resources");
-                    if (resources != null) {
-                        for (String resource : resources.getKeys(false)) {
-                            cost.put(resource, resources.getLong(resource));
-                        }
-                    }
-                    tiers.put(tier, new TierDefinition(tier, ts.getInt("action-time-seconds", 15), ts.getInt("storage", 64), Math.max(1, Math.min(9, ts.getInt("storage-slots", Math.min(9, tier)))), Map.copyOf(cost)));
+                    UpgradeRequirements requirements = loadUpgradeRequirements(ts);
+                    tiers.put(tier, new TierDefinition(tier, ts.getInt("action-time-seconds", 15), ts.getInt("storage", 64), Math.max(1, Math.min(9, ts.getInt("storage-slots", Math.min(9, tier)))), requirements));
                 }
             }
             if (!tiers.containsKey(1)) {
-                tiers.put(1, new TierDefinition(1, 15, 64, 1, Map.of()));
+                tiers.put(1, new TierDefinition(1, 15, 64, 1, UpgradeRequirements.empty()));
             }
             result.put(id, new MinionTypeDefinition(
                     id,
                     s.getBoolean("enabled", true),
                     s.getString("display-name", id),
                     s.getString("category", "special"),
-                    itemMaterial,
-                    Math.max(0, s.getInt("item.custom-model-data", 0)),
+                    itemSpec,
                     s.getString("item.display-name", id),
                     List.copyOf(s.getStringList("item.lore")),
                     Math.max(0, s.getInt("placement.footprint-radius-blocks", 1)),
@@ -142,7 +171,8 @@ public final class DefinitionLoader {
                     s.getString("menu", "default_minion"),
                     List.copyOf(drops),
                     Map.copyOf(tiers),
-                    Math.max(1, s.getInt("max-tier", tiers.keySet().stream().mapToInt(Integer::intValue).max().orElse(1)))
+                    Math.max(1, s.getInt("max-tier", tiers.keySet().stream().mapToInt(Integer::intValue).max().orElse(1))),
+                    List.copyOf(s.getStringList("wiki.special-items"))
             ));
         }
         return result;

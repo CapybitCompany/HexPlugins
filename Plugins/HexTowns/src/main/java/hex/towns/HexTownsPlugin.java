@@ -6,6 +6,8 @@ import hex.towns.command.TownCommand;
 import hex.towns.config.TownsConfig;
 import hex.towns.database.TownRepository;
 import hex.towns.listener.TownProtectionListener;
+import hex.towns.map.TownMapService;
+import hex.towns.gui.TownRenameAnvilListener;
 import hex.towns.placeholder.TownsPlaceholderExpansion;
 import hex.towns.service.TownDataRegistry;
 import hex.towns.service.TownsApiImpl;
@@ -25,6 +27,8 @@ public final class HexTownsPlugin extends JavaPlugin {
     private TownsApi townsApi;
     private TownsService townsService;
     private VisualCheckService visualCheckService;
+    private TownRenameAnvilListener renameAnvilListener;
+    private TownMapService townMapService;
     private TownsPlaceholderExpansion placeholderExpansion;
 
     @Override
@@ -47,11 +51,13 @@ public final class HexTownsPlugin extends JavaPlugin {
         this.townsService = new TownsService(this, hexApi, repository, dataRegistry, config);
         this.townsApi = new TownsApiImpl(townsService, dataRegistry);
         this.visualCheckService = new VisualCheckService(this, townsService, config);
+        this.renameAnvilListener = new TownRenameAnvilListener(this, hexApi, townsService, config);
+        this.townMapService = new TownMapService(this, townsService, config);
 
         Bukkit.getServicesManager().register(TownsApi.class, townsApi, this, ServicePriority.Normal);
         registerPlaceholderExpansion(config);
 
-        TownCommand townCommand = new TownCommand(this, hexApi, townsService, visualCheckService, config);
+        TownCommand townCommand = new TownCommand(this, hexApi, townsService, visualCheckService, config, renameAnvilListener, townMapService);
         PluginCommand townPluginCommand = getCommand("town");
         if (townPluginCommand != null) {
             townPluginCommand.setExecutor(townCommand);
@@ -62,6 +68,7 @@ public final class HexTownsPlugin extends JavaPlugin {
 
         getServer().getPluginManager().registerEvents(new TownProtectionListener(hexApi, townsService), this);
         getServer().getPluginManager().registerEvents(visualCheckService, this);
+        getServer().getPluginManager().registerEvents(renameAnvilListener, this);
 
         hexApi.db().async(() -> {
             repository.ensureTables();
@@ -118,7 +125,7 @@ public final class HexTownsPlugin extends JavaPlugin {
 
     private void registerUiDefaults() {
         registerUiDefaultsCompat(Map.ofEntries(
-                Map.entry("help", "<gray>/town create, claim, coop, accept, endcoop, destroy, check, info, here, map, growth</gray>"),
+                Map.entry("help", "<gray>/town create, claim, coop, accept, endcoop, destroy, rename, check, info, here, map, growth</gray>"),
                 Map.entry("error.player-only", "<red>Ta komenda jest tylko dla gracza.</red>"),
                 Map.entry("error.no-town", "<red>Nie nalezysz do zadnego miasta.</red>"),
                 Map.entry("error.not-owner", "<red>Tylko wlasciciel miasta moze to zrobic.</red>"),
@@ -127,6 +134,9 @@ public final class HexTownsPlugin extends JavaPlugin {
                 Map.entry("error.db", "<red>Blad bazy danych: <white><error></white></red>"),
                 Map.entry("confirm.expired", "<red>Potwierdzenie wygaslo. Uzyj komendy ponownie.</red>"),
                 Map.entry("create.success", "<green>Zalozono miasto <yellow><town></yellow>.</green>"),
+                Map.entry("rename.usage", "<gray>Uzycie: <white>/town rename <nazwa></white> albo <white>/town rename</white>, aby otworzyc kowadlo. Maks. <max> znakow.</gray>"),
+                Map.entry("rename.invalid", "<red>Nieprawidlowa nazwa miasta. Uzyj 3-<max> znakow bez kolorow.</red>"),
+                Map.entry("rename.success", "<green>Zmieniono nazwe miasta na <yellow><town></yellow>.</green>"),
                 Map.entry("create.too-close", "<red>Za blisko innego miasta. Minimalna odleglosc: <white><distance></white> chunkow.</red>"),
                 Map.entry("create.already-member", "<red>Jestes juz w miescie lub COOP-ie. Nie mozesz zalozyc kolejnego.</red>"),
                 Map.entry("create.confirm", "<gold>Zalozenie miasta <yellow><town></yellow> oznacza, ze odejscie lub zniszczenie miasta zresetuje statystyki. </gold><click:run_command:'/town create confirm'><green>[POTWIERDZ]</green></click> <gray>albo wpisz: <white>/town create confirm</white></gray>"),
