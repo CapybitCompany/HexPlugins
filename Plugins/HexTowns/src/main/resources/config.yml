@@ -11,6 +11,12 @@ towns:
     cost-coins: 0
     confirm-required: true
 
+  naming:
+    # Domyślna nazwa miasta, gdy gracz użyje /town create bez nazwy.
+    # Dostępny token: {number}.
+    default-template: "Town {number}"
+    max-length: 16
+
   coop:
     max-members: 3
     request-ttl-seconds: 120
@@ -33,9 +39,13 @@ towns:
       # 200 ticków = ok. 10 sekund. Ustaw 0/false przez enabled, jeśli chcesz tylko ręczny sync admina.
       interval-ticks: 200
 
+  map:
+    # Promień chunków rysowany na mapie z /town map.
+    radius-chunks: 8
+
   visual-check:
     enabled: true
-    block: "LIME_STAINED_GLASS"
+    block: "LIME_CONCRETE"
     radius-chunks: 6
     # Co ile tickow sprawdzamy, czy gracz zmienil chunk i trzeba przerysowac granice.
     # 40 tickow = ok. 2 sekundy.
@@ -45,12 +55,16 @@ towns:
     # 200 tickow = ok. 10 sekund. Ustaw 0, zeby wylaczyc wymuszone odswiezanie stanu.
     state-refresh-ticks: 200
     pillar-height: 18
-    # Odleglosc w blokach (pionowo) miedzy kolejnymi blokami szkla w slupie naroznika.
-    # Domyslnie co 4 bloki.
-    pillar-step: 4
-    # Odleglosc w blokach (poziomo) miedzy blokami szkla w gornej ramce chunka.
-    edge-step: 4
-    max-blocks-per-tick-global: 20000
+    # /town check uzywa teraz efemerycznych BlockDisplay zamiast podmienianych blokow.
+    # To daje mniej obiektow do renderowania i blokuje jakiekolwiek farmienie materialu Silk Touchem.
+    # Szerokosc pionowych slupkow oraz poziomych krawedzi chunka. 0.15 = waska linia.
+    display-width: 0.15
+    # Grubosc gornych krawedzi ramki.
+    edge-thickness: 0.15
+    # Zasieg widocznosci displayow dla gracza.
+    display-view-range: 64
+    # Limit tworzonych displayow na tick dla wszystkich graczy z wlaczonym /town check.
+    max-block-displays-per-tick-global: 20000
 
   destroy:
     confirm-window-seconds: 30

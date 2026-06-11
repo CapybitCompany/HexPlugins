@@ -1,5 +1,5 @@
 id: "mining.dirt"
-aliases: ["mining_dirt", "dirt", "minecraft:dirt"]
+aliases: ["mining_dirt", "dirt", "minecraft:dirt", "grass_block", "minecraft:grass_block"]
 enabled: true
 
 display:

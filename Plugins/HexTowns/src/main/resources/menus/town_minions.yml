@@ -1,5 +1,6 @@
-# DeluxeMenus example: town minions menu
-# Uses HexMinions PlaceholderAPI expansion: %hexminions_*%
+# DeluxeMenus: menu minionów miasta
+# Wymaga PlaceholderAPI expansion z HexMinions: %hexminions_*%
+# Klikalność i informacje są przypięte do jednej główki reprezentującej miniona.
 
 menu_title: '&8Miniony miasta'
 open_command:
@@ -16,13 +17,12 @@ items:
 
   info:
     material: PLAYER_HEAD
-    slot: 0
+    slot: 4
     display_name: '&bMiniony miasta'
     lore:
       - '&7Miasto: &f%hexminions_town_name%'
       - '&7Aktywne miniony: &f%hexminions_count%&7/&f%hexminions_limit%'
       - '&7Wolne sloty: &f%hexminions_remaining%'
-      - '&7Zapełnienie: &f%hexminions_percent%%'
 
   back:
     material: ARROW
@@ -31,43 +31,8 @@ items:
     left_click_commands:
       - '[openguimenu] town_main'
 
-  minion_1_head:
-    material: '%hexminions_index_1_head_material%'
-    slot: 1
-    display_name: '&b#1 &f%hexminions_index_1_name%'
-    lore:
-      - '&7Główka / wygląd miniona z konfiguracji HexMinions.'
-
-  minion_2_head:
-    material: '%hexminions_index_2_head_material%'
-    slot: 2
-    display_name: '&b#2 &f%hexminions_index_2_name%'
-    lore:
-      - '&7Główka / wygląd miniona z konfiguracji HexMinions.'
-
-  minion_3_head:
-    material: '%hexminions_index_3_head_material%'
-    slot: 3
-    display_name: '&b#3 &f%hexminions_index_3_name%'
-    lore:
-      - '&7Główka / wygląd miniona z konfiguracji HexMinions.'
-
-  minion_4_head:
-    material: '%hexminions_index_4_head_material%'
-    slot: 4
-    display_name: '&b#4 &f%hexminions_index_4_name%'
-    lore:
-      - '&7Główka / wygląd miniona z konfiguracji HexMinions.'
-
-  minion_5_head:
-    material: '%hexminions_index_5_head_material%'
-    slot: 5
-    display_name: '&b#5 &f%hexminions_index_5_name%'
-    lore:
-      - '&7Główka / wygląd miniona z konfiguracji HexMinions.'
-
   minion_1:
-    material: '%hexminions_index_1_status_material%'
+    material: '%hexminions_index_1_head_material%'
     slot: 10
     display_name: '&b#1 &f%hexminions_index_1_name%'
     lore:
@@ -85,29 +50,31 @@ items:
       - '&eSHIFT+LPM: podnieś miniona'
       - '&eSHIFT+PPM: ulepsz'
       - '&eŚPM: przenieś na aktualne miejsce'
-    left_click_commands:
-      - '[player] minion action collect %hexminions_index_1_id%'
-    right_click_commands:
-      - '[player] minion action open %hexminions_index_1_id%'
-    shift_left_click_commands:
-      - '[player] minion action pickup %hexminions_index_1_id%'
-    shift_right_click_commands:
-      - '[player] minion action upgrade %hexminions_index_1_id%'
-    middle_click_commands:
-      - '[player] minion action move %hexminions_index_1_id%'
+    left_click_commands: ['[player] minion action collect %hexminions_index_1_id%']
+    right_click_commands: ['[player] minion action open %hexminions_index_1_id%']
+    shift_left_click_commands: ['[player] minion action pickup %hexminions_index_1_id%']
+    shift_right_click_commands: ['[player] minion action upgrade %hexminions_index_1_id%']
+    middle_click_commands: ['[player] minion action move %hexminions_index_1_id%']
 
   minion_2:
-    material: '%hexminions_index_2_status_material%'
+    material: '%hexminions_index_2_head_material%'
     slot: 11
     display_name: '&b#2 &f%hexminions_index_2_name%'
     lore:
       - '&7Istnieje: &f%hexminions_index_2_exists%'
       - '&7ID: &f%hexminions_index_2_short_id%'
+      - '&7Typ: &f%hexminions_index_2_type%'
       - '&7Tier: &f%hexminions_index_2_tier%&7/&f%hexminions_index_2_max_tier%'
       - '&7Storage: &f%hexminions_index_2_storage_used%&7/&f%hexminions_index_2_storage_limit% &8(%hexminions_index_2_storage_percent%%%)'
       - '&a%hexminions_index_2_storage_bar%'
       - '&7Status: &f%hexminions_index_2_state%'
       - '&7Lokacja: &f%hexminions_index_2_location%'
+      - ''
+      - '&eLPM: odbierz storage'
+      - '&ePPM: otwórz menu miniona'
+      - '&eSHIFT+LPM: podnieś miniona'
+      - '&eSHIFT+PPM: ulepsz'
+      - '&eŚPM: przenieś na aktualne miejsce'
     left_click_commands: ['[player] minion action collect %hexminions_index_2_id%']
     right_click_commands: ['[player] minion action open %hexminions_index_2_id%']
     shift_left_click_commands: ['[player] minion action pickup %hexminions_index_2_id%']
@@ -115,17 +82,24 @@ items:
     middle_click_commands: ['[player] minion action move %hexminions_index_2_id%']
 
   minion_3:
-    material: '%hexminions_index_3_status_material%'
+    material: '%hexminions_index_3_head_material%'
     slot: 12
     display_name: '&b#3 &f%hexminions_index_3_name%'
     lore:
       - '&7Istnieje: &f%hexminions_index_3_exists%'
       - '&7ID: &f%hexminions_index_3_short_id%'
+      - '&7Typ: &f%hexminions_index_3_type%'
       - '&7Tier: &f%hexminions_index_3_tier%&7/&f%hexminions_index_3_max_tier%'
       - '&7Storage: &f%hexminions_index_3_storage_used%&7/&f%hexminions_index_3_storage_limit% &8(%hexminions_index_3_storage_percent%%%)'
       - '&a%hexminions_index_3_storage_bar%'
       - '&7Status: &f%hexminions_index_3_state%'
       - '&7Lokacja: &f%hexminions_index_3_location%'
+      - ''
+      - '&eLPM: odbierz storage'
+      - '&ePPM: otwórz menu miniona'
+      - '&eSHIFT+LPM: podnieś miniona'
+      - '&eSHIFT+PPM: ulepsz'
+      - '&eŚPM: przenieś na aktualne miejsce'
     left_click_commands: ['[player] minion action collect %hexminions_index_3_id%']
     right_click_commands: ['[player] minion action open %hexminions_index_3_id%']
     shift_left_click_commands: ['[player] minion action pickup %hexminions_index_3_id%']
@@ -133,17 +107,24 @@ items:
     middle_click_commands: ['[player] minion action move %hexminions_index_3_id%']
 
   minion_4:
-    material: '%hexminions_index_4_status_material%'
+    material: '%hexminions_index_4_head_material%'
     slot: 13
     display_name: '&b#4 &f%hexminions_index_4_name%'
     lore:
       - '&7Istnieje: &f%hexminions_index_4_exists%'
       - '&7ID: &f%hexminions_index_4_short_id%'
+      - '&7Typ: &f%hexminions_index_4_type%'
       - '&7Tier: &f%hexminions_index_4_tier%&7/&f%hexminions_index_4_max_tier%'
       - '&7Storage: &f%hexminions_index_4_storage_used%&7/&f%hexminions_index_4_storage_limit% &8(%hexminions_index_4_storage_percent%%%)'
       - '&a%hexminions_index_4_storage_bar%'
       - '&7Status: &f%hexminions_index_4_state%'
       - '&7Lokacja: &f%hexminions_index_4_location%'
+      - ''
+      - '&eLPM: odbierz storage'
+      - '&ePPM: otwórz menu miniona'
+      - '&eSHIFT+LPM: podnieś miniona'
+      - '&eSHIFT+PPM: ulepsz'
+      - '&eŚPM: przenieś na aktualne miejsce'
     left_click_commands: ['[player] minion action collect %hexminions_index_4_id%']
     right_click_commands: ['[player] minion action open %hexminions_index_4_id%']
     shift_left_click_commands: ['[player] minion action pickup %hexminions_index_4_id%']
@@ -151,32 +132,49 @@ items:
     middle_click_commands: ['[player] minion action move %hexminions_index_4_id%']
 
   minion_5:
-    material: '%hexminions_index_5_status_material%'
+    material: '%hexminions_index_5_head_material%'
     slot: 14
     display_name: '&b#5 &f%hexminions_index_5_name%'
     lore:
       - '&7Istnieje: &f%hexminions_index_5_exists%'
       - '&7ID: &f%hexminions_index_5_short_id%'
+      - '&7Typ: &f%hexminions_index_5_type%'
       - '&7Tier: &f%hexminions_index_5_tier%&7/&f%hexminions_index_5_max_tier%'
       - '&7Storage: &f%hexminions_index_5_storage_used%&7/&f%hexminions_index_5_storage_limit% &8(%hexminions_index_5_storage_percent%%%)'
       - '&a%hexminions_index_5_storage_bar%'
       - '&7Status: &f%hexminions_index_5_state%'
       - '&7Lokacja: &f%hexminions_index_5_location%'
+      - ''
+      - '&eLPM: odbierz storage'
+      - '&ePPM: otwórz menu miniona'
+      - '&eSHIFT+LPM: podnieś miniona'
+      - '&eSHIFT+PPM: ulepsz'
+      - '&eŚPM: przenieś na aktualne miejsce'
     left_click_commands: ['[player] minion action collect %hexminions_index_5_id%']
     right_click_commands: ['[player] minion action open %hexminions_index_5_id%']
     shift_left_click_commands: ['[player] minion action pickup %hexminions_index_5_id%']
     shift_right_click_commands: ['[player] minion action upgrade %hexminions_index_5_id%']
     middle_click_commands: ['[player] minion action move %hexminions_index_5_id%']
 
+
+  wiki:
+    material: BOOK
+    slot: 47
+    display_name: '&bWiki minionów'
+    lore:
+      - '&7Lista wszystkich typów minionów'
+      - '&7zdefiniowanych w &fminion-types.yml&7.'
+      - ''
+      - '&eKliknij, aby otworzyć wiki.'
+    left_click_commands:
+      - '[player] minion wiki'
+
   note:
     material: PAPER
     slot: 49
     display_name: '&eUwaga'
     lore:
-      - '&7To jest przykładowe menu do 5 minionów.'
-      - '&7Możesz skopiować sekcje minion_#'
-      - '&7i zmienić index oraz slot.'
-      - ''
-      - '&7Puste sloty zwracają material BARRIER.'
-
-
+      - '&7Każdy minion ma tylko jedną ikonę-główkę.'
+      - '&7Zapełnienie widzisz w lore jako pasek:'
+      - '&a■■■■□□□□□□'
+      - '&7Rozszerz menu, kopiując sekcje minion_#.'

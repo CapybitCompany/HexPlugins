@@ -2,6 +2,8 @@ package hex.minions.model;
 
 import java.util.Map;
 import java.util.UUID;
+import org.bukkit.inventory.ItemStack;
+
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -20,6 +22,7 @@ public final class MinionInstance {
     private final AtomicInteger storageUsed;
     private volatile int storageLimit;
     private final Map<String, Long> storage = new ConcurrentHashMap<>();
+    private final Map<String, ItemStack> addonItems = new ConcurrentHashMap<>();
     private volatile String appearanceId;
 
     public MinionInstance(UUID id, long townInternalId, UUID townUuid, UUID ownerUuid, String typeId, int tier,
@@ -56,6 +59,7 @@ public final class MinionInstance {
     public int storageLimit() { return storageLimit; }
     public String appearanceId() { return appearanceId; }
     public Map<String, Long> storage() { return storage; }
+    public Map<String, ItemStack> addonItems() { return addonItems; }
 
     public void setLocation(MinionLocation location) { this.location = location; }
     public void setState(MinionState state) { this.state = state; }
@@ -88,6 +92,27 @@ public final class MinionInstance {
         storage.clear();
         storageUsed.set(0);
         return copy;
+    }
+
+    public void replaceAddonItems(Map<String, ItemStack> values) {
+        addonItems.clear();
+        for (Map.Entry<String, ItemStack> entry : values.entrySet()) {
+            if (entry.getKey() == null || entry.getKey().isBlank() || entry.getValue() == null || entry.getValue().getType().isAir()) continue;
+            addonItems.put(entry.getKey(), entry.getValue().clone());
+        }
+    }
+
+    public void setAddonItem(String slot, ItemStack item) {
+        if (slot == null || slot.isBlank()) return;
+        if (item == null || item.getType().isAir()) {
+            addonItems.remove(slot);
+        } else {
+            addonItems.put(slot, item.clone());
+        }
+    }
+
+    public boolean hasAddonItems() {
+        return addonItems.values().stream().anyMatch(item -> item != null && !item.getType().isAir());
     }
 
     public void replaceStorage(Map<String, Long> values) {

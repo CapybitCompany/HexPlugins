@@ -1,0 +1,29 @@
+name: HexEconomy
+version: 1.0.0
+main: hex.economy.HexEconomyPlugin
+api-version: "1.21"
+
+depend:
+  - HexCore
+
+commands:
+  smpeconomy:
+    usage: "/smpeconomy <balance|add|remove|set|reload>"
+    description: Prosta ekonomia SMP oparta o HexCore DB
+    permission: hexeconomy.use
+    aliases: [smpmoney, hexeconomy, heco]
+  money:
+    usage: "/money [gracz]"
+    description: Pokazuje stan konta
+    permission: hexeconomy.balance
+    aliases: [balance, bal, kasa]
+
+permissions:
+  hexeconomy.use:
+    default: true
+  hexeconomy.balance:
+    default: true
+  hexeconomy.balance.others:
+    default: op
+  hexeconomy.admin:
+    default: op

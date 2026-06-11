@@ -9,7 +9,7 @@ public final class Town {
     private final long internalId;
     private final UUID id;
     private final UUID ownerId;
-    private final String name;
+    private volatile String name;
     private final String world;
     private final int worldId;
     private final ChunkPos heart;
@@ -35,6 +35,10 @@ public final class Town {
     public UUID id() { return id; }
     public UUID ownerId() { return ownerId; }
     public String name() { return name; }
+
+    public void setName(String name) {
+        this.name = Objects.requireNonNull(name, "name");
+    }
     public String world() { return world; }
     public int worldId() { return worldId; }
     public ChunkPos heart() { return heart; }

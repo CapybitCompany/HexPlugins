@@ -98,7 +98,7 @@ public final class MinionsPlaceholderExpansion extends PlaceholderExpansion {
             case "slot", "menu_slot" -> String.valueOf(minion.menuSlotHint());
             case "storage_slots", "storage_slots_unlocked" -> String.valueOf(minion.storageSlotsUnlocked());
             case "material" -> material(minion);
-            case "head_material" -> "PLAYER_HEAD";
+            case "head_material" -> minion.headMaterial();
             case "status_material" -> statusMaterial(minion);
             default -> "";
         };

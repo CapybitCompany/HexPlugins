@@ -86,6 +86,16 @@ public record ItemSpec(
         return textureBase64 == null ? "" : textureBase64;
     }
 
+    public String headTextureUrl() {
+        return textureUrl == null ? "" : textureUrl;
+    }
+
+    public static String base64FromUrl(String url) {
+        if (blank(url)) return "";
+        String json = "{\"textures\":{\"SKIN\":{\"url\":\"" + url + "\"}}}";
+        return Base64.getEncoder().encodeToString(json.getBytes(StandardCharsets.UTF_8));
+    }
+
     private void applySkull(Plugin plugin, SkullMeta skullMeta) {
         try {
             String resolvedUrl = !blank(textureUrl) ? textureUrl : urlFromBase64(textureBase64);

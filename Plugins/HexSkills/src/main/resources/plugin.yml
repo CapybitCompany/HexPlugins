@@ -7,6 +7,9 @@ authors: [HexTeam]
 depend:
   - HexCore
   - HexTowns
+softdepend:
+  - PlaceholderAPI
+  - DeluxeMenus
 commands:
   hexskills:
     description: Manage HexSkills

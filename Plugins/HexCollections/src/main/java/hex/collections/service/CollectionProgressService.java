@@ -64,6 +64,15 @@ public final class CollectionProgressService implements HexCollectionsApi {
     @Override public void deleteTownCollectionData(UUID townId) { if (townId != null) { cache.remove(townId); repository.purgeTown(townId); Bukkit.getScheduler().runTask(plugin, () -> Bukkit.getPluginManager().callEvent(new TownCollectionResetEvent(townId))); } }
     @Override public Map<String, CollectionProgress> getAllCollections(UUID townId) { return Map.copyOf(cache.getOrCreate(townId).collections()); }
 
+
+    public List<TopCollectionEntry> top(String collectionId, int limit) {
+        CollectionDefinition def = registry.find(collectionId).orElse(null);
+        if (def == null) {
+            return List.of();
+        }
+        return repository.top(def.id(), limit);
+    }
+
     private CollectionProgress progress(UUID townId, String collectionId) {
         CollectionDefinition def = registry.find(collectionId).orElse(null);
         if (townId == null || def == null) return CollectionProgress.empty(collectionId);

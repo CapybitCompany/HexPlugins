@@ -6,6 +6,8 @@ import hex.towns.api.Page;
 import hex.towns.config.TownsConfig;
 import hex.towns.model.Town;
 import hex.towns.service.OperationResult;
+import hex.towns.gui.TownRenameAnvilListener;
+import hex.towns.map.TownMapService;
 import hex.towns.service.TownsService;
 import hex.towns.visual.VisualCheckService;
 import org.bukkit.Bukkit;
@@ -34,16 +36,20 @@ public final class TownCommand implements CommandExecutor, TabCompleter {
     private final TownsService service;
     private final VisualCheckService visualCheckService;
     private final TownsConfig config;
+    private final TownRenameAnvilListener renameGui;
+    private final TownMapService mapService;
     private final Map<UUID, PendingCreate> createConfirmations = new ConcurrentHashMap<>();
     private final Map<UUID, PendingToken> destroyConfirmations = new ConcurrentHashMap<>();
     private final Map<UUID, PendingToken> endCoopConfirmations = new ConcurrentHashMap<>();
 
-    public TownCommand(Plugin plugin, HexApi api, TownsService service, VisualCheckService visualCheckService, TownsConfig config) {
+    public TownCommand(Plugin plugin, HexApi api, TownsService service, VisualCheckService visualCheckService, TownsConfig config, TownRenameAnvilListener renameGui, TownMapService mapService) {
         this.plugin = plugin;
         this.api = api;
         this.service = service;
         this.visualCheckService = visualCheckService;
         this.config = config;
+        this.renameGui = renameGui;
+        this.mapService = mapService;
     }
 
     @Override
@@ -71,6 +77,7 @@ public final class TownCommand implements CommandExecutor, TabCompleter {
             case "accept" -> handleAccept(player, args);
             case "endcoop", "leave" -> handleEndCoop(player, args);
             case "destroy" -> handleDestroy(player, args);
+            case "rename", "name" -> handleRename(player, args);
             case "check" -> {
                 boolean enabled = visualCheckService.toggle(player);
                 api.ui().send(player, enabled ? "towns.check.on" : "towns.check.off");
@@ -102,7 +109,7 @@ public final class TownCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        String name = args.length >= 2 ? args[1] : player.getName();
+        String name = args.length >= 2 ? joinArgs(args, 1) : "";
         OperationResult preview = service.previewCreate(player, name);
         if (!preview.success()) {
             send(player, preview);
@@ -114,7 +121,16 @@ public final class TownCommand implements CommandExecutor, TabCompleter {
         }
         String token = token();
         createConfirmations.put(player.getUniqueId(), new PendingCreate(name, token, System.currentTimeMillis() + config.confirmWindowSeconds() * 1000L));
-        api.ui().send(player, "towns.create.confirm", UiTokens.of("town", name).put("token", token));
+        api.ui().send(player, "towns.create.confirm", preview.tokens().put("token", token));
+    }
+
+
+    private void handleRename(Player player, String[] args) {
+        if (args.length < 2) {
+            renameGui.open(player);
+            return;
+        }
+        handleAsync(player, service.renameTown(player, joinArgs(args, 1)));
     }
 
     private void handleAccept(Player owner, String[] args) {
@@ -202,28 +218,7 @@ public final class TownCommand implements CommandExecutor, TabCompleter {
     }
 
     private void handleMap(Player player) {
-        int centerX = player.getChunk().getX();
-        int centerZ = player.getChunk().getZ();
-        String world = player.getWorld().getName();
-        UUID myTown = service.townIdOf(player.getUniqueId()).orElse(null);
-        for (int z = centerZ - 4; z <= centerZ + 4; z++) {
-            StringBuilder line = new StringBuilder();
-            for (int x = centerX - 4; x <= centerX + 4; x++) {
-                if (x == centerX && z == centerZ) {
-                    line.append('X');
-                    continue;
-                }
-                UUID townId = service.townIdAt(world, x, z).orElse(null);
-                if (townId == null) {
-                    line.append('.');
-                } else if (townId.equals(myTown)) {
-                    line.append('O');
-                } else {
-                    line.append('T');
-                }
-            }
-            api.ui().send(player, "towns.map.line", UiTokens.of("line", line.toString()));
-        }
+        mapService.openMap(player);
     }
 
     private void handleGrowth(Player player) {
@@ -301,6 +296,21 @@ public final class TownCommand implements CommandExecutor, TabCompleter {
         api.ui().send(player, result.templateKey(), result.tokens());
     }
 
+
+    private String joinArgs(String[] args, int from) {
+        if (args.length <= from) {
+            return "";
+        }
+        StringBuilder builder = new StringBuilder();
+        for (int i = from; i < args.length; i++) {
+            if (i > from) {
+                builder.append(' ');
+            }
+            builder.append(args[i]);
+        }
+        return builder.toString();
+    }
+
     private String token() {
         return Long.toHexString(ThreadLocalRandom.current().nextLong());
     }
@@ -312,7 +322,7 @@ public final class TownCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
-            return filter(List.of("create", "claim", "coop", "accept", "endcoop", "destroy", "check", "info", "here", "map", "growth", "admin"), args[0]);
+            return filter(List.of("create", "claim", "coop", "accept", "endcoop", "destroy", "rename", "check", "info", "here", "map", "growth", "admin"), args[0]);
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("admin")) {
             return filter(List.of("metrics", "list", "syncgrowth", "growthsync"), args[1]);

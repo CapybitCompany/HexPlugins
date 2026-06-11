@@ -1,0 +1,204 @@
+package hex.minions.listener;
+
+import hex.core.api.HexApi;
+import hex.minions.crafting.SpecialIngredient;
+import hex.minions.crafting.SpecialItemDefinition;
+import hex.minions.crafting.SpecialItemRegistry;
+import hex.minions.crafting.SpecialRecipeDefinition;
+import hex.minions.menu.EnchantedCraftingMenuHolder;
+import hex.minions.menu.MinionMenu;
+import hex.minions.service.MinionService;
+import hex.towns.api.TownsApi;
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.inventory.CraftItemEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.CraftingInventory;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
+
+import java.util.Map;
+import java.util.Optional;
+
+public final class SpecialCraftingListener implements Listener {
+    private static final int[] GRID = {10, 11, 12, 19, 20, 21, 28, 29, 30};
+    private static final int OUTPUT_SLOT = 24;
+    private static final int CRAFT_SLOT = 33;
+    private final Plugin plugin;
+    private final HexApi hex;
+    private final TownsApi towns;
+    private final MinionService service;
+    private final MinionMenu menu;
+
+    public SpecialCraftingListener(Plugin plugin, HexApi hex, TownsApi towns, MinionService service, MinionMenu menu) {
+        this.plugin = plugin; this.hex = hex; this.towns = towns; this.service = service; this.menu = menu;
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onPlaceSpecialBlock(BlockPlaceEvent event) {
+        SpecialItemRegistry registry = service.specialItems();
+        Optional<String> specialId = registry.readSpecialItemId(event.getItemInHand());
+        if (specialId.isEmpty()) return;
+        SpecialItemDefinition def = registry.item(specialId.get()).orElse(null);
+        if (def == null || !def.placeable()) return;
+        if (towns.townAt(event.getBlockPlaced().getLocation()).filter(t -> towns.isMember(event.getPlayer().getUniqueId(), t.id())).isEmpty()) {
+            event.setCancelled(true);
+            hex.ui().send(event.getPlayer(), "minions.special-crafting.error.place-town");
+            return;
+        }
+        event.getBlockPlaced().setType(def.material());
+        registry.markSpecialBlock(event.getBlockPlaced(), def.blockKind().isBlank() ? specialId.get() : def.blockKind());
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onBreakSpecialBlock(BlockBreakEvent event) {
+        SpecialItemRegistry registry = service.specialItems();
+        Optional<String> station = registry.readSpecialBlockId(event.getBlock());
+        if (station.isEmpty()) return;
+        event.setDropItems(false);
+        registry.stations().values().stream()
+                .filter(s -> s.id().equalsIgnoreCase(station.get()))
+                .findFirst()
+                .flatMap(s -> registry.item(s.specialItemId()))
+                .ifPresent(def -> event.getBlock().getWorld().dropItemNaturally(event.getBlock().getLocation(), registry.createItem(def.id(), 1)));
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onUseSpecialStation(PlayerInteractEvent event) {
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.getClickedBlock() == null) return;
+        Block block = event.getClickedBlock();
+        Optional<String> stationId = service.specialItems().readSpecialBlockId(block);
+        if (stationId.isEmpty()) return;
+        event.setCancelled(true);
+        menu.openEnchantedCrafting(event.getPlayer(), stationId.get());
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onVanillaCraft(CraftItemEvent event) {
+        if (!(event.getWhoClicked() instanceof Player player)) return;
+        if (!(event.getInventory() instanceof CraftingInventory crafting)) return;
+        SpecialRecipeDefinition matched = null;
+        for (SpecialRecipeDefinition recipe : service.specialItems().recipes().values()) {
+            if (!"VANILLA_CRAFTING_TABLE".equalsIgnoreCase(recipe.station())) continue;
+            if (matchesMatrix(recipe, crafting.getMatrix())) { matched = recipe; break; }
+        }
+        if (matched == null) return;
+        var town = towns.townIdOf(player.getUniqueId());
+        if (town.isEmpty() || !service.hasRecipeUnlocks(town.get(), matched)) {
+            event.setCancelled(true);
+            hex.ui().send(player, town.isEmpty() ? "minions.special-crafting.error.no-town" : "minions.special-crafting.error.locked");
+            return;
+        }
+        consumeMatrix(matched, crafting.getMatrix());
+    }
+
+    @EventHandler
+    public void onClick(InventoryClickEvent event) {
+        Inventory top = event.getView().getTopInventory();
+        if (!(top.getHolder() instanceof EnchantedCraftingMenuHolder holder)) return;
+        if (!(event.getWhoClicked() instanceof Player player)) return;
+        if (event.getClickedInventory() != null && event.getClickedInventory().equals(top)) {
+            int slot = event.getSlot();
+            if (slot == CRAFT_SLOT) {
+                event.setCancelled(true);
+                craftCustom(player, holder.stationId(), top);
+                return;
+            }
+            if (slot == OUTPUT_SLOT || slot >= 45 || (!isGrid(slot) && event.getClickedInventory().equals(top))) event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onClose(InventoryCloseEvent event) {
+        Inventory top = event.getInventory();
+        if (!(top.getHolder() instanceof EnchantedCraftingMenuHolder)) return;
+        if (!(event.getPlayer() instanceof Player player)) return;
+        for (int slot : GRID) {
+            ItemStack item = top.getItem(slot);
+            if (item != null && !item.getType().isAir()) player.getInventory().addItem(item).values().forEach(left -> player.getWorld().dropItemNaturally(player.getLocation(), left));
+        }
+    }
+
+    private void craftCustom(Player player, String station, Inventory inv) {
+        SpecialRecipeDefinition matched = null;
+        for (SpecialRecipeDefinition recipe : service.specialItems().recipes().values()) {
+            if (!recipe.station().equalsIgnoreCase(station)) continue;
+            if (matchesInventory(recipe, inv)) { matched = recipe; break; }
+        }
+        if (matched == null) { hex.ui().send(player, "minions.special-crafting.error.no-match"); return; }
+        var town = towns.townIdOf(player.getUniqueId());
+        if (town.isEmpty()) { hex.ui().send(player, "minions.special-crafting.error.no-town"); return; }
+        if (!service.hasRecipeUnlocks(town.get(), matched)) { hex.ui().send(player, "minions.special-crafting.error.locked"); return; }
+        consumeInventory(matched, inv);
+        ItemStack output = service.specialItems().output(matched);
+        player.getInventory().addItem(output).values().forEach(left -> player.getWorld().dropItemNaturally(player.getLocation(), left));
+        Bukkit.getScheduler().runTask(plugin, () -> menu.openEnchantedCrafting(player, station));
+    }
+
+    private boolean matchesInventory(SpecialRecipeDefinition recipe, Inventory inv) {
+        for (int row = 0; row < 3; row++) {
+            String line = recipe.shape().get(row);
+            for (int col = 0; col < 3; col++) {
+                char ch = line.charAt(col);
+                SpecialIngredient ingredient = recipe.ingredients().get(ch);
+                ItemStack item = inv.getItem(GRID[row * 3 + col]);
+                if (ch == ' ' || ingredient == null) { if (item != null && !item.getType().isAir()) return false; }
+                else if (!ingredient.matches(item, service.specialItems())) return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean matchesMatrix(SpecialRecipeDefinition recipe, ItemStack[] matrix) {
+        for (int row = 0; row < 3; row++) {
+            String line = recipe.shape().get(row);
+            for (int col = 0; col < 3; col++) {
+                char ch = line.charAt(col);
+                SpecialIngredient ingredient = recipe.ingredients().get(ch);
+                ItemStack item = matrix[row * 3 + col];
+                if (ch == ' ' || ingredient == null) { if (item != null && !item.getType().isAir()) return false; }
+                else if (!ingredient.matches(item, service.specialItems())) return false;
+            }
+        }
+        return true;
+    }
+
+    private void consumeInventory(SpecialRecipeDefinition recipe, Inventory inv) {
+        for (int row = 0; row < 3; row++) for (int col = 0; col < 3; col++) {
+            char ch = recipe.shape().get(row).charAt(col);
+            SpecialIngredient ingredient = recipe.ingredients().get(ch);
+            if (ingredient == null || ch == ' ') continue;
+            ItemStack item = inv.getItem(GRID[row * 3 + col]);
+            if (item == null) continue;
+            item.setAmount(item.getAmount() - ingredient.amount());
+            if (item.getAmount() <= 0) inv.setItem(GRID[row * 3 + col], null);
+        }
+    }
+
+    private void consumeMatrix(SpecialRecipeDefinition recipe, ItemStack[] matrix) {
+        for (int row = 0; row < 3; row++) for (int col = 0; col < 3; col++) {
+            char ch = recipe.shape().get(row).charAt(col);
+            SpecialIngredient ingredient = recipe.ingredients().get(ch);
+            if (ingredient == null || ch == ' ') continue;
+            ItemStack item = matrix[row * 3 + col];
+            if (item == null) continue;
+            item.setAmount(item.getAmount() - Math.max(0, ingredient.amount() - 1));
+        }
+    }
+
+    private boolean isGrid(int slot) {
+        for (int gridSlot : GRID) if (gridSlot == slot) return true;
+        return false;
+    }
+}

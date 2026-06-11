@@ -2,6 +2,7 @@ package hex.collections.placeholder;
 
 import hex.collections.config.CollectionRegistry;
 import hex.collections.model.CollectionDefinition;
+import hex.collections.api.TopCollectionEntry;
 import hex.collections.service.CollectionProgressService;
 import hex.towns.api.TownsApi;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
@@ -12,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.text.DecimalFormat;
+import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -45,13 +47,14 @@ public final class CollectionPlaceholderExpansion extends PlaceholderExpansion {
     }
 
     private @Nullable String resolve(Player player, @NotNull String params) {
-        if (player == null) return "";
-        UUID townId = towns.townIdOf(player.getUniqueId()).orElse(null);
-        if (townId == null) return "0";
         String normalized = normalizeIdentifier(params);
         String[] parts = normalized.split("_");
         if (parts.length < 2) return "";
         String op = parts[0].toLowerCase(Locale.ROOT);
+        if (op.equals("top") && parts.length >= 4) return top(parts);
+        if (player == null) return "";
+        UUID townId = towns.townIdOf(player.getUniqueId()).orElse(null);
+        if (townId == null) return "0";
         if (op.equals("progress") && parts.length >= 3 && parts[1].equals("percent")) return percentFormat.format(service.getProgressPercent(townId, join(parts, 2, parts.length)));
         if (op.equals("progress") && parts.length >= 3 && parts[1].equals("bar")) return bar(townId, join(parts, 2, parts.length));
         if (op.equals("gui") && parts.length >= 4) return gui(townId, parts);
@@ -64,6 +67,40 @@ public final class CollectionPlaceholderExpansion extends PlaceholderExpansion {
         if (op.equals("reward") && parts.length >= 4 && parts[1].equals("claimed")) return String.valueOf(service.hasUnlocked(townId, join(parts, 2, parts.length - 1), intValue(parts[parts.length - 1])));
         if (op.equals("rank")) return "-";
         return "";
+    }
+
+
+    private String top(String[] parts) {
+        String field = parts[1].toLowerCase(Locale.ROOT);
+        int rank = intValue(parts[parts.length - 1]);
+        if (rank <= 0) {
+            return "-";
+        }
+        String id = join(parts, 2, parts.length - 1);
+        CollectionDefinition def = definition(id);
+        if (def == null) {
+            return "-";
+        }
+        List<TopCollectionEntry> top = service.top(def.id(), Math.max(5, rank));
+        if (top.size() < rank) {
+            return switch (field) {
+                case "line" -> "&8" + rank + ". Brak danych";
+                case "amount" -> "0";
+                case "level" -> "0";
+                case "town", "name" -> "-";
+                default -> "-";
+            };
+        }
+        TopCollectionEntry entry = top.get(rank - 1);
+        String townName = towns.findTown(entry.townId()).map(hex.towns.model.Town::name).orElse("Town " + rank);
+        return switch (field) {
+            case "line" -> "&e" + rank + ". &f" + townName + " &7- &a" + entry.amount();
+            case "amount" -> String.valueOf(entry.amount());
+            case "level" -> String.valueOf(entry.level());
+            case "uuid" -> entry.townId().toString();
+            case "town", "name" -> townName;
+            default -> "-";
+        };
     }
 
     private String gui(UUID townId, String[] parts) {

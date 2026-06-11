@@ -66,6 +66,27 @@ items:
     left_click_commands:
       - '[openguimenu] town_coop'
 
+  rename:
+    material: NAME_TAG
+    slot: 22
+    priority: 2
+    display_name: '&eZmień nazwę miasta'
+    lore:
+      - '&7Aktualna nazwa: &f%hextowns_town_name%'
+      - '&7Maks. długość: &f%hextowns_name_max_length% znaków'
+      - ''
+      - '&eKliknij, aby otworzyć kowadło.'
+      - '&8Komenda: /town rename <nazwa>'
+    view_requirement:
+      requirements:
+        owner:
+          type: string equals
+          input: '%hextowns_is_owner%'
+          output: 'true'
+    left_click_commands:
+      - '[close]'
+      - '[player] town rename'
+
   collections:
     material: BOOK
     slot: 23
@@ -73,6 +94,7 @@ items:
     lore:
       - '&7Cobblestone: &f%hexcollections_level_mining_cobblestone%&7/7'
       - '&7Iron: &f%hexcollections_level_mining_iron%&7/7'
+      - '&7Dirt: &f%hexcollections_level_mining_dirt%&7/3'
       - ''
       - '&eKliknij, aby otworzyć.'
     left_click_commands:

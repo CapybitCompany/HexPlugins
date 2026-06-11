@@ -1,0 +1,29 @@
+currency:
+  name: "monety"
+  singular: "moneta"
+  plural: "monet"
+  symbol: "⛃"
+  decimals: 2
+  format: "{amount} {currency}"
+
+default-balance: 0.00
+allow-negative-balance: false
+
+messages:
+  prefix: "&8[&6SMP Economy&8] "
+  player-only: "&cTa komenda jest tylko dla gracza."
+  no-permission: "&cNie masz permisji."
+  usage:
+    main: "&7Użycie: &f/smpeconomy balance [gracz]&7, &f/smpeconomy add <gracz> <kwota>&7, &f/smpeconomy remove <gracz> <kwota>&7, &f/smpeconomy set <gracz> <kwota>"
+    balance: "&7Użycie: &f/money [gracz]"
+    admin: "&7Użycie: &f/smpeconomy <add|remove|set> <gracz> <kwota> [powód]"
+  balance-self: "&aStan konta: &e{balance}&a."
+  balance-other: "&aStan konta gracza &e{player}&a: &e{balance}&a."
+  added: "&aDodano &e{amount}&a do konta gracza &e{player}&a. Nowy stan: &e{balance}&a."
+  removed: "&aUsunięto &e{amount}&a z konta gracza &e{player}&a. Nowy stan: &e{balance}&a."
+  set: "&aUstawiono konto gracza &e{player}&a na &e{balance}&a."
+  not-enough: "&cGracz &e{player}&c nie ma wystarczających środków. Stan: &e{balance}&c, próba usunięcia: &e{amount}&c."
+  invalid-amount: "&cNieprawidłowa kwota: &e{amount}&c."
+  negative-disabled: "&cSaldo nie może zejść poniżej zera."
+  db-error: "&cBłąd bazy danych: &f{error}"
+  reloaded: "&aPrzeładowano konfigurację HexEconomy."

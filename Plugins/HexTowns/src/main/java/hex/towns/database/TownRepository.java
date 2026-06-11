@@ -216,6 +216,11 @@ public final class TownRepository {
         db.update("UPDATE " + db.t("towns") + " SET status=? WHERE id=?", status.name(), townId);
     }
 
+    public void renameTown(long townId, String name) {
+        db.update("UPDATE " + db.t("towns") + " SET name=? WHERE id=?", name, townId);
+    }
+
+
     public void addGrowth(long townId, int delta) {
         db.update("UPDATE " + db.t("towns") + " SET growth_points=growth_points+? WHERE id=?", delta, townId);
     }

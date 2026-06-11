@@ -1,0 +1,69 @@
+settings:
+  # true = obok miniona można postawić tylko skrzynkę stworzoną z receptury z tego pliku.
+  # false = zwykły CHEST/TRAPPED_CHEST również będzie akceptowany.
+  require-special-item: true
+  # Czy stare, już postawione zwykłe skrzynki bez znacznika PDC dalej mają działać jako storage.
+  allow-plain-chest-fallback: false
+
+storage-chests:
+  small:
+    enabled: true
+    slots: 3
+    item:
+      material: CHEST
+      custom-model-data: 0
+      display-name: "<gold>Minion Storage</gold>"
+      lore:
+        - "<gray>Specjalna skrzynka dla miniona.</gray>"
+        - "<gray>Postaw ją bezpośrednio obok miniona.</gray>"
+        - "<gray>Sloty storage: <white>3</white></gray>"
+    recipe:
+      enabled: true
+      shape:
+        - "WWW"
+        - "WCK"
+        - "WWW"
+      ingredients:
+        W: OAK_PLANKS
+        C: CHEST
+        K: COBBLESTONE
+
+  medium:
+    enabled: true
+    slots: 9
+    item:
+      material: CHEST
+      custom-model-data: 0
+      display-name: "<yellow>Medium Minion Storage</yellow>"
+      lore:
+        - "<gray>Większa skrzynka dla miniona.</gray>"
+        - "<gray>Sloty storage: <white>9</white></gray>"
+    recipe:
+      enabled: true
+      shape:
+        - "III"
+        - "ICI"
+        - "III"
+      ingredients:
+        I: IRON_INGOT
+        C: CHEST
+
+  large:
+    enabled: true
+    slots: 15
+    item:
+      material: TRAPPED_CHEST
+      custom-model-data: 0
+      display-name: "<gold>Large Minion Storage</gold>"
+      lore:
+        - "<gray>Duża skrzynka dla miniona.</gray>"
+        - "<gray>Sloty storage: <white>15</white></gray>"
+    recipe:
+      enabled: true
+      shape:
+        - "DDD"
+        - "DCD"
+        - "DDD"
+      ingredients:
+        D: DIAMOND
+        C: CHEST

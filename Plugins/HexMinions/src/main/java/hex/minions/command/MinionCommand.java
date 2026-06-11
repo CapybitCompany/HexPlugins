@@ -53,6 +53,7 @@ public final class MinionCommand implements CommandExecutor, TabCompleter {
         switch (args[0].toLowerCase()) {
             case "give" -> give(sender, args);
             case "list" -> list(sender);
+            case "wiki" -> wiki(sender, args);
             case "pickup" -> playerAction(sender, args, "pickup");
             case "move" -> playerAction(sender, args, "move");
             case "select-index" -> selectIndex(sender, args);
@@ -129,6 +130,15 @@ public final class MinionCommand implements CommandExecutor, TabCompleter {
         menu.open(player, data.get().id());
     }
 
+    private void wiki(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) { hex.ui().send(sender, "minions.error.player-only"); return; }
+        if (args.length >= 2) {
+            menu.openWikiType(player, args[1]);
+        } else {
+            menu.openWiki(player);
+        }
+    }
+
     private void reload(CommandSender sender) {
         if (!sender.hasPermission("hexminions.admin")) { hex.ui().send(sender, "minions.error.no-permission"); return; }
         reloadAction.run();
@@ -154,8 +164,9 @@ public final class MinionCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length == 1) return partial(args[0], List.of("help", "give", "list", "pickup", "move", "select", "select-index", "action", "reload", "admin"));
+        if (args.length == 1) return partial(args[0], List.of("help", "give", "list", "wiki", "pickup", "move", "select", "select-index", "action", "reload", "admin"));
         if (args.length == 3 && args[0].equalsIgnoreCase("give")) return partial(args[2], new ArrayList<>(service.definitions().minionTypes().keySet()));
+        if (args.length == 2 && args[0].equalsIgnoreCase("wiki")) return partial(args[1], new ArrayList<>(service.definitions().minionTypes().keySet()));
         if (args.length == 2 && args[0].equalsIgnoreCase("action")) return partial(args[1], List.of("collect", "upgrade", "pickup", "move", "open"));
         if (args.length == 2 && args[0].equalsIgnoreCase("admin")) return partial(args[1], List.of("metrics"));
         return List.of();

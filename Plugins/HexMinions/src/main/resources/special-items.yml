@@ -1,0 +1,93 @@
+# Wszystkie specjalne itemy, receptury i stanowiska craftingu minionów.
+# Receptury z amount > 1 na slot są egzekwowane przez plugin, a nie przez zwykły crafting Minecrafta.
+
+special-items:
+  compressed_cobblestone:
+    enabled: true
+    material: COBBLESTONE
+    custom-model-data: 10001
+    amount: 1
+    display-name: "<aqua>Skompresowany Bruk</aqua>"
+    lore:
+      - "<gray>Specjalny materiał miasta.</gray>"
+      - "<gray>Crafting: 5 slotów po 32 bruku.</gray>"
+      - "<dark_gray>Wymaga Cabblestone Minion lvl 5.</dark_gray>"
+    enchant-glint: false
+
+  enchanted_crafting_table:
+    enabled: true
+    material: ENCHANTING_TABLE
+    custom-model-data: 10002
+    amount: 1
+    display-name: "<blue>Enchanted Crafting Table</blue>"
+    lore:
+      - "<gray>Specjalny stół do craftingu skompresowanych itemów.</gray>"
+      - "<gray>Można postawić tylko na terenie swojego miasta.</gray>"
+      - "<dark_gray>Wymaga Dirt Minion lvl 5.</dark_gray>"
+    enchant-glint: true
+    placeable: true
+    block-kind: ENCHANTED_CRAFTING_TABLE
+
+crafting-stations:
+  ENCHANTED_CRAFTING_TABLE:
+    enabled: true
+    block: ENCHANTING_TABLE
+    special-item: enchanted_crafting_table
+    display-name: "<blue>Enchanted Crafting Table</blue>"
+
+recipes:
+  compressed_cobblestone:
+    enabled: true
+    station: ENCHANTED_CRAFTING_TABLE
+    shape:
+      - "CCC"
+      - "CC "
+      - "   "
+    ingredients:
+      C:
+        material: COBBLESTONE
+        amount: 32
+    output:
+      special-item: compressed_cobblestone
+      amount: 1
+    unlock:
+      town-minion-levels:
+        cobblestone: 5
+
+  enchanted_crafting_table:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+      - "CCC"
+      - "CCC"
+      - "CCC"
+    ingredients:
+      C:
+        material: CRAFTING_TABLE
+        amount: 16
+    output:
+      special-item: enchanted_crafting_table
+      amount: 1
+    unlock:
+      town-minion-levels:
+        dirt: 5
+
+  # Podgląd receptury skrzynki storage w wiki. Realny crafting itemu storage nadal siedzi w storage-chests.yml.
+  basic_storage:
+    enabled: true
+    station: WIKI_ONLY_STORAGE_CHEST
+    shape:
+      - "WWW"
+      - "WCW"
+      - "WWW"
+    ingredients:
+      W:
+        material: OAK_PLANKS
+        amount: 1
+      C:
+        material: CHEST
+        amount: 1
+    output:
+      material: CHEST
+      amount: 1
+    unlock: {}

@@ -1,5 +1,6 @@
 package hex.collections;
 
+import hex.collections.api.HexCollectionsApi;
 import hex.collections.api.CollectionProgressContext;
 import hex.collections.config.CollectionRegistry;
 import hex.collections.config.CollectionsSettings;
@@ -19,6 +20,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
+import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
@@ -65,6 +67,7 @@ public final class HexCollectionsPlugin extends JavaPlugin implements TabExecuto
 		towns.dataNamespace(this, "collections", (townId, members) -> hexApi.db().asyncRun(() -> repository.purgeTown(townId)));
 
 		reloadCollections();
+		Bukkit.getServicesManager().register(HexCollectionsApi.class, progressService, this, ServicePriority.Normal);
 		getServer().getPluginManager().registerEvents(new CollectionEventListener(towns, progressService, antiExploit), this);
 		registerPlaceholderExpansion();
 		var command = getCommand("hexcollections");
@@ -84,6 +87,9 @@ public final class HexCollectionsPlugin extends JavaPlugin implements TabExecuto
 	@Override
 	public void onDisable() {
 		unsubscribeAll();
+		if (progressService != null) {
+			Bukkit.getServicesManager().unregister(HexCollectionsApi.class, progressService);
+		}
 		if (placeholderExpansion != null) {
 			placeholderExpansion.unregister();
 			placeholderExpansion = null;
@@ -128,7 +134,7 @@ public final class HexCollectionsPlugin extends JavaPlugin implements TabExecuto
 		for (String triggerId : registry.triggerIds()) {
 			final TriggerListener listener = subscribeTrigger(triggerId);
 			if (listener != null) {
-				subscriptions.put(triggerId, (TriggerListener) listener);
+				subscriptions.put(triggerId, listener);
 			}
 		}
 		getLogger().info("Loaded collections=" + registry.all().size() + ", triggers=" + subscriptions.size());
