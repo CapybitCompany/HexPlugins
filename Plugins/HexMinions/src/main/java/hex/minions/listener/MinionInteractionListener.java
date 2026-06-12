@@ -69,6 +69,11 @@ public final class MinionInteractionListener implements Listener {
         Material material = event.getBlockPlaced().getType();
         if (material != Material.CHEST && material != Material.TRAPPED_CHEST) return;
         service.adjacentMinion(event.getBlockPlaced().getLocation()).ifPresent(minion -> {
+            if (!service.canAccessMinion(event.getPlayer(), minion.id())) {
+                event.setCancelled(true);
+                hex.ui().send(event.getPlayer(), "minions.error.not-member");
+                return;
+            }
             if (!service.isValidStorageChestItem(event.getItemInHand())) {
                 event.setCancelled(true);
                 hex.ui().send(event.getPlayer(), "minions.storage-chest.error.special-required");
@@ -102,6 +107,10 @@ public final class MinionInteractionListener implements Listener {
         UUID minionId = readMinionId(event.getRightClicked());
         if (minionId == null) return;
         event.setCancelled(true);
+        if (!service.canAccessMinion(event.getPlayer(), minionId)) {
+            hex.ui().send(event.getPlayer(), "minions.error.not-member");
+            return;
+        }
         menu.open(event.getPlayer(), minionId);
     }
 

@@ -8,6 +8,11 @@ resources:
     tags:
     - mining
     - block
+    compression:
+      enabled: true
+      block-convertible: true
+      compressed-material: COBBLESTONE
+      unlock-minion-level: 5
   enchanted_cobblestone:
     display-name: <aqua>Skompresowany Bruk</aqua>
     material: COBBLESTONE
@@ -18,8 +23,11 @@ resources:
     tags:
     - mining
     - enchanted
+    compression:
+      enabled: false
+      block-convertible: false
   diamond:
-    display-name: <aqua>Diamond</aqua>
+    display-name: <aqua>Diament</aqua>
     material: DIAMOND
     collection-id: mining_diamond
     worth: 8.0
@@ -27,8 +35,13 @@ resources:
     tags:
     - mining
     - gem
+    compression:
+      enabled: true
+      block-convertible: true
+      compressed-material: DIAMOND_BLOCK
+      unlock-minion-level: 5
   iron:
-    display-name: <white>Iron Ingot</white>
+    display-name: <white>Sztabka żelaza</white>
     material: IRON_INGOT
     collection-id: mining.iron
     worth: 2.0
@@ -36,6 +49,11 @@ resources:
     tags:
     - mining
     - ingot
+    compression:
+      enabled: true
+      block-convertible: true
+      compressed-material: IRON_BLOCK
+      unlock-minion-level: 3
   dirt:
     display-name: <gold>Dirt</gold>
     material: DIRT
@@ -45,6 +63,11 @@ resources:
     tags:
     - mining
     - block
+    compression:
+      enabled: true
+      block-convertible: true
+      compressed-material: DIRT
+      unlock-minion-level: 5
   stone:
     display-name: <gray>Stone</gray>
     material: STONE
@@ -54,6 +77,11 @@ resources:
     tags:
     - mining
     - block
+    compression:
+      enabled: true
+      block-convertible: true
+      compressed-material: STONE
+      unlock-minion-level: 5
   compressed_cobblestone:
     display-name: <aqua>Skompresowany Bruk</aqua>
     material: COBBLESTONE
@@ -65,3 +93,464 @@ resources:
     - mining
     - compressed
     - special
+    compression:
+      enabled: false
+      block-convertible: false
+  oak_plank:
+    display-name: <gold>Drewno dębowe</gold>
+    material: OAK_LOG
+    collection-id: foraging.oak_wood
+    worth: 1.0
+    stack-size: 64
+    tags:
+    - wood
+    - block
+    - foraging
+    compression:
+      enabled: true
+      block-convertible: true
+      compressed-material: OAK_LOG
+      unlock-minion-level: 5
+  coal:
+    display-name: <dark_gray>Węgiel</dark_gray>
+    material: COAL
+    collection-id: mining.coal
+    worth: 1.5
+    stack-size: 64
+    tags:
+    - mining
+    - fuel
+    compression:
+      enabled: true
+      block-convertible: true
+      compressed-material: COAL_BLOCK
+      unlock-minion-level: 3
+  redstone:
+    display-name: <red>Redstone</red>
+    material: REDSTONE
+    collection-id: mining.redstone
+    worth: 1.0
+    stack-size: 64
+    tags:
+    - mining
+    - dust
+    compression:
+      enabled: true
+      block-convertible: true
+      compressed-material: REDSTONE_BLOCK
+      unlock-minion-level: 3
+  uranium:
+    display-name: <#32CD32>Uran</#32CD32>
+    material: EMERALD
+    custom-model-data: 12001
+    collection-id: mining.uranium
+    worth: 100.0
+    stack-size: 64
+    tags:
+    - mining
+    - radioactive
+    - ore
+    compression:
+      enabled: true
+      block-convertible: true
+      compressed-material: EMERALD_BLOCK
+      unlock-minion-level: 3
+  iron_ore:
+    display-name: <white>Ruda żelaza</white>
+    material: RAW_IRON
+    collection-id: mining.iron
+    worth: 2.0
+    stack-size: 64
+    tags:
+    - mining
+    - ore
+    compression:
+      enabled: false
+      block-convertible: false
+  gold_ore:
+    display-name: <gold>Ruda złota</gold>
+    material: RAW_GOLD
+    collection-id: mining.gold
+    worth: 3.0
+    stack-size: 64
+    tags:
+    - mining
+    - ore
+    compression:
+      enabled: false
+      block-convertible: false
+  gold:
+    display-name: <gold>Sztabka złota</gold>
+    material: GOLD_INGOT
+    collection-id: mining.gold
+    worth: 3.0
+    stack-size: 64
+    tags:
+    - mining
+    - ingot
+    compression:
+      enabled: true
+      block-convertible: true
+      compressed-material: GOLD_BLOCK
+      unlock-minion-level: 3
+  obsidian:
+    display-name: <dark_purple>Obsydian</dark_purple>
+    material: OBSIDIAN
+    collection-id: mining.obsidian
+    worth: 12.0
+    stack-size: 64
+    tags:
+    - mining
+    - block
+    compression:
+      enabled: true
+      block-convertible: true
+      compressed-material: OBSIDIAN
+      unlock-minion-level: 5
+  netherite:
+    display-name: <dark_gray>Netherite</dark_gray>
+    material: NETHERITE_SCRAP
+    collection-id: mining.netherite
+    worth: 250.0
+    stack-size: 64
+    tags:
+    - mining
+    - rare
+    compression:
+      enabled: false
+      block-convertible: false
+  coal_dust:
+    display-name: <dark_gray>Pył węglowy</dark_gray>
+    material: GUNPOWDER
+    custom-model-data: 13001
+    collection-id: mining.coal
+    worth: 1.5
+    stack-size: 64
+    tags:
+    - dust
+    - macerator-output
+    compression:
+      enabled: false
+      block-convertible: false
+  iron_dust:
+    display-name: <white>Pył żelaza</white>
+    material: GUNPOWDER
+    custom-model-data: 13002
+    collection-id: mining.iron
+    worth: 2.0
+    stack-size: 64
+    tags:
+    - dust
+    - macerator-output
+    compression:
+      enabled: false
+      block-convertible: false
+  gold_dust:
+    display-name: <gold>Pył złota</gold>
+    material: GUNPOWDER
+    custom-model-data: 13003
+    collection-id: mining.gold
+    worth: 3.0
+    stack-size: 64
+    tags:
+    - dust
+    - macerator-output
+    compression:
+      enabled: false
+      block-convertible: false
+  copper_dust:
+    display-name: <color:#b87333>Pył miedzi</color>
+    material: GUNPOWDER
+    custom-model-data: 13004
+    collection-id: mining.copper
+    worth: 1.5
+    stack-size: 64
+    tags:
+    - dust
+    - macerator-output
+    compression:
+      enabled: false
+      block-convertible: false
+  diamond_dust:
+    display-name: <aqua>Pył diamentu</aqua>
+    material: GUNPOWDER
+    custom-model-data: 13005
+    collection-id: mining_diamond
+    worth: 8.0
+    stack-size: 64
+    tags:
+    - dust
+    - macerator-output
+    compression:
+      enabled: false
+      block-convertible: false
+  redstone_dust_rich:
+    display-name: <red>Wzbogacony pył redstone</red>
+    material: REDSTONE
+    custom-model-data: 13006
+    collection-id: mining.redstone
+    worth: 2.0
+    stack-size: 64
+    tags:
+    - dust
+    - macerator-output
+    compression:
+      enabled: false
+      block-convertible: false
+  lapis_dust:
+    display-name: <blue>Pył lazurytu</blue>
+    material: LAPIS_LAZULI
+    custom-model-data: 13007
+    collection-id: mining.lapis
+    worth: 2.0
+    stack-size: 64
+    tags:
+    - dust
+    - macerator-output
+    compression:
+      enabled: false
+      block-convertible: false
+  stone_dust:
+    display-name: <gray>Pył kamienia</gray>
+    material: GUNPOWDER
+    custom-model-data: 13008
+    collection-id: mining.stone
+    worth: 1.0
+    stack-size: 64
+    tags:
+    - dust
+    - macerator-output
+    compression:
+      enabled: false
+      block-convertible: false
+  rotten_flesh:
+    display-name: <dark_green>Zgniłe mięso</dark_green>
+    material: ROTTEN_FLESH
+    collection-id: ''
+    worth: 0.2
+    stack-size: 64
+    tags:
+    - mob
+    - zombie
+    compression:
+      enabled: false
+      block-convertible: false
+  potato:
+    display-name: <yellow>Ziemniak</yellow>
+    material: POTATO
+    collection-id: ''
+    worth: 0.5
+    stack-size: 64
+    tags:
+    - mob
+    - zombie
+    - crop
+    compression:
+      enabled: false
+      block-convertible: false
+  carrot:
+    display-name: <gold>Marchew</gold>
+    material: CARROT
+    collection-id: ''
+    worth: 0.5
+    stack-size: 64
+    tags:
+    - mob
+    - zombie
+    - crop
+    compression:
+      enabled: false
+      block-convertible: false
+  golden_carrot:
+    display-name: <gold>Złota marchew</gold>
+    material: GOLDEN_CARROT
+    collection-id: ''
+    worth: 5.0
+    stack-size: 64
+    tags:
+    - mob
+    - zombie
+    - rare
+    compression:
+      enabled: false
+      block-convertible: false
+  feather:
+    display-name: <white>Piórko</white>
+    material: FEATHER
+    collection-id: ''
+    worth: 0.8
+    stack-size: 64
+    tags:
+    - mob
+    - zombie
+    compression:
+      enabled: false
+      block-convertible: false
+  experience_bottle:
+    display-name: <green>Butelka doświadczenia</green>
+    material: EXPERIENCE_BOTTLE
+    collection-id: ''
+    worth: 6.0
+    stack-size: 64
+    tags:
+    - mob
+    - experience
+    compression:
+      enabled: false
+      block-convertible: false
+  bow:
+    display-name: <yellow>Łuk</yellow>
+    material: BOW
+    collection-id: ''
+    worth: 4.0
+    stack-size: 1
+    tags:
+    - mob
+    - skeleton
+    - weapon
+    compression:
+      enabled: false
+      block-convertible: false
+  arrow:
+    display-name: <gray>Strzała</gray>
+    material: ARROW
+    collection-id: ''
+    worth: 0.4
+    stack-size: 64
+    tags:
+    - mob
+    - skeleton
+    compression:
+      enabled: false
+      block-convertible: false
+  bone:
+    display-name: <white>Kość</white>
+    material: BONE
+    collection-id: ''
+    worth: 0.8
+    stack-size: 64
+    tags:
+    - mob
+    - skeleton
+    compression:
+      enabled: false
+      block-convertible: false
+  bone_meal:
+    display-name: <white>Proszek kostny</white>
+    material: BONE_MEAL
+    collection-id: ''
+    worth: 0.4
+    stack-size: 64
+    tags:
+    - mob
+    - skeleton
+    compression:
+      enabled: false
+      block-convertible: false
+  spider_eye:
+    display-name: <dark_red>Oko pająka</dark_red>
+    material: SPIDER_EYE
+    collection-id: ''
+    worth: 1.0
+    stack-size: 64
+    tags:
+    - mob
+    - spider
+    compression:
+      enabled: false
+      block-convertible: false
+  string:
+    display-name: <white>Nitka</white>
+    material: STRING
+    collection-id: ''
+    worth: 0.4
+    stack-size: 64
+    tags:
+    - mob
+    - spider
+    compression:
+      enabled: false
+      block-convertible: false
+  spruce_wood:
+    display-name: <dark_green>Drewno świerkowe</dark_green>
+    material: SPRUCE_LOG
+    collection-id: foraging.spruce_wood
+    worth: 1.0
+    stack-size: 64
+    tags:
+    - foraging
+    - wood
+    - block
+    compression:
+      enabled: true
+      block-convertible: true
+      compressed-material: SPRUCE_LOG
+      unlock-minion-level: 5
+  copper:
+    display-name: <color:#b87333>Miedź</color>
+    material: COPPER_INGOT
+    collection-id: mining.copper
+    worth: 2.0
+    stack-size: 64
+    tags:
+    - mining
+    - ingot
+    compression:
+      enabled: true
+      block-convertible: true
+      compressed-material: COPPER_BLOCK
+      unlock-minion-level: 3
+  rare_elements:
+    display-name: <light_purple>Rzadkie pierwiastki</light_purple>
+    material: AMETHYST_SHARD
+    collection-id: mining.rare_elements
+    worth: 250.0
+    stack-size: 64
+    tags:
+    - mining
+    - rare
+    - special-drop
+    compression:
+      enabled: false
+      block-convertible: false
+    custom-model-data: 12601
+  technical_block:
+    display-name: <#FFA500>Blok techniczny</#FFA500>
+    material: ORANGE_CONCRETE
+    collection-id: mining.rare_elements
+    worth: 500.0
+    stack-size: 64
+    tags:
+    - machine
+    - component
+    - special
+    compression:
+      enabled: false
+      block-convertible: false
+    custom-model-data: 12701
+  graphite:
+    display-name: <dark_gray>Grafit</dark_gray>
+    material: CHARCOAL
+    collection-id: industrial.graphite
+    worth: 20.0
+    stack-size: 64
+    tags:
+    - industrial
+    - macerator-output
+    compression:
+      enabled: false
+      block-convertible: false
+    custom-model-data: 12702
+  graphene:
+    display-name: <black>Grafen</black>
+    material: BLACK_DYE
+    collection-id: industrial.graphene
+    worth: 120.0
+    stack-size: 64
+    tags:
+    - industrial
+    - advanced
+    compression:
+      enabled: false
+      block-convertible: false
+    custom-model-data: 12703

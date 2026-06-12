@@ -5,14 +5,18 @@ import hex.towns.model.Town;
 import hex.towns.service.TownsService;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.MapMeta;
 import org.bukkit.map.MapRenderer;
 import org.bukkit.map.MapView;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -21,14 +25,26 @@ public final class TownMapService {
     private final Plugin plugin;
     private final TownsService service;
     private final TownsConfig config;
+    private final NamespacedKey townMapKey;
+    private final Map<UUID, Long> cooldowns = new HashMap<>();
 
     public TownMapService(Plugin plugin, TownsService service, TownsConfig config) {
         this.plugin = plugin;
         this.service = service;
         this.config = config;
+        this.townMapKey = new NamespacedKey(plugin, "town_map");
     }
 
     public void openMap(Player player) {
+        long now = System.currentTimeMillis();
+        long availableAt = cooldowns.getOrDefault(player.getUniqueId(), 0L);
+        if (availableAt > now) {
+            long seconds = Math.max(1L, (availableAt - now + 999L) / 1000L);
+            player.sendMessage("§cMapę miasta możesz odświeżyć ponownie za " + seconds + "s.");
+            return;
+        }
+        cooldowns.put(player.getUniqueId(), now + config.mapCooldownSeconds() * 1000L);
+
         World world = player.getWorld();
         MapView view = Bukkit.createMap(world);
         for (MapRenderer renderer : view.getRenderers()) {
@@ -45,20 +61,55 @@ public final class TownMapService {
             }
         }
         view.addRenderer(new TownMapRenderer(service, world.getName(), centerX, centerZ, radius, ownTownId, nearby));
+        ItemStack map = createMapItem(view, centerX, centerZ);
+
+        int existingSlot = findExistingTownMapSlot(player);
+        if (config.mapPreventDuplicates() && existingSlot >= 0) {
+            player.getInventory().setItem(existingSlot, map);
+            player.sendMap(view);
+            player.sendMessage("§aOdświeżono istniejącą mapę miast w ekwipunku.");
+            plugin.getLogger().fine("Refreshed HexTowns map for " + player.getName() + " near " + centerX + "," + centerZ);
+            return;
+        }
+
+        Map<Integer, ItemStack> leftover = player.getInventory().addItem(map);
+        if (!leftover.isEmpty()) {
+            player.sendMessage("§cNie masz miejsca w ekwipunku na mapę miasta.");
+            return;
+        }
+        player.sendMap(view);
+        player.sendMessage("§aDodano mapę miast do ekwipunku. Weź ją do ręki, aby zobaczyć granice i nazwy miast.");
+        plugin.getLogger().fine("Generated HexTowns map for " + player.getName() + " near " + centerX + "," + centerZ);
+    }
+
+    private ItemStack createMapItem(MapView view, int centerX, int centerZ) {
         ItemStack map = new ItemStack(Material.FILLED_MAP);
         MapMeta meta = (MapMeta) map.getItemMeta();
         if (meta != null) {
             meta.setMapView(view);
             meta.setDisplayName("§eMapa miast");
-            meta.setLore(java.util.List.of("§7Granice miasta i sąsiednie miasta", "§8Centrum: " + centerX + ", " + centerZ));
+            meta.setLore(java.util.List.of(
+                    "§7Granice miasta i sąsiednie miasta",
+                    "§8Centrum: " + centerX + ", " + centerZ,
+                    "§8Mapa HexTowns - odświeżana przez /town map"
+            ));
+            meta.getPersistentDataContainer().set(townMapKey, PersistentDataType.BYTE, (byte) 1);
             map.setItemMeta(meta);
         }
-        Map<Integer, ItemStack> leftover = player.getInventory().addItem(map);
-        if (!leftover.isEmpty()) {
-            player.getWorld().dropItemNaturally(player.getLocation(), map);
+        return map;
+    }
+
+    private int findExistingTownMapSlot(Player player) {
+        for (int i = 0; i < player.getInventory().getSize(); i++) {
+            ItemStack item = player.getInventory().getItem(i);
+            if (isTownMap(item)) return i;
         }
-        player.sendMap(view);
-        player.sendMessage("§aDodano mapę miast do ekwipunku. Weź ją do ręki, aby zobaczyć granice i nazwy miast.");
-        plugin.getLogger().fine("Generated HexTowns map for " + player.getName() + " near " + centerX + "," + centerZ);
+        return -1;
+    }
+
+    private boolean isTownMap(ItemStack item) {
+        if (item == null || item.getType() != Material.FILLED_MAP) return false;
+        ItemMeta meta = item.getItemMeta();
+        return meta != null && meta.getPersistentDataContainer().has(townMapKey, PersistentDataType.BYTE);
     }
 }

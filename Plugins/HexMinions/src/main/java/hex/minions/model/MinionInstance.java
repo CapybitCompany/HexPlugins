@@ -24,6 +24,8 @@ public final class MinionInstance {
     private final Map<String, Long> storage = new ConcurrentHashMap<>();
     private final Map<String, ItemStack> addonItems = new ConcurrentHashMap<>();
     private volatile String appearanceId;
+    private volatile int activeBoosterTier;
+    private volatile long boosterExpiresAt;
 
     public MinionInstance(UUID id, long townInternalId, UUID townUuid, UUID ownerUuid, String typeId, int tier,
                           MinionLocation location, MinionState state, long placedAt, long lastActionAt,
@@ -58,6 +60,8 @@ public final class MinionInstance {
     public int storageUsed() { return storageUsed.get(); }
     public int storageLimit() { return storageLimit; }
     public String appearanceId() { return appearanceId; }
+    public int activeBoosterTier() { return activeBoosterTier; }
+    public long boosterExpiresAt() { return boosterExpiresAt; }
     public Map<String, Long> storage() { return storage; }
     public Map<String, ItemStack> addonItems() { return addonItems; }
 
@@ -67,6 +71,9 @@ public final class MinionInstance {
     public void setNextActionAt(long value) { this.nextActionAt = value; }
     public void setStorageLimit(int value) { this.storageLimit = value; }
     public void setAppearanceId(String value) { this.appearanceId = value; }
+    public void setActiveBooster(int tier, long expiresAt) { this.activeBoosterTier = Math.max(0, tier); this.boosterExpiresAt = Math.max(0L, expiresAt); }
+    public void clearActiveBooster() { this.activeBoosterTier = 0; this.boosterExpiresAt = 0L; }
+    public boolean hasActiveBooster(long nowMillis) { return activeBoosterTier > 0 && boosterExpiresAt > nowMillis; }
     public int incrementTier() { return tier.incrementAndGet(); }
 
     public boolean hasStorageSpace() {

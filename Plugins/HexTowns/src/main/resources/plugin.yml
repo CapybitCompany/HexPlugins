@@ -8,10 +8,12 @@ depend:
 
 softdepend:
   - PlaceholderAPI
+  - HexCollections
+  - HexMinions
 
 commands:
   town:
-    usage: "/town <create|claim|coop|accept|endcoop|destroy|rename|check|info|here|map|growth|admin syncgrowth>"
+    usage: "/town <create|claim|coop|accept|endcoop|destroy|rename|check|info|here|map|growth|admin addgrowth|giveheart|syncgrowth>"
     description: Towns, claims and coop management for Hex SMP
     permission: hextowns.use
 

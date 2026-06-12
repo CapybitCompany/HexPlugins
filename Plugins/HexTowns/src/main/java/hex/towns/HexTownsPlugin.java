@@ -8,6 +8,11 @@ import hex.towns.database.TownRepository;
 import hex.towns.listener.TownProtectionListener;
 import hex.towns.map.TownMapService;
 import hex.towns.gui.TownRenameAnvilListener;
+import hex.towns.gui.TownCoopDecisionMenu;
+import hex.towns.heart.TownHeartItem;
+import hex.towns.heart.TownHeartListener;
+import hex.towns.heart.TownHeartRenderer;
+import hex.towns.heart.TownHeartService;
 import hex.towns.placeholder.TownsPlaceholderExpansion;
 import hex.towns.service.TownDataRegistry;
 import hex.towns.service.TownsApiImpl;
@@ -28,7 +33,11 @@ public final class HexTownsPlugin extends JavaPlugin {
     private TownsService townsService;
     private VisualCheckService visualCheckService;
     private TownRenameAnvilListener renameAnvilListener;
+    private TownCoopDecisionMenu coopDecisionMenu;
     private TownMapService townMapService;
+    private TownHeartRenderer townHeartRenderer;
+    private TownHeartService townHeartService;
+    private TownHeartListener townHeartListener;
     private TownsPlaceholderExpansion placeholderExpansion;
 
     @Override
@@ -52,12 +61,18 @@ public final class HexTownsPlugin extends JavaPlugin {
         this.townsApi = new TownsApiImpl(townsService, dataRegistry);
         this.visualCheckService = new VisualCheckService(this, townsService, config);
         this.renameAnvilListener = new TownRenameAnvilListener(this, hexApi, townsService, config);
+        this.coopDecisionMenu = new TownCoopDecisionMenu(this, hexApi, townsService);
         this.townMapService = new TownMapService(this, townsService, config);
+        TownHeartItem townHeartItem = new TownHeartItem(this);
+        townHeartItem.registerRecipe();
+        this.townHeartRenderer = new TownHeartRenderer(this);
+        this.townHeartService = new TownHeartService(this, repository, townsService, townHeartRenderer);
+        this.townHeartListener = new TownHeartListener(this, hexApi, townsService, config, townHeartItem, townHeartService);
 
         Bukkit.getServicesManager().register(TownsApi.class, townsApi, this, ServicePriority.Normal);
         registerPlaceholderExpansion(config);
 
-        TownCommand townCommand = new TownCommand(this, hexApi, townsService, visualCheckService, config, renameAnvilListener, townMapService);
+        TownCommand townCommand = new TownCommand(this, hexApi, townsService, visualCheckService, config, renameAnvilListener, townMapService, coopDecisionMenu, townHeartListener);
         PluginCommand townPluginCommand = getCommand("town");
         if (townPluginCommand != null) {
             townPluginCommand.setExecutor(townCommand);
@@ -69,12 +84,18 @@ public final class HexTownsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new TownProtectionListener(hexApi, townsService), this);
         getServer().getPluginManager().registerEvents(visualCheckService, this);
         getServer().getPluginManager().registerEvents(renameAnvilListener, this);
+        getServer().getPluginManager().registerEvents(coopDecisionMenu, this);
+        getServer().getPluginManager().registerEvents(townHeartListener, this);
+        townHeartRenderer.startPulse();
 
         hexApi.db().async(() -> {
             repository.ensureTables();
             return repository.loadInitialState();
         }).thenAccept(state -> Bukkit.getScheduler().runTask(this, () -> {
             townsService.load(state);
+            if (townHeartService != null) {
+                townHeartService.loadAndRenderExistingHearts();
+            }
             townsService.startGrowthSync();
             getLogger().info("HexTowns loaded towns=" + state.towns().size() + ", chunks=" + state.chunks().size());
         })).exceptionally(ex -> {
@@ -90,6 +111,9 @@ public final class HexTownsPlugin extends JavaPlugin {
     public void onDisable() {
         if (visualCheckService != null) {
             visualCheckService.shutdown();
+        }
+        if (townHeartRenderer != null) {
+            townHeartRenderer.stopPulse();
         }
         if (townsService != null) {
             townsService.stopGrowthSync();
@@ -156,6 +180,10 @@ public final class HexTownsPlugin extends JavaPlugin {
                 Map.entry("accept.success", "<green>Dodano <aqua><player></aqua> do COOP.</green>"),
                 Map.entry("accept.no-request", "<red>Ten gracz nie ma aktywnej prosby o COOP.</red>"),
                 Map.entry("accept.must-stand-in-town", "<red>Musisz stac w swoim miescie, zeby zaakceptowac COOP.</red>"),
+                Map.entry("reject.success", "<yellow>Odrzucono prosbe gracza <aqua><player></aqua>.</yellow>"),
+                Map.entry("kick.success", "<green>Usunieto <aqua><player></aqua> z COOP i zgloszono pelny reset gracza.</green>"),
+                Map.entry("kick.not-member", "<red>Ten gracz nie nalezy do twojego miasta.</red>"),
+                Map.entry("kick.owner", "<red>Nie mozesz usunac wlasciciela miasta z COOP.</red>"),
                 Map.entry("endcoop.warn", "<red>Odejscie z COOP zresetuje twoje statystyki SMP i EQ. </red><click:run_command:'/town endcoop confirm'><dark_red>[POTWIERDZ]</dark_red></click> <gray>albo wpisz: <white>/town endcoop confirm</white></gray>"),
                 Map.entry("endcoop.not-coop", "<red>Nie jestes graczem COOP.</red>"),
                 Map.entry("endcoop.success", "<green>Opusciles COOP. Reset statystyk zostal zgloszony do pluginow SMP.</green>"),
@@ -172,6 +200,12 @@ public final class HexTownsPlugin extends JavaPlugin {
                 Map.entry("admin.metrics", "<gray>Miasta:</gray> <white><towns></white>"),
                 Map.entry("admin.growth-sync", "<green>Zsynchronizowano punkty rozwoju.</green> <gray>Sprawdzono:</gray> <white><scanned></white><gray>, zmieniono:</gray> <white><changed></white>"),
                 Map.entry("admin.growth-sync.skipped", "<yellow>Synchronizacja punktow rozwoju jest juz w toku.</yellow>"),
+                Map.entry("heart.already-has-town", "<red>Masz juz miasto. Na produkcji nie mozna postawic drugiego serca.</red>"),
+                Map.entry("heart.already-placed", "<red>To miasto ma juz postawione serce.</red>"),
+                Map.entry("heart.item-missing", "<red>Nie masz juz w rece Serca Miasta.</red>"),
+                Map.entry("heart.placed", "<green>Postawiono Serce Miasta dla <yellow><town></yellow>.</green>"),
+                Map.entry("heart.indestructible", "<red>Serce miasta jest niezniszczalne.</red>"),
+                Map.entry("heart.protected-zone", "<red>W centralnym chunku nad sercem mozna budowac tylko ponizej poziomu ochrony.</red>"),
                 Map.entry("sound.success", Sound.ENTITY_PLAYER_LEVELUP.name())
         ));
     }

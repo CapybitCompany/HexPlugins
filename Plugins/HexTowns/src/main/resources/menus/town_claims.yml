@@ -69,11 +69,6 @@ items:
     material: LIME_STAINED_GLASS
     slot: 30
     display_name: '&aWizualizacja granic'
-    lore:
-      - '&7Toggle podglądu miast fake-blockami.'
-      - '&7Promień: &f%hextowns_visual_radius% chunków'
-      - ''
-      - '&eKliknij: /town check'
     left_click_commands:
       - '[player] town check'
 

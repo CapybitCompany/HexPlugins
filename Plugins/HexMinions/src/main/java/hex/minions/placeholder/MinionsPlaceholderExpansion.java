@@ -69,9 +69,10 @@ public final class MinionsPlaceholderExpansion extends PlaceholderExpansion {
         int index = parseInt(parts[1], -1);
         if (index <= 0) return "";
         String field = join(parts, 2);
+        TownMinionMenuData town = api.menuData(player);
         Optional<MinionMenuData> data = api.menuDataByIndex(player, index);
         if (field.equals("exists")) return String.valueOf(data.isPresent());
-        return data.map(minion -> field(minion, field)).orElse(defaultForMissing(field));
+        return data.map(minion -> field(minion, field)).orElse(defaultForMissingIndex(field, index, town.minionLimit()));
     }
 
     private String field(MinionMenuData minion, String field) {
@@ -117,6 +118,20 @@ public final class MinionsPlaceholderExpansion extends PlaceholderExpansion {
         if (minion.storagePercent() >= 100) return "LIME_STAINED_GLASS_PANE";
         if (minion.storagePercent() >= 50) return "YELLOW_STAINED_GLASS_PANE";
         return "GRAY_STAINED_GLASS_PANE";
+    }
+
+
+    private static String defaultForMissingIndex(String field, int index, int townLimit) {
+        boolean unlocked = townLimit > 0 && index <= townLimit;
+        return switch (field) {
+            case "exists", "can_upgrade" -> "false";
+            case "tier", "max_tier", "x", "y", "z", "storage_used", "storage_limit", "storage_percent", "action_time", "action_time_seconds", "slot", "menu_slot", "storage_slots", "storage_slots_unlocked" -> "0";
+            case "material", "head_material", "status_material" -> unlocked ? "WHITE_STAINED_GLASS_PANE" : "BLACK_STAINED_GLASS_PANE";
+            case "name", "display", "display_name" -> unlocked ? "Wolny slot miniona" : "Zablokowany slot";
+            case "state" -> unlocked ? "WOLNY" : "ZABLOKOWANY";
+            case "location" -> unlocked ? "Slot dostępny" : "Poza limitem miasta";
+            default -> "";
+        };
     }
 
     private static String defaultForMissing(String field) {

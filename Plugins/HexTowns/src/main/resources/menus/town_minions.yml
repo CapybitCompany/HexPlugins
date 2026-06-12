@@ -13,7 +13,8 @@ items:
     material: BLACK_STAINED_GLASS_PANE
     display_name: ' '
     slots:
-      - 0-53
+      - 0-9
+      - 15-53
 
   info:
     material: PLAYER_HEAD

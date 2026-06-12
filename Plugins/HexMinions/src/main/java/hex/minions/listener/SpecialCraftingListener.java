@@ -12,6 +12,8 @@ import hex.towns.api.TownsApi;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Directional;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -22,6 +24,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.CraftingInventory;
 import org.bukkit.inventory.Inventory;
@@ -51,13 +54,25 @@ public final class SpecialCraftingListener implements Listener {
         Optional<String> specialId = registry.readSpecialItemId(event.getItemInHand());
         if (specialId.isEmpty()) return;
         SpecialItemDefinition def = registry.item(specialId.get()).orElse(null);
-        if (def == null || !def.placeable()) return;
+        if (def == null) return;
+        if (!def.placeable()) {
+            event.setCancelled(true);
+            hex.ui().send(event.getPlayer(), "minions.special-crafting.error.not-placeable");
+            return;
+        }
         if (towns.townAt(event.getBlockPlaced().getLocation()).filter(t -> towns.isMember(event.getPlayer().getUniqueId(), t.id())).isEmpty()) {
             event.setCancelled(true);
             hex.ui().send(event.getPlayer(), "minions.special-crafting.error.place-town");
             return;
         }
         event.getBlockPlaced().setType(def.material());
+        if (event.getBlockPlaced().getBlockData() instanceof Directional directional) {
+            BlockData data = event.getBlockPlaced().getBlockData();
+            if (data instanceof Directional oriented) {
+                oriented.setFacing(event.getPlayer().getFacing().getOppositeFace());
+                event.getBlockPlaced().setBlockData(oriented, false);
+            }
+        }
         registry.markSpecialBlock(event.getBlockPlaced(), def.blockKind().isBlank() ? specialId.get() : def.blockKind());
     }
 
@@ -81,6 +96,10 @@ public final class SpecialCraftingListener implements Listener {
         Optional<String> stationId = service.specialItems().readSpecialBlockId(block);
         if (stationId.isEmpty()) return;
         event.setCancelled(true);
+        if (towns.townAt(block.getLocation()).filter(t -> towns.isMember(event.getPlayer().getUniqueId(), t.id())).isEmpty()) {
+            hex.ui().send(event.getPlayer(), "minions.special-crafting.error.place-town");
+            return;
+        }
         menu.openEnchantedCrafting(event.getPlayer(), stationId.get());
     }
 
@@ -89,11 +108,22 @@ public final class SpecialCraftingListener implements Listener {
         if (!(event.getWhoClicked() instanceof Player player)) return;
         if (!(event.getInventory() instanceof CraftingInventory crafting)) return;
         SpecialRecipeDefinition matched = null;
+        SpecialRecipeDefinition materialMatched = null;
         for (SpecialRecipeDefinition recipe : service.specialItems().recipes().values()) {
             if (!"VANILLA_CRAFTING_TABLE".equalsIgnoreCase(recipe.station())) continue;
             if (matchesMatrix(recipe, crafting.getMatrix())) { matched = recipe; break; }
+            if (materialMatched == null && matchesMaterialMatrix(recipe, crafting.getMatrix())) materialMatched = recipe;
         }
-        if (matched == null) return;
+        if (matched == null) {
+            // Bukkit vanilla recipes can only enforce material shape, not custom amounts or PDC/special-item IDs.
+            // If the material shape matches one of our recipes but amounts/special IDs do not, cancel it so players
+            // cannot craft a minion or special item with one plain ingredient in each slot.
+            if (materialMatched != null) {
+                event.setCancelled(true);
+                hex.ui().send(player, "minions.special-crafting.error.no-match");
+            }
+            return;
+        }
         var town = towns.townIdOf(player.getUniqueId());
         if (town.isEmpty() || !service.hasRecipeUnlocks(town.get(), matched)) {
             event.setCancelled(true);
@@ -115,8 +145,29 @@ public final class SpecialCraftingListener implements Listener {
                 craftCustom(player, holder.stationId(), top);
                 return;
             }
-            if (slot == OUTPUT_SLOT || slot >= 45 || (!isGrid(slot) && event.getClickedInventory().equals(top))) event.setCancelled(true);
+            if (slot == OUTPUT_SLOT || slot >= 45 || (!isGrid(slot) && event.getClickedInventory().equals(top))) {
+                event.setCancelled(true);
+                return;
+            }
         }
+        schedulePreviewRefresh(holder.stationId(), top);
+    }
+
+    @EventHandler
+    public void onDrag(InventoryDragEvent event) {
+        Inventory top = event.getView().getTopInventory();
+        if (!(top.getHolder() instanceof EnchantedCraftingMenuHolder holder)) return;
+        boolean touchesTop = false;
+        for (int rawSlot : event.getRawSlots()) {
+            if (rawSlot < top.getSize()) {
+                touchesTop = true;
+                if (!isGrid(rawSlot)) {
+                    event.setCancelled(true);
+                    return;
+                }
+            }
+        }
+        if (touchesTop) schedulePreviewRefresh(holder.stationId(), top);
     }
 
     @EventHandler
@@ -127,6 +178,24 @@ public final class SpecialCraftingListener implements Listener {
         for (int slot : GRID) {
             ItemStack item = top.getItem(slot);
             if (item != null && !item.getType().isAir()) player.getInventory().addItem(item).values().forEach(left -> player.getWorld().dropItemNaturally(player.getLocation(), left));
+        }
+    }
+
+
+    private void schedulePreviewRefresh(String station, Inventory inv) {
+        Bukkit.getScheduler().runTask(plugin, () -> refreshPreview(station, inv));
+    }
+
+    private void refreshPreview(String station, Inventory inv) {
+        SpecialRecipeDefinition matched = null;
+        for (SpecialRecipeDefinition recipe : service.specialItems().recipes().values()) {
+            if (!recipe.station().equalsIgnoreCase(station)) continue;
+            if (matchesInventory(recipe, inv)) { matched = recipe; break; }
+        }
+        if (matched == null) {
+            inv.setItem(OUTPUT_SLOT, new ItemStack(Material.GRAY_STAINED_GLASS_PANE));
+        } else {
+            inv.setItem(OUTPUT_SLOT, service.recipeOutput(matched));
         }
     }
 
@@ -141,7 +210,8 @@ public final class SpecialCraftingListener implements Listener {
         if (town.isEmpty()) { hex.ui().send(player, "minions.special-crafting.error.no-town"); return; }
         if (!service.hasRecipeUnlocks(town.get(), matched)) { hex.ui().send(player, "minions.special-crafting.error.locked"); return; }
         consumeInventory(matched, inv);
-        ItemStack output = service.specialItems().output(matched);
+        refreshPreview(station, inv);
+        ItemStack output = service.recipeOutput(matched);
         player.getInventory().addItem(output).values().forEach(left -> player.getWorld().dropItemNaturally(player.getLocation(), left));
         Bukkit.getScheduler().runTask(plugin, () -> menu.openEnchantedCrafting(player, station));
     }
@@ -169,6 +239,28 @@ public final class SpecialCraftingListener implements Listener {
                 ItemStack item = matrix[row * 3 + col];
                 if (ch == ' ' || ingredient == null) { if (item != null && !item.getType().isAir()) return false; }
                 else if (!ingredient.matches(item, service.specialItems())) return false;
+            }
+        }
+        return true;
+    }
+
+
+    private boolean matchesMaterialMatrix(SpecialRecipeDefinition recipe, ItemStack[] matrix) {
+        for (int row = 0; row < 3; row++) {
+            String line = recipe.shape().get(row);
+            for (int col = 0; col < 3; col++) {
+                char ch = line.charAt(col);
+                SpecialIngredient ingredient = recipe.ingredients().get(ch);
+                ItemStack item = matrix[row * 3 + col];
+                if (ch == ' ' || ingredient == null) {
+                    if (item != null && !item.getType().isAir()) return false;
+                } else {
+                    Material expected = ingredient.material();
+                    if (expected == Material.AIR && ingredient.specialItemId() != null && !ingredient.specialItemId().isBlank()) {
+                        expected = service.specialItems().item(ingredient.specialItemId()).map(SpecialItemDefinition::material).orElse(Material.AIR);
+                    }
+                    if (expected == Material.AIR || item == null || item.getType() != expected) return false;
+                }
             }
         }
         return true;

@@ -16,6 +16,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.plugin.Plugin;
 
 import java.util.UUID;
@@ -26,12 +27,14 @@ public final class MinionMenuListener implements Listener {
     private final HexApi hex;
     private final MinionService service;
     private final MinionMenu menu;
+    private final BukkitTask refreshTask;
 
     public MinionMenuListener(Plugin plugin, HexApi hex, MinionService service, MinionMenu menu) {
         this.plugin = plugin;
         this.hex = hex;
         this.service = service;
         this.menu = menu;
+        this.refreshTask = Bukkit.getScheduler().runTaskTimer(plugin, this::refreshOpenMinionMenus, 10L, 10L);
     }
 
     @EventHandler
@@ -60,11 +63,14 @@ public final class MinionMenuListener implements Listener {
         if (event.getClickedInventory() != null && event.getClickedInventory().equals(top)) {
             int slot = event.getSlot();
             if (menu.isStorageSlot(slot)) {
-                ItemStack cursor = event.getCursor();
-                if (cursor != null && !cursor.getType().isAir() && !menu.isAllowedInStorage(cursor)) {
-                    event.setCancelled(true);
-                    hex.ui().send(player, "minions.error.invalid-menu-item");
-                }
+                event.setCancelled(true);
+                int visibleStorageSlot = visibleStorageSlotIndex(slot);
+                service.withdrawStorageSlot(player, id, visibleStorageSlot).thenAccept(result -> Bukkit.getScheduler().runTask(plugin, () -> {
+                    if (!result.success()) {
+                        hex.ui().send(player, result.messageKey(), result.tokens());
+                    }
+                    menu.refreshMinionInventory(player, id, top);
+                }));
                 return;
             }
             if (menu.isAddonSlot(slot)) {
@@ -72,7 +78,12 @@ public final class MinionMenuListener implements Listener {
                 if (cursor != null && !cursor.getType().isAir() && !menu.isAllowedInAddonSlot(id, cursor)) {
                     event.setCancelled(true);
                     hex.ui().send(player, "minions.error.invalid-menu-item");
+                    return;
                 }
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    service.saveMinionMenu(id, top);
+                    menu.refreshMinionInventory(player, id, top);
+                });
                 return;
             }
             if (slot == MinionMenu.STORAGE_CHEST_SLOT) {
@@ -137,6 +148,22 @@ public final class MinionMenuListener implements Listener {
     }
 
 
+    private int visibleStorageSlotIndex(int slot) {
+        for (int i = 0; i < MinionMenu.STORAGE_SLOTS.length; i++) {
+            if (MinionMenu.STORAGE_SLOTS[i] == slot) return i;
+        }
+        return -1;
+    }
+
+    private void refreshOpenMinionMenus() {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            Inventory top = player.getOpenInventory().getTopInventory();
+            if (top.getHolder() instanceof MinionMenuHolder holder) {
+                menu.refreshMinionInventory(player, holder.minionId(), top);
+            }
+        }
+    }
+
     @EventHandler
     public void onClose(InventoryCloseEvent event) {
         Inventory top = event.getInventory();
@@ -162,8 +189,36 @@ public final class MinionMenuListener implements Listener {
             if (!typeId.isBlank()) menu.openWikiType(player, typeId);
             return;
         }
+        if (holder.machineIndex()) {
+            if (event.getSlot() == 45) {
+                menu.openWikiType(player, holder.typeId());
+                return;
+            }
+            String machineId = menu.wikiMachineAtSlot(holder.typeId(), event.getSlot());
+            if (!machineId.isBlank()) menu.openWikiMachine(player, holder.typeId(), machineId);
+            return;
+        }
+        if (holder.machine()) {
+            if (event.getSlot() == 45) {
+                menu.openWikiMachines(player, holder.typeId());
+                return;
+            }
+            String processId = menu.wikiMachineProcessAtSlot(holder.machineId(), event.getSlot());
+            if (!processId.isBlank()) menu.openWikiMachineRecipe(player, holder.typeId(), holder.machineId(), processId);
+            return;
+        }
+        if (holder.machineRecipe()) {
+            if (event.getSlot() == 45) {
+                menu.openWikiMachine(player, holder.typeId(), holder.machineId());
+            }
+            return;
+        }
         if (event.getSlot() == 45) {
             menu.openWiki(player);
+            return;
+        }
+        if (event.getSlot() == 43) {
+            menu.openWikiMachines(player, holder.typeId());
             return;
         }
         String recipeId = menu.wikiRecipeAtSlot(holder.typeId(), event.getSlot());

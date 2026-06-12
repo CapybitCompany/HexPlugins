@@ -75,3 +75,170 @@ appearances:
       shadowed: true
       see-through: false
 
+
+  uranium_hazmat:
+    base:
+      type: ARMOR_STAND
+      marker: false
+      small: true
+      invisible: false
+      invulnerable: true
+      no-gravity: true
+      arms: true
+      equipment-locked: true
+      equipment:
+        helmet:
+          material: PLAYER_HEAD
+          texture-base64: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19"
+        chestplate:
+          material: LEATHER_CHESTPLATE
+          color: "#F8E86A"
+        leggings:
+          material: LEATHER_LEGGINGS
+          color: "#F3D64E"
+        boots:
+          material: LEATHER_BOOTS
+          color: "#D8B72F"
+        main-hand:
+          material: EMERALD
+    attachments:
+      - id: uranium_backpack
+        type: BLOCK_DISPLAY
+        material: EMERALD_BLOCK
+        offset: [0.0, 0.65, -0.25]
+        scale: [0.35, 0.35, 0.35]
+    label:
+      type: TEXT_DISPLAY
+      offset: [0.0, 1.65, 0.0]
+      billboard: CENTER
+      text: "<#32CD32><name></#32CD32> <gray>Tier <tier></gray>\n<storage_bar>"
+      shadowed: true
+      see-through: false
+
+  zombie_default:
+    base:
+      type: ARMOR_STAND
+      marker: false
+      small: true
+      invisible: false
+      invulnerable: true
+      no-gravity: true
+      arms: true
+      equipment-locked: true
+      equipment:
+        helmet:
+          material: ZOMBIE_HEAD
+        chestplate:
+          material: LEATHER_CHESTPLATE
+          color: "#2E7D32"
+        leggings:
+          material: LEATHER_LEGGINGS
+          color: "#1B5E20"
+        boots:
+          material: LEATHER_BOOTS
+          color: "#263238"
+        main-hand:
+          material: ROTTEN_FLESH
+    label:
+      type: TEXT_DISPLAY
+      offset: [0.0, 1.65, 0.0]
+      billboard: CENTER
+      text: "<dark_green><name></dark_green> <gray>Tier <tier></gray>\n<storage_bar>"
+      shadowed: true
+      see-through: false
+
+  skeleton_default:
+    base:
+      type: ARMOR_STAND
+      marker: false
+      small: true
+      invisible: false
+      invulnerable: true
+      no-gravity: true
+      arms: true
+      equipment-locked: true
+      equipment:
+        helmet:
+          material: SKELETON_SKULL
+        chestplate:
+          material: LEATHER_CHESTPLATE
+          color: "#DADADA"
+        leggings:
+          material: LEATHER_LEGGINGS
+          color: "#BDBDBD"
+        boots:
+          material: LEATHER_BOOTS
+          color: "#8E8E8E"
+        main-hand:
+          material: BOW
+    label:
+      type: TEXT_DISPLAY
+      offset: [0.0, 1.65, 0.0]
+      billboard: CENTER
+      text: "<gray><name></gray> <gray>Tier <tier></gray>\n<storage_bar>"
+      shadowed: true
+      see-through: false
+
+  spider_default:
+    base:
+      type: ARMOR_STAND
+      marker: false
+      small: true
+      invisible: false
+      invulnerable: true
+      no-gravity: true
+      arms: true
+      equipment-locked: true
+      equipment:
+        helmet:
+          material: SPIDER_EYE
+        chestplate:
+          material: LEATHER_CHESTPLATE
+          color: "#4A1111"
+        leggings:
+          material: LEATHER_LEGGINGS
+          color: "#2A0B0B"
+        boots:
+          material: LEATHER_BOOTS
+          color: "#111111"
+        main-hand:
+          material: STRING
+    label:
+      type: TEXT_DISPLAY
+      offset: [0.0, 1.65, 0.0]
+      billboard: CENTER
+      text: "<dark_red><name></dark_red> <gray>Tier <tier></gray>\n<storage_bar>"
+      shadowed: true
+      see-through: false
+
+  silverfish_default:
+    base:
+      type: ARMOR_STAND
+      marker: false
+      small: true
+      invisible: false
+      invulnerable: true
+      no-gravity: true
+      arms: true
+      equipment-locked: true
+      equipment:
+        helmet:
+          material: INFESTED_STONE
+        chestplate:
+          material: LEATHER_CHESTPLATE
+          color: "#8A8A8A"
+        leggings:
+          material: LEATHER_LEGGINGS
+          color: "#6F6F6F"
+        boots:
+          material: LEATHER_BOOTS
+          color: "#4D4D4D"
+        main-hand:
+          material: EXPERIENCE_BOTTLE
+    label:
+      type: TEXT_DISPLAY
+      offset: [0.0, 1.65, 0.0]
+      billboard: CENTER
+      text: "<gray><name></gray> <gray>Tier <tier></gray>\n<storage_bar>"
+      shadowed: true
+      see-through: false

@@ -14,6 +14,7 @@ public final class TownsConfig {
     private final int bufferChunks;
     private final int minDistanceChunks;
     private final boolean creationConfirmRequired;
+    private final boolean heartAllowExistingTownPlacementForTests;
     private final String defaultNameTemplate;
     private final int maxNameLength;
     private final int startingGrowthPoints;
@@ -33,6 +34,8 @@ public final class TownsConfig {
     private final float visualEdgeThickness;
     private final float visualDisplayViewRange;
     private final int mapRadiusChunks;
+    private final int mapCooldownSeconds;
+    private final boolean mapPreventDuplicates;
     private final int bucketSize;
     private final Material visualBlock;
 
@@ -43,6 +46,7 @@ public final class TownsConfig {
         this.bufferChunks = Math.max(1, config.getInt("towns.size.buffer-chunks-between-towns", 1));
         this.minDistanceChunks = Math.max(0, config.getInt("towns.creation.min-distance-chunks", 10));
         this.creationConfirmRequired = config.getBoolean("towns.creation.confirm-required", true);
+        this.heartAllowExistingTownPlacementForTests = config.getBoolean("towns.heart.allow-existing-town-placement-for-tests", true);
         this.defaultNameTemplate = config.getString("towns.naming.default-template", "Town {number}");
         this.maxNameLength = Math.max(3, Math.min(64, config.getInt("towns.naming.max-length", 16)));
         this.startingGrowthPoints = Math.max(0, config.getInt("towns.growth.starting-points", 0));
@@ -62,6 +66,8 @@ public final class TownsConfig {
         this.visualEdgeThickness = clampFloat((float) config.getDouble("towns.visual-check.edge-thickness", 0.15D), 0.05F, 1.0F);
         this.visualDisplayViewRange = clampFloat((float) config.getDouble("towns.visual-check.display-view-range", 64.0D), 8.0F, 256.0F);
         this.mapRadiusChunks = Math.max(4, Math.min(24, config.getInt("towns.map.radius-chunks", 8)));
+        this.mapCooldownSeconds = Math.max(0, config.getInt("towns.map.cooldown-seconds", 30));
+        this.mapPreventDuplicates = config.getBoolean("towns.map.prevent-duplicates", true);
         this.bucketSize = Math.max(4, config.getInt("towns.scale.distance-check-bucket-size", 16));
         this.visualBlock = Material.matchMaterial(config.getString("towns.visual-check.block", "LIME_STAINED_GLASS")) == null
                 ? Material.LIME_STAINED_GLASS
@@ -86,6 +92,7 @@ public final class TownsConfig {
     public int bufferChunks() { return bufferChunks; }
     public int minDistanceChunks() { return minDistanceChunks; }
     public boolean creationConfirmRequired() { return creationConfirmRequired; }
+    public boolean heartAllowExistingTownPlacementForTests() { return heartAllowExistingTownPlacementForTests; }
     public String defaultNameTemplate() { return defaultNameTemplate; }
     public int maxNameLength() { return maxNameLength; }
     public int startingGrowthPoints() { return startingGrowthPoints; }
@@ -105,6 +112,8 @@ public final class TownsConfig {
     public float visualEdgeThickness() { return visualEdgeThickness; }
     public float visualDisplayViewRange() { return visualDisplayViewRange; }
     public int mapRadiusChunks() { return mapRadiusChunks; }
+    public int mapCooldownSeconds() { return mapCooldownSeconds; }
+    public boolean mapPreventDuplicates() { return mapPreventDuplicates; }
     public int bucketSize() { return bucketSize; }
     public Material visualBlock() { return visualBlock; }
 }

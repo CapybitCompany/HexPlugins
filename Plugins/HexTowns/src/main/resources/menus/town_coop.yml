@@ -1,5 +1,4 @@
-# DeluxeMenus: COOP miasta i komendy członkostwa
-
+# DeluxeMenus: COOP miasta - członkowie i prośby
 menu_title: '&8Miasto &7- COOP'
 open_command:
   - towncoop
@@ -11,7 +10,9 @@ items:
     material: BLACK_STAINED_GLASS_PANE
     display_name: ' '
     slots:
-      - 0-53
+      - 0-9
+      - 13-27
+      - 35-53
 
   coop_status:
     material: WRITABLE_BOOK
@@ -22,14 +23,394 @@ items:
       - '&7Właściciel: &f%hextowns_owner_name%'
       - '&7Twoja rola: &f%hextowns_role_display%'
       - '&7Członkowie: &f%hextowns_members%&7/&f%hextowns_max_members%'
+      - '&7Oczekujące prośby: &f%hextowns_request_1_count%'
       - ''
-      - '&8Prośby COOP wysyła gracz stojąc w cudzym mieście.'
-      - '&8Właściciel akceptuje je komendą /town accept <nick>.'
+      - '&8Górny rząd: członkowie miasta.'
+      - '&8Dolny rząd: najstarsze prośby COOP.'
+
+  member_1:
+    material: '%hextowns_member_1_material%'
+    slot: 10
+    priority: 5
+    skull_owner: '%hextowns_member_1_uuid%'
+    display_name: '&b%hextowns_member_1_name%'
+    lore:
+      - '&7Nick: &f%hextowns_member_1_name%'
+      - '&7Ranga: &f%hextowns_member_1_rank_display%'
+      - '&7Status: &f%hextowns_member_1_status%'
+      - ''
+      - '&eWłaściciel: kliknij, aby zarządzać graczem.'
+    view_requirement:
+      requirements:
+        exists:
+          type: string equals
+          input: '%hextowns_member_1_exists%'
+          output: 'true'
+    left_click_commands:
+      - '[player] town coopmember %hextowns_member_1_uuid%'
+
+  member_empty_1:
+    material: LIGHT_GRAY_STAINED_GLASS_PANE
+    slot: 10
+    priority: 1
+    display_name: '&7Wolne miejsce członka'
+    view_requirement:
+      requirements:
+        missing:
+          type: string equals
+          input: '%hextowns_member_1_exists%'
+          output: 'false'
+
+  member_2:
+    material: '%hextowns_member_2_material%'
+    slot: 11
+    priority: 5
+    skull_owner: '%hextowns_member_2_uuid%'
+    display_name: '&b%hextowns_member_2_name%'
+    lore:
+      - '&7Nick: &f%hextowns_member_2_name%'
+      - '&7Ranga: &f%hextowns_member_2_rank_display%'
+      - '&7Status: &f%hextowns_member_2_status%'
+      - ''
+      - '&eWłaściciel: kliknij, aby zarządzać graczem.'
+    view_requirement:
+      requirements:
+        exists:
+          type: string equals
+          input: '%hextowns_member_2_exists%'
+          output: 'true'
+    left_click_commands:
+      - '[player] town coopmember %hextowns_member_2_uuid%'
+
+  member_empty_2:
+    material: LIGHT_GRAY_STAINED_GLASS_PANE
+    slot: 11
+    priority: 1
+    display_name: '&7Wolne miejsce członka'
+    view_requirement:
+      requirements:
+        missing:
+          type: string equals
+          input: '%hextowns_member_2_exists%'
+          output: 'false'
+
+  member_3:
+    material: '%hextowns_member_3_material%'
+    slot: 12
+    priority: 5
+    skull_owner: '%hextowns_member_3_uuid%'
+    display_name: '&b%hextowns_member_3_name%'
+    lore:
+      - '&7Nick: &f%hextowns_member_3_name%'
+      - '&7Ranga: &f%hextowns_member_3_rank_display%'
+      - '&7Status: &f%hextowns_member_3_status%'
+      - ''
+      - '&eWłaściciel: kliknij, aby zarządzać graczem.'
+    view_requirement:
+      requirements:
+        exists:
+          type: string equals
+          input: '%hextowns_member_3_exists%'
+          output: 'true'
+    left_click_commands:
+      - '[player] town coopmember %hextowns_member_3_uuid%'
+
+  member_empty_3:
+    material: LIGHT_GRAY_STAINED_GLASS_PANE
+    slot: 12
+    priority: 1
+    display_name: '&7Wolne miejsce członka'
+    view_requirement:
+      requirements:
+        missing:
+          type: string equals
+          input: '%hextowns_member_3_exists%'
+          output: 'false'
+
+  request_1:
+    material: '%hextowns_request_1_material%'
+    slot: 28
+    priority: 5
+    skull_owner: '%hextowns_request_1_uuid%'
+    display_name: '&eProśba: &f%hextowns_request_1_name%'
+    lore:
+      - '&7Gracz oczekuje na akceptację do miasta.'
+      - '&7Nick: &f%hextowns_request_1_name%'
+      - ''
+      - '&eKliknij, aby zdecydować: przyjąć albo odrzucić.'
+    view_requirement:
+      requirements:
+        owner:
+          type: string equals
+          input: '%hextowns_is_owner%'
+          output: 'true'
+        exists:
+          type: string equals
+          input: '%hextowns_request_1_exists%'
+          output: 'true'
+    left_click_commands:
+      - '[player] town coopdecide %hextowns_request_1_uuid%'
+
+  request_empty_1:
+    material: WHITE_STAINED_GLASS_PANE
+    slot: 28
+    priority: 1
+    display_name: '&fWolne miejsce na prośbę'
+    view_requirement:
+      requirements:
+        owner:
+          type: string equals
+          input: '%hextowns_is_owner%'
+          output: 'true'
+        missing:
+          type: string equals
+          input: '%hextowns_request_1_exists%'
+          output: 'false'
+
+  request_2:
+    material: '%hextowns_request_2_material%'
+    slot: 29
+    priority: 5
+    skull_owner: '%hextowns_request_2_uuid%'
+    display_name: '&eProśba: &f%hextowns_request_2_name%'
+    lore:
+      - '&7Gracz oczekuje na akceptację do miasta.'
+      - '&7Nick: &f%hextowns_request_2_name%'
+      - ''
+      - '&eKliknij, aby zdecydować: przyjąć albo odrzucić.'
+    view_requirement:
+      requirements:
+        owner:
+          type: string equals
+          input: '%hextowns_is_owner%'
+          output: 'true'
+        exists:
+          type: string equals
+          input: '%hextowns_request_2_exists%'
+          output: 'true'
+    left_click_commands:
+      - '[player] town coopdecide %hextowns_request_2_uuid%'
+
+  request_empty_2:
+    material: WHITE_STAINED_GLASS_PANE
+    slot: 29
+    priority: 1
+    display_name: '&fWolne miejsce na prośbę'
+    view_requirement:
+      requirements:
+        owner:
+          type: string equals
+          input: '%hextowns_is_owner%'
+          output: 'true'
+        missing:
+          type: string equals
+          input: '%hextowns_request_2_exists%'
+          output: 'false'
+
+  request_3:
+    material: '%hextowns_request_3_material%'
+    slot: 30
+    priority: 5
+    skull_owner: '%hextowns_request_3_uuid%'
+    display_name: '&eProśba: &f%hextowns_request_3_name%'
+    lore:
+      - '&7Gracz oczekuje na akceptację do miasta.'
+      - '&7Nick: &f%hextowns_request_3_name%'
+      - ''
+      - '&eKliknij, aby zdecydować: przyjąć albo odrzucić.'
+    view_requirement:
+      requirements:
+        owner:
+          type: string equals
+          input: '%hextowns_is_owner%'
+          output: 'true'
+        exists:
+          type: string equals
+          input: '%hextowns_request_3_exists%'
+          output: 'true'
+    left_click_commands:
+      - '[player] town coopdecide %hextowns_request_3_uuid%'
+
+  request_empty_3:
+    material: WHITE_STAINED_GLASS_PANE
+    slot: 30
+    priority: 1
+    display_name: '&fWolne miejsce na prośbę'
+    view_requirement:
+      requirements:
+        owner:
+          type: string equals
+          input: '%hextowns_is_owner%'
+          output: 'true'
+        missing:
+          type: string equals
+          input: '%hextowns_request_3_exists%'
+          output: 'false'
+
+  request_4:
+    material: '%hextowns_request_4_material%'
+    slot: 31
+    priority: 5
+    skull_owner: '%hextowns_request_4_uuid%'
+    display_name: '&eProśba: &f%hextowns_request_4_name%'
+    lore:
+      - '&7Gracz oczekuje na akceptację do miasta.'
+      - '&7Nick: &f%hextowns_request_4_name%'
+      - ''
+      - '&eKliknij, aby zdecydować: przyjąć albo odrzucić.'
+    view_requirement:
+      requirements:
+        owner:
+          type: string equals
+          input: '%hextowns_is_owner%'
+          output: 'true'
+        exists:
+          type: string equals
+          input: '%hextowns_request_4_exists%'
+          output: 'true'
+    left_click_commands:
+      - '[player] town coopdecide %hextowns_request_4_uuid%'
+
+  request_empty_4:
+    material: WHITE_STAINED_GLASS_PANE
+    slot: 31
+    priority: 1
+    display_name: '&fWolne miejsce na prośbę'
+    view_requirement:
+      requirements:
+        owner:
+          type: string equals
+          input: '%hextowns_is_owner%'
+          output: 'true'
+        missing:
+          type: string equals
+          input: '%hextowns_request_4_exists%'
+          output: 'false'
+
+  request_5:
+    material: '%hextowns_request_5_material%'
+    slot: 32
+    priority: 5
+    skull_owner: '%hextowns_request_5_uuid%'
+    display_name: '&eProśba: &f%hextowns_request_5_name%'
+    lore:
+      - '&7Gracz oczekuje na akceptację do miasta.'
+      - '&7Nick: &f%hextowns_request_5_name%'
+      - ''
+      - '&eKliknij, aby zdecydować: przyjąć albo odrzucić.'
+    view_requirement:
+      requirements:
+        owner:
+          type: string equals
+          input: '%hextowns_is_owner%'
+          output: 'true'
+        exists:
+          type: string equals
+          input: '%hextowns_request_5_exists%'
+          output: 'true'
+    left_click_commands:
+      - '[player] town coopdecide %hextowns_request_5_uuid%'
+
+  request_empty_5:
+    material: WHITE_STAINED_GLASS_PANE
+    slot: 32
+    priority: 1
+    display_name: '&fWolne miejsce na prośbę'
+    view_requirement:
+      requirements:
+        owner:
+          type: string equals
+          input: '%hextowns_is_owner%'
+          output: 'true'
+        missing:
+          type: string equals
+          input: '%hextowns_request_5_exists%'
+          output: 'false'
+
+  request_6:
+    material: '%hextowns_request_6_material%'
+    slot: 33
+    priority: 5
+    skull_owner: '%hextowns_request_6_uuid%'
+    display_name: '&eProśba: &f%hextowns_request_6_name%'
+    lore:
+      - '&7Gracz oczekuje na akceptację do miasta.'
+      - '&7Nick: &f%hextowns_request_6_name%'
+      - ''
+      - '&eKliknij, aby zdecydować: przyjąć albo odrzucić.'
+    view_requirement:
+      requirements:
+        owner:
+          type: string equals
+          input: '%hextowns_is_owner%'
+          output: 'true'
+        exists:
+          type: string equals
+          input: '%hextowns_request_6_exists%'
+          output: 'true'
+    left_click_commands:
+      - '[player] town coopdecide %hextowns_request_6_uuid%'
+
+  request_empty_6:
+    material: WHITE_STAINED_GLASS_PANE
+    slot: 33
+    priority: 1
+    display_name: '&fWolne miejsce na prośbę'
+    view_requirement:
+      requirements:
+        owner:
+          type: string equals
+          input: '%hextowns_is_owner%'
+          output: 'true'
+        missing:
+          type: string equals
+          input: '%hextowns_request_6_exists%'
+          output: 'false'
+
+  request_7:
+    material: '%hextowns_request_7_material%'
+    slot: 34
+    priority: 5
+    skull_owner: '%hextowns_request_7_uuid%'
+    display_name: '&eProśba: &f%hextowns_request_7_name%'
+    lore:
+      - '&7Gracz oczekuje na akceptację do miasta.'
+      - '&7Nick: &f%hextowns_request_7_name%'
+      - ''
+      - '&eKliknij, aby zdecydować: przyjąć albo odrzucić.'
+    view_requirement:
+      requirements:
+        owner:
+          type: string equals
+          input: '%hextowns_is_owner%'
+          output: 'true'
+        exists:
+          type: string equals
+          input: '%hextowns_request_7_exists%'
+          output: 'true'
+    left_click_commands:
+      - '[player] town coopdecide %hextowns_request_7_uuid%'
+
+  request_empty_7:
+    material: WHITE_STAINED_GLASS_PANE
+    slot: 34
+    priority: 1
+    display_name: '&fWolne miejsce na prośbę'
+    view_requirement:
+      requirements:
+        owner:
+          type: string equals
+          input: '%hextowns_is_owner%'
+          output: 'true'
+        missing:
+          type: string equals
+          input: '%hextowns_request_7_exists%'
+          output: 'false'
 
   request_join:
     material: OAK_DOOR
-    slot: 20
-    priority: 1
+    slot: 31
+    priority: 2
     display_name: '&bPoproś o dołączenie'
     lore:
       - '&7Dostępne, gdy nie należysz do miasta.'
@@ -45,38 +426,13 @@ items:
     left_click_commands:
       - '[player] town coop'
 
-  accept_info:
-    material: LIME_DYE
-    slot: 20
-    priority: 2
-    display_name: '&aAkceptuj prośbę COOP'
-    lore:
-      - '&7Gdy ktoś poprosi o COOP, właściciel'
-      - '&7dostaje klikalną wiadomość na czacie.'
-      - ''
-      - '&7Komenda ręczna:'
-      - '&f/town accept <nick>'
-      - ''
-      - '&eKliknij, aby zamknąć i wpisać nick.'
-    view_requirement:
-      requirements:
-        owner:
-          type: string equals
-          input: '%hextowns_is_owner%'
-          output: 'true'
-    left_click_commands:
-      - '[close]'
-      - '[message] &eWpisz na czacie: &f/town accept <nick>'
-
   leave_coop:
     material: RED_BED
-    slot: 24
+    slot: 49
     display_name: '&cOpuść COOP'
     lore:
       - '&7Dostępne tylko dla członka COOP.'
       - '&cOdejście resetuje twoje statystyki SMP/EQ.'
-      - ''
-      - '&eKliknij, aby przejść do potwierdzenia.'
     view_requirement:
       requirements:
         coop:
@@ -87,33 +443,12 @@ items:
       - '[player] town endcoop'
       - '[openguimenu] town_leave_confirm'
 
-  owner_note:
-    material: PAPER
-    slot: 24
-    display_name: '&eInformacja dla właściciela'
-    lore:
-      - '&7Aktualne MVP HexTowns obsługuje:'
-      - '&f/town coop &8- prośba gracza'
-      - '&f/town accept <nick> &8- akceptacja'
-      - '&f/town endcoop &8- odejście COOP'
-      - ''
-      - '&8Wyrzucanie, transfer i zaproszenia są przewidziane w planie,'
-      - '&8ale nie są jeszcze komendami gracza w kodzie.'
-    view_requirement:
-      requirements:
-        owner:
-          type: string equals
-          input: '%hextowns_is_owner%'
-          output: 'true'
-
   danger:
     material: TNT
-    slot: 31
+    slot: 48
     display_name: '&cStrefa ryzyka'
     lore:
       - '&7Destroy miasta lub opuszczenie COOP.'
-      - ''
-      - '&eKliknij, aby otworzyć.'
     view_requirement:
       requirements:
         has_town:
@@ -153,8 +488,7 @@ items:
 
   close:
     material: BARRIER
-    slot: 49
+    slot: 53
     display_name: '&cZamknij'
     left_click_commands:
       - '[close]'
-

@@ -1,3 +1,6 @@
+boosters:
+  default-supported-tiers:
+  - 1
 minion-types:
   cobblestone:
     enabled: true
@@ -24,6 +27,9 @@ minion-types:
       mode: VIRTUAL
     appearance: cobblestone_default
     menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
     resource-table:
     - resource: cobblestone
       amount-min: 1
@@ -78,8 +84,10 @@ minion-types:
     max-tier: 5
     wiki:
       special-items:
+      - cobblestone_minion
       - compressed_cobblestone
-      - basic_storage
+      - storage_expander
+      auto-compressed-resources: true
   iron:
     enabled: true
     display-name: <white>Iron Minion</white>
@@ -90,7 +98,8 @@ minion-types:
       display-name: <white>Iron Minion <yellow>Tier <tier></yellow></white>
       lore:
       - <dark_gray>Minion miasta</dark_gray>
-      - '<gray>Generuje: <white>Iron Ingot</white></gray>'
+      - '<gray>Generuje: <white>Ruda żelaza</white></gray>'
+      - <gray>Auto Smelter może przetapiać ją na sztabki.</gray>
       - <gray>Postaw na terenie swojego miasta.</gray>
       custom-model-data: 0
     placement:
@@ -105,8 +114,11 @@ minion-types:
       mode: VIRTUAL
     appearance: cobblestone_default
     menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
     resource-table:
-    - resource: iron
+    - resource: iron_ore
       amount-min: 1
       amount-max: 1
       chance: 1.0
@@ -135,7 +147,46 @@ minion-types:
           collections:
             mining.iron: 320
           items: {}
-    max-tier: 3
+      4:
+        action-time-seconds: 18
+        storage: 256
+        storage-slots: 4
+        upgrade-requirements:
+          collections:
+            mining.iron: 640
+          items: {}
+      5:
+        action-time-seconds: 16
+        storage: 320
+        storage-slots: 5
+        upgrade-requirements:
+          collections:
+            mining.iron: 1280
+          items: {}
+      6:
+        action-time-seconds: 14
+        storage: 384
+        storage-slots: 6
+        upgrade-requirements:
+          collections:
+            mining.iron: 2560
+          items: {}
+    max-tier: 6
+    wiki:
+      special-items:
+      - stone_frame
+      - iron_frame
+      - iron_minion
+      - smelting_furnace
+      - steel_ingot
+      - auto_smelter
+      - compressed_iron
+      auto-compressed-resources: true
+    auto-smelter:
+      enabled: true
+      special-item: auto_smelter
+      replacements:
+        iron_ore: iron
   dirt:
     enabled: true
     display-name: <gold>Dirt Minion</gold>
@@ -161,6 +212,9 @@ minion-types:
       mode: VIRTUAL
     appearance: dirt_default
     menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
     resource-table:
     - resource: dirt
       amount-min: 1
@@ -210,7 +264,9 @@ minion-types:
     max-tier: 5
     wiki:
       special-items:
+      - dirt_minion
       - enchanted_crafting_table
+      auto-compressed-resources: true
   stone:
     enabled: true
     display-name: <gray>Stone Minion</gray>
@@ -236,6 +292,9 @@ minion-types:
       mode: VIRTUAL
     appearance: cobblestone_default
     menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
     resource-table:
     - resource: stone
       amount-min: 1
@@ -290,5 +349,1251 @@ minion-types:
     max-tier: 5
     wiki:
       special-items:
+      - stone_minion
       - compressed_cobblestone
-      - basic_storage
+      - storage_expander
+      - macerator
+      auto-compressed-resources: true
+  oak_plank:
+    enabled: true
+    display-name: <gold>Oak Wood Minion</gold>
+    category: farming
+    item:
+      material: PLAYER_HEAD
+      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19
+      display-name: <gold>Oak Wood Minion <yellow>Tier <tier></yellow></gold>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - '<gray>Generuje: <gold>Drewno dębowe</gold></gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
+      custom-model-data: 0
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: dirt_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+    resource-table:
+    - resource: oak_plank
+      amount-min: 1
+      amount-max: 1
+      chance: 1.0
+    tiers:
+      1:
+        action-time-seconds: 14
+        storage: 64
+        storage-slots: 1
+        upgrade-requirements:
+          collections:
+            foraging.oak_wood: 80
+          items: {}
+      2:
+        action-time-seconds: 13
+        storage: 128
+        storage-slots: 2
+        upgrade-requirements:
+          collections:
+            foraging.oak_wood: 160
+          items: {}
+      3:
+        action-time-seconds: 12
+        storage: 192
+        storage-slots: 3
+        upgrade-requirements:
+          collections:
+            foraging.oak_wood: 320
+          items: {}
+      4:
+        action-time-seconds: 11
+        storage: 256
+        storage-slots: 4
+        upgrade-requirements:
+          collections:
+            foraging.oak_wood: 640
+          items: {}
+      5:
+        action-time-seconds: 10
+        storage: 320
+        storage-slots: 5
+        upgrade-requirements:
+          collections:
+            foraging.oak_wood: 1280
+          items: {}
+    max-tier: 5
+    wiki:
+      special-items:
+      - oak_plank_minion
+      - storage_expander
+      auto-compressed-resources: true
+  coal:
+    enabled: true
+    display-name: <dark_gray>Coal Minion</dark_gray>
+    category: mining
+    item:
+      material: PLAYER_HEAD
+      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19
+      display-name: <dark_gray>Coal Minion <yellow>Tier <tier></yellow></dark_gray>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - '<gray>Generuje: <white>Węgiel</white></gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: cobblestone_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+    resource-table:
+    - resource: coal
+      amount-min: 1
+      amount-max: 1
+      chance: 1.0
+    tiers:
+      1:
+        action-time-seconds: 20
+        storage: 64
+        storage-slots: 1
+        upgrade-requirements:
+          collections:
+            mining.coal: 80
+          items: {}
+      2:
+        action-time-seconds: 18
+        storage: 128
+        storage-slots: 2
+        upgrade-requirements:
+          collections:
+            mining.coal: 160
+          items: {}
+      3:
+        action-time-seconds: 16
+        storage: 192
+        storage-slots: 3
+        upgrade-requirements:
+          collections:
+            mining.coal: 320
+          items: {}
+      4:
+        action-time-seconds: 14
+        storage: 256
+        storage-slots: 4
+        upgrade-requirements:
+          collections:
+            mining.coal: 640
+          items: {}
+      5:
+        action-time-seconds: 12
+        storage: 320
+        storage-slots: 5
+        upgrade-requirements:
+          collections:
+            mining.coal: 1280
+          items: {}
+      6:
+        action-time-seconds: 10
+        storage: 384
+        storage-slots: 6
+        upgrade-requirements:
+          collections:
+            mining.coal: 2560
+          items: {}
+      7:
+        action-time-seconds: 8
+        storage: 448
+        storage-slots: 7
+        upgrade-requirements:
+          collections:
+            mining.coal: 5120
+          items: {}
+    max-tier: 7
+    wiki:
+      special-items:
+      - stone_frame
+      - coal_minion
+      - combustion_fuel
+      - coal_generator
+      auto-compressed-resources: true
+  redstone:
+    enabled: true
+    display-name: <red>Redstone Minion</red>
+    category: mining
+    item:
+      material: PLAYER_HEAD
+      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19
+      display-name: <red>Redstone Minion <yellow>Tier <tier></yellow></red>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - '<gray>Generuje: <red>Redstone</red></gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: cobblestone_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+    resource-table:
+    - resource: redstone
+      amount-min: 1
+      amount-max: 1
+      chance: 1.0
+    tiers:
+      1:
+        action-time-seconds: 20
+        storage: 256
+        storage-slots: 2
+        upgrade-requirements:
+          collections:
+            mining.redstone: 256
+          items: {}
+      2:
+        action-time-seconds: 20
+        storage: 512
+        storage-slots: 3
+        upgrade-requirements:
+          collections:
+            mining.redstone: 512
+          items: {}
+      3:
+        action-time-seconds: 20
+        storage: 768
+        storage-slots: 4
+        upgrade-requirements:
+          collections:
+            mining.redstone: 1024
+          items: {}
+      4:
+        action-time-seconds: 20
+        storage: 1024
+        storage-slots: 5
+        upgrade-requirements:
+          collections:
+            mining.redstone: 2048
+          items: {}
+      5:
+        action-time-seconds: 20
+        storage: 1280
+        storage-slots: 6
+        upgrade-requirements:
+          collections:
+            mining.redstone: 4096
+          items: {}
+    max-tier: 5
+    wiki:
+      special-items:
+      - advanced_redstone
+      - technical_block
+      - redstone_minion
+      auto-compressed-resources: true
+  uranium:
+    enabled: true
+    display-name: <#32CD32>Uranium Minion</#32CD32>
+    category: mining
+    item:
+      material: PLAYER_HEAD
+      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19
+      display-name: <#32CD32>Uranium Minion <yellow>Tier <tier></yellow></#32CD32>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - '<gray>Generuje: <#32CD32>Uran</#32CD32></gray>'
+      - <yellow>Skafander przeciw promieniowaniu.</yellow>
+      - <gray>Postaw na terenie swojego miasta.</gray>
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: uranium_hazmat
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+    resource-table:
+    - resource: uranium
+      amount-min: 1
+      amount-max: 1
+      chance: 1.0
+    tiers:
+      1:
+        action-time-seconds: 900
+        storage: 64
+        storage-slots: 1
+        upgrade-requirements:
+          collections:
+            mining.uranium: 16
+          items: {}
+      2:
+        action-time-seconds: 870
+        storage: 96
+        storage-slots: 2
+        upgrade-requirements:
+          collections:
+            mining.uranium: 32
+          items: {}
+      3:
+        action-time-seconds: 840
+        storage: 128
+        storage-slots: 3
+        upgrade-requirements:
+          collections:
+            mining.uranium: 64
+          items: {}
+      4:
+        action-time-seconds: 810
+        storage: 160
+        storage-slots: 4
+        upgrade-requirements:
+          collections:
+            mining.uranium: 128
+          items: {}
+      5:
+        action-time-seconds: 780
+        storage: 192
+        storage-slots: 5
+        upgrade-requirements:
+          collections:
+            mining.uranium: 256
+          items: {}
+      6:
+        action-time-seconds: 750
+        storage: 224
+        storage-slots: 6
+        upgrade-requirements:
+          collections:
+            mining.uranium: 512
+          items: {}
+    max-tier: 6
+    wiki:
+      special-items:
+      - uranium_block
+      - uranium_enricher
+      - enriched_uranium
+      - iron_uranium_chest
+      auto-compressed-resources: true
+  gold:
+    enabled: true
+    display-name: <gold>Złoty Golem</gold>
+    category: mining
+    item:
+      material: PLAYER_HEAD
+      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19
+      display-name: <gold>Złoty Golem</gold> <yellow>Tier <tier></yellow>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - '<gray>Generuje: <gold>Ruda złota</gold></gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: cobblestone_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+    resource-table:
+    - resource: gold_ore
+      amount-min: 1
+      amount-max: 1
+      chance: 1.0
+    tiers:
+      1:
+        action-time-seconds: 60
+        storage: 64
+        storage-slots: 1
+        upgrade-requirements:
+          collections:
+            mining.gold: 80
+          items: {}
+      2:
+        action-time-seconds: 60
+        storage: 128
+        storage-slots: 2
+        upgrade-requirements:
+          collections:
+            mining.gold: 160
+          items: {}
+      3:
+        action-time-seconds: 60
+        storage: 192
+        storage-slots: 3
+        upgrade-requirements:
+          collections:
+            mining.gold: 320
+          items: {}
+      4:
+        action-time-seconds: 60
+        storage: 256
+        storage-slots: 4
+        upgrade-requirements:
+          collections:
+            mining.gold: 640
+          items: {}
+      5:
+        action-time-seconds: 60
+        storage: 320
+        storage-slots: 5
+        upgrade-requirements:
+          collections:
+            mining.gold: 1280
+          items: {}
+      6:
+        action-time-seconds: 60
+        storage: 384
+        storage-slots: 6
+        upgrade-requirements:
+          collections:
+            mining.gold: 2560
+          items: {}
+    max-tier: 6
+    wiki:
+      special-items:
+      - auto_smelter
+      - compressed_gold
+      - technical_block
+      - gold_minion
+      auto-compressed-resources: true
+    auto-smelter:
+      enabled: true
+      special-item: auto_smelter
+      replacements:
+        gold_ore: gold
+  obsidian:
+    enabled: true
+    display-name: <dark_purple>Obsidian Minion</dark_purple>
+    category: mining
+    item:
+      material: PLAYER_HEAD
+      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19
+      display-name: <dark_purple>Obsidian Minion</dark_purple> <yellow>Tier <tier></yellow>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - '<gray>Generuje: <dark_purple>Obsydian</dark_purple></gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: cobblestone_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+    resource-table:
+    - resource: obsidian
+      amount-min: 1
+      amount-max: 1
+      chance: 1.0
+    tiers:
+      1:
+        action-time-seconds: 90
+        storage: 64
+        storage-slots: 1
+        upgrade-requirements:
+          collections:
+            mining.obsidian: 80
+          items: {}
+      2:
+        action-time-seconds: 90
+        storage: 128
+        storage-slots: 2
+        upgrade-requirements:
+          collections:
+            mining.obsidian: 160
+          items: {}
+      3:
+        action-time-seconds: 90
+        storage: 192
+        storage-slots: 3
+        upgrade-requirements:
+          collections:
+            mining.obsidian: 320
+          items: {}
+      4:
+        action-time-seconds: 90
+        storage: 256
+        storage-slots: 4
+        upgrade-requirements:
+          collections:
+            mining.obsidian: 640
+          items: {}
+      5:
+        action-time-seconds: 90
+        storage: 320
+        storage-slots: 5
+        upgrade-requirements:
+          collections:
+            mining.obsidian: 1280
+          items: {}
+      6:
+        action-time-seconds: 90
+        storage: 384
+        storage-slots: 6
+        upgrade-requirements:
+          collections:
+            mining.obsidian: 2560
+          items: {}
+      7:
+        action-time-seconds: 90
+        storage: 448
+        storage-slots: 7
+        upgrade-requirements:
+          collections:
+            mining.obsidian: 5120
+          items: {}
+    max-tier: 7
+    wiki:
+      special-items:
+      - technical_block
+      - obsidian_minion
+      - compressor
+      - compressed_obsidian
+      - super_compressed_obsidian
+      - graphite
+      - graphene
+      auto-compressed-resources: true
+  diamond:
+    enabled: true
+    display-name: <aqua>Diamond Minion</aqua>
+    category: mining
+    item:
+      material: PLAYER_HEAD
+      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19
+      display-name: <aqua>Diamond Minion</aqua> <yellow>Tier <tier></yellow>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - '<gray>Generuje: <aqua>Diament</aqua></gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: cobblestone_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+    resource-table:
+    - resource: diamond
+      amount-min: 1
+      amount-max: 1
+      chance: 1.0
+    tiers:
+      1:
+        action-time-seconds: 45
+        storage: 64
+        storage-slots: 1
+        upgrade-requirements:
+          collections:
+            mining_diamond: 80
+          items: {}
+      2:
+        action-time-seconds: 40
+        storage: 128
+        storage-slots: 2
+        upgrade-requirements:
+          collections:
+            mining_diamond: 160
+          items: {}
+      3:
+        action-time-seconds: 35
+        storage: 192
+        storage-slots: 3
+        upgrade-requirements:
+          collections:
+            mining_diamond: 320
+          items: {}
+      4:
+        action-time-seconds: 30
+        storage: 256
+        storage-slots: 4
+        upgrade-requirements:
+          collections:
+            mining_diamond: 640
+          items: {}
+      5:
+        action-time-seconds: 25
+        storage: 320
+        storage-slots: 5
+        upgrade-requirements:
+          collections:
+            mining_diamond: 1280
+          items: {}
+    max-tier: 5
+    wiki:
+      special-items:
+      - compressed_diamond
+      auto-compressed-resources: true
+  netherite:
+    enabled: true
+    display-name: <dark_gray>Netherite Minion</dark_gray>
+    category: mining
+    item:
+      material: PLAYER_HEAD
+      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19
+      display-name: <dark_gray>Netherite Minion</dark_gray> <yellow>Tier <tier></yellow>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - '<gray>Generuje: <dark_gray>Netherite Scrap</dark_gray></gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: cobblestone_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+    resource-table:
+    - resource: netherite
+      amount-min: 1
+      amount-max: 1
+      chance: 1.0
+    tiers:
+      1:
+        action-time-seconds: 180
+        storage: 64
+        storage-slots: 1
+        upgrade-requirements:
+          collections:
+            mining.netherite: 80
+          items: {}
+      2:
+        action-time-seconds: 165
+        storage: 128
+        storage-slots: 2
+        upgrade-requirements:
+          collections:
+            mining.netherite: 160
+          items: {}
+      3:
+        action-time-seconds: 150
+        storage: 192
+        storage-slots: 3
+        upgrade-requirements:
+          collections:
+            mining.netherite: 320
+          items: {}
+      4:
+        action-time-seconds: 135
+        storage: 256
+        storage-slots: 4
+        upgrade-requirements:
+          collections:
+            mining.netherite: 640
+          items: {}
+      5:
+        action-time-seconds: 120
+        storage: 320
+        storage-slots: 5
+        upgrade-requirements:
+          collections:
+            mining.netherite: 1280
+          items: {}
+    max-tier: 5
+    wiki:
+      special-items:
+      - auto_smelter
+      auto-compressed-resources: true
+  zombie:
+    enabled: true
+    display-name: <dark_green>Zombie Minion</dark_green>
+    category: combat
+    drop-selection-mode: WEIGHTED_ONE
+    item:
+      material: ZOMBIE_HEAD
+      display-name: <dark_green>Zombie Minion <yellow>Tier <tier></yellow></dark_green>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - <gray>Symuluje zabijanie zombie i generuje łupy.</gray>
+      - '<gray>Generacja: <white>raz na 20 sekund</white></gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
+      custom-model-data: 0
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: zombie_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+    resource-table:
+    - resource: golden_carrot
+      amount-min: 1
+      amount-max: 1
+      chance: 0.001
+      special-drop: true
+    - resource: potato
+      amount-min: 1
+      amount-max: 1
+      chance: 0.002
+      special-drop: true
+    - resource: carrot
+      amount-min: 1
+      amount-max: 1
+      chance: 0.002
+      special-drop: true
+    - resource: feather
+      amount-min: 1
+      amount-max: 1
+      chance: 0.01
+      special-drop: true
+    - resource: experience_bottle
+      amount-min: 1
+      amount-max: 1
+      chance: 0.02
+    - resource: rotten_flesh
+      amount-min: 1
+      amount-max: 1
+      chance: 0.965
+    tiers:
+      1:
+        action-time-seconds: 20
+        storage: 64
+        storage-slots: 1
+        upgrade-requirements:
+          collections:
+            mobs.zombie: 25
+          items: {}
+      2:
+        action-time-seconds: 20
+        storage: 128
+        storage-slots: 2
+        upgrade-requirements:
+          collections:
+            mobs.zombie: 100
+          items: {}
+      3:
+        action-time-seconds: 20
+        storage: 192
+        storage-slots: 3
+        upgrade-requirements:
+          collections:
+            mobs.zombie: 250
+          items: {}
+      4:
+        action-time-seconds: 20
+        storage: 256
+        storage-slots: 4
+        upgrade-requirements:
+          collections:
+            mobs.zombie: 500
+          items: {}
+      5:
+        action-time-seconds: 20
+        storage: 320
+        storage-slots: 5
+        upgrade-requirements:
+          collections:
+            mobs.zombie: 1000
+          items: {}
+    max-tier: 5
+    wiki:
+      special-items: []
+      auto-compressed-resources: false
+  skeleton:
+    enabled: true
+    display-name: <gray>Szkielet Minion</gray>
+    category: combat
+    drop-selection-mode: WEIGHTED_ONE
+    item:
+      material: SKELETON_SKULL
+      display-name: <gray>Szkielet Minion <yellow>Tier <tier></yellow></gray>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - <gray>Symuluje zabijanie szkieletów i generuje łupy.</gray>
+      - '<gray>Generacja: <white>raz na 60 sekund</white></gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
+      custom-model-data: 0
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: skeleton_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+    resource-table:
+    - resource: bow
+      amount-min: 1
+      amount-max: 1
+      chance: 0.002
+      special-drop: true
+    - resource: arrow
+      amount-min: 1
+      amount-max: 1
+      chance: 0.4
+    - resource: bone
+      amount-min: 1
+      amount-max: 1
+      chance: 0.2
+    - resource: experience_bottle
+      amount-min: 1
+      amount-max: 1
+      chance: 0.1
+    - resource: bone_meal
+      amount-min: 1
+      amount-max: 1
+      chance: 0.298
+    tiers:
+      1:
+        action-time-seconds: 60
+        storage: 64
+        storage-slots: 1
+        upgrade-requirements:
+          collections:
+            mobs.skeleton: 25
+          items: {}
+      2:
+        action-time-seconds: 60
+        storage: 128
+        storage-slots: 2
+        upgrade-requirements:
+          collections:
+            mobs.skeleton: 100
+          items: {}
+      3:
+        action-time-seconds: 60
+        storage: 192
+        storage-slots: 3
+        upgrade-requirements:
+          collections:
+            mobs.skeleton: 250
+          items: {}
+      4:
+        action-time-seconds: 60
+        storage: 256
+        storage-slots: 4
+        upgrade-requirements:
+          collections:
+            mobs.skeleton: 500
+          items: {}
+      5:
+        action-time-seconds: 60
+        storage: 320
+        storage-slots: 5
+        upgrade-requirements:
+          collections:
+            mobs.skeleton: 1000
+          items: {}
+    max-tier: 5
+    wiki:
+      special-items: []
+      auto-compressed-resources: false
+  spider:
+    enabled: true
+    display-name: <dark_red>Pająk Minion</dark_red>
+    category: combat
+    drop-selection-mode: WEIGHTED_ONE
+    item:
+      material: PLAYER_HEAD
+      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19
+      display-name: <dark_red>Pająk Minion <yellow>Tier <tier></yellow></dark_red>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - <gray>Symuluje zabijanie pająków i generuje łupy.</gray>
+      - '<gray>Generacja: <white>raz na 60 sekund</white></gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
+      custom-model-data: 0
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: spider_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+    resource-table:
+    - resource: spider_eye
+      amount-min: 1
+      amount-max: 1
+      chance: 0.1
+    - resource: experience_bottle
+      amount-min: 1
+      amount-max: 1
+      chance: 0.1
+    - resource: string
+      amount-min: 1
+      amount-max: 1
+      chance: 0.8
+    tiers:
+      1:
+        action-time-seconds: 60
+        storage: 64
+        storage-slots: 1
+        upgrade-requirements:
+          collections:
+            mobs.spider: 25
+          items: {}
+      2:
+        action-time-seconds: 60
+        storage: 128
+        storage-slots: 2
+        upgrade-requirements:
+          collections:
+            mobs.spider: 100
+          items: {}
+      3:
+        action-time-seconds: 60
+        storage: 192
+        storage-slots: 3
+        upgrade-requirements:
+          collections:
+            mobs.spider: 250
+          items: {}
+      4:
+        action-time-seconds: 60
+        storage: 256
+        storage-slots: 4
+        upgrade-requirements:
+          collections:
+            mobs.spider: 500
+          items: {}
+      5:
+        action-time-seconds: 60
+        storage: 320
+        storage-slots: 5
+        upgrade-requirements:
+          collections:
+            mobs.spider: 1000
+          items: {}
+    max-tier: 5
+    wiki:
+      special-items: []
+      auto-compressed-resources: false
+  silverfish:
+    enabled: true
+    display-name: <gray>Silverfish Minion</gray>
+    category: combat
+    drop-selection-mode: WEIGHTED_ONE
+    item:
+      material: PLAYER_HEAD
+      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19
+      display-name: <gray>Silverfish Minion <yellow>Tier <tier></yellow></gray>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - <gray>Symuluje zabijanie silverfishy i generuje doświadczenie.</gray>
+      - '<gray>Generacja: <white>raz na 360 sekund</white></gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
+      custom-model-data: 0
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: silverfish_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+    resource-table:
+    - resource: experience_bottle
+      amount-min: 1
+      amount-max: 1
+      chance: 1.0
+    tiers:
+      1:
+        action-time-seconds: 360
+        storage: 64
+        storage-slots: 1
+        upgrade-requirements:
+          collections:
+            mobs.silverfish: 25
+          items: {}
+      2:
+        action-time-seconds: 360
+        storage: 128
+        storage-slots: 2
+        upgrade-requirements:
+          collections:
+            mobs.silverfish: 100
+          items: {}
+      3:
+        action-time-seconds: 360
+        storage: 192
+        storage-slots: 3
+        upgrade-requirements:
+          collections:
+            mobs.silverfish: 250
+          items: {}
+      4:
+        action-time-seconds: 360
+        storage: 256
+        storage-slots: 4
+        upgrade-requirements:
+          collections:
+            mobs.silverfish: 500
+          items: {}
+      5:
+        action-time-seconds: 360
+        storage: 320
+        storage-slots: 5
+        upgrade-requirements:
+          collections:
+            mobs.silverfish: 1000
+          items: {}
+    max-tier: 5
+    wiki:
+      special-items: []
+      auto-compressed-resources: false
+  spruce_wood:
+    enabled: true
+    display-name: <dark_green>Spruce Wood Minion</dark_green>
+    category: foraging
+    item:
+      material: PLAYER_HEAD
+      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19
+      display-name: <dark_green>Spruce Wood Minion <yellow>Tier <tier></yellow></dark_green>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - '<gray>Generuje: <dark_green>Drewno świerkowe</dark_green></gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
+      custom-model-data: 0
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: dirt_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+    resource-table:
+    - resource: spruce_wood
+      amount-min: 1
+      amount-max: 1
+      chance: 1.0
+    tiers:
+      1:
+        action-time-seconds: 14
+        storage: 64
+        storage-slots: 1
+        upgrade-requirements:
+          collections:
+            foraging.spruce_wood: 80
+          items: {}
+      2:
+        action-time-seconds: 13
+        storage: 128
+        storage-slots: 2
+        upgrade-requirements:
+          collections:
+            foraging.spruce_wood: 160
+          items: {}
+      3:
+        action-time-seconds: 12
+        storage: 192
+        storage-slots: 3
+        upgrade-requirements:
+          collections:
+            foraging.spruce_wood: 320
+          items: {}
+      4:
+        action-time-seconds: 11
+        storage: 256
+        storage-slots: 4
+        upgrade-requirements:
+          collections:
+            foraging.spruce_wood: 640
+          items: {}
+      5:
+        action-time-seconds: 10
+        storage: 320
+        storage-slots: 5
+        upgrade-requirements:
+          collections:
+            foraging.spruce_wood: 1280
+          items: {}
+    max-tier: 5
+    wiki:
+      special-items:
+      - spruce_wood_minion
+      auto-compressed-resources: true
+  copper:
+    enabled: true
+    display-name: <color:#b87333>Miedziany Golem</color>
+    category: mining
+    item:
+      material: PLAYER_HEAD
+      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19
+      display-name: <color:#b87333>Miedziany Golem <yellow>Tier <tier></yellow></color>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - '<gray>Generuje: <color:#b87333>Miedź</color></gray>'
+      - '<gray>Ma bardzo rzadki specjalny drop: <light_purple>Rzadkie pierwiastki</light_purple>.</gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
+      custom-model-data: 0
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: cobblestone_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+    drop-selection-mode: WEIGHTED_ONE
+    resource-table:
+    - resource: rare_elements
+      amount-min: 1
+      amount-max: 1
+      chance: 5.0e-05
+      special-drop: true
+      special-drop-scaling:
+        per-tier-bonus: 2.0e-05
+        upgrade-bonus: 0.0001
+    - resource: copper
+      amount-min: 1
+      amount-max: 1
+      chance: 0.99995
+    tiers:
+      1:
+        action-time-seconds: 30
+        storage: 64
+        storage-slots: 1
+        upgrade-requirements:
+          collections:
+            mining.copper: 80
+          items: {}
+      2:
+        action-time-seconds: 28
+        storage: 128
+        storage-slots: 2
+        upgrade-requirements:
+          collections:
+            mining.copper: 160
+          items: {}
+      3:
+        action-time-seconds: 26
+        storage: 192
+        storage-slots: 3
+        upgrade-requirements:
+          collections:
+            mining.copper: 320
+          items: {}
+      4:
+        action-time-seconds: 24
+        storage: 256
+        storage-slots: 4
+        upgrade-requirements:
+          collections:
+            mining.copper: 640
+          items: {}
+      5:
+        action-time-seconds: 22
+        storage: 320
+        storage-slots: 5
+        upgrade-requirements:
+          collections:
+            mining.copper: 1280
+          items: {}
+      6:
+        action-time-seconds: 20
+        storage: 384
+        storage-slots: 6
+        upgrade-requirements:
+          collections:
+            mining.copper: 2560
+          items: {}
+    max-tier: 6
+    wiki:
+      special-items:
+      - copper_minion
+      - rare_elements
+      - iron_frame
+      - stone_frame
+      auto-compressed-resources: true

@@ -11,6 +11,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
+import org.bukkit.Chunk;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -51,6 +52,9 @@ public final class MinionRenderer {
         despawn(minion.id());
         World world = Bukkit.getWorld(minion.location().world());
         if (world == null) return;
+        Chunk chunk = world.getChunkAt(minion.location().x() >> 4, minion.location().z() >> 4);
+        if (!chunk.isLoaded()) chunk.load(true);
+        cleanupExistingParts(world, minion.id());
         AppearanceDefinition appearance = definitions.appearance(type.appearanceId());
         Location base = toBukkit(minion.location()).add(0.5, 0.0, 0.5);
         ArmorStand stand = (ArmorStand) world.spawnEntity(base, EntityType.ARMOR_STAND);
@@ -61,7 +65,7 @@ public final class MinionRenderer {
         stand.setArms(appearance.arms());
         stand.setMarker(appearance.marker());
         stand.setCanPickupItems(false);
-        stand.setPersistent(false);
+        stand.setPersistent(true);
         applyEquipment(stand, appearance, type);
         if (appearance.equipmentLocked()) {
             for (EquipmentSlot slot : EquipmentSlot.values()) {
@@ -74,7 +78,7 @@ public final class MinionRenderer {
         TextDisplay label = (TextDisplay) world.spawnEntity(base.clone().add(0, appearance.labelOffsetY(), 0), EntityType.TEXT_DISPLAY);
         label.text(labelText(minion, type));
         label.setBillboard(TextDisplay.Billboard.CENTER);
-        label.setPersistent(false);
+        label.setPersistent(true);
         mark(label, minion.id(), "label");
 
         entityIdsByMinion.computeIfAbsent(minion.id(), ignored -> ConcurrentHashMap.newKeySet()).add(stand.getUniqueId());
@@ -107,6 +111,18 @@ public final class MinionRenderer {
         }
     }
 
+
+    private void cleanupExistingParts(World world, UUID minionId) {
+        String idText = minionId.toString();
+        for (Entity entity : world.getEntities()) {
+            String storedId = entity.getPersistentDataContainer().get(minionIdKey, PersistentDataType.STRING);
+            if (idText.equals(storedId)) {
+                entity.remove();
+            }
+        }
+        entityIdsByMinion.remove(minionId);
+    }
+
     private void mark(Entity entity, UUID minionId, String partId) {
         entity.getPersistentDataContainer().set(minionIdKey, PersistentDataType.STRING, minionId.toString());
         entity.getPersistentDataContainer().set(partIdKey, PersistentDataType.STRING, partId);
@@ -114,14 +130,52 @@ public final class MinionRenderer {
 
     private net.kyori.adventure.text.Component labelText(MinionInstance minion, MinionTypeDefinition type) {
         int percent = minion.storageLimit() <= 0 ? 0 : (int) Math.min(100, Math.round(minion.storageUsed() * 100.0 / minion.storageLimit()));
+        String tierLabel = tierLabel(minion.tier());
+        String tierNumber = tierNumber(minion.tier());
         String text = definitions.appearance(type.appearanceId()).labelText()
                 .replace("<name>", type.displayName())
-                .replace("<tier>", String.valueOf(minion.tier()))
+                .replace("Tier <tier>", tierLabel)
+                .replace("<tier_label>", tierLabel)
+                .replace("<tier>", tierNumber)
                 .replace("<storage_used>", String.valueOf(minion.storageUsed()))
                 .replace("<storage_limit>", String.valueOf(minion.storageLimit()))
                 .replace("<storage_percent>", String.valueOf(percent))
                 .replace("<storage_bar>", "<gray>Storage: <white>" + percent + "%</white></gray>");
         return miniMessage.deserialize(text);
+    }
+
+    private String tierLabel(int tier) {
+        return tierColor(tier) + "Tier " + tier + "</" + tierColorName(tier) + ">";
+    }
+
+    private String tierNumber(int tier) {
+        return tierColor(tier) + tier + "</" + tierColorName(tier) + ">";
+    }
+
+    private String tierColor(int tier) {
+        return switch (tier) {
+            case 1 -> "<gray>";
+            case 2 -> "<white>";
+            case 3 -> "<aqua>";
+            case 4 -> "<dark_green>";
+            case 5 -> "<green>";
+            case 6 -> "<gold>";
+            case 7 -> "<dark_red>";
+            default -> "<gray>";
+        };
+    }
+
+    private String tierColorName(int tier) {
+        return switch (tier) {
+            case 1 -> "gray";
+            case 2 -> "white";
+            case 3 -> "aqua";
+            case 4 -> "dark_green";
+            case 5 -> "green";
+            case 6 -> "gold";
+            case 7 -> "dark_red";
+            default -> "gray";
+        };
     }
 
     private void applyEquipment(ArmorStand stand, AppearanceDefinition appearance, MinionTypeDefinition type) {

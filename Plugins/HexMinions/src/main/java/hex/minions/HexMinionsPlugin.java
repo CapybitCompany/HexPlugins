@@ -1,6 +1,7 @@
 package hex.minions;
 
 import hex.core.api.HexApi;
+import hex.collections.api.HexCollectionsApi;
 import hex.minions.api.MinionsApi;
 import hex.minions.command.MinionCommand;
 import hex.minions.config.DefinitionLoader;
@@ -9,9 +10,13 @@ import hex.minions.config.MinionsConfig;
 import hex.minions.config.StorageChestRegistry;
 import hex.minions.crafting.SpecialItemRegistry;
 import hex.minions.listener.SpecialCraftingListener;
+import hex.minions.listener.MachineListener;
+import hex.minions.machine.MachineService;
+import hex.minions.listener.RadiationListener;
 import hex.minions.database.MinionRepository;
 import hex.minions.listener.MinionInteractionListener;
 import hex.minions.listener.MinionMenuListener;
+import hex.minions.listener.MinionWorldListener;
 import hex.minions.listener.TownLifecycleListener;
 import hex.minions.menu.MinionMenu;
 import hex.minions.placeholder.MinionsPlaceholderExpansion;
@@ -31,6 +36,7 @@ public final class HexMinionsPlugin extends JavaPlugin {
     private HexApi hex;
     private MinionService service;
     private MinionRenderer renderer;
+    private MachineService machineService;
     private MinionsApi api;
     private MinionsPlaceholderExpansion placeholderExpansion;
 
@@ -45,6 +51,7 @@ public final class HexMinionsPlugin extends JavaPlugin {
         saveResourceIfMissing("limits.yml");
         saveResourceIfMissing("storage-chests.yml");
         saveResourceIfMissing("special-items.yml");
+        saveResourceIfMissing("machines.yml");
 
         var hexReg = Bukkit.getServicesManager().getRegistration(HexApi.class);
         if (hexReg == null) {
@@ -62,7 +69,7 @@ public final class HexMinionsPlugin extends JavaPlugin {
         }
         TownsApi towns = townsReg.getProvider();
 
-        Object collections = findCollectionsApi();
+        HexCollectionsApi collections = findCollectionsApi();
         if (collections == null) {
             getLogger().severe("HexCollections API not found; disabling HexMinions.");
             getServer().getPluginManager().disablePlugin(this);
@@ -78,9 +85,11 @@ public final class HexMinionsPlugin extends JavaPlugin {
         SpecialItemRegistry specialItems = SpecialItemRegistry.load(this);
         MinionItemFactory itemFactory = new MinionItemFactory(this);
         storageChests.registerRecipes(this, itemFactory);
-        specialItems.registerVanillaRecipes(itemFactory, storageChests);
+        specialItems.registerVanillaRecipes(itemFactory, storageChests, definitions);
         this.renderer = new MinionRenderer(this, definitions);
         this.service = new MinionService(this, hex, towns, collections, repository, renderer, itemFactory, config, definitions, storageChests, specialItems);
+        this.machineService = new MachineService(this, hex, service);
+        this.machineService.start();
         this.api = new MinionsApiImpl(service);
 
         Bukkit.getServicesManager().register(MinionsApi.class, api, this, ServicePriority.Normal);
@@ -98,7 +107,10 @@ public final class HexMinionsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new MinionInteractionListener(this, hex, service, itemFactory, renderer, menu), this);
         getServer().getPluginManager().registerEvents(new MinionMenuListener(this, hex, service, menu), this);
         getServer().getPluginManager().registerEvents(new SpecialCraftingListener(this, hex, towns, service, menu), this);
-        getServer().getPluginManager().registerEvents(new TownLifecycleListener(service), this);
+        getServer().getPluginManager().registerEvents(new MachineListener(this, hex, towns, machineService), this);
+        getServer().getPluginManager().registerEvents(new RadiationListener(this, service), this);
+        getServer().getPluginManager().registerEvents(new TownLifecycleListener(service, machineService), this);
+        getServer().getPluginManager().registerEvents(new MinionWorldListener(this, service), this);
 
         hex.db().async(() -> {
             repository.ensureTables();
@@ -123,6 +135,7 @@ public final class HexMinionsPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (machineService != null) machineService.shutdown();
         if (service != null) service.stopTasks();
         if (renderer != null) renderer.shutdown();
         if (placeholderExpansion != null) {
@@ -159,7 +172,7 @@ public final class HexMinionsPlugin extends JavaPlugin {
         SpecialItemRegistry specialItems = SpecialItemRegistry.load(this);
         MinionItemFactory factory = new MinionItemFactory(this);
         storageChests.registerRecipes(this, factory);
-        specialItems.registerVanillaRecipes(factory, storageChests);
+        specialItems.registerVanillaRecipes(factory, storageChests, definitions);
         renderer.reload(definitions);
         service.reload(MinionsConfig.load(getConfig()), definitions, storageChests, specialItems);
     }
@@ -202,6 +215,7 @@ public final class HexMinionsPlugin extends JavaPlugin {
                     Map.entry("special-crafting.error.locked", "<red>Nie spelniasz wymagan tej receptury.</red>"),
                     Map.entry("special-crafting.error.no-match", "<red>Nie wykryto poprawnej receptury.</red>"),
                     Map.entry("special-crafting.error.place-town", "<red>Ten blok mozesz postawic tylko na terenie swojego miasta.</red>"),
+                    Map.entry("special-crafting.error.not-placeable", "<red>Tego specjalnego itemu nie mozna polozyc jako zwyklego bloku.</red>"),
                     Map.entry("move.success", "<green>Przeniesiono miniona <white><id></white>.</green>"),
                     Map.entry("move.error.disabled", "<red>Przenoszenie minionow jest wylaczone.</red>"),
                     Map.entry("move.error.not-same-town", "<red>Miniona mozna przeniesc tylko w obrebie tego samego miasta.</red>"),
@@ -225,15 +239,9 @@ public final class HexMinionsPlugin extends JavaPlugin {
         return t.getMessage() == null ? t.getClass().getSimpleName() : t.getMessage();
     }
 
-    private Object findCollectionsApi() {
-        try {
-            Class<?> apiClass = Class.forName("hex.collections.api.HexCollectionsApi");
-            var registration = Bukkit.getServicesManager().getRegistration(apiClass);
-            return registration == null ? null : registration.getProvider();
-        } catch (Throwable throwable) {
-            getLogger().warning("Could not access HexCollections API: " + throwable.getMessage());
-            return null;
-        }
+    private HexCollectionsApi findCollectionsApi() {
+        var registration = Bukkit.getServicesManager().getRegistration(HexCollectionsApi.class);
+        return registration == null ? null : registration.getProvider();
     }
 }
 

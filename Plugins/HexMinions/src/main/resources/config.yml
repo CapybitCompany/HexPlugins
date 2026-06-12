@@ -36,6 +36,8 @@ minions:
     storage-lazy-load: true
     offline:
       enabled: true
+      # Produkcja offline jest rozliczana przy starcie pluginu, wejściu chunka z minionem
+      # oraz otwarciu menu miniona. Nie wymaga stale załadowanego chunka.
       max-hours: 24
       max-actions-per-minion: 10000
 
@@ -49,6 +51,14 @@ minions:
     protect-armor-stands: true
     remove-orphan-entities-on-startup: true
     audit-log: true
+
+
+  machines:
+    persistence:
+      # Runtime maszyn zapisuje się teraz do DB w batchach, nie do jednego dużego YAML-a.
+      # Przy dużej liczbie maszyn zapisujemy tylko zmienione rekordy.
+      flush-interval-ticks: 200
+      max-rows-per-flush: 500
 
   database:
     write-behind: true

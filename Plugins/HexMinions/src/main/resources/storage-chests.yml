@@ -67,3 +67,19 @@ storage-chests:
       ingredients:
         D: DIAMOND
         C: CHEST
+
+  iron_uranium:
+    enabled: true
+    slots: 5
+    item:
+      material: CHEST
+      custom-model-data: 12103
+      display-name: "<white>Żelazna skrzynka radioaktywna</white>"
+      lore:
+        - "<gray>Storage dla uranu i wzbogaconego uranu.</gray>"
+        - "<gray>Sloty storage: <white>5</white></gray>"
+        - "<gray>Wzbogacony uran stackuje się docelowo do 16.</gray>"
+    recipe:
+      enabled: false
+      shape: []
+      ingredients: {}

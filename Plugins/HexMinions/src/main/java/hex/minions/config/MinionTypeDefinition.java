@@ -19,9 +19,12 @@ public record MinionTypeDefinition(
         String appearanceId,
         String menuId,
         List<ResourceDrop> resourceTable,
+        String dropSelectionMode,
         Map<Integer, TierDefinition> tiers,
         int maxTier,
-        List<String> wikiSpecialItems
+        List<String> wikiSpecialItems,
+        List<Integer> supportedBoosterTiers,
+        AutoSmelterDefinition autoSmelter
 ) {
     public TierDefinition tier(int tier) {
         return tiers.getOrDefault(tier, tiers.get(1));

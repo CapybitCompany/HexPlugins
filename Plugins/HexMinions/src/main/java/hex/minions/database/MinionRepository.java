@@ -163,6 +163,19 @@ public final class MinionRepository {
         db.update("UPDATE " + db.t("minions") + " SET tier=?, state=?, storage_limit=?, storage_used=?, last_action_at=?, next_action_at=?, updated_at=? WHERE id=?",
                 minion.tier(), minion.state().name(), minion.storageLimit(), minion.storageUsed(), minion.lastActionAt(), minion.nextActionAt(), System.currentTimeMillis(), UuidBytes.toBytes(minion.id()));
     }
+    public void updateRuntimeBatch(java.util.Collection<MinionInstance> minions) {
+        if (minions == null || minions.isEmpty()) return;
+        long now = System.currentTimeMillis();
+        List<Object[]> batch = new ArrayList<>();
+        for (MinionInstance minion : minions) {
+            if (minion == null) continue;
+            batch.add(new Object[]{minion.tier(), minion.state().name(), minion.storageLimit(), minion.storageUsed(), minion.lastActionAt(), minion.nextActionAt(), now, UuidBytes.toBytes(minion.id())});
+        }
+        if (!batch.isEmpty()) {
+            db.batch("UPDATE " + db.t("minions") + " SET tier=?, state=?, storage_limit=?, storage_used=?, last_action_at=?, next_action_at=?, updated_at=? WHERE id=?", batch);
+        }
+    }
+
 
     public void upsertStorage(UUID minionId, Map<String, Long> storage) {
         if (storage.isEmpty()) {
@@ -183,6 +196,26 @@ public final class MinionRepository {
         });
     }
 
+    public void upsertStorageBatch(java.util.Collection<MinionInstance> minions) {
+        if (minions == null || minions.isEmpty()) return;
+        db.tx(tx -> {
+            List<Object[]> deletes = new ArrayList<>();
+            List<Object[]> inserts = new ArrayList<>();
+            long now = System.currentTimeMillis();
+            for (MinionInstance minion : minions) {
+                if (minion == null) continue;
+                byte[] id = UuidBytes.toBytes(minion.id());
+                deletes.add(new Object[]{id});
+                for (Map.Entry<String, Long> entry : minion.storage().entrySet()) {
+                    if (entry.getValue() > 0) inserts.add(new Object[]{id, entry.getKey(), entry.getValue(), now});
+                }
+            }
+            if (!deletes.isEmpty()) tx.batch("DELETE FROM " + tx.t("minion_storage") + " WHERE minion_id=?", deletes);
+            if (!inserts.isEmpty()) tx.batch("INSERT INTO " + tx.t("minion_storage") + " (minion_id, resource_id, amount, updated_at) VALUES (?, ?, ?, ?)", inserts);
+            return null;
+        });
+    }
+
     public void upsertAddonItems(UUID minionId, Map<String, ItemStack> addonItems) {
         db.tx(tx -> {
             tx.update("DELETE FROM " + tx.t("minion_upgrades") + " WHERE minion_id=? AND upgrade_id='MENU_ITEM'", UuidBytes.toBytes(minionId));
@@ -196,6 +229,28 @@ public final class MinionRepository {
             if (!batch.isEmpty()) {
                 tx.batch("INSERT INTO " + tx.t("minion_upgrades") + " (minion_id, slot, upgrade_id, level, data_json, installed_at) VALUES (?, ?, ?, ?, ?, ?)", batch);
             }
+            return null;
+        });
+    }
+
+    public void upsertAddonItemsBatch(java.util.Collection<MinionInstance> minions) {
+        if (minions == null || minions.isEmpty()) return;
+        db.tx(tx -> {
+            List<Object[]> deletes = new ArrayList<>();
+            List<Object[]> inserts = new ArrayList<>();
+            long now = System.currentTimeMillis();
+            for (MinionInstance minion : minions) {
+                if (minion == null) continue;
+                byte[] id = UuidBytes.toBytes(minion.id());
+                deletes.add(new Object[]{id});
+                for (Map.Entry<String, ItemStack> entry : minion.addonItems().entrySet()) {
+                    ItemStack item = entry.getValue();
+                    if (entry.getKey() == null || entry.getKey().isBlank() || item == null || item.getType().isAir()) continue;
+                    inserts.add(new Object[]{id, entry.getKey(), "MENU_ITEM", 1, serializeItem(item), now});
+                }
+            }
+            if (!deletes.isEmpty()) tx.batch("DELETE FROM " + tx.t("minion_upgrades") + " WHERE minion_id=? AND upgrade_id='MENU_ITEM'", deletes);
+            if (!inserts.isEmpty()) tx.batch("INSERT INTO " + tx.t("minion_upgrades") + " (minion_id, slot, upgrade_id, level, data_json, installed_at) VALUES (?, ?, ?, ?, ?, ?)", inserts);
             return null;
         });
     }

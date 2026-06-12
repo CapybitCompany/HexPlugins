@@ -114,7 +114,10 @@ public final class DefinitionLoader {
                     s.getString("collection-id", id),
                     s.getDouble("worth", 0.0),
                     Math.max(1, s.getInt("stack-size", material.getMaxStackSize())),
-                    List.copyOf(s.getStringList("tags"))
+                    List.copyOf(s.getStringList("tags")),
+                    s.getBoolean("compression.enabled", s.getBoolean("compression", false)),
+                    s.getBoolean("compression.block-convertible", s.getStringList("tags").contains("block")),
+                    parseMaterial(s.getString("compression.compressed-material", material.name()), material)
             ));
         }
         return result;
@@ -124,6 +127,8 @@ public final class DefinitionLoader {
         YamlConfiguration yaml = loadYaml("minion-types.yml");
         ConfigurationSection root = yaml.getConfigurationSection("minion-types");
         Map<String, MinionTypeDefinition> result = new LinkedHashMap<>();
+        List<Integer> defaultSupportedBoosters = yaml.getIntegerList("boosters.default-supported-tiers");
+        if (defaultSupportedBoosters.isEmpty()) defaultSupportedBoosters = List.of(1);
         if (root == null) return result;
         for (String id : root.getKeys(false)) {
             ConfigurationSection s = root.getConfigurationSection(id);
@@ -140,7 +145,18 @@ public final class DefinitionLoader {
                 int min = number(map.get("amount-min"), 1).intValue();
                 int max = number(map.get("amount-max"), min).intValue();
                 double chance = number(map.get("chance"), 1.0).doubleValue();
-                drops.add(new ResourceDrop(resource, min, max, chance));
+                boolean specialDrop = booleanValue(map.get("special-drop"), booleanValue(map.get("special-item"), chance <= 0.01D));
+                double perTierBonus = 0.0D;
+                String upgradeItem = "";
+                double upgradeBonus = 0.0D;
+                Object scaling = map.get("special-drop-scaling");
+                if (scaling instanceof Map<?, ?> scalingMap) {
+                    perTierBonus = number(scalingMap.get("per-tier-bonus"), 0.0D).doubleValue();
+                    Object rawUpgradeItem = scalingMap.get("upgrade-item");
+                    upgradeItem = rawUpgradeItem == null ? "" : String.valueOf(rawUpgradeItem);
+                    upgradeBonus = number(scalingMap.get("upgrade-bonus"), 0.0D).doubleValue();
+                }
+                drops.add(new ResourceDrop(resource, min, max, chance, specialDrop, perTierBonus, upgradeItem, upgradeBonus));
             }
             Map<Integer, TierDefinition> tiers = new LinkedHashMap<>();
             ConfigurationSection tiersSection = s.getConfigurationSection("tiers");
@@ -156,6 +172,21 @@ public final class DefinitionLoader {
             if (!tiers.containsKey(1)) {
                 tiers.put(1, new TierDefinition(1, 15, 64, 1, UpgradeRequirements.empty()));
             }
+            List<String> wikiSpecialItems = new ArrayList<>(s.getStringList("wiki.special-items"));
+            if (s.getBoolean("wiki.auto-compressed-resources", true)) {
+                Map<String, ResourceDefinition> resources = loadResources();
+                for (ResourceDrop drop : drops) {
+                    ResourceDefinition resource = resources.get(drop.resourceId());
+                    if (resource != null && resource.compressionEnabled() && resource.blockConvertible()) {
+                        String compressed = "compressed_" + resource.id();
+                        String superCompressed = "super_compressed_" + resource.id();
+                        if (!wikiSpecialItems.contains(compressed)) wikiSpecialItems.add(compressed);
+                        if (!wikiSpecialItems.contains(superCompressed)) wikiSpecialItems.add(superCompressed);
+                    }
+                }
+            }
+            List<Integer> supportedBoosters = s.getIntegerList("boosters.supported-tiers");
+            if (supportedBoosters.isEmpty()) supportedBoosters = defaultSupportedBoosters;
             result.put(id, new MinionTypeDefinition(
                     id,
                     s.getBoolean("enabled", true),
@@ -170,9 +201,12 @@ public final class DefinitionLoader {
                     s.getString("appearance", id + "_default"),
                     s.getString("menu", "default_minion"),
                     List.copyOf(drops),
+                    s.getString("drop-selection-mode", "INDEPENDENT").toUpperCase(Locale.ROOT),
                     Map.copyOf(tiers),
                     Math.max(1, s.getInt("max-tier", tiers.keySet().stream().mapToInt(Integer::intValue).max().orElse(1))),
-                    List.copyOf(s.getStringList("wiki.special-items"))
+                    List.copyOf(wikiSpecialItems),
+                    List.copyOf(supportedBoosters),
+                    AutoSmelterDefinition.fromConfig(s.getConfigurationSection("auto-smelter"))
             ));
         }
         return result;
@@ -192,6 +226,12 @@ public final class DefinitionLoader {
             return def;
         }
         return material;
+    }
+
+    private boolean booleanValue(Object value, boolean def) {
+        if (value instanceof Boolean b) return b;
+        if (value == null) return def;
+        return Boolean.parseBoolean(String.valueOf(value));
     }
 
     private int parseInt(String raw) {

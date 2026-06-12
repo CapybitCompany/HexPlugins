@@ -7,7 +7,9 @@ import hex.towns.config.TownsConfig;
 import hex.towns.model.Town;
 import hex.towns.service.OperationResult;
 import hex.towns.gui.TownRenameAnvilListener;
+import hex.towns.gui.TownCoopDecisionMenu;
 import hex.towns.map.TownMapService;
+import hex.towns.heart.TownHeartListener;
 import hex.towns.service.TownsService;
 import hex.towns.visual.VisualCheckService;
 import org.bukkit.Bukkit;
@@ -38,11 +40,13 @@ public final class TownCommand implements CommandExecutor, TabCompleter {
     private final TownsConfig config;
     private final TownRenameAnvilListener renameGui;
     private final TownMapService mapService;
+    private final TownCoopDecisionMenu coopDecisionMenu;
+    private final TownHeartListener townHeartListener;
     private final Map<UUID, PendingCreate> createConfirmations = new ConcurrentHashMap<>();
     private final Map<UUID, PendingToken> destroyConfirmations = new ConcurrentHashMap<>();
     private final Map<UUID, PendingToken> endCoopConfirmations = new ConcurrentHashMap<>();
 
-    public TownCommand(Plugin plugin, HexApi api, TownsService service, VisualCheckService visualCheckService, TownsConfig config, TownRenameAnvilListener renameGui, TownMapService mapService) {
+    public TownCommand(Plugin plugin, HexApi api, TownsService service, VisualCheckService visualCheckService, TownsConfig config, TownRenameAnvilListener renameGui, TownMapService mapService, TownCoopDecisionMenu coopDecisionMenu, TownHeartListener townHeartListener) {
         this.plugin = plugin;
         this.api = api;
         this.service = service;
@@ -50,6 +54,8 @@ public final class TownCommand implements CommandExecutor, TabCompleter {
         this.config = config;
         this.renameGui = renameGui;
         this.mapService = mapService;
+        this.coopDecisionMenu = coopDecisionMenu;
+        this.townHeartListener = townHeartListener;
     }
 
     @Override
@@ -75,6 +81,11 @@ public final class TownCommand implements CommandExecutor, TabCompleter {
             case "claim" -> handleAsync(player, service.claim(player));
             case "coop" -> handleAsync(player, service.requestCoop(player));
             case "accept" -> handleAccept(player, args);
+            case "coopaccept" -> handleCoopAccept(player, args);
+            case "coopreject" -> handleCoopReject(player, args);
+            case "coopkick" -> handleCoopKick(player, args);
+            case "coopdecide" -> handleCoopDecisionMenu(player, args);
+            case "coopmember" -> handleCoopMemberMenu(player, args);
             case "endcoop", "leave" -> handleEndCoop(player, args);
             case "destroy" -> handleDestroy(player, args);
             case "rename", "name" -> handleRename(player, args);
@@ -144,6 +155,60 @@ public final class TownCommand implements CommandExecutor, TabCompleter {
             return;
         }
         handleAsync(owner, service.acceptCoop(owner, requester));
+    }
+
+    private void handleCoopAccept(Player owner, String[] args) {
+        if (args.length < 2) {
+            api.ui().send(owner, "towns.help");
+            return;
+        }
+        OfflinePlayer requester = findOfflinePlayer(args[1]);
+        handleAsync(owner, service.acceptCoopRequest(owner, requester.getUniqueId(), requester.getName()));
+    }
+
+    private void handleCoopReject(Player owner, String[] args) {
+        if (args.length < 2) {
+            api.ui().send(owner, "towns.help");
+            return;
+        }
+        OfflinePlayer requester = findOfflinePlayer(args[1]);
+        handleAsync(owner, service.rejectCoopRequest(owner, requester.getUniqueId(), requester.getName()));
+    }
+
+    private void handleCoopKick(Player owner, String[] args) {
+        if (args.length < 2) {
+            api.ui().send(owner, "towns.help");
+            return;
+        }
+        OfflinePlayer target = findOfflinePlayer(args[1]);
+        handleAsync(owner, service.kickCoopMember(owner, target.getUniqueId(), target.getName()));
+    }
+
+    private OfflinePlayer findOfflinePlayer(String raw) {
+        try {
+            return Bukkit.getOfflinePlayer(UUID.fromString(raw));
+        } catch (IllegalArgumentException ignored) {
+            return Bukkit.getOfflinePlayer(raw);
+        }
+    }
+
+
+    private void handleCoopDecisionMenu(Player owner, String[] args) {
+        if (args.length < 2) {
+            api.ui().send(owner, "towns.help");
+            return;
+        }
+        OfflinePlayer requester = findOfflinePlayer(args[1]);
+        coopDecisionMenu.openRequestDecision(owner, requester.getUniqueId(), requester.getName());
+    }
+
+    private void handleCoopMemberMenu(Player owner, String[] args) {
+        if (args.length < 2) {
+            api.ui().send(owner, "towns.help");
+            return;
+        }
+        OfflinePlayer target = findOfflinePlayer(args[1]);
+        coopDecisionMenu.openMemberKick(owner, target.getUniqueId(), target.getName());
     }
 
     private void handleEndCoop(Player player, String[] args) {
@@ -245,6 +310,14 @@ public final class TownCommand implements CommandExecutor, TabCompleter {
             api.db().async(() -> service.listPage(cursor, 50)).thenAccept(page -> Bukkit.getScheduler().runTask(plugin, () -> sendAdminPage(sender, page)));
             return;
         }
+        if (args.length >= 2 && (args[1].equalsIgnoreCase("addgrowth") || args[1].equalsIgnoreCase("growthadd"))) {
+            handleAdminAddGrowth(sender, args);
+            return;
+        }
+        if (args.length >= 2 && args[1].equalsIgnoreCase("giveheart")) {
+            handleAdminGiveHeart(sender, args);
+            return;
+        }
         if (args.length >= 2 && (args[1].equalsIgnoreCase("syncgrowth") || args[1].equalsIgnoreCase("growthsync"))) {
             service.refreshGrowthFromDatabase().whenComplete((result, error) -> Bukkit.getScheduler().runTask(plugin, () -> {
                 if (error != null) {
@@ -264,6 +337,70 @@ public final class TownCommand implements CommandExecutor, TabCompleter {
             return;
         }
         api.ui().send(sender, "towns.help");
+    }
+
+    private void handleAdminAddGrowth(CommandSender sender, String[] args) {
+        if (args.length < 4) {
+            sender.sendMessage("§cUżycie: /town admin addgrowth <uuid-miasta|nazwa-miasta> <punkty> [źródło]");
+            return;
+        }
+        Town town = resolveTown(args[2]);
+        if (town == null) {
+            sender.sendMessage("§cNie znaleziono miasta: §f" + args[2]);
+            return;
+        }
+        int amount;
+        try {
+            amount = Integer.parseInt(args[3]);
+        } catch (NumberFormatException ex) {
+            sender.sendMessage("§cLiczba punktów musi być poprawną liczbą całkowitą.");
+            return;
+        }
+        if (amount == 0) {
+            sender.sendMessage("§cLiczba punktów nie może wynosić 0.");
+            return;
+        }
+        String source = args.length >= 5 ? args[4] : "console";
+        service.addGrowthPoints(town.id(), amount, source);
+        sender.sendMessage("§aDodano §f" + amount + "§a punktów wzrostu do miasta §e" + town.name() + "§a. Źródło: §7" + source + "§a.");
+    }
+
+    private void handleAdminGiveHeart(CommandSender sender, String[] args) {
+        if (args.length < 3) {
+            sender.sendMessage("§cUżycie: /town admin giveheart <gracz> [ilość]");
+            return;
+        }
+        Player target = Bukkit.getPlayerExact(args[2]);
+        if (target == null) {
+            sender.sendMessage("§cGracz musi być online: §f" + args[2]);
+            return;
+        }
+        int amount = 1;
+        if (args.length >= 4) {
+            try {
+                amount = Math.max(1, Integer.parseInt(args[3]));
+            } catch (NumberFormatException ex) {
+                sender.sendMessage("§cIlość musi być liczbą całkowitą.");
+                return;
+            }
+        }
+        townHeartListener.giveHeart(target, amount);
+        sender.sendMessage("§aDodano §f" + amount + "§a x Serce Miasta dla §e" + target.getName() + "§a.");
+    }
+
+    private Town resolveTown(String raw) {
+        try {
+            UUID townId = UUID.fromString(raw);
+            return service.findTown(townId).orElse(null);
+        } catch (IllegalArgumentException ignored) {
+            final Town[] found = new Town[1];
+            service.forEachTown(town -> {
+                if (found[0] == null && town.name().equalsIgnoreCase(raw)) {
+                    found[0] = town;
+                }
+            }, 100);
+            return found[0];
+        }
     }
 
     private void sendAdminPage(CommandSender sender, Page<Town> page) {
@@ -322,10 +459,10 @@ public final class TownCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
-            return filter(List.of("create", "claim", "coop", "accept", "endcoop", "destroy", "rename", "check", "info", "here", "map", "growth", "admin"), args[0]);
+            return filter(List.of("create", "claim", "coop", "accept", "coopaccept", "coopreject", "coopkick", "coopdecide", "coopmember", "endcoop", "destroy", "rename", "check", "info", "here", "map", "growth", "admin"), args[0]);
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("admin")) {
-            return filter(List.of("metrics", "list", "syncgrowth", "growthsync"), args[1]);
+            return filter(List.of("metrics", "list", "addgrowth", "growthadd", "giveheart", "syncgrowth", "growthsync"), args[1]);
         }
         return List.of();
     }

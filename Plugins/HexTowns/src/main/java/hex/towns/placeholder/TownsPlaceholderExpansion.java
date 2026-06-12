@@ -3,6 +3,7 @@ package hex.towns.placeholder;
 import hex.towns.config.TownsConfig;
 import hex.towns.model.ChunkPos;
 import hex.towns.model.Town;
+import hex.towns.model.TownRole;
 import hex.towns.service.TownsService;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.Bukkit;
@@ -13,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
@@ -76,6 +78,69 @@ public final class TownsPlaceholderExpansion extends PlaceholderExpansion {
             case "visual_radius" -> String.valueOf(config.visualRadiusChunks());
             case "name_max_length", "max_name_length" -> String.valueOf(config.maxNameLength());
             case "default_name_template" -> config.defaultNameTemplate();
+            default -> dynamicTownPlaceholder(player, town.orElse(null), key);
+        };
+    }
+
+
+    private String dynamicTownPlaceholder(Player viewer, Town town, String key) {
+        if (town == null) return "";
+        if (key.startsWith("member_")) return memberPlaceholder(town, key);
+        if (key.startsWith("request_")) return requestPlaceholder(town, key);
+        return "";
+    }
+
+    private String memberPlaceholder(Town town, String key) {
+        IndexedField parsed = IndexedField.parse(key, "member_");
+        if (parsed == null || parsed.index() <= 0) return "";
+        List<TownsService.MemberInfo> members = service.memberInfos(town);
+        if (parsed.field().equals("count")) return String.valueOf(members.size());
+        if (parsed.index() > members.size()) return missingMemberDefault(parsed.field());
+        TownsService.MemberInfo member = members.get(parsed.index() - 1);
+        return switch (parsed.field()) {
+            case "exists" -> "true";
+            case "uuid", "id" -> member.playerId().toString();
+            case "name", "nick", "skull_owner" -> member.name();
+            case "rank", "role" -> member.role().name();
+            case "rank_display", "role_display" -> member.role() == TownRole.OWNER ? "Właściciel" : "COOP";
+            case "online" -> bool(member.online());
+            case "online_display", "status" -> member.online() ? "Online" : "Offline";
+            case "material" -> "PLAYER_HEAD";
+            default -> "";
+        };
+    }
+
+    private String requestPlaceholder(Town town, String key) {
+        IndexedField parsed = IndexedField.parse(key, "request_");
+        if (parsed == null || parsed.index() <= 0) return "";
+        List<TownsService.CoopRequestInfo> requests = service.pendingCoopRequests(town, 7);
+        if (parsed.field().equals("count")) return String.valueOf(requests.size());
+        if (parsed.index() > requests.size()) return missingRequestDefault(parsed.field());
+        TownsService.CoopRequestInfo request = requests.get(parsed.index() - 1);
+        return switch (parsed.field()) {
+            case "exists" -> "true";
+            case "uuid", "id" -> request.playerId().toString();
+            case "name", "nick", "skull_owner" -> request.name();
+            case "material" -> "PLAYER_HEAD";
+            default -> "";
+        };
+    }
+
+    private String missingMemberDefault(String field) {
+        return switch (field) {
+            case "exists", "online" -> "false";
+            case "material" -> "LIGHT_GRAY_STAINED_GLASS_PANE";
+            case "name", "nick", "skull_owner" -> "";
+            case "rank", "role", "rank_display", "role_display", "online_display", "status" -> "-";
+            default -> "";
+        };
+    }
+
+    private String missingRequestDefault(String field) {
+        return switch (field) {
+            case "exists" -> "false";
+            case "material" -> "WHITE_STAINED_GLASS_PANE";
+            case "name", "nick", "skull_owner" -> "";
             default -> "";
         };
     }
@@ -114,6 +179,20 @@ public final class TownsPlaceholderExpansion extends PlaceholderExpansion {
 
     private static String bool(boolean value) {
         return String.valueOf(value);
+    }
+
+    private record IndexedField(int index, String field) {
+        static IndexedField parse(String key, String prefix) {
+            if (!key.startsWith(prefix)) return null;
+            String raw = key.substring(prefix.length());
+            int split = raw.indexOf('_');
+            if (split <= 0 || split >= raw.length() - 1) return null;
+            try {
+                return new IndexedField(Integer.parseInt(raw.substring(0, split)), raw.substring(split + 1));
+            } catch (NumberFormatException ignored) {
+                return null;
+            }
+        }
     }
 }
 

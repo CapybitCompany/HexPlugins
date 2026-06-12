@@ -42,6 +42,21 @@ towns:
   map:
     # Promień chunków rysowany na mapie z /town map.
     radius-chunks: 8
+    # Zabezpieczenia przed farmieniem nieskończonej liczby itemów mapy.
+    cooldown-seconds: 30
+    prevent-duplicates: true
+
+
+  heart:
+    # Flaga testowa: pozwala postawić Serce Miasta, gdy gracz ma już miasto,
+    # ale miasto nie ma jeszcze przypiętego serca. Domyślnie true na czas testów.
+    allow-existing-town-placement-for-tests: true
+    item:
+      material: RED_CONCRETE
+      display-name: "&cSerce miasta"
+    # Serce czyści centralny chunk od poziomu y_serca-1 do góry i blokuje budowanie
+    # w tym zakresie. Bloki wolno kłaść tylko poniżej y_serca-1.
+    clear-chunk-above-heart: true
 
   visual-check:
     enabled: true

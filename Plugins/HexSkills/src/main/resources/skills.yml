@@ -32,3 +32,67 @@ skills:
         filters:
           mob-id: hex:ice_beast
 
+  farming:
+    enabled: true
+    display-name: "Rolnictwo"
+    scope: TOWN_PLAYER
+    max-level: 100
+    xp-per-level: 100
+    xp-sources: []
+
+  fishing:
+    enabled: true
+    display-name: "Wędkarstwo"
+    scope: TOWN_PLAYER
+    max-level: 100
+    xp-per-level: 100
+    xp-sources: []
+
+effects:
+  farming:
+    # Pełny poziom 100 daje domyślnie maks. 30% na x2 i 10% na x3.
+    xp-per-harvest: 1
+    double-drop-chance-per-level: 0.003
+    triple-drop-chance-per-level: 0.001
+    max-double-drop-chance: 0.30
+    max-triple-drop-chance: 0.10
+    crops:
+      - WHEAT
+      - CARROTS
+      - POTATOES
+      - BEETROOTS
+      - NETHER_WART
+      - COCOA
+
+  fishing:
+    xp-per-catch: 3
+    better-loot-chance-per-level: 0.002
+    max-better-loot-chance: 0.25
+    # Gdy zadziała lepszy łup, podmienia złowiony item na jeden z poniższych.
+    better-loot:
+      - min-level: 5
+        chance: 1.0
+        material: COD
+        amount: 2
+      - min-level: 15
+        chance: 1.0
+        material: SALMON
+        amount: 2
+      - min-level: 30
+        chance: 1.0
+        material: TROPICAL_FISH
+        amount: 1
+      - min-level: 50
+        chance: 1.0
+        material: NAUTILUS_SHELL
+        amount: 1
+    # Dodatkowe itemy spoza domyślnej puli. Każdy wpis ma niezależny rzut szansy.
+    extra-loot:
+      - min-level: 20
+        chance: 0.02
+        material: PRISMARINE_CRYSTALS
+        amount: 1
+      - min-level: 40
+        chance: 0.01
+        material: HEART_OF_THE_SEA
+        amount: 1

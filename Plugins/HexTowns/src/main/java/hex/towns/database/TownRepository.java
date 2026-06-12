@@ -254,6 +254,18 @@ public final class TownRepository {
         db.update("DELETE FROM " + db.t("town_coop_requests") + " WHERE town_id=? AND requester=?", townId, UuidBytes.toBytes(requester));
     }
 
+    public List<CoopRequestRecord> listCoopRequests(long townId, long maxAgeMillis, int limit) {
+        long minCreated = System.currentTimeMillis() - maxAgeMillis;
+        int capped = Math.max(1, Math.min(limit, 100));
+        return db.query("SELECT requester, created_at FROM " + db.t("town_coop_requests") + " WHERE town_id=? AND created_at>=? ORDER BY created_at ASC LIMIT ?",
+                rs -> new CoopRequestRecord(UuidBytes.fromBytes(rs.getBytes("requester")), rs.getLong("created_at")),
+                townId, minCreated, capped);
+    }
+
+    public void deleteAllCoopRequestsForRequester(UUID requester) {
+        db.update("DELETE FROM " + db.t("town_coop_requests") + " WHERE requester=?", UuidBytes.toBytes(requester));
+    }
+
     public String getMeta(long townId, String namespace, String key, String def) {
         return db.queryOne("SELECT v FROM " + db.t("town_meta") + " WHERE town_id=? AND ns=? AND k=?",
                 rs -> rs.getString("v"), townId, namespace, key).orElse(def);
@@ -309,5 +321,8 @@ public final class TownRepository {
     }
 
     public record MemberRecord(UUID playerId, long townId, TownRole role) {
+    }
+
+    public record CoopRequestRecord(UUID requesterId, long createdAt) {
     }
 }

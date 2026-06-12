@@ -11,6 +11,17 @@ import hex.towns.api.TownsApi;
 import org.bukkit.Bukkit;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Sound;
+import org.bukkit.Material;
+import org.bukkit.Location;
+import org.bukkit.block.Block;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Entity;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.player.PlayerFishEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
@@ -19,19 +30,23 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Proxy;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
 
-public final class HexSkillsPlugin extends JavaPlugin implements TabExecutor {
+public final class HexSkillsPlugin extends JavaPlugin implements TabExecutor, Listener {
     private HexApi hex;
     private TownsApi towns;
     private Object triggers;
     private SkillRepository repository;
     private SkillRegistry registry = SkillRegistry.load(new File("missing-skills.yml"));
     private SkillsPlaceholderExpansion placeholderExpansion;
+    private SkillEffectSettings effectSettings = SkillEffectSettings.defaults();
     private final Map<String, Object> subscriptions = new HashMap<>();
     private final MiniMessage miniMessage = MiniMessage.miniMessage();
 
@@ -62,6 +77,7 @@ public final class HexSkillsPlugin extends JavaPlugin implements TabExecutor {
             command.setExecutor(this);
             command.setTabCompleter(this);
         }
+        getServer().getPluginManager().registerEvents(this, this);
         getLogger().info("HexSkills enabled");
     }
 
@@ -101,7 +117,10 @@ public final class HexSkillsPlugin extends JavaPlugin implements TabExecutor {
 
     private void reloadSkills() {
         unsubscribeAll();
-        this.registry = SkillRegistry.load(new File(getDataFolder(), "skills.yml"));
+        File skillsFile = new File(getDataFolder(), "skills.yml");
+        YamlConfiguration skillsYaml = YamlConfiguration.loadConfiguration(skillsFile);
+        this.registry = SkillRegistry.load(skillsFile);
+        this.effectSettings = SkillEffectSettings.from(skillsYaml);
         for (String triggerId : registry.triggerIds()) {
             Object listener = subscribeTrigger(triggerId);
             if (listener != null) {
@@ -214,6 +233,179 @@ public final class HexSkillsPlugin extends JavaPlugin implements TabExecutor {
         }
     }
 
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onCropHarvest(BlockBreakEvent event) {
+        Block block = event.getBlock();
+        if (!isConfiguredCrop(block.getType()) || !isFullyGrown(block)) {
+            return;
+        }
+        var player = event.getPlayer();
+        int level = skillLevel(player.getUniqueId(), "farming");
+        if (level <= 0) {
+            addSkillXp(player.getUniqueId(), "farming", effectSettings.farmingXpPerHarvest());
+            return;
+        }
+        double tripleChance = clamp(effectSettings.farmingTripleChancePerLevel() * level, 0.0D, effectSettings.farmingTripleMaxChance());
+        double doubleChance = clamp(effectSettings.farmingDoubleChancePerLevel() * level, 0.0D, effectSettings.farmingDoubleMaxChance());
+        int extraCopies = 0;
+        double roll = ThreadLocalRandom.current().nextDouble();
+        if (roll < tripleChance) {
+            extraCopies = 2;
+        } else if (roll < tripleChance + doubleChance) {
+            extraCopies = 1;
+        }
+        if (extraCopies > 0) {
+            dropExtraCropDrops(player, block, extraCopies);
+        }
+        addSkillXp(player.getUniqueId(), "farming", effectSettings.farmingXpPerHarvest());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onFish(PlayerFishEvent event) {
+        if (!isCaughtFish(event)) {
+            return;
+        }
+        UUID playerId = event.getPlayer().getUniqueId();
+        int level = skillLevel(playerId, "fishing");
+        if (level > 0) {
+            applyBetterFishingLoot(event, level);
+            rollExtraFishingLoot(event, level);
+        }
+        addSkillXp(playerId, "fishing", effectSettings.fishingXpPerCatch());
+    }
+
+    private boolean isConfiguredCrop(Material material) {
+        return effectSettings.farmingCropMaterials().contains(material.name());
+    }
+
+    private boolean isFullyGrown(Block block) {
+        try {
+            Object blockData = block.getClass().getMethod("getBlockData").invoke(block);
+            Method getAge = blockData.getClass().getMethod("getAge");
+            Method getMaximumAge = blockData.getClass().getMethod("getMaximumAge");
+            return ((Number) getAge.invoke(blockData)).intValue() >= ((Number) getMaximumAge.invoke(blockData)).intValue();
+        } catch (Throwable ignored) {
+            return true;
+        }
+    }
+
+    private void dropExtraCropDrops(org.bukkit.entity.Player player, Block block, int extraCopies) {
+        try {
+            ItemStack tool = currentMainHand(player);
+            Object drops = block.getClass().getMethod("getDrops", ItemStack.class).invoke(block, tool);
+            if (!(drops instanceof Iterable<?> iterable)) {
+                return;
+            }
+            for (int copy = 0; copy < extraCopies; copy++) {
+                for (Object raw : iterable) {
+                    if (!(raw instanceof ItemStack stack) || stack.getType().isAir()) {
+                        continue;
+                    }
+                    block.getWorld().getClass().getMethod("dropItemNaturally", Location.class, ItemStack.class)
+                            .invoke(block.getWorld(), block.getLocation(), stack.clone());
+                }
+            }
+        } catch (Throwable throwable) {
+            getLogger().warning("Nie udało się dodać bonusowego dropu z upraw: " + rootMessage(throwable));
+        }
+    }
+
+    private ItemStack currentMainHand(org.bukkit.entity.Player player) {
+        try {
+            Object inventory = player.getInventory();
+            Object item = inventory.getClass().getMethod("getItemInMainHand").invoke(inventory);
+            return item instanceof ItemStack stack ? stack : new ItemStack(Material.AIR);
+        } catch (Throwable ignored) {
+            return new ItemStack(Material.AIR);
+        }
+    }
+
+    private boolean isCaughtFish(PlayerFishEvent event) {
+        return event.getState() != null && "CAUGHT_FISH".equalsIgnoreCase(event.getState().name());
+    }
+
+    private void applyBetterFishingLoot(PlayerFishEvent event, int level) {
+        double chance = clamp(effectSettings.fishingBetterLootChancePerLevel() * level, 0.0D, effectSettings.fishingBetterLootMaxChance());
+        if (chance <= 0.0D || ThreadLocalRandom.current().nextDouble() >= chance) {
+            return;
+        }
+        FishLootEntry entry = effectSettings.pickBetterFishingLoot(level);
+        if (entry == null) {
+            return;
+        }
+        setCaughtItem(event, entry.toItemStack());
+    }
+
+    private void rollExtraFishingLoot(PlayerFishEvent event, int level) {
+        for (FishLootEntry entry : effectSettings.extraFishingLoot()) {
+            if (level < entry.minLevel()) {
+                continue;
+            }
+            if (ThreadLocalRandom.current().nextDouble() < entry.chance()) {
+                try {
+                    event.getPlayer().getWorld().getClass().getMethod("dropItemNaturally", Location.class, ItemStack.class)
+                            .invoke(event.getPlayer().getWorld(), event.getPlayer().getLocation(), entry.toItemStack());
+                } catch (Throwable throwable) {
+                    getLogger().warning("Nie udało się dodać dodatkowego łupu z wędkowania: " + rootMessage(throwable));
+                }
+            }
+        }
+    }
+
+    private void setCaughtItem(PlayerFishEvent event, ItemStack item) {
+        Entity caught = event.getCaught();
+        if (caught == null) {
+            return;
+        }
+        try {
+            caught.getClass().getMethod("setItemStack", ItemStack.class).invoke(caught, item);
+        } catch (NoSuchMethodException ignored) {
+            try {
+                Object current = caught.getClass().getMethod("getItemStack").invoke(caught);
+                if (current instanceof ItemStack) {
+                    caught.getClass().getMethod("setItemStack", ItemStack.class).invoke(caught, item);
+                }
+            } catch (Throwable ignoredAgain) {
+            }
+        } catch (Throwable throwable) {
+            getLogger().warning("Nie udało się podmienić łupu z wędkowania: " + rootMessage(throwable));
+        }
+    }
+
+    private int skillLevel(UUID playerId, String skillId) {
+        Optional<UUID> townId = towns.townIdOf(playerId);
+        if (townId.isEmpty()) {
+            return 0;
+        }
+        return repository.getProgress(townId.get(), playerId, skillId).map(SkillRepository.Progress::level).orElse(0);
+    }
+
+    private void addSkillXp(UUID playerId, String skillId, long xp) {
+        if (xp <= 0L) {
+            return;
+        }
+        Optional<UUID> townId = towns.townIdOf(playerId);
+        Optional<SkillDefinition> skill = registry.byId(skillId);
+        if (townId.isEmpty() || skill.isEmpty()) {
+            return;
+        }
+        hex.db().async(() -> repository.addXp(townId.get(), playerId, skill.get(), xp))
+                .thenAccept(change -> Bukkit.getScheduler().runTask(this, () -> {
+                    if (change.after().level() > change.before().level()) {
+                        var player = Bukkit.getPlayer(playerId);
+                        if (player != null) {
+                            player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.2f);
+                            player.sendMessage(miniMessage.deserialize("<green>Awans skillu!</green> <yellow>" + skill.get().displayName() + "</yellow> <gray>z poziomu</gray> <white>" + change.before().level() + "</white> <gray>na</gray> <white>" + change.after().level() + "</white><gray>.</gray>"));
+                        }
+                    }
+                }));
+    }
+
+    private double clamp(double value, double min, double max) {
+        return Math.max(min, Math.min(max, value));
+    }
+
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length > 0 && args[0].equalsIgnoreCase("reload")) {
@@ -258,5 +450,106 @@ public final class HexSkillsPlugin extends JavaPlugin implements TabExecutor {
             getLogger().warning("Could not invoke PlaceholderAPI expansion method '" + methodName + "': " + rootMessage(throwable));
         }
     }
-}
 
+
+    private record FishLootEntry(int minLevel, double chance, Material material, int amount, int customModelData) {
+        ItemStack toItemStack() {
+            ItemStack stack = new ItemStack(material, Math.max(1, Math.min(64, amount)));
+            if (customModelData > 0 && stack.getItemMeta() != null) {
+                var meta = stack.getItemMeta();
+                meta.setCustomModelData(customModelData);
+                stack.setItemMeta(meta);
+            }
+            return stack;
+        }
+    }
+
+    private record SkillEffectSettings(
+            long farmingXpPerHarvest,
+            double farmingDoubleChancePerLevel,
+            double farmingTripleChancePerLevel,
+            double farmingDoubleMaxChance,
+            double farmingTripleMaxChance,
+            java.util.Set<String> farmingCropMaterials,
+            long fishingXpPerCatch,
+            double fishingBetterLootChancePerLevel,
+            double fishingBetterLootMaxChance,
+            java.util.List<FishLootEntry> betterFishingLoot,
+            java.util.List<FishLootEntry> extraFishingLoot
+    ) {
+        static SkillEffectSettings defaults() {
+            return new SkillEffectSettings(
+                    1L,
+                    0.003D,
+                    0.00075D,
+                    0.35D,
+                    0.12D,
+                    java.util.Set.of("WHEAT", "CARROTS", "POTATOES", "BEETROOTS", "NETHER_WART", "COCOA"),
+                    3L,
+                    0.002D,
+                    0.25D,
+                    java.util.List.of(new FishLootEntry(5, 1.0D, Material.matchMaterial("COD") == null ? Material.PAPER : Material.matchMaterial("COD"), 1, 0)),
+                    java.util.List.of()
+            );
+        }
+
+        static SkillEffectSettings from(YamlConfiguration yaml) {
+            SkillEffectSettings def = defaults();
+            java.util.Set<String> crops = new java.util.LinkedHashSet<>(yaml.getStringList("effects.farming.crops"));
+            if (crops.isEmpty()) crops = def.farmingCropMaterials();
+            java.util.List<FishLootEntry> better = readLoot(yaml, "effects.fishing.better-loot");
+            if (better.isEmpty()) better = def.betterFishingLoot();
+            java.util.List<FishLootEntry> extra = readLoot(yaml, "effects.fishing.extra-loot");
+            return new SkillEffectSettings(
+                    yaml.getLong("effects.farming.xp-per-harvest", def.farmingXpPerHarvest()),
+                    yaml.getDouble("effects.farming.double-drop-chance-per-level", def.farmingDoubleChancePerLevel()),
+                    yaml.getDouble("effects.farming.triple-drop-chance-per-level", def.farmingTripleChancePerLevel()),
+                    yaml.getDouble("effects.farming.max-double-drop-chance", def.farmingDoubleMaxChance()),
+                    yaml.getDouble("effects.farming.max-triple-drop-chance", def.farmingTripleMaxChance()),
+                    java.util.Set.copyOf(crops),
+                    yaml.getLong("effects.fishing.xp-per-catch", def.fishingXpPerCatch()),
+                    yaml.getDouble("effects.fishing.better-loot-chance-per-level", def.fishingBetterLootChancePerLevel()),
+                    yaml.getDouble("effects.fishing.max-better-loot-chance", def.fishingBetterLootMaxChance()),
+                    java.util.List.copyOf(better),
+                    java.util.List.copyOf(extra)
+            );
+        }
+
+        static java.util.List<FishLootEntry> readLoot(YamlConfiguration yaml, String path) {
+            java.util.List<FishLootEntry> result = new java.util.ArrayList<>();
+            for (java.util.Map<?, ?> map : yaml.getMapList(path)) {
+                Material material = Material.matchMaterial(String.valueOf(map.containsKey("material") ? map.get("material") : "COD"));
+                if (material == null) continue;
+                int minLevel = intValue(map.get("min-level"), 1);
+                double chance = doubleValue(map.get("chance"), 0.0D);
+                int amount = intValue(map.get("amount"), 1);
+                int customModelData = intValue(map.get("custom-model-data"), 0);
+                result.add(new FishLootEntry(minLevel, Math.max(0.0D, Math.min(1.0D, chance)), material, amount, customModelData));
+            }
+            return result;
+        }
+
+        FishLootEntry pickBetterFishingLoot(int level) {
+            java.util.List<FishLootEntry> available = betterFishingLoot.stream().filter(entry -> level >= entry.minLevel()).toList();
+            if (available.isEmpty()) return null;
+            return available.get(ThreadLocalRandom.current().nextInt(available.size()));
+        }
+
+        static int intValue(Object value, int def) {
+            return value instanceof Number number ? number.intValue() : parseInt(String.valueOf(value), def);
+        }
+
+        static double doubleValue(Object value, double def) {
+            return value instanceof Number number ? number.doubleValue() : parseDouble(String.valueOf(value), def);
+        }
+
+        static int parseInt(String value, int def) {
+            try { return Integer.parseInt(value); } catch (Exception ignored) { return def; }
+        }
+
+        static double parseDouble(String value, double def) {
+            try { return Double.parseDouble(value); } catch (Exception ignored) { return def; }
+        }
+    }
+
+}

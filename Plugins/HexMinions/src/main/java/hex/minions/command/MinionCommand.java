@@ -149,9 +149,32 @@ public final class MinionCommand implements CommandExecutor, TabCompleter {
         if (!sender.hasPermission("hexminions.admin")) { hex.ui().send(sender, "minions.error.no-permission"); return; }
         if (args.length >= 2 && args[1].equalsIgnoreCase("metrics")) {
             sender.sendMessage("§aHexMinions metrics: basic MVP online.");
-        } else {
-            sender.sendMessage("/minion admin metrics");
+            return;
         }
+        if (args.length >= 2 && (args[1].equalsIgnoreCase("addlimit") || args[1].equalsIgnoreCase("addminionlimit") || args[1].equalsIgnoreCase("addslots"))) {
+            adminAddLimit(sender, args);
+            return;
+        }
+        sender.sendMessage("/minion admin addlimit <uuid-miasta|nazwa-miasta> <bonus> [źródło]");
+        sender.sendMessage("/minion admin metrics");
+    }
+
+    private void adminAddLimit(CommandSender sender, String[] args) {
+        if (args.length < 4) { sender.sendMessage("§cUżycie: /minion admin addlimit <uuid-miasta|nazwa-miasta> <bonus> [źródło]"); return; }
+        UUID townId = resolveTownId(args[2]);
+        if (townId == null) { sender.sendMessage("§cNie znaleziono miasta: §f" + args[2]); return; }
+        int delta = parseInt(args[3], 0);
+        if (delta == 0) { sender.sendMessage("§cBonus musi być liczbą różną od 0."); return; }
+        String source = args.length >= 5 ? args[4] : "console";
+        service.addMinionLimitBonus(townId, delta, source);
+        int max = service.maxMinions(townId);
+        sender.sendMessage("§aDodano bonus limitu minionów §f" + delta + "§a dla miasta §e" + townId + "§a. Aktualny limit: §f" + max + "§a. Źródło: §7" + source + "§a.");
+    }
+
+    private UUID resolveTownId(String raw) {
+        UUID direct = parseUuid(raw);
+        if (direct != null && service.findTown(direct).isPresent()) return direct;
+        return service.findTownByName(raw).map(t -> t.id()).orElse(null);
     }
 
     private UUID parseUuid(String raw) {
@@ -168,7 +191,7 @@ public final class MinionCommand implements CommandExecutor, TabCompleter {
         if (args.length == 3 && args[0].equalsIgnoreCase("give")) return partial(args[2], new ArrayList<>(service.definitions().minionTypes().keySet()));
         if (args.length == 2 && args[0].equalsIgnoreCase("wiki")) return partial(args[1], new ArrayList<>(service.definitions().minionTypes().keySet()));
         if (args.length == 2 && args[0].equalsIgnoreCase("action")) return partial(args[1], List.of("collect", "upgrade", "pickup", "move", "open"));
-        if (args.length == 2 && args[0].equalsIgnoreCase("admin")) return partial(args[1], List.of("metrics"));
+        if (args.length == 2 && args[0].equalsIgnoreCase("admin")) return partial(args[1], List.of("metrics", "addlimit", "addminionlimit", "addslots"));
         return List.of();
     }
 

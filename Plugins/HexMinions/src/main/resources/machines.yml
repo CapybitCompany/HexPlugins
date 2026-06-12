@@ -1,0 +1,478 @@
+machines:
+  uranium_enricher:
+    enabled: true
+    type: URANIUM_ENRICHER
+    display-name: <dark_green>Wzbogacacz uranu</dark_green>
+    base-block: FURNACE
+    special-item: uranium_enricher
+    station-id: URANIUM_ENRICHER
+    menu:
+      input-slot: 20
+      output-slot: 24
+      upgrade-slots:
+      - 38
+      - 40
+      - 42
+    storage:
+      slots: 5
+      output-stack-size: 16
+      upgrade-item: iron_uranium_chest
+    recipes:
+      raw_uranium:
+        input:
+          material: EMERALD
+          custom-model-data: 12001
+          amount: 1
+        output:
+          special-item: enriched_uranium
+          amount: 1
+        success-chance: 0.05
+        time-seconds: 7200
+      uranium_block:
+        input:
+          material: EMERALD_BLOCK
+          special-item: uranium_block
+          amount: 1
+        output:
+          special-item: enriched_uranium
+          amount: 1
+        success-chance: 0.33
+        time-seconds: 7200
+      compressed_uranium:
+        input:
+          material: EMERALD_BLOCK
+          special-item: compressed_uranium
+          amount: 1
+        output:
+          special-item: enriched_uranium
+          amount: 8
+        success-chance: 1.0
+        time-seconds: 7200
+  smelting_furnace:
+    enabled: true
+    type: SMELTING_FURNACE
+    display-name: <gold>Piec hutniczy</gold>
+    base-block: FURNACE
+    special-item: smelting_furnace
+    station-id: SMELTING_FURNACE
+    menu:
+      input-slot: 20
+      secondary-slot: 21
+      fuel-slot: 22
+      output-slot: 24
+      upgrade-slots:
+      - 38
+      - 40
+      - 42
+    storage:
+      slots: 5
+      output-stack-size: 64
+      upgrade-item: iron_uranium_chest
+    recipes:
+      steel:
+        input:
+          material: IRON_INGOT
+          amount: 1
+        secondary:
+          material: COAL
+          amount: 4
+        fuel:
+          special-item: compressed_oak_plank
+          material: OAK_PLANKS
+          amount: 1
+        output:
+          special-item: steel_ingot
+          amount: 1
+        success-chance: 1.0
+        time-seconds: 120
+      steel_combustion_fuel:
+        input:
+          material: IRON_INGOT
+          amount: 4
+        secondary:
+          material: COAL
+          amount: 16
+        fuel:
+          special-item: combustion_fuel
+          material: BLAZE_POWDER
+          amount: 1
+        output:
+          special-item: steel_ingot
+          amount: 4
+        success-chance: 1.0
+        time-seconds: 120
+      iron_fast:
+        input:
+          material: RAW_IRON
+          amount: 2
+        fuel:
+          material: COAL
+          amount: 1
+        output:
+          material: IRON_INGOT
+          amount: 2
+        success-chance: 1.0
+        time-seconds: 8
+      gold_fast:
+        input:
+          material: RAW_GOLD
+          amount: 2
+        fuel:
+          material: COAL
+          amount: 1
+        output:
+          material: GOLD_INGOT
+          amount: 2
+        success-chance: 1.0
+        time-seconds: 8
+      copper_fast:
+        input:
+          material: RAW_COPPER
+          amount: 2
+        fuel:
+          material: COAL
+          amount: 1
+        output:
+          material: COPPER_INGOT
+          amount: 2
+        success-chance: 1.0
+        time-seconds: 8
+      stone_fast:
+        input:
+          material: COBBLESTONE
+          amount: 2
+        fuel:
+          material: COAL
+          amount: 1
+        output:
+          material: STONE
+          amount: 2
+        success-chance: 1.0
+        time-seconds: 8
+      brick_fast:
+        input:
+          material: CLAY_BALL
+          amount: 2
+        fuel:
+          material: COAL
+          amount: 1
+        output:
+          material: BRICK
+          amount: 2
+        success-chance: 1.0
+        time-seconds: 8
+      iron_dust_to_ingot:
+        input:
+          special-item: iron_dust
+          amount: 1
+        fuel:
+          material: COAL
+          amount: 1
+        output:
+          material: IRON_INGOT
+          amount: 1
+        success-chance: 1.0
+        time-seconds: 8
+      gold_dust_to_ingot:
+        input:
+          special-item: gold_dust
+          amount: 1
+        fuel:
+          material: COAL
+          amount: 1
+        output:
+          material: GOLD_INGOT
+          amount: 1
+        success-chance: 1.0
+        time-seconds: 8
+      copper_dust_to_ingot:
+        input:
+          special-item: copper_dust
+          amount: 1
+        fuel:
+          material: COAL
+          amount: 1
+        output:
+          material: COPPER_INGOT
+          amount: 1
+        success-chance: 1.0
+        time-seconds: 8
+      diamond_dust_to_diamond:
+        input:
+          special-item: diamond_dust
+          amount: 1
+        fuel:
+          material: COAL
+          amount: 1
+        output:
+          material: DIAMOND
+          amount: 1
+        success-chance: 1.0
+        time-seconds: 8
+      stone_dust_to_stone:
+        input:
+          special-item: stone_dust
+          amount: 1
+        fuel:
+          material: COAL
+          amount: 1
+        output:
+          material: STONE
+          amount: 1
+        success-chance: 1.0
+        time-seconds: 8
+  coal_generator:
+    enabled: true
+    type: COAL_GENERATOR
+    display-name: <dark_gray>Generator węglowy</dark_gray>
+    base-block: FURNACE
+    special-item: coal_generator
+    station-id: COAL_GENERATOR
+    menu:
+      fuel-slot: 22
+      upgrade-slots:
+      - 40
+    energy:
+      enabled: true
+      generator: true
+      buffer-capacity: 10000
+      transfer-per-second: 250
+      battery-slot: 40
+      battery-extra-capacity: 0
+      fuel-eu:
+        COAL: 400
+        COAL_BLOCK: 4000
+        combustion_fuel: 16000
+        compressed_coal: 51200
+      fuel-burn-seconds:
+        COAL: 8
+        COAL_BLOCK: 80
+        combustion_fuel: 320
+        compressed_coal: 1024
+    recipes: {}
+  macerator:
+    enabled: true
+    type: MACERATOR
+    display-name: <gray>Macerator</gray>
+    base-block: FURNACE
+    special-item: macerator
+    station-id: MACERATOR
+    menu:
+      input-slot: 20
+      fuel-slot: 22
+      output-slot: 24
+      upgrade-slots:
+      - 40
+    energy:
+      enabled: true
+      generator: false
+      buffer-capacity: 500
+      eu-per-second: 10
+      battery-slot: 40
+      battery-extra-capacity: 0
+      fallback-fuel-eu:
+        REDSTONE: 10
+        REDSTONE_BLOCK: 50
+      fallback-fuel-burn-seconds:
+        REDSTONE: 1
+        REDSTONE_BLOCK: 5
+    recipes:
+      raw_iron_to_dust:
+        input:
+          material: RAW_IRON
+          amount: 1
+        output:
+          special-item: iron_dust
+          amount: 2
+        time-seconds: 8
+        success-chance: 1.0
+      iron_ingot_to_dust:
+        input:
+          material: IRON_INGOT
+          amount: 1
+        output:
+          special-item: iron_dust
+          amount: 1
+        time-seconds: 8
+        success-chance: 1.0
+      iron_ore_block_to_dust:
+        input:
+          material: IRON_ORE
+          amount: 1
+        output:
+          special-item: iron_dust
+          amount: 2
+        time-seconds: 8
+        success-chance: 1.0
+      raw_gold_to_dust:
+        input:
+          material: RAW_GOLD
+          amount: 1
+        output:
+          special-item: gold_dust
+          amount: 2
+        time-seconds: 8
+        success-chance: 1.0
+      gold_ingot_to_dust:
+        input:
+          material: GOLD_INGOT
+          amount: 1
+        output:
+          special-item: gold_dust
+          amount: 1
+        time-seconds: 8
+        success-chance: 1.0
+      gold_ore_block_to_dust:
+        input:
+          material: GOLD_ORE
+          amount: 1
+        output:
+          special-item: gold_dust
+          amount: 2
+        time-seconds: 8
+        success-chance: 1.0
+      raw_copper_to_dust:
+        input:
+          material: RAW_COPPER
+          amount: 1
+        output:
+          special-item: copper_dust
+          amount: 2
+        time-seconds: 8
+        success-chance: 1.0
+      copper_ingot_to_dust:
+        input:
+          material: COPPER_INGOT
+          amount: 1
+        output:
+          special-item: copper_dust
+          amount: 1
+        time-seconds: 8
+        success-chance: 1.0
+      copper_ore_block_to_dust:
+        input:
+          material: COPPER_ORE
+          amount: 1
+        output:
+          special-item: copper_dust
+          amount: 2
+        time-seconds: 8
+        success-chance: 1.0
+      diamond_to_dust:
+        input:
+          material: DIAMOND
+          amount: 1
+        output:
+          special-item: diamond_dust
+          amount: 1
+        time-seconds: 8
+        success-chance: 1.0
+      diamond_ore_to_dust:
+        input:
+          material: DIAMOND_ORE
+          amount: 1
+        output:
+          special-item: diamond_dust
+          amount: 2
+        time-seconds: 8
+        success-chance: 1.0
+      coal_to_dust:
+        input:
+          material: COAL
+          amount: 1
+        output:
+          special-item: coal_dust
+          amount: 1
+        time-seconds: 8
+        success-chance: 1.0
+      coal_ore_to_dust:
+        input:
+          material: COAL_ORE
+          amount: 1
+        output:
+          special-item: coal_dust
+          amount: 2
+        time-seconds: 8
+        success-chance: 1.0
+      redstone_ore_to_dust:
+        input:
+          material: REDSTONE_ORE
+          amount: 1
+        output:
+          special-item: redstone_dust_rich
+          amount: 2
+        time-seconds: 8
+        success-chance: 1.0
+      lapis_ore_to_dust:
+        input:
+          material: LAPIS_ORE
+          amount: 1
+        output:
+          special-item: lapis_dust
+          amount: 2
+        time-seconds: 8
+        success-chance: 1.0
+      stone_to_dust:
+        input:
+          material: STONE
+          amount: 1
+        output:
+          special-item: stone_dust
+          amount: 1
+        time-seconds: 8
+        success-chance: 1.0
+  compressor:
+    enabled: true
+    type: COMPRESSOR
+    display-name: <gray>Kompresor</gray>
+    base-block: DISPENSER
+    special-item: compressor
+    station-id: COMPRESSOR
+    menu:
+      input-slot: 20
+      secondary-slot: 21
+      fuel-slot: 22
+      output-slot: 24
+      upgrade-slots:
+      - 40
+    energy:
+      enabled: true
+      generator: false
+      buffer-capacity: 500
+      eu-per-second: 50
+      battery-slot: 40
+      battery-extra-capacity: 0
+      fallback-fuel-eu:
+        REDSTONE: 10
+        REDSTONE_BLOCK: 50
+      fallback-fuel-burn-seconds:
+        REDSTONE: 1
+        REDSTONE_BLOCK: 5
+    recipes:
+      coal_dust_to_graphite:
+        input:
+          special-item: coal_dust
+          amount: 4
+        output:
+          special-item: graphite
+          amount: 1
+        time-seconds: 90
+        success-chance: 1.0
+      graphite_to_graphene:
+        input:
+          special-item: graphite
+          amount: 1
+        output:
+          special-item: graphene
+          amount: 1
+        time-seconds: 90
+        success-chance: 1.0
+      coal_to_diamond:
+        input:
+          material: COAL
+          amount: 64
+        output:
+          material: DIAMOND
+          amount: 1
+        time-seconds: 90
+        success-chance: 1.0

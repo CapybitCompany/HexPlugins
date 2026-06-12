@@ -141,6 +141,15 @@ items:
     lore:
       - '&7Postęp jest wspólny dla miasta/COOP.'
       - ''
+      - '&7Poziomy kolekcji miasta:'
+      - '&8• &7Tier 1: &f%hexcollections_tier_summary_1%'
+      - '&8• &7Tier 2: &f%hexcollections_tier_summary_2%'
+      - '&8• &7Tier 3: &f%hexcollections_tier_summary_3%'
+      - '&8• &7Tier 4: &f%hexcollections_tier_summary_4%'
+      - '&8• &7Tier 5: &f%hexcollections_tier_summary_5%'
+      - '&8• &7Tier 6: &f%hexcollections_tier_summary_6%'
+      - '&8• &7Tier 7: &f%hexcollections_tier_summary_7%'
+      - ''
       - '&7Cobblestone: &f%hexcollections_level_mining_cobblestone%&7/7'
       - '&7Iron: &f%hexcollections_level_mining_iron%&7/7'
       - '&7Dirt: &f%hexcollections_level_mining_dirt%&7/3'
@@ -196,11 +205,6 @@ items:
     material: LIME_STAINED_GLASS
     slot: 40
     display_name: '&aPodgląd granic'
-    lore:
-      - '&7Włącza/wyłącza wizualizację miast.'
-      - '&7Promień: &f%hextowns_visual_radius% chunków'
-      - ''
-      - '&eKliknij: /town check'
     left_click_commands:
       - '[player] town check'
 

@@ -12,6 +12,7 @@ import hex.towns.api.event.TownCoopJoinedEvent;
 import hex.towns.api.event.TownCoopLeftEvent;
 import hex.towns.api.event.TownCreatedEvent;
 import hex.towns.api.event.TownDestroyedEvent;
+import hex.towns.api.event.TownRenamedEvent;
 import hex.towns.config.TownsConfig;
 import hex.towns.database.TownRepository;
 import hex.towns.model.ChunkPos;
@@ -22,6 +23,7 @@ import hex.towns.util.ChunkKeys;
 import hex.towns.util.UuidBytes;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
@@ -162,11 +164,12 @@ public final class TownsService {
     }
 
     public CompletableFuture<OperationResult> createTown(Player player, String requestedName) {
+        return createTownAt(player, requestedName, player.getChunk().getX(), player.getChunk().getZ());
+    }
+
+    public CompletableFuture<OperationResult> createTownAt(Player player, String requestedName, int centerX, int centerZ) {
         UUID ownerId = player.getUniqueId();
-        String ownerName = player.getName();
         String worldName = player.getWorld().getName();
-        int centerX = player.getChunk().getX();
-        int centerZ = player.getChunk().getZ();
         String townName = normalizeTownName(requestedName, defaultTownName());
 
         return api.db().async(() -> {
@@ -273,9 +276,15 @@ public final class TownsService {
     }
 
     public CompletableFuture<OperationResult> acceptCoop(Player owner, Player requester) {
+        return acceptCoopInternal(owner, requester.getUniqueId(), requester.getName(), true);
+    }
+
+    public CompletableFuture<OperationResult> acceptCoopRequest(Player owner, UUID requesterId, String requesterName) {
+        return acceptCoopInternal(owner, requesterId, requesterName, false);
+    }
+
+    private CompletableFuture<OperationResult> acceptCoopInternal(Player owner, UUID requesterId, String requesterName, boolean requireOwnerStandingInTown) {
         UUID ownerId = owner.getUniqueId();
-        UUID requesterId = requester.getUniqueId();
-        String requesterName = requester.getName();
         String ownerWorld = owner.getWorld().getName();
         int ownerChunkX = owner.getChunk().getX();
         int ownerChunkZ = owner.getChunk().getZ();
@@ -286,10 +295,14 @@ public final class TownsService {
                     return OperationResult.fail("towns.error.not-owner");
                 }
                 Town town = townsByInternalId.get(ownerMembership.townId());
-                if (town == null || townAt(ownerWorld, ownerChunkX, ownerChunkZ).map(Town::internalId).orElse(-1L) != town.internalId()) {
+                if (town == null) {
+                    return OperationResult.fail("towns.error.no-town");
+                }
+                if (requireOwnerStandingInTown && townAt(ownerWorld, ownerChunkX, ownerChunkZ).map(Town::internalId).orElse(-1L) != town.internalId()) {
                     return OperationResult.fail("towns.accept.must-stand-in-town");
                 }
                 if (playerIndex.containsKey(requesterId)) {
+                    repository.deleteCoopRequest(town.internalId(), requesterId);
                     return OperationResult.fail("towns.coop.requester-has-town");
                 }
                 Set<UUID> members = membersByTown.getOrDefault(town.internalId(), Set.of());
@@ -302,10 +315,56 @@ public final class TownsService {
                 }
                 repository.addMember(town.internalId(), requesterId, TownRole.COOP);
                 repository.deleteCoopRequest(town.internalId(), requesterId);
+                repository.deleteAllCoopRequestsForRequester(requesterId);
                 playerIndex.put(requesterId, new Membership(town.internalId(), TownRole.COOP));
                 membersByTown.computeIfAbsent(town.internalId(), ignored -> ConcurrentHashMap.newKeySet()).add(requesterId);
                 publishCoopJoined(town, requesterId);
-                return OperationResult.ok("towns.accept.success", UiTokens.of("player", requesterName));
+                return OperationResult.ok("towns.accept.success", UiTokens.of("player", safePlayerName(requesterId, requesterName)));
+            }
+        });
+    }
+
+    public CompletableFuture<OperationResult> rejectCoopRequest(Player owner, UUID requesterId, String requesterName) {
+        UUID ownerId = owner.getUniqueId();
+        return api.db().async(() -> {
+            synchronized (mutationLock) {
+                Membership ownerMembership = playerIndex.get(ownerId);
+                if (ownerMembership == null || ownerMembership.role() != TownRole.OWNER) {
+                    return OperationResult.fail("towns.error.not-owner");
+                }
+                Town town = townsByInternalId.get(ownerMembership.townId());
+                if (town == null) {
+                    return OperationResult.fail("towns.error.no-town");
+                }
+                repository.deleteCoopRequest(town.internalId(), requesterId);
+                return OperationResult.ok("towns.reject.success", UiTokens.of("player", safePlayerName(requesterId, requesterName)));
+            }
+        });
+    }
+
+    public CompletableFuture<OperationResult> kickCoopMember(Player owner, UUID targetId, String targetName) {
+        UUID ownerId = owner.getUniqueId();
+        return api.db().async(() -> {
+            synchronized (mutationLock) {
+                Membership ownerMembership = playerIndex.get(ownerId);
+                if (ownerMembership == null || ownerMembership.role() != TownRole.OWNER) {
+                    return OperationResult.fail("towns.error.not-owner");
+                }
+                Town town = townsByInternalId.get(ownerMembership.townId());
+                Membership targetMembership = playerIndex.get(targetId);
+                if (town == null || targetMembership == null || targetMembership.townId() != town.internalId()) {
+                    return OperationResult.fail("towns.kick.not-member");
+                }
+                if (targetMembership.role() == TownRole.OWNER || targetId.equals(town.ownerId())) {
+                    return OperationResult.fail("towns.kick.owner");
+                }
+                repository.removeMember(targetId);
+                playerIndex.remove(targetId);
+                membersByTown.getOrDefault(town.internalId(), Set.of()).remove(targetId);
+                publishCoopLeft(town, targetId, "KICK");
+                publishReset(List.of(targetId), "coop_kick");
+                clearOnlinePlayerData(targetId);
+                return OperationResult.ok("towns.kick.success", UiTokens.of("player", safePlayerName(targetId, targetName)));
             }
         });
     }
@@ -347,8 +406,9 @@ public final class TownsService {
                 repository.updateTownStatus(town.internalId(), TownStatus.DESTROYING);
 
                 List<UUID> members = new ArrayList<>(membersByTown.getOrDefault(town.internalId(), Set.of()));
+                List<ChunkPos> destroyedChunks = new ArrayList<>(chunksByTown.getOrDefault(town.internalId(), Set.of()));
                 removeTownAccessIndexes(town);
-                publishDestroyed(town, playerId, members);
+                publishDestroyed(town, playerId, members, destroyedChunks);
                 publishReset(members, "destroy");
                 publishDataPurge(town);
                 dataRegistry.purgeTown(town.id(), members).join();
@@ -381,6 +441,7 @@ public final class TownsService {
                 }
                 repository.renameTown(town.internalId(), newName);
                 town.setName(newName);
+                Bukkit.getScheduler().runTask(plugin, () -> Bukkit.getPluginManager().callEvent(new TownRenamedEvent(town, playerId, newName)));
                 publish("towns.renamed", HexMessageData.builder()
                         .put("townId", town.id().toString())
                         .put("name", newName)
@@ -533,6 +594,27 @@ public final class TownsService {
         return Set.copyOf(membersByTown.getOrDefault(town.internalId(), Set.of()));
     }
 
+    public List<MemberInfo> memberInfos(Town town) {
+        List<MemberInfo> result = new ArrayList<>();
+        for (UUID playerId : membersByTown.getOrDefault(town.internalId(), Set.of())) {
+            Membership membership = playerIndex.get(playerId);
+            TownRole role = membership == null ? (town.ownerId().equals(playerId) ? TownRole.OWNER : TownRole.COOP) : membership.role();
+            result.add(new MemberInfo(playerId, safePlayerName(playerId, null), role, Bukkit.getPlayer(playerId) != null));
+        }
+        result.sort((a, b) -> {
+            int roleCompare = Integer.compare(a.role() == TownRole.OWNER ? 0 : 1, b.role() == TownRole.OWNER ? 0 : 1);
+            if (roleCompare != 0) return roleCompare;
+            return a.name().compareToIgnoreCase(b.name());
+        });
+        return result;
+    }
+
+    public List<CoopRequestInfo> pendingCoopRequests(Town town, int limit) {
+        return repository.listCoopRequests(town.internalId(), config.requestTtlSeconds() * 1000L, limit).stream()
+                .map(record -> new CoopRequestInfo(record.requesterId(), safePlayerName(record.requesterId(), null), record.createdAt()))
+                .toList();
+    }
+
     public void registerListener(TownsListener listener) {
         listeners.add(listener);
     }
@@ -605,6 +687,14 @@ public final class TownsService {
         return false;
     }
 
+    public String normalizeTownNameForInput(String requestedName) {
+        return normalizeTownName(requestedName, "");
+    }
+
+    public String defaultTownNameForInput() {
+        return defaultTownName();
+    }
+
     private String normalizeTownName(String requestedName, String fallback) {
         String source = requestedName == null || requestedName.isBlank() ? fallback : requestedName;
         if (source == null) {
@@ -668,8 +758,8 @@ public final class TownsService {
                 .build());
     }
 
-    private void publishDestroyed(Town town, UUID by, List<UUID> members) {
-        Bukkit.getScheduler().runTask(plugin, () -> Bukkit.getPluginManager().callEvent(new TownDestroyedEvent(town, by, members)));
+    private void publishDestroyed(Town town, UUID by, List<UUID> members, List<ChunkPos> chunks) {
+        Bukkit.getScheduler().runTask(plugin, () -> Bukkit.getPluginManager().callEvent(new TownDestroyedEvent(town, by, members, chunks)));
         publish("towns.destroyed", HexMessageData.builder()
                 .put("townId", town.id().toString())
                 .put("ownerUuid", town.ownerId().toString())
@@ -683,6 +773,26 @@ public final class TownsService {
                 .putStringList("playerUuids", players.stream().map(UUID::toString).toList())
                 .put("reason", reason)
                 .build());
+    }
+
+    private void clearOnlinePlayerData(UUID playerId) {
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            Player online = Bukkit.getPlayer(playerId);
+            if (online == null) return;
+            online.getInventory().clear();
+            online.getEnderChest().clear();
+            online.setLevel(0);
+            online.setExp(0.0F);
+            online.setTotalExperience(0);
+        });
+    }
+
+    private String safePlayerName(UUID playerId, String fallback) {
+        if (fallback != null && !fallback.isBlank()) return fallback;
+        Player online = Bukkit.getPlayer(playerId);
+        if (online != null) return online.getName();
+        OfflinePlayer offline = Bukkit.getOfflinePlayer(playerId);
+        return offline.getName() == null ? playerId.toString().substring(0, 8) : offline.getName();
     }
 
     private void publishDataPurge(Town town) {
@@ -699,6 +809,12 @@ public final class TownsService {
     }
 
     private record Membership(long townId, TownRole role) {
+    }
+
+    public record MemberInfo(UUID playerId, String name, TownRole role, boolean online) {
+    }
+
+    public record CoopRequestInfo(UUID playerId, String name, long createdAt) {
     }
 
     public record GrowthSyncResult(int scanned, int changed, boolean skipped) {

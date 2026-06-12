@@ -23,6 +23,11 @@ public record MinionMenuData(
         String nextUpgradeRequirementsText,
         int menuSlotHint,
         int storageSlotsUnlocked,
+        int activeBoosterTier,
+        long boosterSecondsRemaining,
+        int boosterDurationSeconds,
+        int boosterItemsQueued,
+        double boosterSpeedBoostPercent,
         String headMaterial,
         Map<String, Long> storage
 ) {

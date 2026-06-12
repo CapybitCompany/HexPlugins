@@ -14,14 +14,15 @@ public record SpecialIngredient(Material material, int amount, int customModelDa
     }
 
     public boolean matches(ItemStack item, SpecialItemRegistry registry) {
+        if (specialItemId != null && !specialItemId.isBlank()) {
+            if (item == null || item.getType().isAir() || item.getAmount() < amount) return false;
+            return registry.readSpecialItemId(item).map(specialItemId::equalsIgnoreCase).orElse(false);
+        }
         if (material == Material.AIR) return item == null || item.getType().isAir();
         if (item == null || item.getType() != material || item.getAmount() < amount) return false;
         if (customModelData > 0) {
             ItemMeta meta = item.getItemMeta();
             if (meta == null || !meta.hasCustomModelData() || meta.getCustomModelData() != customModelData) return false;
-        }
-        if (specialItemId != null && !specialItemId.isBlank()) {
-            return registry.readSpecialItemId(item).map(specialItemId::equalsIgnoreCase).orElse(false);
         }
         return true;
     }
