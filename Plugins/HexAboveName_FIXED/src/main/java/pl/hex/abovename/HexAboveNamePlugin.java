@@ -10,7 +10,6 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -28,6 +27,12 @@ import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Transformation;
 import org.joml.AxisAngle4f;
 import org.joml.Vector3f;
+import pl.hex.abovename.cache.TitleCache;
+import pl.hex.abovename.storage.MySqlConfig;
+import pl.hex.abovename.storage.MySqlTitleStorage;
+import pl.hex.abovename.storage.StoredTitle;
+import pl.hex.abovename.storage.TitleStorage;
+import pl.hex.abovename.storage.YamlTitleStorage;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -36,7 +41,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicLong;
 
 public final class HexAboveNamePlugin extends JavaPlugin implements Listener, CommandExecutor, TabCompleter {
 
@@ -45,6 +53,19 @@ public final class HexAboveNamePlugin extends JavaPlugin implements Listener, Co
 
     private final Map<UUID, TextDisplay> activeDisplays = new HashMap<>();
     private BukkitTask updateTask;
+
+    // Storage + cache wiring. The repeating update task reads only from the
+    // cache; storage is touched only on startup/reload/set/clear.
+    private final TitleCache titleCache = new TitleCache();
+    private TitleStorage titleStorage;
+    private boolean usingDb;
+
+    // Incremented on every init/reload AND on disable. Async callbacks compare
+    // their captured generation against this value before mutating shared
+    // state (titleStorage, titleCache, usingDb, displays, plugin enable bit).
+    // A mismatch means the callback is stale and must close its candidate
+    // storage and abort without side effects.
+    private final AtomicLong storageGeneration = new AtomicLong();
 
     private double heightOffset;
     private float scale;
@@ -73,8 +94,9 @@ public final class HexAboveNamePlugin extends JavaPlugin implements Listener, Co
         Objects.requireNonNull(getCommand("hexabovename")).setExecutor(this);
         Objects.requireNonNull(getCommand("hexabovename")).setTabCompleter(this);
 
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            refreshDisplay(player);
+        if (!initStorageAndLoadCache()) {
+            getServer().getPluginManager().disablePlugin(this);
+            return;
         }
 
         startUpdateTask();
@@ -82,11 +104,236 @@ public final class HexAboveNamePlugin extends JavaPlugin implements Listener, Co
 
     @Override
     public void onDisable() {
+        // Bump the generation BEFORE closing storage so any in-flight async
+        // callbacks observe a mismatch and skip mutation.
+        storageGeneration.incrementAndGet();
         if (updateTask != null) {
             updateTask.cancel();
             updateTask = null;
         }
         removeAllDisplays();
+        TitleStorage current = titleStorage;
+        titleStorage = null;
+        if (current != null) {
+            try {
+                current.close();
+            } catch (Exception ignored) {
+            }
+        }
+        titleCache.clear();
+    }
+
+    /**
+     * Initializes a fresh storage candidate from config.yml, runs the schema
+     * bootstrap async, and on a matching generation swaps it into place and
+     * closes the previous storage. Never mutates shared state from an async
+     * thread — every observable change happens inside a runTask on the
+     * Bukkit main thread, after a generation check.
+     *
+     * Returns false ONLY when synchronous validation fails (e.g. table name
+     * malformed) AND fallback is disabled — i.e. the caller (onEnable) should
+     * disable the plugin and reload should reject. On synchronous return the
+     * previous storage is still active and the newly created candidate (if any)
+     * has been closed.
+     *
+     * Never blocks the Bukkit main thread — no .get()/.join() on futures.
+     */
+    private boolean initStorageAndLoadCache() {
+        final long gen = storageGeneration.incrementAndGet();
+
+        String typeRaw = getConfig().getString("storage.type", "YAML");
+        final boolean fallback = getConfig().getBoolean("storage.fallback-to-yaml-if-db-unavailable", true);
+        final boolean migrate = getConfig().getBoolean("storage.migrate-yaml-to-db-on-startup", false);
+        final boolean wantDb = "MYSQL".equalsIgnoreCase(typeRaw);
+
+        // Build candidate (does not block on a connection thanks to
+        // setInitializationFailTimeout(-1) inside MySqlTitleStorage).
+        TitleStorage candidateTmp = null;
+        boolean candidateIsDb = false;
+        if (wantDb) {
+            try {
+                MySqlConfig mysqlConfig = readMySqlConfig();
+                candidateTmp = new MySqlTitleStorage(mysqlConfig, getLogger());
+                candidateIsDb = true;
+            } catch (Throwable t) {
+                getLogger().warning("HexAboveName: MySQL storage init failed: " + t.getMessage());
+                if (!fallback) {
+                    getLogger().severe("storage.fallback-to-yaml-if-db-unavailable=false. Not rebuilding storage.");
+                    return false;
+                }
+                getLogger().warning("Falling back to YAML storage.");
+            }
+        }
+        if (candidateTmp == null) {
+            candidateTmp = new YamlTitleStorage(this);
+            candidateIsDb = false;
+        }
+
+        final TitleStorage candidate = candidateTmp;
+        final boolean candidateIsDbFinal = candidateIsDb;
+
+        candidate.ensureSchema().whenComplete((unused, err) -> {
+            if (gen != storageGeneration.get()) {
+                // A newer reload/disable already happened — discard candidate.
+                closeQuietly(candidate);
+                return;
+            }
+            if (err != null) {
+                getLogger().warning("HexAboveName: schema bootstrap failed: " + err.getMessage());
+                if (candidateIsDbFinal && !fallback) {
+                    Bukkit.getScheduler().runTask(this, () -> {
+                        if (gen != storageGeneration.get()) {
+                            closeQuietly(candidate);
+                            return;
+                        }
+                        getLogger().severe("MySQL unavailable and fallback disabled. Disabling plugin.");
+                        closeQuietly(candidate);
+                        getServer().getPluginManager().disablePlugin(this);
+                    });
+                    return;
+                }
+                if (candidateIsDbFinal) {
+                    // MySQL bootstrap failed but fallback is enabled: try YAML.
+                    Bukkit.getScheduler().runTask(this, () -> {
+                        if (gen != storageGeneration.get()) {
+                            closeQuietly(candidate);
+                            return;
+                        }
+                        getLogger().warning("Falling back to YAML after MySQL bootstrap failure.");
+                        closeQuietly(candidate);
+                        commitStorage(gen, new YamlTitleStorage(this), false);
+                        kickoffLoadAll(gen);
+                    });
+                    return;
+                }
+                // YAML ensureSchema cannot really fail, but log + carry on.
+            }
+            // Schema OK -> commit and load.
+            Bukkit.getScheduler().runTask(this, () -> {
+                if (gen != storageGeneration.get()) {
+                    closeQuietly(candidate);
+                    return;
+                }
+                commitStorage(gen, candidate, candidateIsDbFinal);
+                kickoffLoadAll(gen);
+                if (candidateIsDbFinal && migrate) {
+                    migrateYamlIntoDbAsync(gen);
+                }
+            });
+        });
+        return true;
+    }
+
+    /**
+     * Main-thread swap. Closes the previous storage only after the new one is
+     * installed, so any concurrent set/clear sees a continuous storage.
+     */
+    private void commitStorage(long expectedGen, TitleStorage newStorage, boolean isDb) {
+        if (expectedGen != storageGeneration.get()) {
+            closeQuietly(newStorage);
+            return;
+        }
+        TitleStorage previous = titleStorage;
+        titleStorage = newStorage;
+        usingDb = isDb;
+        if (previous != null && previous != newStorage) {
+            closeQuietly(previous);
+        }
+    }
+
+    private static void closeQuietly(TitleStorage storage) {
+        if (storage == null) return;
+        try {
+            storage.close();
+        } catch (Exception ignored) {
+        }
+    }
+
+    /**
+     * Reads the storage.mysql.* section into an immutable {@link MySqlConfig}.
+     */
+    private MySqlConfig readMySqlConfig() {
+        return new MySqlConfig(
+                getConfig().getString("storage.mysql.host", "localhost"),
+                getConfig().getInt("storage.mysql.port", 3306),
+                getConfig().getString("storage.mysql.database", "minecraft"),
+                getConfig().getString("storage.mysql.username", "root"),
+                getConfig().getString("storage.mysql.password", ""),
+                getConfig().getString("storage.mysql.table", "hex_above_name_titles"),
+                getConfig().getBoolean("storage.mysql.use-ssl", false),
+                getConfig().getInt("storage.mysql.pool.maximum-pool-size", 5),
+                getConfig().getInt("storage.mysql.pool.minimum-idle", 1),
+                getConfig().getLong("storage.mysql.pool.connection-timeout-ms", 10_000L),
+                getConfig().getLong("storage.mysql.pool.max-lifetime-ms", 1_800_000L)
+        );
+    }
+
+    /**
+     * Async loadAll then main-thread cache replace + display refresh.
+     * Honors storage.load-on-startup. Aborts silently if generation no
+     * longer matches.
+     */
+    private void kickoffLoadAll(long expectedGen) {
+        if (!getConfig().getBoolean("storage.load-on-startup", true)) {
+            return;
+        }
+        TitleStorage storage = titleStorage;
+        if (storage == null) {
+            return;
+        }
+        storage.loadAll().whenComplete((map, err) -> {
+            if (expectedGen != storageGeneration.get()) {
+                return;
+            }
+            if (err != null) {
+                getLogger().warning("Failed to load titles: " + err.getMessage());
+                return;
+            }
+            Bukkit.getScheduler().runTask(this, () -> {
+                if (expectedGen != storageGeneration.get()) {
+                    return;
+                }
+                titleCache.replaceAll(map);
+                refreshAllDisplays();
+            });
+        });
+    }
+
+    /**
+     * One-shot copy of every YAML title into the active DB storage. Does not
+     * delete YAML entries. Safe to run multiple times because the DB upsert
+     * is idempotent.
+     */
+    private void migrateYamlIntoDbAsync(long expectedGen) {
+        if (!usingDb || titleStorage == null) {
+            return;
+        }
+        final TitleStorage activeStorage = titleStorage;
+        YamlTitleStorage yaml = new YamlTitleStorage(this);
+        yaml.loadAll().thenAccept(map -> {
+            if (expectedGen != storageGeneration.get()) {
+                return;
+            }
+            if (map.isEmpty()) {
+                return;
+            }
+            getLogger().info("Migrating " + map.size() + " YAML titles to MySQL...");
+            int[] done = {0};
+            for (StoredTitle stored : map.values()) {
+                activeStorage.save(stored.uuid(), stored.name(), stored.title())
+                        .whenComplete((v, ex) -> {
+                            if (expectedGen != storageGeneration.get()) {
+                                return;
+                            }
+                            if (ex != null) {
+                                getLogger().warning("Migration failed for " + stored.uuid() + ": " + ex.getMessage());
+                            }
+                            if (++done[0] == map.size()) {
+                                getLogger().info("YAML -> MySQL migration complete.");
+                            }
+                        });
+            }
+        });
     }
 
     private void loadSettings() {
@@ -166,7 +413,6 @@ public final class HexAboveNamePlugin extends JavaPlugin implements Listener, Co
             entity.setGravity(false);
             entity.setInvulnerable(true);
             entity.setSilent(true);
-            entity.setRemoveWhenFarAway(false);
             applyDisplaySettings(entity, title);
         });
         return display;
@@ -259,46 +505,103 @@ public final class HexAboveNamePlugin extends JavaPlugin implements Listener, Co
     }
 
     private boolean hasTitle(UUID uuid) {
-        return getConfig().isString("titles." + uuid + ".title");
+        String title = titleCache.titleOf(uuid);
+        return title != null && !title.isBlank();
     }
 
     private String getTitle(UUID uuid) {
-        return getConfig().getString("titles." + uuid + ".title");
+        return titleCache.titleOf(uuid);
     }
 
+    /**
+     * Updates cache + display synchronously on the main thread, then persists
+     * asynchronously. Failures are logged but do not block the server thread
+     * nor revert the in-memory title.
+     */
     private void setTitle(Player player, String title) {
         UUID uuid = player.getUniqueId();
-        getConfig().set("titles." + uuid + ".name", player.getName());
-        getConfig().set("titles." + uuid + ".title", title);
-        saveConfig();
+        titleCache.put(new StoredTitle(uuid, player.getName(), title));
         refreshDisplay(player);
+        persistAsync(() -> titleStorage.save(uuid, player.getName(), title),
+                "save title for " + player.getName());
     }
 
-    private boolean clearTitleByName(String name) {
+    /**
+     * Dispatches the /hexabovename clear flow.
+     *
+     * Fast path (sync): online player OR cache hit -> remove + display + async
+     * persist + immediate ack.
+     *
+     * Slow path (async): cache miss -> send "lookup queued" message and call
+     * titleStorage.findUuidByName(name) async. The completion handler hops back
+     * to the Bukkit main thread, then EITHER removes + acks OR sends
+     * player-not-found. Generation-checked so a reload in between aborts the
+     * tail safely.
+     */
+    private void handleClearByName(CommandSender sender, String name) {
         Player online = Bukkit.getPlayerExact(name);
         if (online != null) {
-            getConfig().set("titles." + online.getUniqueId(), null);
-            saveConfig();
-            removeDisplay(online.getUniqueId());
-            return true;
+            applyClear(sender, online.getUniqueId(), name);
+            return;
         }
-
-        ConfigurationSection section = getConfig().getConfigurationSection("titles");
-        if (section == null) return false;
-
-        for (String uuidString : section.getKeys(false)) {
-            String savedName = getConfig().getString("titles." + uuidString + ".name");
-            if (savedName != null && savedName.equalsIgnoreCase(name)) {
-                getConfig().set("titles." + uuidString, null);
-                saveConfig();
-                try {
-                    removeDisplay(UUID.fromString(uuidString));
-                } catch (IllegalArgumentException ignored) {
-                }
-                return true;
+        Optional<UUID> cached = titleCache.findUuidByName(name);
+        if (cached.isPresent()) {
+            applyClear(sender, cached.get(), name);
+            return;
+        }
+        // Cache miss: dispatch async storage lookup.
+        TitleStorage storage = titleStorage;
+        if (storage == null) {
+            send(sender, getMessage("player-not-found"));
+            return;
+        }
+        send(sender, getMessage("title-clear-lookup").replace("%player%", name));
+        final long expectedGen = storageGeneration.get();
+        storage.findUuidByName(name).whenComplete((found, err) -> {
+            if (err != null) {
+                Bukkit.getScheduler().runTask(this, () -> {
+                    if (expectedGen != storageGeneration.get()) return;
+                    getLogger().warning("HexAboveName: offline clear lookup failed for "
+                            + name + ": " + err.getMessage());
+                    send(sender, getMessage("player-not-found"));
+                });
+                return;
             }
+            Bukkit.getScheduler().runTask(this, () -> {
+                if (expectedGen != storageGeneration.get()) return;
+                if (found.isEmpty()) {
+                    send(sender, getMessage("player-not-found"));
+                    return;
+                }
+                applyClear(sender, found.get(), name);
+            });
+        });
+    }
+
+    /**
+     * Main-thread clear: cache removal, display removal, async storage delete,
+     * ack message. Used by both fast and slow paths of {@link #handleClearByName}.
+     */
+    private void applyClear(CommandSender sender, UUID uuid, String displayName) {
+        titleCache.remove(uuid);
+        removeDisplay(uuid);
+        TitleStorage storage = titleStorage;
+        if (storage != null) {
+            persistAsync(() -> storage.delete(uuid),
+                    "delete title for " + displayName);
         }
-        return false;
+        send(sender, getMessage("title-cleared-offline").replace("%player%", displayName));
+    }
+
+    private void persistAsync(java.util.function.Supplier<CompletableFuture<Void>> work, String description) {
+        try {
+            work.get().exceptionally(ex -> {
+                getLogger().warning("HexAboveName: failed to " + description + ": " + ex.getMessage());
+                return null;
+            });
+        } catch (Exception ex) {
+            getLogger().warning("HexAboveName: failed to " + description + ": " + ex.getMessage());
+        }
     }
 
     @Override
@@ -310,6 +613,14 @@ public final class HexAboveNamePlugin extends JavaPlugin implements Listener, Co
 
         if (args.length == 1 && args[0].equalsIgnoreCase("reload")) {
             loadSettings();
+            // The previous storage stays active throughout init; commitStorage
+            // swaps + closes it ONLY when the new schema bootstrap succeeds.
+            // If init returns false (synchronous validation fail + no fallback)
+            // the previous storage is untouched.
+            if (!initStorageAndLoadCache()) {
+                send(sender, "&cReload failed - check console (storage init).");
+                return true;
+            }
             startUpdateTask();
             refreshAllDisplays();
             send(sender, getMessage("reloaded"));
@@ -345,12 +656,7 @@ public final class HexAboveNamePlugin extends JavaPlugin implements Listener, Co
         }
 
         if (action.equals("clear")) {
-            boolean cleared = clearTitleByName(playerName);
-            if (!cleared) {
-                send(sender, getMessage("player-not-found"));
-                return true;
-            }
-            send(sender, getMessage("title-cleared-offline").replace("%player%", playerName));
+            handleClearByName(sender, playerName);
             return true;
         }
 

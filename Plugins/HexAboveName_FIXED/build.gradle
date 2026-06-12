@@ -3,7 +3,7 @@ plugins {
 }
 
 group = 'pl.hex'
-version = '1.1.0'
+version = '1.2.0'
 
 java {
     toolchain {
@@ -23,5 +23,11 @@ processResources {
 }
 
 dependencies {
-    compileOnly 'io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT'
+    compileOnly 'io.papermc.paper:paper-api:1.21-R0.1-SNAPSHOT'
+
+    // HikariCP + MySQL connector are resolved at runtime by Paper via the
+    // plugin.yml `libraries:` block — we only need them on the compile
+    // classpath. The jar stays small and we avoid shading.
+    compileOnly 'com.zaxxer:HikariCP:5.1.0'
+    compileOnly 'com.mysql:mysql-connector-j:8.4.0'
 }

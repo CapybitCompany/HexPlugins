@@ -4,6 +4,13 @@ main: pl.hex.abovename.HexAboveNamePlugin
 api-version: '1.21'
 author: HEX
 folia-supported: false
+
+# Resolved by Paper at startup; no shading required. Listed here as
+# compile-only deps in build.gradle so imports work at build time.
+libraries:
+  - com.zaxxer:HikariCP:5.1.0
+  - com.mysql:mysql-connector-j:8.4.0
+
 commands:
   hexabovename:
     description: Ustawia tekst nad graczem bez podmieniania gracza entity.

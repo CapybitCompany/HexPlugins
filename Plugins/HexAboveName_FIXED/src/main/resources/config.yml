@@ -41,9 +41,38 @@ messages:
   title-set: "&7Ustawiono tytuł dla &f%player%&7: %title%"
   title-cleared: "&7Usunięto tytuł gracza &f%player%&7."
   title-cleared-offline: "&7Usunięto zapisany tytuł gracza &f%player%&7."
+  title-clear-lookup: "&7Szukam zapisanego tytułu dla &f%player%&7..."
   reloaded: "&aPrzeładowano HexAboveName."
 
-# Zapisywane automatycznie przez komendę.
+# Konfiguracja persystencji tytułów.
+#  - YAML  : zapis i odczyt z sekcji `titles` poniżej (zachowuje stare zachowanie).
+#  - MYSQL : własne połączenie HikariCP konfigurowane poniżej.
+storage:
+  type: YAML
+  mysql:
+    host: localhost
+    port: 3306
+    database: minecraft
+    username: root
+    password: ""
+    table: hex_above_name_titles
+    use-ssl: false
+    pool:
+      maximum-pool-size: 5
+      minimum-idle: 1
+      connection-timeout-ms: 10000
+      max-lifetime-ms: 1800000
+  # Wczytaj wszystkie tytuły do cache podczas startu/reload.
+  load-on-startup: true
+  # Gdy MYSQL jest wybrany, ale baza/sterownik nie są dostępne:
+  #  true  -> spadek do YAML i ostrzeżenie w logu
+  #  false -> wyłącz plugin z błędem
+  fallback-to-yaml-if-db-unavailable: true
+  # Jednorazowa migracja: przy starcie skopiuj tytuły z YAML do bazy (nie kasuje YAML).
+  # Działa tylko jeśli type=MYSQL i wartość jest true.
+  migrate-yaml-to-db-on-startup: false
+
+# Zapisywane automatycznie przez komendę (tylko w trybie YAML).
 # Format:
 # titles:
 #   uuid-gracza:
