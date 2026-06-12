@@ -1,0 +1,66 @@
+# ==========================================================
+# HexPvpSmp - global config
+# ==========================================================
+enabled: true
+debug: false
+
+combat:
+  duration-seconds: 15
+  actionbar-enabled: true
+  # Tick interval for the actionbar / combat-expiry sweep.
+  actionbar-update-ticks: 10
+  allowed-commands:
+    - msg
+    - r
+    - tell
+    - help
+  # Punishment applied when a combat-tagged player quits.
+  # Implemented manually — we do NOT trigger vanilla PlayerDeathEvent,
+  # to avoid timing races and duplicate item drops.
+  combat-log:
+    # Master switch. false = only clear the combat tag, do not drop anything.
+    enabled: true
+    # When enabled, drop and clear the player's inventory + armor + offhand.
+    drop-inventory: true
+    # When enabled, drop the player's accumulated XP and reset level.
+    drop-exp: true
+    broadcast: "&c<player> logged out during combat and died."
+
+safezones:
+  block-entry-while-combat: true
+  entry-message: "&cYou cannot enter a safezone while in combat."
+  pvp-deny-message: "&cPvP is disabled here."
+  # Rate-limit per-player warning chat/actionbar messages.
+  warning-cooldown-ticks: 20
+
+worlds:
+  world:
+    enabled: true
+    spawn:
+      enabled: true
+      region:
+        type: CUBOID
+        min-x: -100
+        max-x: 100
+        min-y: -64
+        max-y: 320
+        min-z: -100
+        max-z: 100
+      red-line:
+        enabled: true
+        # Blocks from spawn boundary that trigger a warning.
+        warning-distance: 5
+        message: "&eYou are leaving spawn protection."
+
+towns:
+  # CONFIG = static YAML below. WORLDGUARD is reserved for a future provider.
+  provider: CONFIG
+  regions:
+    example_town:
+      world: world
+      min-x: 200
+      max-x: 300
+      min-y: -64
+      max-y: 320
+      min-z: 200
+      max-z: 300
