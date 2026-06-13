@@ -1,0 +1,38 @@
+plugins {
+    id 'java'
+}
+
+group = 'hex'
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+    maven { url = 'https://repo.papermc.io/repository/maven-public/' }
+}
+
+dependencies {
+    compileOnly 'io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT'
+    compileOnly project(':plugins:HexCore')
+    compileOnly project(':plugins:HexEconomy')
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.0'
+    testImplementation 'org.mockbukkit.mockbukkit:mockbukkit-v1.21:4.0.0'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+tasks.jar {
+    archiveBaseName = 'HexAuctionBazaar'
+}

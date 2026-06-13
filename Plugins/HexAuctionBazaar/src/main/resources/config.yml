@@ -1,0 +1,56 @@
+enabled: true
+debug: false
+prefix: "&8[&6Hex&eMarket&8] &r"
+
+economy:
+  # true  = the plugin disables itself on startup if HexEconomyApi is missing.
+  # false = the plugin loads, but buy/sell features stay off.
+  required: true
+
+auction:
+  enabled: true
+  default-duration-seconds: 86400         # 24h
+  max-active-listings-per-player: 10
+  min-price: 1
+  max-price: 1000000000
+  # One-time fee charged when a listing is created.
+  listing-fee: 0
+  # Deducted from the sale price; the seller claims the net amount.
+  sale-fee-percent: 0
+  # How long a reservation is held before being released back to ACTIVE.
+  reservation-ttl-seconds: 30
+  # Interval for expiry + stale-reservation sweeps.
+  expiry-scan-interval-ticks: 1200        # 1 min
+  gui:
+    title: "&8Auction House"
+    page-size: 45
+    my-listings-title: "&8My listings"
+    claims-title: "&8Claims"
+    confirm-title: "&8Confirm"
+  permissions:
+    open: hexauction.open
+    sell: hexauction.sell
+    cancel-own: hexauction.cancel
+    admin: hexauction.admin
+
+bazaar:
+  enabled: true
+  # When true the sell flow only accepts vanilla "plain" stacks (no custom
+  # name, lore, enchantments, persistent data, model data or damage).
+  # Recommended ON to protect custom gear from accidental bulk-sells.
+  require-plain-item: true
+  pricing:
+    elasticity: 0.5
+    reference-stock: 10000
+    buy-sell-spread-percent: 5
+    # Maximum price change relative to the last stored price per transaction.
+    max-step-per-transaction-percent: 5
+  gui:
+    title: "&8Bazaar"
+    item-title: "&8%display%"
+    quantity-title: "&8Choose amount"
+  permissions:
+    open: hexbazaar.open
+    buy: hexbazaar.buy
+    sell: hexbazaar.sell
+    admin: hexbazaar.admin

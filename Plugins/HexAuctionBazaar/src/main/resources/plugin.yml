@@ -1,0 +1,46 @@
+name: HexAuctionBazaar
+version: '1.0.0'
+main: hex.auctionbazaar.HexAuctionBazaarPlugin
+api-version: '1.21.11'
+authors: [HexDevTeam]
+description: AuctionHouse + Bazaar with instant buy/sell and dynamic pricing.
+
+depend:
+  - HexCore
+  - HexEconomy
+
+commands:
+  hexauction:
+    description: Open the auction house or manage your listings
+    usage: /hexauction [sell <price>|mylistings|cancel <id>|claims|admin cleanup|reload]
+    aliases: [auctionhouse, ah]
+  hexbazaar:
+    description: Open the bazaar or trade items directly
+    usage: /hexbazaar [buy <key> <qty>|sell <key> <qty>|reload]
+    aliases: [bazaar, bz]
+
+permissions:
+  hexauction.open:
+    description: Open the auction house
+    default: true
+  hexauction.sell:
+    description: List items for sale
+    default: true
+  hexauction.cancel:
+    description: Cancel your own listings
+    default: true
+  hexauction.admin:
+    description: Auction house admin (reload, cleanup)
+    default: op
+  hexbazaar.open:
+    description: Open the bazaar
+    default: true
+  hexbazaar.buy:
+    description: Buy from the bazaar
+    default: true
+  hexbazaar.sell:
+    description: Sell to the bazaar
+    default: true
+  hexbazaar.admin:
+    description: Bazaar admin (reload)
+    default: op

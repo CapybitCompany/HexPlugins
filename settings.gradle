@@ -20,6 +20,7 @@ include 'plugins:HexSkills'
 include 'plugins:HexQuests'
 include 'plugins:HexCollections'
 include 'plugins:HexEconomy'
+include 'plugins:HexAuctionBazaar'
 include 'plugins:HexRankExpiry'
 include 'plugins:VishopBroadcast'
 include 'statsapi'
@@ -45,6 +46,7 @@ project(':plugins:HexSkills').projectDir = file('Plugins/HexSkills')
 project(':plugins:HexQuests').projectDir = file('Plugins/HexQuests')
 project(':plugins:HexCollections').projectDir = file('Plugins/HexCollections')
 project(':plugins:HexEconomy').projectDir = file('Plugins/HexEconomy')
+project(':plugins:HexAuctionBazaar').projectDir = file('Plugins/HexAuctionBazaar')
 project(':plugins:HexRankExpiry').projectDir = file('Plugins/HexRankExpiry')
 project(':plugins:VishopBroadcast').projectDir = file('Plugins/VishopBroadcast')
 project(':statsapi').projectDir = file('StatsApi')

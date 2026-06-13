@@ -1,0 +1,33 @@
+# Bazaar items are defined exclusively here.
+# No material is automatically enabled.
+items:
+  cobblestone:
+    material: COBBLESTONE
+    display-name: "&7Cobblestone"
+    category: blocks
+    base-price: 1.00
+    min-price: 0.10
+    max-price: 100.00
+    initial-stock: 10000
+    buy-enabled: true
+    sell-enabled: true
+  iron_ingot:
+    material: IRON_INGOT
+    display-name: "&fIron Ingot"
+    category: minerals
+    base-price: 10.00
+    min-price: 1.00
+    max-price: 200.00
+    initial-stock: 5000
+    buy-enabled: true
+    sell-enabled: true
+  diamond:
+    material: DIAMOND
+    display-name: "&bDiamond"
+    category: minerals
+    base-price: 500.00
+    min-price: 50.00
+    max-price: 5000.00
+    initial-stock: 1000
+    buy-enabled: true
+    sell-enabled: true
