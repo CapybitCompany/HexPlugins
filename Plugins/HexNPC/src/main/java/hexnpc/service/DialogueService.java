@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public final class DialogueService {
@@ -43,11 +44,21 @@ public final class DialogueService {
         return (currentTick() - last) < cooldown;
     }
 
-    public void speak(Player player, NpcDefinition npc, Runnable afterAll) {
+    /**
+     * Spielt den Dialog für {@code player} ab und ruft danach {@code afterAll}.
+     *
+     * <p>Wichtig: {@code afterAll} bekommt explizit den im Moment der Ausführung
+     * <em>aktuell verbundenen</em> Player. Beim sofortigen Pfad (kein Dialog) ist das
+     * der übergebene Spieler. Beim verzögerten Pfad lösen wir den Spieler aus der
+     * UUID neu auf und überspringen den Callback, falls er offline ging — damit
+     * keine Console-/Player-Commands oder Shops auf einen abgemeldeten Spieler
+     * losgelassen werden.</p>
+     */
+    public void speak(Player player, NpcDefinition npc, Consumer<Player> afterAll) {
         Dialogue dialogue = npc.dialogue();
         if (!dialogue.hasLines()) {
-            if (afterAll != null) {
-                afterAll.run();
+            if (afterAll != null && player != null && player.isOnline()) {
+                afterAll.accept(player);
             }
             return;
         }
@@ -79,7 +90,13 @@ public final class DialogueService {
             }, offset);
         }
         if (afterAll != null) {
-            scheduler.runTaskLater(plugin, afterAll, offset);
+            scheduler.runTaskLater(plugin, () -> {
+                Player current = plugin.getServer().getPlayer(playerId);
+                if (current == null || !current.isOnline()) {
+                    return;
+                }
+                afterAll.accept(current);
+            }, offset);
         }
     }
 

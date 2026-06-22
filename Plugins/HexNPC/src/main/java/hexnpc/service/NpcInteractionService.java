@@ -52,8 +52,10 @@ public final class NpcInteractionService {
             return;
         }
         // speak() runs afterAll exactly once: immediately when there are no
-        // dialogue lines, otherwise after the last line ticks through.
-        dialogueService.speak(player, npc, () -> runActions(player, npc, source));
+        // dialogue lines, otherwise after the last line ticks through. Der Player im
+        // Callback ist der aktuell online verbundene — beim verzögerten Pfad löst
+        // speak() ihn frisch auf und überspringt, falls er offline ging.
+        dialogueService.speak(player, npc, current -> runActions(current, npc, source));
     }
 
     private void runActions(Player player, NpcDefinition npc, InteractionTrigger source) {

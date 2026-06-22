@@ -10,6 +10,10 @@ import hexnpc.model.NpcId;
 import hexnpc.model.NpcLocation;
 import hexnpc.model.NpcSkin;
 import hexnpc.service.NpcService;
+import hexnpc.shop.ShopRegistry;
+import hexnpc.shop.ShopService;
+import hexnpc.shop.model.Shop;
+import hexnpc.shop.model.ShopItem;
 import hexnpc.util.LegacyFormat;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -61,6 +65,7 @@ public final class HexNpcCommand implements CommandExecutor, TabCompleter {
                 case "dialogue" -> handleDialogue(sender, args);
                 case "trigger" -> handleTrigger(sender, args);
                 case "action" -> handleAction(sender, args);
+                case "shop" -> handleShop(sender, args);
                 default -> {
                     usage(sender, label);
                     yield true;
@@ -466,6 +471,76 @@ public final class HexNpcCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
+    private boolean handleShop(CommandSender sender, String[] args) {
+        ShopService service = plugin.shopService();
+        ShopRegistry registry = plugin.shopRegistry();
+        if (service == null || registry == null) {
+            sender.sendMessage(LegacyFormat.component("&cPodsystem sklepów nie jest zainicjalizowany."));
+            return true;
+        }
+        if (args.length < 2) {
+            sender.sendMessage(LegacyFormat.component(
+                    "&cUżycie: /hexnpc shop <reload|list|open|info> [shopId]"));
+            return true;
+        }
+        String op = args[1].toLowerCase(Locale.ROOT);
+        switch (op) {
+            case "reload" -> {
+                int loaded = plugin.reloadShopCatalog();
+                sender.sendMessage(LegacyFormat.component(
+                        "&aPrzeładowano sklepy: &f" + loaded));
+            }
+            case "list" -> {
+                if (registry.size() == 0) {
+                    sender.sendMessage(LegacyFormat.component("&7Brak skonfigurowanych sklepów."));
+                    return true;
+                }
+                sender.sendMessage(LegacyFormat.component("&aSklepy (" + registry.size() + "):"));
+                for (Shop shop : registry.all()) {
+                    sender.sendMessage(LegacyFormat.component(
+                            "&7- &f" + shop.id() + " &7(itemy=" + shop.itemValues().size()
+                                    + ", rozmiar=" + shop.size() + ")"));
+                }
+            }
+            case "open" -> {
+                if (args.length < 3) {
+                    sender.sendMessage(LegacyFormat.component("&cUżycie: /hexnpc shop open <shopId>"));
+                    return true;
+                }
+                if (!(sender instanceof Player player)) {
+                    sender.sendMessage(LegacyFormat.component("&cTylko gracz może otworzyć sklep."));
+                    return true;
+                }
+                service.openShop(player, args[2]);
+            }
+            case "info" -> {
+                if (args.length < 3) {
+                    sender.sendMessage(LegacyFormat.component("&cUżycie: /hexnpc shop info <shopId>"));
+                    return true;
+                }
+                Shop shop = registry.find(args[2]).orElse(null);
+                if (shop == null) {
+                    sender.sendMessage(LegacyFormat.component("&cNie znaleziono sklepu o id &f" + args[2]));
+                    return true;
+                }
+                sender.sendMessage(LegacyFormat.component(
+                        "&aSklep &f" + shop.id() + " &7| rozmiar=" + shop.size()
+                                + " sell-slot=" + shop.sellSlot()));
+                for (ShopItem item : shop.itemValues()) {
+                    sender.sendMessage(LegacyFormat.component(String.format(Locale.US,
+                            "&7- &f%s &7slot=%d mat=%s amount=%d kup=%s sprzedaj=%s match=%s",
+                            item.id(), item.slot(), item.material(), item.amount(),
+                            item.hasBuyPrice() ? item.buyPrice().toPlainString() : "off",
+                            item.hasSellPrice() ? item.sellPrice().toPlainString() : "off",
+                            item.sellMatch().name())));
+                }
+            }
+            default -> sender.sendMessage(LegacyFormat.component(
+                    "&cNieznana operacja. Użyj reload|list|open|info."));
+        }
+        return true;
+    }
+
     private InteractionTrigger parseTrigger(CommandSender sender, String raw) {
         return switch (raw.toLowerCase(Locale.ROOT)) {
             case "click", "on-click", "onclick" -> InteractionTrigger.CLICK;
@@ -514,6 +589,7 @@ public final class HexNpcCommand implements CommandExecutor, TabCompleter {
                 "&7/" + label + " trigger <id> <click|proximity> <on|off> [radius] [cooldown]",
                 "&7/" + label + " action <id> add <click|proximity> <type> key=value...",
                 "&7/" + label + " action <id> clear <click|proximity|all>",
+                "&7/" + label + " shop <reload|list|open|info> [shopId]",
                 "&7/" + label + " reload"
         }) {
             sender.sendMessage(LegacyFormat.component(line));
@@ -522,7 +598,9 @@ public final class HexNpcCommand implements CommandExecutor, TabCompleter {
 
     private static final List<String> TOP_LEVEL = List.of(
             "create", "remove", "list", "tp", "move", "rotate", "skin",
-            "dialogue", "trigger", "action", "reload");
+            "dialogue", "trigger", "action", "shop", "reload");
+
+    private static final List<String> SHOP_OPS = List.of("reload", "list", "open", "info");
 
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command,
@@ -538,8 +616,25 @@ public final class HexNpcCommand implements CommandExecutor, TabCompleter {
             return List.of();
         }
         String sub = args[0].toLowerCase(Locale.ROOT);
-        if (args.length == 2 && !sub.equals("list") && !sub.equals("reload") && !sub.equals("create")) {
+        if (args.length == 2 && sub.equals("shop")) {
+            return filterPrefix(SHOP_OPS, args[1]);
+        }
+        if (args.length == 2 && !sub.equals("list") && !sub.equals("reload") && !sub.equals("create") && !sub.equals("shop")) {
             return filterPrefix(idList(service), args[1]);
+        }
+        if (args.length == 3 && sub.equals("shop")) {
+            String op = args[1].toLowerCase(Locale.ROOT);
+            if (op.equals("open") || op.equals("info")) {
+                ShopRegistry registry = plugin.shopRegistry();
+                if (registry != null) {
+                    List<String> ids = new ArrayList<>();
+                    for (Shop shop : registry.all()) {
+                        ids.add(shop.id());
+                    }
+                    return filterPrefix(ids, args[2]);
+                }
+            }
+            return List.of();
         }
         if (args.length == 3) {
             return switch (sub) {
@@ -561,7 +656,7 @@ public final class HexNpcCommand implements CommandExecutor, TabCompleter {
             }
         }
         if (args.length == 5 && sub.equals("action") && args[2].equalsIgnoreCase("add")) {
-            return filterPrefix(List.of("message", "console-command", "player-command"), args[4]);
+            return filterPrefix(List.of("message", "console-command", "player-command", "npc-shop"), args[4]);
         }
         return List.of();
     }

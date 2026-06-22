@@ -1,5 +1,7 @@
 package hexnpc.config;
 
+import hexnpc.shop.config.ShopConfig;
+
 import java.util.Objects;
 
 public record HexNpcConfig(
@@ -7,12 +9,14 @@ public record HexNpcConfig(
         boolean debug,
         Dialogue dialogue,
         Proximity proximity,
-        Render render
+        Render render,
+        ShopConfig shops
 ) {
     public HexNpcConfig {
         dialogue = Objects.requireNonNull(dialogue, "dialogue");
         proximity = Objects.requireNonNull(proximity, "proximity");
         render = Objects.requireNonNull(render, "render");
+        shops = shops == null ? ShopConfig.defaults() : shops;
     }
 
     public record Dialogue(

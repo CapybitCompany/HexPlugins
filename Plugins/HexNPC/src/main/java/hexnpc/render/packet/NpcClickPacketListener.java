@@ -46,6 +46,12 @@ public final class NpcClickPacketListener extends PacketListenerAbstract {
         }
 
         WrapperPlayClientInteractEntity wrapper = new WrapperPlayClientInteractEntity(event);
+        // Rechtsklick auf eine Entity sendet zwei Pakete: INTERACT_AT und INTERACT.
+        // Wir reagieren nur auf INTERACT, sonst feuert der Trigger doppelt.
+        // ATTACK ist Linksklick und gehört nicht zu CLICK-Interaktion.
+        if (!shouldHandle(wrapper.getAction())) {
+            return;
+        }
         Optional<NpcId> id = renderer.lookupByEntityId(wrapper.getEntityId());
         if (id.isEmpty()) {
             return;
@@ -72,5 +78,18 @@ public final class NpcClickPacketListener extends PacketListenerAbstract {
             freshNpcService.find(id.get())
                     .ifPresent(def -> freshInteraction.trigger(player, def, InteractionTrigger.CLICK));
         });
+    }
+
+    /**
+     * Entscheidet, welche InteractAction zu unserer CLICK-Interaktion zählt.
+     * <ul>
+     *   <li>{@code INTERACT} – echter Rechtsklick (mainhand). Akzeptiert.</li>
+     *   <li>{@code INTERACT_AT} – Vorab-Paket zum Rechtsklick mit Trefferpunkt. Ignoriert,
+     *       sonst feuert der Trigger zweimal pro Klick.</li>
+     *   <li>{@code ATTACK} – Linksklick. Ignoriert.</li>
+     * </ul>
+     */
+    static boolean shouldHandle(WrapperPlayClientInteractEntity.InteractAction action) {
+        return action == WrapperPlayClientInteractEntity.InteractAction.INTERACT;
     }
 }

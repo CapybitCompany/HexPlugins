@@ -20,11 +20,18 @@ import hexnpc.service.NpcInteractionService;
 import hexnpc.service.NpcProximityService;
 import hexnpc.service.NpcService;
 import hexnpc.service.skin.SkinResolver;
+import hexnpc.shop.ShopRegistry;
+import hexnpc.shop.ShopService;
+import hexnpc.shop.action.ShopActionHandler;
+import hexnpc.shop.economy.EconomyBridge;
+import hexnpc.shop.gui.ShopInventoryListener;
 import hexnpc.storage.YamlNpcStorage;
+import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class HexNpcPlugin extends JavaPlugin {
@@ -37,6 +44,10 @@ public class HexNpcPlugin extends JavaPlugin {
     private HexCoreBridge hexCoreBridge;
     private SkinResolver skinResolver;
     private PacketListenerCommon packetClickListener;
+    private EconomyBridge economyBridge;
+    private ShopRegistry shopRegistry;
+    private ShopService shopService;
+    private ShopInventoryListener shopInventoryListener;
 
     // Rebuilt every reload.
     private YamlNpcStorage storage;
@@ -50,17 +61,28 @@ public class HexNpcPlugin extends JavaPlugin {
     public void onEnable() {
         saveDefaultConfig();
         ensureNpcsFile();
+        ensureShopsFile();
 
         // Built once: action registry survives reload so external plugins keep theirs.
         this.actionRegistry = new NpcActionRegistry();
         actionRegistry.register(new MessageHandler());
         actionRegistry.register(new ConsoleCommandHandler());
         actionRegistry.register(new PlayerCommandHandler());
+        actionRegistry.register(new ShopActionHandler(this::shopService));
         getServer().getServicesManager().register(
                 NpcActionRegistry.class, actionRegistry, this, ServicePriority.Normal);
 
         this.hexCoreBridge = new HexCoreBridge(getLogger());
         this.skinResolver = new SkinResolver(getLogger());
+        this.economyBridge = new EconomyBridge(getLogger());
+        this.shopRegistry = new ShopRegistry(getLogger());
+        // Build ShopService once. configRef changes are picked up via supplier.
+        this.shopService = new ShopService(this, shopRegistry, economyBridge,
+                () -> {
+                    HexNpcConfig c = configRef.get();
+                    return c == null ? null : c.shops();
+                },
+                getLogger());
 
         if (!initializeRuntime()) {
             getLogger().severe("Failed to initialize HexNPC. Disabling plugin.");
@@ -75,6 +97,8 @@ public class HexNpcPlugin extends JavaPlugin {
 
         // Listeners registered once. They look up swappable services through this plugin.
         getServer().getPluginManager().registerEvents(new PlayerLifecycleListener(this), this);
+        this.shopInventoryListener = new ShopInventoryListener(shopService);
+        getServer().getPluginManager().registerEvents(shopInventoryListener, this);
         registerPacketClickListenerOnce();
 
         getLogger().info("HexNPC enabled.");
@@ -83,6 +107,10 @@ public class HexNpcPlugin extends JavaPlugin {
     @Override
     public void onDisable() {
         shutdownRuntime();
+        if (shopInventoryListener != null) {
+            HandlerList.unregisterAll(shopInventoryListener);
+            shopInventoryListener = null;
+        }
         if (packetClickListener != null) {
             PacketEventsBootstrap.unregisterListener(packetClickListener);
             packetClickListener = null;
@@ -95,6 +123,12 @@ public class HexNpcPlugin extends JavaPlugin {
             skinResolver.shutdown();
             skinResolver = null;
         }
+        if (economyBridge != null) {
+            economyBridge.shutdown();
+            economyBridge = null;
+        }
+        shopService = null;
+        shopRegistry = null;
         hexCoreBridge = null;
         getLogger().info("HexNPC disabled.");
     }
@@ -141,6 +175,18 @@ public class HexNpcPlugin extends JavaPlugin {
         return skinResolver;
     }
 
+    public ShopRegistry shopRegistry() {
+        return shopRegistry;
+    }
+
+    public ShopService shopService() {
+        return shopService;
+    }
+
+    public EconomyBridge economyBridge() {
+        return economyBridge;
+    }
+
     private boolean initializeRuntime() {
         HexNpcConfig loaded = configLoader.load(getConfig());
         configRef.set(loaded);
@@ -173,7 +219,24 @@ public class HexNpcPlugin extends JavaPlugin {
 
         this.proximityService = new NpcProximityService(this, npcService, interactionService, configRef::get);
         proximityService.start();
+
+        reloadShopCatalog();
         return true;
+    }
+
+    /** Loads (or reloads) the shop catalog from disk. */
+    public int reloadShopCatalog() {
+        if (shopRegistry == null) {
+            return 0;
+        }
+        HexNpcConfig cfg = configRef.get();
+        var shopConfig = cfg == null ? null : cfg.shops();
+        try {
+            return shopRegistry.reload(new File(getDataFolder(), "shops.yml"), shopConfig);
+        } catch (IOException ex) {
+            getLogger().warning("HexNPC: failed to reload shops.yml: " + ex.getMessage());
+            return 0;
+        }
     }
 
     private NpcRenderer createRenderer(HexNpcConfig loaded) {
@@ -247,6 +310,16 @@ public class HexNpcPlugin extends JavaPlugin {
         File npcs = new File(getDataFolder(), "npcs.yml");
         if (!npcs.exists()) {
             saveResource("npcs.yml", false);
+        }
+    }
+
+    private void ensureShopsFile() {
+        if (!getDataFolder().exists() && !getDataFolder().mkdirs()) {
+            return;
+        }
+        File shops = new File(getDataFolder(), "shops.yml");
+        if (!shops.exists()) {
+            saveResource("shops.yml", false);
         }
     }
 }

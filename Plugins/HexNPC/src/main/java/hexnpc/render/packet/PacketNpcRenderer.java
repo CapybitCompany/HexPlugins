@@ -257,13 +257,18 @@ public final class PacketNpcRenderer implements NpcRenderer {
     }
 
     @Override
-    public Optional<NpcHandle> handle(NpcId id) {
+    public synchronized Optional<NpcHandle> handle(NpcId id) {
         RenderedNpc rendered = bySupervisor.get(id);
         return rendered == null ? Optional.empty() : Optional.of(rendered);
     }
 
+    /**
+     * Lookup vom Netty-Thread (PacketEvents-Listener). Die Map wird im Main-Thread
+     * von spawn/despawn mutiert; HashMap ist nicht thread-safe (Resize-Race),
+     * deshalb synchronisieren wir auf demselben Monitor wie die Mutationen.
+     */
     @Override
-    public Optional<NpcId> lookupByEntityId(int entityId) {
+    public synchronized Optional<NpcId> lookupByEntityId(int entityId) {
         return Optional.ofNullable(byEntityId.get(entityId));
     }
 
@@ -276,7 +281,11 @@ public final class PacketNpcRenderer implements NpcRenderer {
             rendered.viewers.add(player.getUniqueId());
 
             int delay = configSupplier.get().render().tablistRemoveDelayTicks();
-            if (delay > 0) {
+            if (delay <= 0) {
+                // Sofortiges Entfernen aus der Tab-Liste — der Client behält den Skin
+                // bereits anhand der zuvor gespawnten Entity, der Eintrag wird unsichtbar.
+                sendPlayerInfoRemove(player, rendered.profileUuid);
+            } else {
                 UUID uuid = rendered.profileUuid;
                 UUID playerId = player.getUniqueId();
                 plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
@@ -294,7 +303,10 @@ public final class PacketNpcRenderer implements NpcRenderer {
 
     private void sendPlayerInfoAdd(Player viewer, RenderedNpc rendered) {
         NpcDefinition def = rendered.definition;
-        UserProfile profile = new UserProfile(rendered.profileUuid, displayName(def));
+        // UserProfile.name = Mojang-Username: max 16 Zeichen, sonst lehnt der Client
+        // den Player-Info-Eintrag ab und der NPC erscheint ohne Skin. Der sichtbar
+        // angezeigte Display-Name (Component) bleibt davon unberührt.
+        UserProfile profile = new UserProfile(rendered.profileUuid, profileName(def));
         if (def.skin().hasTexture()) {
             profile.setTextureProperties(List.of(
                     new TextureProperty("textures", def.skin().value(), def.skin().signature())
@@ -380,6 +392,36 @@ public final class PacketNpcRenderer implements NpcRenderer {
             return def.skin().name();
         }
         return def.id().value();
+    }
+
+    /**
+     * Mojang-Username für {@link UserProfile}. NpcId erlaubt bis zu 32 Zeichen;
+     * Minecraft akzeptiert in der Player-Info aber nur 16. Wir kürzen daher hart
+     * auf 16, ersetzen das in NpcId zulässige {@code '-'} (kein gültiges Mojang-
+     * Username-Zeichen) durch {@code '_'} und liefern bei leerem Input einen
+     * stabilen Fallback. Der sichtbar angezeigte Name (Component) bleibt davon
+     * unberührt — siehe {@link #displayName(NpcDefinition)}.
+     */
+    static String profileName(NpcDefinition def) {
+        String raw = def.skin().name();
+        if (raw == null || raw.isEmpty()) {
+            raw = def.id().value();
+        }
+        return sanitizeProfileName(raw);
+    }
+
+    static String sanitizeProfileName(String raw) {
+        if (raw == null) {
+            return "NPC";
+        }
+        String cleaned = raw.replace('-', '_');
+        if (cleaned.length() > 16) {
+            cleaned = cleaned.substring(0, 16);
+        }
+        if (cleaned.isEmpty()) {
+            return "NPC";
+        }
+        return cleaned;
     }
 
     private boolean inSameWorld(Player player, RenderedNpc rendered) {

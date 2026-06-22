@@ -1,0 +1,67 @@
+# ==========================================================
+# HexNPC - katalog sklepów
+# ==========================================================
+# Każdy sklep identyfikowany jest swoim kluczem pod "shops:". Akcje
+# NPC odwołują się do niego przez:
+#   actions:
+#     on-click:
+#       - { type: npc-shop, shop: starter }
+#
+# Pola sklepu:
+#   title       - tytuł GUI (kody kolorów przez &)
+#   size        - rozmiar inventory (9, 18, 27, 36, 45 lub 54)
+#   sell-slot   - slot środkowego przycisku "Sprzedaj" w widoku
+#                 szczegółów (indeks 0-based, w obrębie size)
+#   items       - mapa item-id -> definicja itemu
+#
+# Pola itemu:
+#   material      - nazwa enuma Material z Bukkita (case-insensitive)
+#   amount        - rozmiar stosu w jednej transakcji
+#                   (zakres: 1..Material.getMaxStackSize(); v1 nie obsługuje
+#                   transakcji wielo-stosowych, więc np. dla DIAMOND max=64)
+#   slot          - slot w głównym widoku GUI (0-based)
+#   display-name  - nazwa wyświetlana w GUI (kody kolorów przez &)
+#   lore          - lista linii lore widocznych w GUI
+#   buy-price     - kwota płacona przy zakupie stosu
+#   sell-price    - kwota otrzymywana przy sprzedaży stosu
+#   buy-enabled   - czy zakup jest dozwolony
+#   sell-enabled  - czy sprzedaż jest dozwolona
+#   sell-match    - PLAIN_MATERIAL (vanilla, ten sam Material, bez
+#                   custom name/lore/enchant/PDC/custom-model-data/damage)
+#                 LUB EXACT_ITEM (item musi odpowiadać skonfigurowanej
+#                   ikonie co do nazwy/lore/enchantów itp.)
+#
+# Uwaga praktyczna: dla PLAIN_MATERIAL Buy-Flow oddaje graczowi „gołą"
+# wersję itemu (sam Material + amount, bez nazwy/lore). Dzięki temu
+# gracz może bez problemu sprzedać go z powrotem w tym samym sklepie.
+
+shops:
+  starter:
+    title: "&8Sklep startowy"
+    size: 54
+    sell-slot: 49
+    items:
+      cobblestone:
+        material: COBBLESTONE
+        amount: 64
+        slot: 10
+        display-name: "&7Bruk"
+        lore:
+          - "&8Podstawowy blok budowlany"
+        buy-price: "100.00"
+        sell-price: "25.00"
+        buy-enabled: true
+        sell-enabled: true
+        sell-match: PLAIN_MATERIAL
+      diamond:
+        material: DIAMOND
+        amount: 1
+        slot: 12
+        display-name: "&bDiament"
+        lore:
+          - "&7Cenny surowiec"
+        buy-price: "500.00"
+        sell-price: "200.00"
+        buy-enabled: true
+        sell-enabled: true
+        sell-match: PLAIN_MATERIAL

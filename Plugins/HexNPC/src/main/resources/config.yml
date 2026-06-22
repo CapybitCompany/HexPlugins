@@ -29,3 +29,31 @@ render:
   view-distance-blocks: 48
   # Delay (ticks) after spawn before the fake player is removed from tablist.
   tablist-remove-delay-ticks: 40
+
+# NPC shop subsystem. Shops are defined in shops.yml and opened from NPC
+# actions with type "npc-shop". User-facing texts in Polish.
+shops:
+  enabled: true
+  # When true, all transactions require HexEconomy. When false and economy is
+  # missing, buy/sell flows still refuse but no error is shown beyond the
+  # "economy-missing" message.
+  require-economy: true
+  # GUI title format. <shop> is replaced by the shop's configured title.
+  title-format: "&8Sklep: &6<shop>"
+  # Fallback size when a shop omits "size:".
+  default-size: 54
+  # Fallback central sell-slot when a shop omits "sell-slot:".
+  default-sell-slot: 49
+  # When true, items with custom name/lore/enchant/PDC/CustomModelData/damage
+  # are refused by PLAIN_MATERIAL shops.
+  prevent-selling-custom-items: true
+  messages:
+    economy-missing: "&cEkonomia jest niedostępna."
+    shop-not-found: "&cNie znaleziono sklepu: &f<shop>"
+    inventory-full: "&cNie masz miejsca w ekwipunku."
+    not-enough-money: "&cNie masz wystarczająco pieniędzy."
+    not-enough-items: "&cNie masz wystarczająco przedmiotów."
+    bought: "&aKupiono &f<amount>x <item> &aza &f<price>&a."
+    sold: "&aSprzedano &f<amount>x <item> &aza &f<price>&a."
+    transaction-failed: "&cTransakcja nie powiodła się. &7<reason>"
+    trade-busy: "&ePoczekaj, poprzednia transakcja nadal trwa."
