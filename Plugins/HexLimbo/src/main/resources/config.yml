@@ -1,0 +1,79 @@
+# HexLimbo configuration.
+# Values that can be hot-reloaded with `/hexlimbo reload`:
+#   servers.*, auth.*, session.duration-minutes, session.purge-interval-minutes (next tick),
+#   security.* (live except rate-limit-per-minute window – requires restart),
+#   premium.* (live), messages.yml content.
+# Database connection settings require a proxy restart.
+
+servers:
+  # The server players are routed to while unauthenticated. Must be registered in velocity.toml.
+  limbo: "limbo"
+  # The server players are sent to once authenticated.
+  target: "lobby"
+
+auth:
+  # How many seconds an unauthenticated player may stay connected before being kicked.
+  login-timeout-seconds: 60
+  # Permission node that bypasses the entire HexLimbo auth flow: full bypass means no limbo
+  # routing, no chat block, no command block, no /login required, no login timeout.
+  admin-bypass-permission: "hexlimbo.bypass"
+  # Commands an unauthenticated player is allowed to run. Anything else is silently blocked.
+  allowed-commands-unauthenticated:
+    - "login"
+    - "l"
+    - "register"
+    - "reg"
+    - "limbo"
+    - "premium"
+    - "cpw"
+    - "changepassword"
+    - "logout"
+
+database:
+  host: "127.0.0.1"
+  port: 3306
+  database: "hexlimbo"
+  username: "hexlimbo"
+  password: ""
+  pool-size: 10
+  connection-timeout-ms: 10000
+  # When true (default, production-safe): if MySQL is unavailable at startup the plugin REFUSES to
+  # serve auth and instead kicks every incoming connection with a "service unavailable" message.
+  # When false: HexLimbo falls back to an in-memory account store. Accounts will NOT persist across
+  # restarts; intended for development only. A loud warning is logged.
+  fail-fast: true
+
+session:
+  # When enabled, players are remembered for `duration-minutes` and skip /login on rejoin.
+  # Sessions are tied to the player's IP hash, so changing IP forces a fresh /login.
+  enabled: true
+  duration-minutes: 240
+  # Background task interval for deleting expired sessions from MySQL.
+  purge-interval-minutes: 10
+
+security:
+  min-password-length: 8
+  max-failed-attempts: 5
+  lockout-seconds: 600
+  # Sliding window of login/register attempts per username per minute.
+  # NOTE: this window is fixed at plugin startup; changing it via /hexlimbo reload has no effect
+  # until the proxy restarts.
+  rate-limit-per-minute: 6
+  # Maximum accounts that can share a single hashed IP. Prevents bot registration storms.
+  max-accounts-per-ip: 4
+  # Per-instance pepper added before SHA-256 hashing of IPs. Change once and keep secret.
+  # Rotating this invalidates session lookups (a known trade-off).
+  ip-hash-pepper: "change-me-please-set-a-long-random-value"
+
+premium:
+  # When false, every player is treated as cracked. Useful for offline-only networks.
+  enabled: true
+  # How long Mojang premium-status results are cached. Only definite PREMIUM/NOT_PREMIUM
+  # answers are cached; UNKNOWN responses are NEVER cached so the next caller retries upstream.
+  cache-ttl-seconds: 600
+  cache-max-entries: 10000
+  http-timeout-ms: 4000
+  # When the Mojang premium check returns UNKNOWN (network error, timeout, 5xx/429, malformed body)
+  # the safe behaviour is to deny login/registration so a cracked client cannot grab a premium
+  # name during a Mojang outage. Set to true ONLY if you accept that risk (e.g. closed networks).
+  fail-open-on-check-error: false

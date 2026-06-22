@@ -1,0 +1,92 @@
+# HexLimbo chat messages. {0}, {1}, ... are replaced with positional arguments.
+
+# Disconnect reasons (used as kick messages).
+disconnect.invalid-name: "Invalid username."
+disconnect.login-timeout: "You did not authenticate in time."
+disconnect.cracked-name-collision: "This username is already registered as cracked. Ask staff to migrate the account."
+disconnect.premium-name-required: "This name is a premium Mojang account. Please rejoin with the correct premium client."
+disconnect.account-state-error: "Your account is in an inconsistent state. Please contact staff."
+disconnect.premium-check-unavailable: "Cannot verify premium status with Mojang right now. Please try again in a few minutes."
+disconnect.service-unavailable: "HexLimbo is currently unavailable. Please try again later."
+
+# Inline errors.
+error.must-authenticate-first: "Please /login or /register first."
+error.command-blocked: "You must authenticate before using that command."
+error.chat-blocked: "You must authenticate before chatting."
+error.rate-limited: "You are sending requests too fast. Try again in a minute."
+error.players-only: "Only players can use this command."
+error.internal: "An internal error happened. Please try again or contact staff."
+
+# /register
+register.usage: "Usage: /register <password> <password>"
+register.success: "Registration successful. Sending you to the network."
+register.password-mismatch: "Passwords do not match."
+register.password-too-short: "Password must be at least {0} characters."
+register.already-registered: "You are already registered. Use /login <password>."
+register.already-authenticated: "You are already authenticated."
+register.too-many-accounts: "Too many accounts have been registered from your address."
+register.premium-name-protected: "This name belongs to a premium Mojang account and cannot be used by a cracked client."
+register.premium-check-unavailable: "Cannot verify premium status with Mojang right now. Please try again in a few minutes."
+
+# /login
+login.usage: "Usage: /login <password>"
+login.success: "Login successful."
+login.wrong-password: "Wrong password."
+login.account-locked: "Account is temporarily locked due to too many failed attempts."
+login.not-registered: "You are not registered. Use /register <password> <password>."
+login.already-authenticated: "You are already authenticated."
+
+# /logout
+logout.success: "Logged out. Send /login <password> to come back."
+logout.premium-not-supported: "Premium accounts are authenticated by Mojang every session; reconnect to refresh your auth."
+
+# /changepassword
+changepassword.usage: "Usage: /changepassword <oldPassword> <newPassword>"
+changepassword.success: "Password changed."
+changepassword.failed: "Could not change password. Check old password and length."
+
+# /premium
+premium.requested: "Premium migration requested. Buy Minecraft and rejoin to finalize."
+premium.already-requested: "A migration has already been requested."
+premium.already-premium: "Your account is already premium."
+
+# /limbo help
+limbo.hint: "Use /limbo help for authentication commands."
+limbo.help-header: "HexLimbo commands:"
+limbo.help-register: "  /register <password> <password>"
+limbo.help-login: "  /login <password>"
+limbo.help-logout: "  /logout"
+limbo.help-changepassword: "  /changepassword <oldPassword> <newPassword>"
+limbo.help-premium: "  /premium"
+
+# Admin command output.
+admin.usage: "Usage: /hexlimbo <reload|info|resetpassword|forcelogout|unregister|sessions|migrate|debug>"
+admin.usage.info: "Usage: /hexlimbo info <player>"
+admin.usage.resetpassword: "Usage: /hexlimbo resetpassword <player> <newPassword>"
+admin.usage.forcelogout: "Usage: /hexlimbo forcelogout <player>"
+admin.usage.unregister: "Usage: /hexlimbo unregister <player>"
+admin.usage.sessions: "Usage: /hexlimbo sessions <player>"
+admin.usage.migrate: "Usage: /hexlimbo migrate <player>"
+admin.usage.debug: "Usage: /hexlimbo debug <player>"
+admin.reload.success: "HexLimbo configuration reloaded."
+admin.reload.failed: "Reload failed: {0}"
+admin.account-not-found: "No account with that username."
+admin.player-not-online: "That player is not online."
+admin.resetpassword.success: "Password reset and sessions invalidated."
+admin.forcelogout.kick-premium: "An administrator has forced you to reconnect."
+admin.forcelogout.kicked-premium: "Disconnected premium player {0}."
+admin.forcelogout.sent-limbo: "Routed {0} to the limbo server."
+admin.forcelogout.offline-sessions-invalidated: "Player was offline; sessions invalidated."
+admin.unregister.success: "Account deleted."
+admin.unregister.kick: "Your account has been unregistered."
+admin.sessions.none: "No valid sessions."
+admin.sessions.count: "Valid sessions: {0}"
+admin.sessions.expiry: "Latest session expires at epoch ms {0}."
+admin.migrate.marked: "Account marked PENDING_MIGRATION."
+admin.debug.no-state: "No live auth state for that player."
+# {0} = field name, {1} = value. Used for every line of /hexlimbo info <player>.
+admin.info.header: "HexLimbo info for {0}"
+admin.info.field: "  {0}: {1}"
+# {0} = field name, {1} = value. Used for every line of /hexlimbo debug <player>.
+admin.debug.header: "HexLimbo debug {0}"
+admin.debug.field: "  {0}: {1}"

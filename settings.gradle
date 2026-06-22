@@ -13,6 +13,7 @@ include 'plugins:AreaEffects'
 include 'plugins:HexElimination'
 include 'plugins:HexCustomMobs'
 include 'plugins:HexNPC'
+include 'plugins:HexLimbo'
 include 'statsapi'
 
 // Physical folder is 'Plugins/...' (capital P), keep logical Gradle path consistent.
@@ -28,4 +29,5 @@ project(':plugins:AreaEffects').projectDir = file('Plugins/AreaEffects')
 project(':plugins:HexElimination').projectDir = file('Plugins/HexElimination')
 project(':plugins:HexCustomMobs').projectDir = file('Plugins/HexCustomMobs')
 project(':plugins:HexNPC').projectDir = file('Plugins/HexNPC')
+project(':plugins:HexLimbo').projectDir = file('Plugins/HexLimbo')
 project(':statsapi').projectDir = file('StatsApi')
