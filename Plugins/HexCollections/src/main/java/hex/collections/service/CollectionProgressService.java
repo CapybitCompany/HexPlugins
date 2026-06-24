@@ -57,12 +57,23 @@ public final class CollectionProgressService implements HexCollectionsApi {
         return new CollectionAddResult(true, "ok", old.amount(), amount, old.level(), level, unlocked);
     }
 
-    @Override public void loadTown(UUID townId) { if (townId != null) cache.put(townId, repository.loadTown(townId)); }
-    @Override public void flushTown(UUID townId) { if (townId != null) { var data = cache.getOrCreate(townId); repository.upsertTown(townId, data.collections()); data.markClean(); } }
+    @Override public void loadTown(UUID townId) {
+        if (townId == null || cache.contains(townId)) return;
+        cache.put(townId, repository.loadTown(townId));
+    }
+    @Override public void flushTown(UUID townId) { if (townId != null) { var data = data(townId); repository.upsertTown(townId, data.collections()); data.markClean(); } }
     public void flushDirty() { cache.dirtySnapshot().keySet().forEach(id -> hex.db().asyncRun(() -> flushTown(id))); }
     @Override public void unloadTown(UUID townId) { if (townId != null) { flushTown(townId); cache.remove(townId); } }
     @Override public void deleteTownCollectionData(UUID townId) { if (townId != null) { cache.remove(townId); repository.purgeTown(townId); Bukkit.getScheduler().runTask(plugin, () -> Bukkit.getPluginManager().callEvent(new TownCollectionResetEvent(townId))); } }
-    @Override public Map<String, CollectionProgress> getAllCollections(UUID townId) { return Map.copyOf(cache.getOrCreate(townId).collections()); }
+    @Override public Map<String, CollectionProgress> getAllCollections(UUID townId) {
+        if (townId == null) return Map.of();
+        Map<String, CollectionProgress> result = new LinkedHashMap<>();
+        Map<String, CollectionProgress> stored = data(townId).collections();
+        for (CollectionDefinition definition : registry.all()) {
+            result.put(definition.id(), stored.getOrDefault(definition.id(), CollectionProgress.empty(definition.id())));
+        }
+        return Map.copyOf(result);
+    }
 
 
     public List<TopCollectionEntry> top(String collectionId, int limit) {
@@ -76,7 +87,14 @@ public final class CollectionProgressService implements HexCollectionsApi {
     private CollectionProgress progress(UUID townId, String collectionId) {
         CollectionDefinition def = registry.find(collectionId).orElse(null);
         if (townId == null || def == null) return CollectionProgress.empty(collectionId);
-        return cache.getOrCreate(townId).collections().getOrDefault(def.id(), CollectionProgress.empty(def.id()));
+        return data(townId).collections().getOrDefault(def.id(), CollectionProgress.empty(def.id()));
+    }
+
+    private CollectionCache.TownCollectionData data(UUID townId) {
+        if (townId == null) return cache.getOrCreate(new UUID(0L, 0L));
+        CollectionCache.TownCollectionData existing = cache.get(townId);
+        if (existing != null) return existing;
+        return cache.put(townId, repository.loadTown(townId));
     }
 }
 

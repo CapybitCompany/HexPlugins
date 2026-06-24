@@ -99,7 +99,8 @@ public final class MinionsPlaceholderExpansion extends PlaceholderExpansion {
             case "slot", "menu_slot" -> String.valueOf(minion.menuSlotHint());
             case "storage_slots", "storage_slots_unlocked" -> String.valueOf(minion.storageSlotsUnlocked());
             case "material" -> material(minion);
-            case "head_material" -> minion.headMaterial();
+            case "head_material" -> menuSafeHeadMaterial(minion.headMaterial());
+            case "head_texture", "head_base64" -> headTexture(minion.headMaterial());
             case "status_material" -> statusMaterial(minion);
             default -> "";
         };
@@ -118,6 +119,17 @@ public final class MinionsPlaceholderExpansion extends PlaceholderExpansion {
         if (minion.storagePercent() >= 100) return "LIME_STAINED_GLASS_PANE";
         if (minion.storagePercent() >= 50) return "YELLOW_STAINED_GLASS_PANE";
         return "GRAY_STAINED_GLASS_PANE";
+    }
+
+
+    private static String menuSafeHeadMaterial(String raw) {
+        if (raw == null || raw.isBlank()) return "PLAYER_HEAD";
+        return raw.startsWith("head:") ? "PLAYER_HEAD" : raw;
+    }
+
+    private static String headTexture(String raw) {
+        if (raw == null || raw.isBlank() || !raw.startsWith("head:")) return "";
+        return raw.substring("head:".length());
     }
 
 

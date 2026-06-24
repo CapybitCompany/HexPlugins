@@ -15,6 +15,14 @@ public final class CollectionCache {
         return towns.computeIfAbsent(townId, TownCollectionData::new);
     }
 
+    public boolean contains(UUID townId) {
+        return townId != null && towns.containsKey(townId);
+    }
+
+    public TownCollectionData get(UUID townId) {
+        return townId == null ? null : towns.get(townId);
+    }
+
     public TownCollectionData put(UUID townId, Map<String, CollectionProgress> progress) {
         TownCollectionData data = new TownCollectionData(townId);
         data.collections.putAll(progress);

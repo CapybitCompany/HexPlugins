@@ -1,0 +1,59 @@
+id: "foraging.oak_wood"
+aliases: ["foraging_oak_wood", "oak_wood", "oak_log", "drewno_debowe", "drewno_dębowe", "minecraft:oak_log"]
+enabled: true
+
+display:
+  name: "&6Drewno dębowe"
+  category: "foraging"
+  menu_slot: 30
+  icon:
+    material: OAK_LOG
+
+tracked_items:
+  base:
+    material: OAK_LOG
+    amount_value: 1
+
+valid_sources: [NATURAL_BLOCK_BREAK, MINION_COLLECT, CUSTOM_PLUGIN_GRANTED]
+
+sources:
+  - trigger: minions.resource.claimed
+    amount-from: amount
+    filters:
+      collectionId: foraging.oak_wood
+      resourceId: oak_plank
+  - trigger: minions.resource.generated
+    amount-from: amount
+    filters:
+      collectionId: foraging.oak_wood
+      resourceId: oak_plank
+
+source_rules:
+  NATURAL_BLOCK_BREAK:
+    allowed_materials: [OAK_LOG, OAK_WOOD]
+    allowed_worlds: [world, resource_world, mining_world]
+    blocked_worlds: [spawn]
+    allow_in_town_claims: false
+    deny_player_placed_blocks: true
+    deny_recently_broken_blocks: true
+  MINION_COLLECT:
+    allowed_minion_types: [OAK_WOOD_MINION, oak_plank]
+    allow_in_town_claims: true
+  CUSTOM_PLUGIN_GRANTED:
+    allow_in_town_claims: true
+
+levels:
+  1: {required: 50, display_name: "&6Drewno dębowe I"}
+  2: {required: 250, display_name: "&6Drewno dębowe II"}
+  3: {required: 1000, display_name: "&6Drewno dębowe III"}
+  4: {required: 2500, display_name: "&6Drewno dębowe IV"}
+  5: {required: 7500, display_name: "&6Drewno dębowe V"}
+  6: {required: 15000, display_name: "&6Drewno dębowe VI"}
+  7: {required: 30000, display_name: "&6Drewno dębowe VII"}
+
+reward_claim_mode: AUTO
+placeholder:
+  progress_bar:
+    length: 20
+    filled_char: "■"
+    empty_char: "□"

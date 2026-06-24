@@ -139,9 +139,9 @@ public final class SpecialItemRegistry {
         int compressedValue = Math.max(1, specialYaml.getInt("compression.defaults.compressed.value", 128));
         int superValue = Math.max(compressedValue, specialYaml.getInt("compression.defaults.super.value", compressedValue * 32 * 5));
         List<String> compressedShape = specialYaml.getStringList("compression.defaults.compressed.shape");
-        if (compressedShape.isEmpty()) compressedShape = List.of("CC ", "CC ", "   ");
+        if (compressedShape.isEmpty()) compressedShape = List.of(" C ", "CCC", " C ");
         List<String> superShape = specialYaml.getStringList("compression.defaults.super.shape");
-        if (superShape.isEmpty()) superShape = List.of("CCC", "CC ", "   ");
+        if (superShape.isEmpty()) superShape = List.of(" C ", "CCC", " C ");
         int compressedIngredientAmount = Math.max(1, specialYaml.getInt("compression.defaults.compressed.ingredient-amount", Math.max(1, compressedValue / countShape(compressedShape, 'C'))));
         int superIngredientAmount = Math.max(1, specialYaml.getInt("compression.defaults.super.ingredient-amount", 32));
         int customModelBase = Math.max(0, specialYaml.getInt("compression.defaults.custom-model-data-base", 11000));

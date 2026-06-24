@@ -12,21 +12,22 @@ storage-chests:
     item:
       material: CHEST
       custom-model-data: 0
-      display-name: "<gold>Minion Storage</gold>"
+      display-name: "<gold>Rozszerzenie storage miniona</gold>"
       lore:
         - "<gray>Specjalna skrzynka dla miniona.</gray>"
-        - "<gray>Postaw ją bezpośrednio obok miniona.</gray>"
+        - "<gray>Po podłączeniu pojawia się fizycznie obok miniona.</gray>"
         - "<gray>Sloty storage: <white>3</white></gray>"
     recipe:
-      enabled: true
+      # Receptura z ilościami jest obsługiwana przez special-items.yml → storage_expander.
+      # Tutaj wyłączamy prostą vanilla recepturę Bukkit, żeby nie dało się ominąć wymogu 32 drewna na slot.
+      enabled: false
       shape:
         - "WWW"
-        - "WCK"
+        - "WCW"
         - "WWW"
       ingredients:
-        W: OAK_PLANKS
+        W: OAK_LOG
         C: CHEST
-        K: COBBLESTONE
 
   medium:
     enabled: true

@@ -107,28 +107,32 @@ public final class MinionMenu {
     }
 
     public void openWiki(Player player) {
-        Inventory inv = Bukkit.createInventory(new MinionWikiHolder(""), 54, miniMessage.deserialize("<dark_gray>Wiki minionów"));
+        openWikiPage(player, 0);
+    }
+
+    public void openWikiPage(Player player, int page) {
+        List<MinionTypeDefinition> types = sortedWikiTypes();
+        int totalPages = Math.max(1, (int) Math.ceil(types.size() / (double) WIKI_INDEX_SLOTS.length));
+        int safePage = Math.max(0, Math.min(page, totalPages - 1));
+        Inventory inv = Bukkit.createInventory(new MinionWikiHolder("", safePage), 54, miniMessage.deserialize("<dark_gray>Wiki minionów " + (safePage + 1) + "/" + totalPages));
         fill(inv);
         inv.setItem(4, item(Material.BOOK, "<aqua>Wiki minionów</aqua>", List.of(
                 "<gray>Lista jest generowana automatycznie z pliku</gray>",
                 "<white>minion-types.yml</white><gray>.</gray>",
+                "<gray>Strona: <white>" + (safePage + 1) + "/" + totalPages + "</white></gray>",
                 "",
                 "<yellow>Kliknij główkę, aby zobaczyć poziomy, dropy i wymagania.</yellow>"
         )));
-        List<MinionTypeDefinition> types = service.definitions().minionTypes().values().stream()
-                .filter(MinionTypeDefinition::enabled)
-                .sorted(Comparator.comparing(MinionTypeDefinition::category).thenComparing(MinionTypeDefinition::id))
-                .toList();
-        for (int i = 0; i < Math.min(types.size(), WIKI_INDEX_SLOTS.length); i++) {
-            MinionTypeDefinition type = types.get(i);
+        int offset = safePage * WIKI_INDEX_SLOTS.length;
+        for (int i = 0; i < WIKI_INDEX_SLOTS.length && offset + i < types.size(); i++) {
+            MinionTypeDefinition type = types.get(offset + i);
             inv.setItem(WIKI_INDEX_SLOTS[i], minionHead(type, 1, type.displayName(), wikiIndexLore(type)));
         }
-        if (types.size() > WIKI_INDEX_SLOTS.length) {
-            inv.setItem(49, item(Material.PAPER, "<yellow>Więcej typów</yellow>", List.of(
-                    "<gray>Skonfigurowano <white>" + types.size() + "</white> typów.</gray>",
-                    "<gray>Aktualne wiki pokazuje pierwsze <white>" + WIKI_INDEX_SLOTS.length + "</white>.</gray>",
-                    "<dark_gray>W razie potrzeby dodaj paginację w kolejnym kroku.</dark_gray>"
-            )));
+        if (safePage > 0) {
+            inv.setItem(48, item(Material.ARROW, "<yellow>Poprzednia strona</yellow>", List.of("<gray>Przejdź do strony <white>" + safePage + "</white>.</gray>")));
+        }
+        if (safePage + 1 < totalPages) {
+            inv.setItem(50, item(Material.ARROW, "<yellow>Następna strona</yellow>", List.of("<gray>Przejdź do strony <white>" + (safePage + 2) + "</white>.</gray>")));
         }
         inv.setItem(45, item(Material.ARROW, "<yellow>Powrót</yellow>", List.of("<gray>Zamknij i wróć do menu miasta.</gray>")));
         player.openInventory(inv);
@@ -277,22 +281,63 @@ public final class MinionMenu {
         Inventory inv = Bukkit.createInventory(new EnchantedCraftingMenuHolder(stationId), 54, miniMessage.deserialize("<dark_gray>Enchanted Crafting"));
         fill(inv);
         for (int slot : RECIPE_GRID_SLOTS) inv.setItem(slot, null);
-        inv.setItem(4, item(Material.ENCHANTING_TABLE, "<aqua>Enchanted Crafting Table</aqua>", List.of("<gray>Włóż itemy w grid 3x3.</gray>", "<gray>Kliknij zielony przycisk craftingu.</gray>")));
-        inv.setItem(16, item(Material.ARROW, "<yellow>Craft</yellow>", List.of()));
-        inv.setItem(24, item(Material.GRAY_STAINED_GLASS_PANE, "<gray>Wynik trafia do ekwipunku</gray>", List.of("<dark_gray>Receptura jest sprawdzana po kliknięciu przycisku.</dark_gray>")));
-        inv.setItem(33, item(Material.LIME_CONCRETE, "<green>Wykonaj crafting</green>", List.of("<gray>Sprawdza receptury przypisane do tego stołu.</gray>")));
+        inv.setItem(4, item(Material.ENCHANTING_TABLE, "<aqua>Enchanted Crafting Table</aqua>", List.of(
+                "<gray>Włóż itemy w grid 3x3.</gray>",
+                "<gray>Wynik aktualizuje się automatycznie.</gray>",
+                "<yellow>Kliknij wynik, aby stworzyć 1 sztukę.</yellow>",
+                "<yellow>Shift+klik wyniku tworzy maksymalną możliwą liczbę.</yellow>"
+        )));
+        inv.setItem(16, item(Material.ARROW, "<yellow>Craft</yellow>", List.of("<gray>Kliknij item wyniku po prawej.</gray>")));
+        inv.setItem(24, item(Material.GRAY_STAINED_GLASS_PANE, "<gray>Brak dopasowanej receptury</gray>", List.of("<dark_gray>Ułóż składniki w gridzie 3x3.</dark_gray>")));
+        inv.setItem(33, item(Material.BLACK_STAINED_GLASS_PANE, " ", List.of()));
         player.openInventory(inv);
     }
 
     public String wikiTypeAtSlot(int slot) {
-        List<MinionTypeDefinition> types = service.definitions().minionTypes().values().stream()
-                .filter(MinionTypeDefinition::enabled)
-                .sorted(Comparator.comparing(MinionTypeDefinition::category).thenComparing(MinionTypeDefinition::id))
-                .toList();
-        for (int i = 0; i < Math.min(types.size(), WIKI_INDEX_SLOTS.length); i++) {
-            if (WIKI_INDEX_SLOTS[i] == slot) return types.get(i).id();
+        return wikiTypeAtSlot(slot, 0);
+    }
+
+    public String wikiTypeAtSlot(int slot, int page) {
+        List<MinionTypeDefinition> types = sortedWikiTypes();
+        int offset = Math.max(0, page) * WIKI_INDEX_SLOTS.length;
+        for (int i = 0; i < WIKI_INDEX_SLOTS.length && offset + i < types.size(); i++) {
+            if (WIKI_INDEX_SLOTS[i] == slot) return types.get(offset + i).id();
         }
         return "";
+    }
+
+    public boolean wikiHasPage(int page) {
+        return page >= 0 && page * WIKI_INDEX_SLOTS.length < sortedWikiTypes().size();
+    }
+
+    private List<MinionTypeDefinition> sortedWikiTypes() {
+        Map<String, Integer> preferredOrder = Map.ofEntries(
+                Map.entry("cobblestone", 10),
+                Map.entry("dirt", 20),
+                Map.entry("stone", 30),
+                Map.entry("oak_plank", 40),
+                Map.entry("oak_wood", 40),
+                Map.entry("spruce_wood", 50),
+                Map.entry("coal", 60),
+                Map.entry("iron", 70),
+                Map.entry("copper", 80),
+                Map.entry("redstone", 90),
+                Map.entry("zombie", 900),
+                Map.entry("spider", 910),
+                Map.entry("skeleton", 920),
+                Map.entry("silverfish", 930),
+                Map.entry("sheep", 940),
+                Map.entry("pig", 950),
+                Map.entry("cow", 960),
+                Map.entry("chicken", 970)
+        );
+        return service.definitions().minionTypes().values().stream()
+                .filter(MinionTypeDefinition::enabled)
+                .sorted(Comparator
+                        .comparingInt((MinionTypeDefinition type) -> preferredOrder.getOrDefault(type.id(), 500))
+                        .thenComparing(MinionTypeDefinition::category)
+                        .thenComparing(MinionTypeDefinition::id))
+                .toList();
     }
 
     public String wikiMachineAtSlot(String returnTypeId, int slot) {
@@ -738,13 +783,19 @@ public final class MinionMenu {
             open(player, minionId);
             return;
         }
-        Inventory inv = Bukkit.createInventory(new MinionStorageChestMenuHolder(minionId), 54, miniMessage.deserialize("<dark_gray>Storage miniona"));
+        int usableSlots = service.storageChestSlotCapacity(minionId);
+        int storageRows = Math.max(1, (Math.max(1, usableSlots) + 8) / 9);
+        int size = Math.max(18, Math.min(54, (storageRows + 1) * 9));
+        Inventory inv = Bukkit.createInventory(new MinionStorageChestMenuHolder(minionId), size, miniMessage.deserialize("<dark_gray>Storage skrzynki miniona"));
         fill(inv);
         org.bukkit.inventory.Inventory chestInv = chest.get().getBlockInventory();
-        for (int i = 0; i < Math.min(45, chestInv.getSize()); i++) {
+        for (int i = 0; i < Math.min(usableSlots, Math.min(size, chestInv.getSize())); i++) {
             inv.setItem(i, chestInv.getItem(i));
         }
-        inv.setItem(49, item(Material.ARROW, "<yellow>Powrót do miniona</yellow>", List.of("<gray>Zapisuje podgląd skrzynki i wraca do menu miniona.</gray>")));
+        for (int i = usableSlots; i < size; i++) {
+            inv.setItem(i, item(Material.RED_STAINED_GLASS_PANE, "<red>Zablokowany slot</red>", List.of("<gray>Ta skrzynka ma pojemność: <white>" + usableSlots + "</white> sloty.</gray>")));
+        }
+        inv.setItem(size - 5, item(Material.ARROW, "<yellow>Powrót do miniona</yellow>", List.of("<gray>Zapisuje podgląd skrzynki i wraca do menu miniona.</gray>")));
         player.openInventory(inv);
     }
 
@@ -959,22 +1010,25 @@ public final class MinionMenu {
         ItemStack saved = service.addonItem(data.id(), slotId);
         if (saved != null && !saved.getType().isAir()) return saved;
         return item(placeholder, name, List.of(
-                "<gray>Włóż tutaj specjalny item rozszerzenia</gray>",
-                "<gray>np. Auto Smelter albo dodatek storage.</gray>",
-                "<dark_gray>Slot jest edytowalny.</dark_gray>"
+                "<gray>Włóż tutaj specjalny item update'u.</gray>",
+                "<gray>np. Auto Smelter albo inny dodatek produkcji.</gray>",
+                "<dark_gray>Skrzynkę storage wkłada się w osobny slot na dole menu.</dark_gray>"
         ));
     }
 
     private ItemStack storageChestStatus(MinionMenuData data) {
         if (service.hasStorageChest(data.id())) {
             return item(Material.CHEST, "<green>Podpięta skrzynka storage</green>", List.of(
-                    "<gray>Kliknij, aby otworzyć menu skrzynki.</gray>",
+                    "<gray>Kliknij, aby otworzyć menu fizycznej skrzynki.</gray>",
+                    "<gray>Minion najpierw próbuje wkładać dropy do tej skrzynki,</gray>",
+                    "<gray>a dopiero potem do internal storage.</gray>",
                     "<dark_gray>Skrzynka jest chroniona przed ręcznym zniszczeniem.</dark_gray>"
             ));
         }
-        return item(Material.CHEST, "<yellow>Slot Minion Storage</yellow>", List.of(
-                "<gray>Włóż tu specjalny item Minion Storage.</gray>",
-                "<gray>Po zatwierdzeniu skrzynka pojawi się po lewej stronie miniona.</gray>",
+        return item(Material.ENDER_CHEST, "<yellow>Slot Minion Storage</yellow>", List.of(
+                "<gray>Włóż tu <gold>Rozszerzenie storage miniona</gold>.</gray>",
+                "<gray>Po kliknięciu itemem skrzynka pojawi się po lewej stronie miniona.</gray>",
+                "<gray>Podstawowa skrzynka ma <white>3</white> sloty.</gray>",
                 "<red>Jeśli po lewej nie ma miejsca, dostaniesz komunikat.</red>"
         ));
     }

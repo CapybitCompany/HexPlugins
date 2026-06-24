@@ -29,6 +29,8 @@ public final class TownsConfig {
     private final int visualPillarHeight;
     private final int visualPillarStep;
     private final int visualEdgeStep;
+    private final boolean visualExtendToWorldMin;
+    private final boolean visualVerticalEdgeWalls;
     private final int visualMaxBlocksPerTickGlobal;
     private final float visualDisplayWidth;
     private final float visualEdgeThickness;
@@ -61,6 +63,8 @@ public final class TownsConfig {
         this.visualPillarHeight = Math.max(6, config.getInt("towns.visual-check.pillar-height", 18));
         this.visualPillarStep = Math.max(1, config.getInt("towns.visual-check.pillar-step", 4));
         this.visualEdgeStep = Math.max(1, config.getInt("towns.visual-check.edge-step", 4));
+        this.visualExtendToWorldMin = config.getBoolean("towns.visual-check.extend-to-world-min", true);
+        this.visualVerticalEdgeWalls = config.getBoolean("towns.visual-check.vertical-edge-walls", true);
         this.visualMaxBlocksPerTickGlobal = Math.max(50, config.getInt("towns.visual-check.max-block-displays-per-tick-global", config.getInt("towns.visual-check.max-blocks-per-tick-global", 20000)));
         this.visualDisplayWidth = clampFloat((float) config.getDouble("towns.visual-check.display-width", 0.15D), 0.05F, 1.0F);
         this.visualEdgeThickness = clampFloat((float) config.getDouble("towns.visual-check.edge-thickness", 0.15D), 0.05F, 1.0F);
@@ -107,6 +111,8 @@ public final class TownsConfig {
     public int visualPillarHeight() { return visualPillarHeight; }
     public int visualPillarStep() { return visualPillarStep; }
     public int visualEdgeStep() { return visualEdgeStep; }
+    public boolean visualExtendToWorldMin() { return visualExtendToWorldMin; }
+    public boolean visualVerticalEdgeWalls() { return visualVerticalEdgeWalls; }
     public int visualMaxBlocksPerTickGlobal() { return visualMaxBlocksPerTickGlobal; }
     public float visualDisplayWidth() { return visualDisplayWidth; }
     public float visualEdgeThickness() { return visualEdgeThickness; }

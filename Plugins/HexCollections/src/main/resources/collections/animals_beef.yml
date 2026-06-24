@@ -1,0 +1,51 @@
+id: "animals.beef"
+aliases: ["animals_beef", "beef", "wołowina", "wolowina", "mięso_krowy", "mieso_krowy"]
+enabled: true
+
+display:
+  name: "&cMięso krowy"
+  category: "animals"
+  menu_slot: 57
+  icon:
+    material: BEEF
+
+tracked_items:
+  base:
+    material: BEEF
+    amount_value: 1
+
+valid_sources: [MINION_COLLECT, CUSTOM_PLUGIN_GRANTED]
+
+sources:
+  - trigger: minions.resource.generated
+    amount-from: amount
+    filters:
+      collectionId: animals.beef
+      resourceId: beef
+  - trigger: minions.resource.claimed
+    amount-from: amount
+    filters:
+      collectionId: animals.beef
+      resourceId: beef
+
+source_rules:
+  MINION_COLLECT:
+    allow_in_town_claims: true
+  CUSTOM_PLUGIN_GRANTED:
+    allow_in_town_claims: true
+
+levels:
+  1: {required: 50, display_name: "&cMięso krowy I"}
+  2: {required: 250, display_name: "&cMięso krowy II"}
+  3: {required: 1000, display_name: "&cMięso krowy III"}
+  4: {required: 2500, display_name: "&cMięso krowy IV"}
+  5: {required: 7500, display_name: "&cMięso krowy V"}
+  6: {required: 15000, display_name: "&cMięso krowy VI"}
+  7: {required: 30000, display_name: "&cMięso krowy VII"}
+
+reward_claim_mode: AUTO
+placeholder:
+  progress_bar:
+    length: 20
+    filled_char: "■"
+    empty_char: "□"

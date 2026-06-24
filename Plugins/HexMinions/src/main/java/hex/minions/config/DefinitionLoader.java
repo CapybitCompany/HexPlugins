@@ -61,8 +61,10 @@ public final class DefinitionLoader {
         Map<String, Long> collections = new LinkedHashMap<>();
         ConfigurationSection modernCollections = tierSection.getConfigurationSection("upgrade-requirements.collections");
         if (modernCollections != null) {
-            for (String collectionId : modernCollections.getKeys(false)) {
-                collections.put(collectionId, modernCollections.getLong(collectionId));
+            for (Map.Entry<String, Object> entry : modernCollections.getValues(true).entrySet()) {
+                if (entry.getValue() instanceof ConfigurationSection) continue;
+                long amount = number(entry.getValue(), 0L).longValue();
+                if (amount > 0L) collections.put(entry.getKey(), amount);
             }
         }
 
@@ -72,10 +74,13 @@ public final class DefinitionLoader {
         ConfigurationSection legacyResources = tierSection.getConfigurationSection("upgrade-cost.resources");
         if (legacyResources != null) {
             Map<String, ResourceDefinition> resources = loadResources();
-            for (String resourceId : legacyResources.getKeys(false)) {
-                ResourceDefinition resource = resources.get(resourceId);
-                String collectionId = resource == null ? resourceId : resource.collectionId();
-                collections.merge(collectionId, legacyResources.getLong(resourceId), Long::sum);
+            for (Map.Entry<String, Object> entry : legacyResources.getValues(true).entrySet()) {
+                if (entry.getValue() instanceof ConfigurationSection) continue;
+                long amount = number(entry.getValue(), 0L).longValue();
+                if (amount <= 0L) continue;
+                ResourceDefinition resource = resources.get(entry.getKey());
+                String collectionId = resource == null ? entry.getKey() : resource.collectionId();
+                collections.merge(collectionId, amount, Long::sum);
             }
         }
 

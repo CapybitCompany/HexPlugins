@@ -42,6 +42,7 @@ public final class TownHeartService {
         townsService.forEachTown(town -> loadHeart(town).ifPresent(heart -> {
             hearts.put(town.id(), heart);
             removePhysicalHeartBlock(heart);
+            ensureBedrockFoundation(heart);
             renderer.render(town, heart);
         }), 100);
     }
@@ -91,6 +92,7 @@ public final class TownHeartService {
         int y = Math.max(world.getMinHeight() + 2, Math.min(world.getMaxHeight() - 3, placementHint.getBlockY() + 1));
         TownHeartLocation heart = new TownHeartLocation(town.id(), world.getName(), x, y, z, chunkX, chunkZ);
         clearHeartChunk(heart);
+        ensureBedrockFoundation(heart);
         // Nie stawiamy już widocznego bloku czerwonego betonu w środku serca.
         // Interakcję obsługuje niewidzialna encja Interaction renderowana razem z modelem,
         // a ochrona/damage w przyszłości mogą bazować na zapisanej lokalizacji serca.
@@ -109,6 +111,7 @@ public final class TownHeartService {
     public void updateName(Town town) {
         heartOf(town.id()).ifPresent(heart -> {
             removePhysicalHeartBlock(heart);
+            ensureBedrockFoundation(heart);
             renderer.render(town, heart);
         });
     }
@@ -116,6 +119,21 @@ public final class TownHeartService {
     public void removeVisuals(UUID townId) {
         hearts.remove(townId);
         renderer.remove(townId);
+    }
+
+    private void ensureBedrockFoundation(TownHeartLocation heart) {
+        World world = Bukkit.getWorld(heart.world());
+        if (world == null) return;
+        int foundationY = Math.max(world.getMinHeight(), heart.y() - 2);
+        int minX = heart.x() - 4;
+        int maxX = heart.x() + 4;
+        int minZ = heart.z() - 4;
+        int maxZ = heart.z() + 4;
+        for (int x = minX; x <= maxX; x++) {
+            for (int z = minZ; z <= maxZ; z++) {
+                world.getBlockAt(x, foundationY, z).setType(Material.BEDROCK, false);
+            }
+        }
     }
 
     private void removePhysicalHeartBlock(TownHeartLocation heart) {

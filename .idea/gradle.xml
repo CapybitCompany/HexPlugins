@@ -9,12 +9,10 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/Plugins" />
             <option value="$PROJECT_DIR$/Plugins/AreaEffects" />
             <option value="$PROJECT_DIR$/Plugins/DbExample" />
             <option value="$PROJECT_DIR$/Plugins/HexCollections" />
             <option value="$PROJECT_DIR$/Plugins/HexCore" />
-            <option value="$PROJECT_DIR$/Plugins/HexEconomy" />
             <option value="$PROJECT_DIR$/Plugins/HexElimination" />
             <option value="$PROJECT_DIR$/Plugins/HexMinions" />
             <option value="$PROJECT_DIR$/Plugins/HexPortals" />

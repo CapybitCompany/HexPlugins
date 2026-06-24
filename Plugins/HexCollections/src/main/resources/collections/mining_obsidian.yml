@@ -1,0 +1,76 @@
+id: mining.obsidian
+aliases:
+- mining_obsidian
+- obsidian
+- obsydian
+- minecraft:obsidian
+enabled: true
+display:
+  name: '&5Obsydian'
+  category: mining
+  menu_slot: 20
+  icon:
+    material: OBSIDIAN
+valid_sources:
+- NATURAL_BLOCK_BREAK
+- MINION_COLLECT
+- CUSTOM_PLUGIN_GRANTED
+sources:
+- trigger: minions.resource.claimed
+  amount-from: amount
+  filters:
+    collectionId: mining.obsidian
+    resourceId: obsidian
+- trigger: minions.resource.generated
+  amount-from: amount
+  filters:
+    collectionId: mining.obsidian
+    resourceId: obsidian
+source_rules:
+  NATURAL_BLOCK_BREAK:
+    allowed_materials:
+    - OBSIDIAN
+    allowed_worlds:
+    - world
+    - resource_world
+    - mining_world
+    blocked_worlds:
+    - spawn
+    allow_in_town_claims: false
+    deny_player_placed_blocks: true
+    deny_recently_broken_blocks: true
+  MINION_COLLECT:
+    allowed_minion_types:
+    - OBSIDIAN_MINION
+    - obsidian
+    allow_in_town_claims: true
+  CUSTOM_PLUGIN_GRANTED:
+    allow_in_town_claims: true
+levels:
+  1:
+    required: 100
+    display_name: '&5Obsydian I'
+  2:
+    required: 500
+    display_name: '&5Obsydian II'
+  3:
+    required: 1500
+    display_name: '&5Obsydian III'
+  4:
+    required: 3000
+    display_name: '&5Obsydian IV'
+  5:
+    required: 7500
+    display_name: '&5Obsydian V'
+  6:
+    required: 15000
+    display_name: '&5Obsydian VI'
+  7:
+    required: 30000
+    display_name: '&5Obsydian VII'
+reward_claim_mode: AUTO
+placeholder:
+  progress_bar:
+    length: 20
+    filled_char: ■
+    empty_char: □

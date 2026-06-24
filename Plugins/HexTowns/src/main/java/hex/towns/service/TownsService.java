@@ -595,11 +595,22 @@ public final class TownsService {
     }
 
     public List<MemberInfo> memberInfos(Town town) {
-        List<MemberInfo> result = new ArrayList<>();
+        Map<UUID, TownRole> roles = new java.util.LinkedHashMap<>();
+
+        // Starsze miasta/testowe dane potrafią nie mieć właściciela w tabeli członków.
+        // Menu COOP powinno jednak zawsze pokazywać właściciela jako pierwszą główkę.
+        roles.put(town.ownerId(), TownRole.OWNER);
+
         for (UUID playerId : membersByTown.getOrDefault(town.internalId(), Set.of())) {
             Membership membership = playerIndex.get(playerId);
             TownRole role = membership == null ? (town.ownerId().equals(playerId) ? TownRole.OWNER : TownRole.COOP) : membership.role();
-            result.add(new MemberInfo(playerId, safePlayerName(playerId, null), role, Bukkit.getPlayer(playerId) != null));
+            roles.merge(playerId, role, (existing, incoming) -> existing == TownRole.OWNER ? existing : incoming);
+        }
+
+        List<MemberInfo> result = new ArrayList<>();
+        for (Map.Entry<UUID, TownRole> entry : roles.entrySet()) {
+            UUID playerId = entry.getKey();
+            result.add(new MemberInfo(playerId, safePlayerName(playerId, null), entry.getValue(), Bukkit.getPlayer(playerId) != null));
         }
         result.sort((a, b) -> {
             int roleCompare = Integer.compare(a.role() == TownRole.OWNER ? 0 : 1, b.role() == TownRole.OWNER ? 0 : 1);

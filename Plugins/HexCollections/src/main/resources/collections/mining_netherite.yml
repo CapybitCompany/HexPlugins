@@ -1,0 +1,64 @@
+id: mining.netherite
+aliases:
+- mining_netherite
+- netherite
+- netherit
+- minecraft:netherite_scrap
+enabled: true
+display:
+  name: '&8Netherit'
+  category: mining
+  menu_slot: 21
+  icon:
+    material: NETHERITE_SCRAP
+valid_sources:
+- NATURAL_BLOCK_BREAK
+- MINION_COLLECT
+- CUSTOM_PLUGIN_GRANTED
+sources:
+- trigger: minions.resource.claimed
+  amount-from: amount
+  filters:
+    collectionId: mining.netherite
+    resourceId: netherite
+- trigger: minions.resource.generated
+  amount-from: amount
+  filters:
+    collectionId: mining.netherite
+    resourceId: netherite
+source_rules:
+  MINION_COLLECT:
+    allowed_minion_types:
+    - NETHERITE_MINION
+    - netherite
+    allow_in_town_claims: true
+  CUSTOM_PLUGIN_GRANTED:
+    allow_in_town_claims: true
+levels:
+  1:
+    required: 16
+    display_name: '&8Netherit I'
+  2:
+    required: 32
+    display_name: '&8Netherit II'
+  3:
+    required: 64
+    display_name: '&8Netherit III'
+  4:
+    required: 128
+    display_name: '&8Netherit IV'
+  5:
+    required: 256
+    display_name: '&8Netherit V'
+  6:
+    required: 512
+    display_name: '&8Netherit VI'
+  7:
+    required: 1024
+    display_name: '&8Netherit VII'
+reward_claim_mode: AUTO
+placeholder:
+  progress_bar:
+    length: 20
+    filled_char: ■
+    empty_char: □

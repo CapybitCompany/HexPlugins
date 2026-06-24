@@ -10,6 +10,10 @@ items:
   filler:
     material: BLACK_STAINED_GLASS_PANE
     display_name: ' '
+    hide_tooltip: true
+    item_flags:
+      - HIDE_ATTRIBUTES
+      - HIDE_ADDITIONAL_TOOLTIP
     slots:
       - 0-53
 
@@ -23,7 +27,7 @@ items:
   cobblestone_icon:
     material: COBBLESTONE
     slot: 10
-    display_name: '&7Cobblestone Collection'
+    display_name: '&7Kolekcja bruku'
     lore:
       - '&7Poziom: &f%hexcollections_level_mining_cobblestone%&7/7'
       - '&7Następny poziom: &f%hexcollections_next_level_mining_cobblestone%'
@@ -43,7 +47,7 @@ items:
   stone_icon:
     material: STONE
     slot: 11
-    display_name: '&7Stone Collection'
+    display_name: '&7Kolekcja kamienia'
     lore:
       - '&7Poziom: &f%hexcollections_level_mining_stone%&7/7'
       - '&7Następny poziom: &f%hexcollections_next_level_mining_stone%'
@@ -63,7 +67,7 @@ items:
   iron_icon:
     material: IRON_INGOT
     slot: 19
-    display_name: '&fIron Collection'
+    display_name: '&fKolekcja żelaza'
     lore:
       - '&7Poziom: &f%hexcollections_level_mining_iron%&7/7'
       - '&7Następny poziom: &f%hexcollections_next_level_mining_iron%'
@@ -84,7 +88,7 @@ items:
   dirt_icon:
     material: DIRT
     slot: 28
-    display_name: '&6Dirt Collection'
+    display_name: '&6Kolekcja ziemi'
     lore:
       - '&7Poziom: &f%hexcollections_level_mining_dirt%&7/3'
       - '&7Następny poziom: &f%hexcollections_next_level_mining_dirt%'
@@ -101,7 +105,7 @@ items:
       - '%hexcollections_top_line_mining_dirt_4%'
       - '%hexcollections_top_line_mining_dirt_5%'
 
-  # Cobblestone levels 1-7
+  # Bruk levels 1-7
   cobble_level_1:
     material: '%hexcollections_gui_material_mining_cobblestone_1%'
     slot: 12
@@ -141,7 +145,7 @@ items:
     display_name: '%hexcollections_gui_display_mining_cobblestone_7%'
     lore: ['&7Status: &f%hexcollections_gui_state_mining_cobblestone_7%', '&7Wymagane: &f%hexcollections_required_mining_cobblestone_7%']
 
-  # Stone levels 1-7
+  # Kamień levels 1-7
   stone_level_1:
     material: '%hexcollections_gui_material_mining_stone_1%'
     slot: 23
@@ -178,7 +182,7 @@ items:
     display_name: '%hexcollections_gui_display_mining_stone_7%'
     lore: ['&7Status: &f%hexcollections_gui_state_mining_stone_7%', '&7Wymagane: &f%hexcollections_required_mining_stone_7%']
 
-  # Iron levels 1-7
+  # Żelazo levels 1-7
   iron_level_1:
     material: '%hexcollections_gui_material_mining_iron_1%'
     slot: 37
@@ -218,7 +222,7 @@ items:
 
 
 
-  # Dirt levels 1-3
+  # Ziemia levels 1-3
   dirt_level_1:
     material: '%hexcollections_gui_material_mining_dirt_1%'
     slot: 30
@@ -234,3 +238,146 @@ items:
     slot: 32
     display_name: '%hexcollections_gui_display_mining_dirt_3%'
     lore: ['&7Status: &f%hexcollections_gui_state_mining_dirt_3%', '&7Wymagane: &f%hexcollections_required_mining_dirt_3%']
+
+
+  # Dodatkowe kolekcje — każda kolekcja odpowiadająca minionowi + rzadkie pierwiastki.
+  coal_icon:
+    material: COAL
+    slot: 17
+    display_name: '&8Kolekcja węgla'
+    lore:
+      - '&7Poziom: &f%hexcollections_level_mining_coal%&7/7'
+      - '&7Ilość: &f%hexcollections_amount_mining_coal%'
+      - '&7Do następnego: &f%hexcollections_remaining_mining_coal%'
+      - '&7Procent: &f%hexcollections_progress_percent_mining_coal%%%'
+      - '&a%hexcollections_progress_bar_mining_coal%'
+  redstone_icon:
+    material: REDSTONE
+    slot: 18
+    display_name: '&cKolekcja redstone'
+    lore:
+      - '&7Poziom: &f%hexcollections_level_mining_redstone%&7/7'
+      - '&7Ilość: &f%hexcollections_amount_mining_redstone%'
+      - '&7Do następnego: &f%hexcollections_remaining_mining_redstone%'
+      - '&7Procent: &f%hexcollections_progress_percent_mining_redstone%%%'
+      - '&a%hexcollections_progress_bar_mining_redstone%'
+  uranium_icon:
+    material: EMERALD
+    slot: 20
+    display_name: '&aKolekcja uranu'
+    lore:
+      - '&7Poziom: &f%hexcollections_level_mining_uranium%&7/7'
+      - '&7Ilość: &f%hexcollections_amount_mining_uranium%'
+      - '&7Do następnego: &f%hexcollections_remaining_mining_uranium%'
+      - '&7Procent: &f%hexcollections_progress_percent_mining_uranium%%%'
+      - '&a%hexcollections_progress_bar_mining_uranium%'
+  gold_icon:
+    material: GOLD_INGOT
+    slot: 27
+    display_name: '&6Kolekcja złota'
+    lore:
+      - '&7Poziom: &f%hexcollections_level_mining_gold%&7/7'
+      - '&7Ilość: &f%hexcollections_amount_mining_gold%'
+      - '&7Do następnego: &f%hexcollections_remaining_mining_gold%'
+      - '&7Procent: &f%hexcollections_progress_percent_mining_gold%%%'
+      - '&a%hexcollections_progress_bar_mining_gold%'
+  obsidian_icon:
+    material: OBSIDIAN
+    slot: 29
+    display_name: '&5Kolekcja obsydianu'
+    lore:
+      - '&7Poziom: &f%hexcollections_level_mining_obsidian%&7/7'
+      - '&7Ilość: &f%hexcollections_amount_mining_obsidian%'
+      - '&7Do następnego: &f%hexcollections_remaining_mining_obsidian%'
+      - '&7Procent: &f%hexcollections_progress_percent_mining_obsidian%%%'
+      - '&a%hexcollections_progress_bar_mining_obsidian%'
+  diamond_icon:
+    material: DIAMOND
+    slot: 33
+    display_name: '&bKolekcja diamentów'
+    lore:
+      - '&7Poziom: &f%hexcollections_level_mining_diamond%&7/7'
+      - '&7Ilość: &f%hexcollections_amount_mining_diamond%'
+      - '&7Do następnego: &f%hexcollections_remaining_mining_diamond%'
+      - '&7Procent: &f%hexcollections_progress_percent_mining_diamond%%%'
+      - '&a%hexcollections_progress_bar_mining_diamond%'
+  netherite_icon:
+    material: NETHERITE_SCRAP
+    slot: 34
+    display_name: '&8Kolekcja netheritu'
+    lore:
+      - '&7Poziom: &f%hexcollections_level_mining_netherite%&7/7'
+      - '&7Ilość: &f%hexcollections_amount_mining_netherite%'
+      - '&7Do następnego: &f%hexcollections_remaining_mining_netherite%'
+      - '&7Procent: &f%hexcollections_progress_percent_mining_netherite%%%'
+      - '&a%hexcollections_progress_bar_mining_netherite%'
+  copper_icon:
+    material: COPPER_INGOT
+    slot: 36
+    display_name: '&6Kolekcja miedzi'
+    lore:
+      - '&7Poziom: &f%hexcollections_level_mining_copper%&7/7'
+      - '&7Ilość: &f%hexcollections_amount_mining_copper%'
+      - '&7Do następnego: &f%hexcollections_remaining_mining_copper%'
+      - '&7Procent: &f%hexcollections_progress_percent_mining_copper%%%'
+      - '&a%hexcollections_progress_bar_mining_copper%'
+  rare_elements_icon:
+    material: AMETHYST_SHARD
+    slot: 47
+    display_name: '&dKolekcja rzadkich pierwiastków'
+    lore:
+      - '&7Poziom: &f%hexcollections_level_mining_rare_elements%&7/7'
+      - '&7Ilość: &f%hexcollections_amount_mining_rare_elements%'
+      - '&7Do następnego: &f%hexcollections_remaining_mining_rare_elements%'
+      - '&7Procent: &f%hexcollections_progress_percent_mining_rare_elements%%%'
+      - '&a%hexcollections_progress_bar_mining_rare_elements%'
+  oak_wood_icon:
+    material: OAK_LOG
+    slot: 48
+    display_name: '&6Kolekcja drewna dębowego'
+    lore:
+      - '&7Poziom: &f%hexcollections_level_foraging_oak_wood%&7/7'
+      - '&7Ilość: &f%hexcollections_amount_foraging_oak_wood%'
+      - '&7Do następnego: &f%hexcollections_remaining_foraging_oak_wood%'
+      - '&a%hexcollections_progress_bar_foraging_oak_wood%'
+  spruce_wood_icon:
+    material: SPRUCE_LOG
+    slot: 49
+    display_name: '&2Kolekcja drewna świerkowego'
+    lore:
+      - '&7Poziom: &f%hexcollections_level_foraging_spruce_wood%&7/7'
+      - '&7Ilość: &f%hexcollections_amount_foraging_spruce_wood%'
+      - '&7Do następnego: &f%hexcollections_remaining_foraging_spruce_wood%'
+      - '&a%hexcollections_progress_bar_foraging_spruce_wood%'
+  zombie_kills_icon:
+    material: ZOMBIE_HEAD
+    slot: 50
+    display_name: '&2Zabite zombie'
+    lore:
+      - '&7Poziom: &f%hexcollections_level_mobs_zombie%&7/7'
+      - '&7Ilość: &f%hexcollections_amount_mobs_zombie%'
+      - '&a%hexcollections_progress_bar_mobs_zombie%'
+  skeleton_kills_icon:
+    material: SKELETON_SKULL
+    slot: 51
+    display_name: '&7Zabite szkielety'
+    lore:
+      - '&7Poziom: &f%hexcollections_level_mobs_skeleton%&7/7'
+      - '&7Ilość: &f%hexcollections_amount_mobs_skeleton%'
+      - '&a%hexcollections_progress_bar_mobs_skeleton%'
+  spider_kills_icon:
+    material: SPIDER_EYE
+    slot: 52
+    display_name: '&4Zabite pająki'
+    lore:
+      - '&7Poziom: &f%hexcollections_level_mobs_spider%&7/7'
+      - '&7Ilość: &f%hexcollections_amount_mobs_spider%'
+      - '&a%hexcollections_progress_bar_mobs_spider%'
+  silverfish_kills_icon:
+    material: INFESTED_STONE
+    slot: 53
+    display_name: '&7Zabite rybiki cukrowe'
+    lore:
+      - '&7Poziom: &f%hexcollections_level_mobs_silverfish%&7/7'
+      - '&7Ilość: &f%hexcollections_amount_mobs_silverfish%'
+      - '&a%hexcollections_progress_bar_mobs_silverfish%'

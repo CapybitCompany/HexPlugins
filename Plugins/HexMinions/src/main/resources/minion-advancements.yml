@@ -1,0 +1,198 @@
+advancements:
+  enabled: true
+  namespace: hexminions
+  check-on-join: true
+  tab-background: minecraft:textures/gui/advancements/backgrounds/stone.png
+
+  # Advancementy są ładowane dynamicznie do vanilla widoku osiągnięć (domyślnie klawisz L).
+  # Każda definicja używa ręcznego kryterium minecraft:impossible, a plugin przyznaje je
+  # po spełnieniu warunku z sekcji requirement.
+  # Dostępne typy requirement:
+  # - town-member: gracz należy do dowolnego miasta
+  # - minion-type: miasto gracza posiada miniona danego typu, opcjonalnie od konkretnego tieru
+  # - minion-tier: miasto gracza posiada dowolnego miniona na wskazanym tierze lub wyżej
+  nodes:
+    city_root:
+      path: city/root
+      title: Początek imperium
+      description: Postaw miasto albo dołącz do istniejącego miasta.
+      icon: HEART_OF_THE_SEA
+      frame: task
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: town-member
+
+    cobblestone_minion:
+      path: minions/cobblestone
+      parent: city/root
+      title: Minion bruku
+      description: Postaw Miniona bruku.
+      icon: COBBLESTONE
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: minion-type
+        minion-type: cobblestone
+        min-tier: 1
+
+    dirt_minion:
+      path: minions/dirt
+      parent: minions/cobblestone
+      title: Minion ziemi
+      description: Postaw Miniona ziemi.
+      icon: DIRT
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: minion-type
+        minion-type: dirt
+        min-tier: 1
+
+    oak_wood_minion:
+      path: minions/oak_wood
+      parent: minions/dirt
+      title: Minion drewna dębowego
+      description: Postaw Miniona drewna dębowego.
+      icon: OAK_LOG
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: minion-type
+        minion-type: oak_plank
+        min-tier: 1
+
+    spruce_wood_minion:
+      path: minions/spruce_wood
+      parent: minions/dirt
+      title: Minion drewna świerkowego
+      description: Postaw Miniona drewna świerkowego.
+      icon: SPRUCE_LOG
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: minion-type
+        minion-type: spruce_wood
+        min-tier: 1
+
+    stone_minion:
+      path: minions/stone
+      parent: minions/dirt
+      title: Minion kamienia
+      description: Postaw Miniona kamienia.
+      icon: STONE
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: minion-type
+        minion-type: stone
+        min-tier: 1
+
+    tier_1:
+      path: tiers/1
+      parent: city/root
+      title: Pierwszy stopień
+      description: Posiadaj dowolnego miniona Tier I lub wyżej.
+      icon: COAL
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: minion-tier
+        min-tier: 1
+
+    tier_2:
+      path: tiers/2
+      parent: tiers/1
+      title: Drugi stopień
+      description: Posiadaj dowolnego miniona Tier II lub wyżej.
+      icon: REDSTONE
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: minion-tier
+        min-tier: 2
+
+    tier_3:
+      path: tiers/3
+      parent: tiers/2
+      title: Trzeci stopień
+      description: Posiadaj dowolnego miniona Tier III lub wyżej.
+      icon: IRON_INGOT
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: minion-tier
+        min-tier: 3
+
+    tier_4:
+      path: tiers/4
+      parent: tiers/3
+      title: Czwarty stopień
+      description: Posiadaj dowolnego miniona Tier IV lub wyżej.
+      icon: GOLD_INGOT
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: minion-tier
+        min-tier: 4
+
+    tier_5:
+      path: tiers/5
+      parent: tiers/4
+      title: Piąty stopień
+      description: Posiadaj dowolnego miniona Tier V lub wyżej.
+      icon: EMERALD
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: minion-tier
+        min-tier: 5
+
+    tier_6:
+      path: tiers/6
+      parent: tiers/5
+      title: Szósty stopień
+      description: Posiadaj dowolnego miniona Tier VI lub wyżej.
+      icon: DIAMOND
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: minion-tier
+        min-tier: 6
+
+    tier_7:
+      path: tiers/7
+      parent: tiers/6
+      title: Siódmy stopień
+      description: Posiadaj dowolnego miniona Tier VII lub wyżej.
+      icon: NETHERITE_INGOT
+      frame: task
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: minion-tier
+        min-tier: 7

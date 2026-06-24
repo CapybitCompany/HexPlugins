@@ -12,6 +12,10 @@ items:
   filler:
     material: BLACK_STAINED_GLASS_PANE
     display_name: ' '
+    hide_tooltip: true
+    item_flags:
+      - HIDE_ATTRIBUTES
+      - HIDE_ADDITIONAL_TOOLTIP
     slots:
       - 0-53
 
@@ -150,7 +154,7 @@ items:
       - '&8• &7Tier 6: &f%hexcollections_tier_summary_6%'
       - '&8• &7Tier 7: &f%hexcollections_tier_summary_7%'
       - ''
-      - '&7Cobblestone: &f%hexcollections_level_mining_cobblestone%&7/7'
+      - '&7Bruk: &f%hexcollections_level_mining_cobblestone%&7/7'
       - '&7Iron: &f%hexcollections_level_mining_iron%&7/7'
       - '&7Dirt: &f%hexcollections_level_mining_dirt%&7/3'
       - ''

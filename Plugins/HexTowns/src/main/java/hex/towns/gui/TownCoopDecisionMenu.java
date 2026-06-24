@@ -129,18 +129,40 @@ public final class TownCoopDecisionMenu implements Listener {
                     .map(mini::deserialize)
                     .toList();
             meta.lore(cleanLore.isEmpty() ? null : cleanLore);
-            try {
-                Class<?> itemFlagClass = Class.forName("org.bukkit.inventory.ItemFlag");
-                Object hideAttributes = java.lang.Enum.valueOf((Class) itemFlagClass, "HIDE_ATTRIBUTES");
-                Object flagsArray = java.lang.reflect.Array.newInstance(itemFlagClass, 1);
-                java.lang.reflect.Array.set(flagsArray, 0, hideAttributes);
-                meta.getClass().getMethod("addItemFlags", flagsArray.getClass()).invoke(meta, flagsArray);
-            } catch (Throwable ignored) {
+            addItemFlags(meta, "HIDE_ATTRIBUTES", "HIDE_ADDITIONAL_TOOLTIP");
+            if ((name == null || name.isBlank()) && cleanLore.isEmpty()) {
+                hideTooltip(meta);
             }
             stack.setItemMeta(meta);
         }
         return stack;
     }
+
+    private void addItemFlags(ItemMeta meta, String... flagNames) {
+        try {
+            Class<?> itemFlagClass = Class.forName("org.bukkit.inventory.ItemFlag");
+            java.util.List<Object> flags = new java.util.ArrayList<>();
+            for (String flagName : flagNames) {
+                try {
+                    flags.add(java.lang.Enum.valueOf((Class) itemFlagClass, flagName));
+                } catch (IllegalArgumentException ignored) {
+                }
+            }
+            if (flags.isEmpty()) return;
+            Object flagsArray = java.lang.reflect.Array.newInstance(itemFlagClass, flags.size());
+            for (int i = 0; i < flags.size(); i++) java.lang.reflect.Array.set(flagsArray, i, flags.get(i));
+            meta.getClass().getMethod("addItemFlags", flagsArray.getClass()).invoke(meta, flagsArray);
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private void hideTooltip(ItemMeta meta) {
+        try {
+            meta.getClass().getMethod("setHideTooltip", boolean.class).invoke(meta, true);
+        } catch (Throwable ignored) {
+        }
+    }
+
 
     private String safeName(UUID targetId, String targetName) {
         return targetName == null || targetName.isBlank() ? targetId.toString().substring(0, 8) : targetName;

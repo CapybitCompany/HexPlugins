@@ -1,68 +1,88 @@
-id: "mining.iron"
-aliases: ["mining_iron", "iron", "iron_ingot", "minecraft:iron_ingot"]
+id: mining.iron
+aliases:
+- mining_iron
+- iron
+- iron_ingot
+- minecraft:iron_ingot
 enabled: true
-
 display:
-  name: "&fIron"
-  category: "mining"
+  name: '&fIron'
+  category: mining
   menu_slot: 11
   icon:
     material: IRON_INGOT
-
-valid_sources: [NATURAL_BLOCK_BREAK, MINION_COLLECT, CUSTOM_PLUGIN_GRANTED]
-
+valid_sources:
+- NATURAL_BLOCK_BREAK
+- MINION_COLLECT
+- CUSTOM_PLUGIN_GRANTED
 source_rules:
   NATURAL_BLOCK_BREAK:
-    allowed_materials: [IRON_ORE, DEEPSLATE_IRON_ORE]
-    allowed_worlds: [world, resource_world, mining_world]
-    blocked_worlds: [spawn]
+    allowed_materials:
+    - IRON_ORE
+    - DEEPSLATE_IRON_ORE
+    allowed_worlds:
+    - world
+    - resource_world
+    - mining_world
+    blocked_worlds:
+    - spawn
     allow_in_town_claims: false
     deny_player_placed_blocks: true
     deny_recently_broken_blocks: true
   MINION_COLLECT:
-    allowed_minion_types: [IRON_MINION, iron]
+    allowed_minion_types:
+    - IRON_MINION
+    - iron
     allow_in_town_claims: true
-
 levels:
   1:
     required: 50
-    display_name: "&fIron I"
+    display_name: '&fIron I'
     rewards:
-      - type: MINION_RECIPE_UNLOCK
-        id: "iron_minion_tier_1"
+    - type: MINION_RECIPE_UNLOCK
+      id: iron_minion_tier_1
   2:
     required: 250
-    display_name: "&fIron II"
+    display_name: '&fIron II'
     rewards:
-      - type: SKILL_XP
-        skill: "mining"
-        amount: 100
+    - type: SKILL_XP
+      skill: mining
+      amount: 100
   3:
     required: 1000
-    display_name: "&fIron III"
+    display_name: '&fIron III'
     rewards:
-      - type: MINION_UPGRADE_UNLOCK
-        id: "iron_minion_auto_smelt_1"
+    - type: MINION_UPGRADE_UNLOCK
+      id: iron_minion_auto_smelt_1
   4:
     required: 2500
-    display_name: "&fIron IV"
+    display_name: '&fIron IV'
   5:
     required: 7500
-    display_name: "&fIron V"
+    display_name: '&fIron V'
   6:
     required: 15000
-    display_name: "&fIron VI"
+    display_name: '&fIron VI'
   7:
     required: 30000
-    display_name: "&fIron VII"
+    display_name: '&fIron VII'
     rewards:
-      - type: CUSTOM_EVENT
-        event: "IRON_COLLECTION_MAX_MVP"
-
+    - type: CUSTOM_EVENT
+      event: IRON_COLLECTION_MAX_MVP
 reward_claim_mode: AUTO
 placeholder:
   progress_bar:
     length: 20
-    filled_char: "■"
-    empty_char: "□"
-
+    filled_char: ■
+    empty_char: □
+sources:
+- trigger: minions.resource.claimed
+  amount-from: amount
+  filters:
+    collectionId: mining.iron
+    resourceId: iron
+- trigger: minions.resource.generated
+  amount-from: amount
+  filters:
+    collectionId: mining.iron
+    resourceId: iron

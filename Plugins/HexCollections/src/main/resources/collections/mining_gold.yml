@@ -1,0 +1,88 @@
+id: mining.gold
+aliases:
+- mining_gold
+- gold
+- zloto
+- złoto
+- minecraft:gold_ingot
+enabled: true
+display:
+  name: '&6Złoto'
+  category: mining
+  menu_slot: 18
+  icon:
+    material: GOLD_INGOT
+valid_sources:
+- NATURAL_BLOCK_BREAK
+- MINION_COLLECT
+- CUSTOM_PLUGIN_GRANTED
+sources:
+- trigger: minions.resource.claimed
+  amount-from: amount
+  filters:
+    collectionId: mining.gold
+    resourceId: gold
+- trigger: minions.resource.generated
+  amount-from: amount
+  filters:
+    collectionId: mining.gold
+    resourceId: gold
+- trigger: minions.resource.claimed
+  amount-from: amount
+  filters:
+    collectionId: mining.gold
+    resourceId: gold_ore
+- trigger: minions.resource.generated
+  amount-from: amount
+  filters:
+    collectionId: mining.gold
+    resourceId: gold_ore
+source_rules:
+  NATURAL_BLOCK_BREAK:
+    allowed_materials:
+    - GOLD_ORE
+    - DEEPSLATE_GOLD_ORE
+    allowed_worlds:
+    - world
+    - resource_world
+    - mining_world
+    blocked_worlds:
+    - spawn
+    allow_in_town_claims: false
+    deny_player_placed_blocks: true
+    deny_recently_broken_blocks: true
+  MINION_COLLECT:
+    allowed_minion_types:
+    - GOLD_MINION
+    - gold
+    allow_in_town_claims: true
+  CUSTOM_PLUGIN_GRANTED:
+    allow_in_town_claims: true
+levels:
+  1:
+    required: 100
+    display_name: '&6Złoto I'
+  2:
+    required: 500
+    display_name: '&6Złoto II'
+  3:
+    required: 1500
+    display_name: '&6Złoto III'
+  4:
+    required: 3000
+    display_name: '&6Złoto IV'
+  5:
+    required: 7500
+    display_name: '&6Złoto V'
+  6:
+    required: 15000
+    display_name: '&6Złoto VI'
+  7:
+    required: 30000
+    display_name: '&6Złoto VII'
+reward_claim_mode: AUTO
+placeholder:
+  progress_bar:
+    length: 20
+    filled_char: ■
+    empty_char: □

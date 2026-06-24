@@ -9,6 +9,10 @@ items:
   filler:
     material: BLACK_STAINED_GLASS_PANE
     display_name: ' '
+    hide_tooltip: true
+    item_flags:
+      - HIDE_ATTRIBUTES
+      - HIDE_ADDITIONAL_TOOLTIP
     slots:
       - 0-9
       - 13-27
@@ -32,7 +36,7 @@ items:
     material: '%hextowns_member_1_material%'
     slot: 10
     priority: 5
-    skull_owner: '%hextowns_member_1_uuid%'
+    skull_owner: '%hextowns_member_1_skull_owner%'
     display_name: '&b%hextowns_member_1_name%'
     lore:
       - '&7Nick: &f%hextowns_member_1_name%'
@@ -65,7 +69,7 @@ items:
     material: '%hextowns_member_2_material%'
     slot: 11
     priority: 5
-    skull_owner: '%hextowns_member_2_uuid%'
+    skull_owner: '%hextowns_member_2_skull_owner%'
     display_name: '&b%hextowns_member_2_name%'
     lore:
       - '&7Nick: &f%hextowns_member_2_name%'
@@ -98,7 +102,7 @@ items:
     material: '%hextowns_member_3_material%'
     slot: 12
     priority: 5
-    skull_owner: '%hextowns_member_3_uuid%'
+    skull_owner: '%hextowns_member_3_skull_owner%'
     display_name: '&b%hextowns_member_3_name%'
     lore:
       - '&7Nick: &f%hextowns_member_3_name%'
@@ -131,7 +135,7 @@ items:
     material: '%hextowns_request_1_material%'
     slot: 28
     priority: 5
-    skull_owner: '%hextowns_request_1_uuid%'
+    skull_owner: '%hextowns_request_1_skull_owner%'
     display_name: '&eProśba: &f%hextowns_request_1_name%'
     lore:
       - '&7Gracz oczekuje na akceptację do miasta.'
@@ -171,7 +175,7 @@ items:
     material: '%hextowns_request_2_material%'
     slot: 29
     priority: 5
-    skull_owner: '%hextowns_request_2_uuid%'
+    skull_owner: '%hextowns_request_2_skull_owner%'
     display_name: '&eProśba: &f%hextowns_request_2_name%'
     lore:
       - '&7Gracz oczekuje na akceptację do miasta.'
@@ -211,7 +215,7 @@ items:
     material: '%hextowns_request_3_material%'
     slot: 30
     priority: 5
-    skull_owner: '%hextowns_request_3_uuid%'
+    skull_owner: '%hextowns_request_3_skull_owner%'
     display_name: '&eProśba: &f%hextowns_request_3_name%'
     lore:
       - '&7Gracz oczekuje na akceptację do miasta.'
@@ -251,7 +255,7 @@ items:
     material: '%hextowns_request_4_material%'
     slot: 31
     priority: 5
-    skull_owner: '%hextowns_request_4_uuid%'
+    skull_owner: '%hextowns_request_4_skull_owner%'
     display_name: '&eProśba: &f%hextowns_request_4_name%'
     lore:
       - '&7Gracz oczekuje na akceptację do miasta.'
@@ -291,7 +295,7 @@ items:
     material: '%hextowns_request_5_material%'
     slot: 32
     priority: 5
-    skull_owner: '%hextowns_request_5_uuid%'
+    skull_owner: '%hextowns_request_5_skull_owner%'
     display_name: '&eProśba: &f%hextowns_request_5_name%'
     lore:
       - '&7Gracz oczekuje na akceptację do miasta.'
@@ -331,7 +335,7 @@ items:
     material: '%hextowns_request_6_material%'
     slot: 33
     priority: 5
-    skull_owner: '%hextowns_request_6_uuid%'
+    skull_owner: '%hextowns_request_6_skull_owner%'
     display_name: '&eProśba: &f%hextowns_request_6_name%'
     lore:
       - '&7Gracz oczekuje na akceptację do miasta.'
@@ -371,7 +375,7 @@ items:
     material: '%hextowns_request_7_material%'
     slot: 34
     priority: 5
-    skull_owner: '%hextowns_request_7_uuid%'
+    skull_owner: '%hextowns_request_7_skull_owner%'
     display_name: '&eProśba: &f%hextowns_request_7_name%'
     lore:
       - '&7Gracz oczekuje na akceptację do miasta.'

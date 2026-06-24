@@ -1,0 +1,72 @@
+id: mining.coal
+aliases:
+- mining_coal
+- coal
+- minecraft:coal
+enabled: true
+display:
+  name: '&8Węgiel'
+  category: mining
+  menu_slot: 14
+  icon:
+    material: COAL
+valid_sources:
+- NATURAL_BLOCK_BREAK
+- MINION_COLLECT
+- CUSTOM_PLUGIN_GRANTED
+source_rules:
+  NATURAL_BLOCK_BREAK:
+    allowed_materials:
+    - COAL_ORE
+    - DEEPSLATE_COAL_ORE
+    allowed_worlds:
+    - world
+    - resource_world
+    - mining_world
+    blocked_worlds:
+    - spawn
+    allow_in_town_claims: false
+    deny_player_placed_blocks: true
+    deny_recently_broken_blocks: true
+  MINION_COLLECT:
+    allowed_minion_types:
+    - COAL_MINION
+    - coal
+    allow_in_town_claims: true
+levels:
+  1:
+    required: 50
+    display_name: '&8Węgiel I'
+  2:
+    required: 250
+    display_name: '&8Węgiel II'
+  3:
+    required: 1000
+    display_name: '&8Węgiel III'
+  4:
+    required: 2500
+    display_name: '&8Węgiel IV'
+  5:
+    required: 7500
+    display_name: '&8Węgiel V'
+  6:
+    required: 15000
+    display_name: '&8Węgiel VI'
+  7:
+    required: 30000
+    display_name: '&8Węgiel VII'
+    rewards:
+    - type: MINION_RECIPE_UNLOCK
+      id: combustion_fuel
+reward_claim_mode: AUTO
+sources:
+- trigger: minions.resource.claimed
+  amount-from: amount
+  filters:
+    collectionId: mining.coal
+    resourceId: coal
+- trigger: minions.resource.generated
+  amount-from: amount
+  filters:
+    collectionId: mining.coal
+    resourceId: coal

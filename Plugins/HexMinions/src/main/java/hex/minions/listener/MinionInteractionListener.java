@@ -47,6 +47,22 @@ public final class MinionInteractionListener implements Listener {
         this.menu = menu;
     }
 
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onLinkedStorageChestInteract(PlayerInteractEvent event) {
+        if (event.getHand() != EquipmentSlot.HAND || event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        Block clicked = event.getClickedBlock();
+        if (clicked == null || !service.isLinkedStorageChest(clicked)) return;
+        event.setCancelled(true);
+        Optional<hex.minions.model.MinionInstance> minion = service.adjacentMinion(clicked.getLocation());
+        if (minion.isEmpty()) return;
+        if (!service.canAccessMinion(event.getPlayer(), minion.get().id())) {
+            hex.ui().send(event.getPlayer(), "minions.error.not-member");
+            return;
+        }
+        menu.openStorageChest(event.getPlayer(), minion.get().id());
+    }
+
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onUseMinionItem(PlayerInteractEvent event) {
         if (event.getHand() != EquipmentSlot.HAND || event.getAction() != Action.RIGHT_CLICK_BLOCK) return;

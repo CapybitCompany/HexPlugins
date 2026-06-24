@@ -1,0 +1,66 @@
+id: mining.rare_elements
+aliases:
+- rare_elements
+- rzadkie_pierwiastki
+- pierwiastki
+enabled: true
+display:
+  name: '&dRzadkie pierwiastki'
+  category: mining
+  menu_slot: 53
+  icon:
+    material: AMETHYST_SHARD
+    custom_model_data: 12601
+tracked_items:
+  base:
+    material: AMETHYST_SHARD
+    custom_model_data: 12601
+    display_name_contains: Rzadkie pierwiastki
+    amount_value: 1
+valid_sources:
+- MINION_COLLECT
+- CUSTOM_PLUGIN_GRANTED
+sources:
+- trigger: minions.resource.claimed
+  amount-from: amount
+  filters:
+    collectionId: mining.rare_elements
+    resourceId: rare_elements
+- trigger: minions.resource.generated
+  amount-from: amount
+  filters:
+    collectionId: mining.rare_elements
+    resourceId: rare_elements
+source_rules:
+  MINION_COLLECT:
+    allow_in_town_claims: true
+  CUSTOM_PLUGIN_GRANTED:
+    allow_in_town_claims: true
+levels:
+  1:
+    required: 1
+    display_name: '&dRzadkie pierwiastki I'
+  2:
+    required: 4
+    display_name: '&dRzadkie pierwiastki II'
+  3:
+    required: 10
+    display_name: '&dRzadkie pierwiastki III'
+  4:
+    required: 25
+    display_name: '&dRzadkie pierwiastki IV'
+  5:
+    required: 50
+    display_name: '&dRzadkie pierwiastki V'
+  6:
+    required: 100
+    display_name: '&dRzadkie pierwiastki VI'
+  7:
+    required: 250
+    display_name: '&dRzadkie pierwiastki VII'
+reward_claim_mode: AUTO
+placeholder:
+  progress_bar:
+    length: 20
+    filled_char: ■
+    empty_char: □

@@ -2,6 +2,7 @@ package hex.minions;
 
 import hex.core.api.HexApi;
 import hex.collections.api.HexCollectionsApi;
+import hex.minions.advancement.MinionAdvancementService;
 import hex.minions.api.MinionsApi;
 import hex.minions.command.MinionCommand;
 import hex.minions.config.DefinitionLoader;
@@ -37,6 +38,7 @@ public final class HexMinionsPlugin extends JavaPlugin {
     private MinionService service;
     private MinionRenderer renderer;
     private MachineService machineService;
+    private MinionAdvancementService advancementService;
     private MinionsApi api;
     private MinionsPlaceholderExpansion placeholderExpansion;
 
@@ -52,6 +54,7 @@ public final class HexMinionsPlugin extends JavaPlugin {
         saveResourceIfMissing("storage-chests.yml");
         saveResourceIfMissing("special-items.yml");
         saveResourceIfMissing("machines.yml");
+        saveResourceIfMissing("minion-advancements.yml");
 
         var hexReg = Bukkit.getServicesManager().getRegistration(HexApi.class);
         if (hexReg == null) {
@@ -90,6 +93,9 @@ public final class HexMinionsPlugin extends JavaPlugin {
         this.service = new MinionService(this, hex, towns, collections, repository, renderer, itemFactory, config, definitions, storageChests, specialItems);
         this.machineService = new MachineService(this, hex, service);
         this.machineService.start();
+        this.advancementService = new MinionAdvancementService(this, towns, service);
+        this.advancementService.reload();
+        this.service.registerListener(advancementService);
         this.api = new MinionsApiImpl(service);
 
         Bukkit.getServicesManager().register(MinionsApi.class, api, this, ServicePriority.Normal);
@@ -111,6 +117,7 @@ public final class HexMinionsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new RadiationListener(this, service), this);
         getServer().getPluginManager().registerEvents(new TownLifecycleListener(service, machineService), this);
         getServer().getPluginManager().registerEvents(new MinionWorldListener(this, service), this);
+        getServer().getPluginManager().registerEvents(advancementService, this);
 
         hex.db().async(() -> {
             repository.ensureTables();
@@ -123,6 +130,7 @@ public final class HexMinionsPlugin extends JavaPlugin {
         }).thenAccept(minions -> Bukkit.getScheduler().runTask(this, () -> {
             service.load(minions);
             service.startTasks();
+            if (advancementService != null) Bukkit.getOnlinePlayers().forEach(advancementService::evaluate);
             getLogger().info("HexMinions loaded minions=" + minions.size());
         })).exceptionally(ex -> {
             getLogger().severe("HexMinions DB init failed: " + rootMessage(ex));
@@ -135,6 +143,7 @@ public final class HexMinionsPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (advancementService != null) advancementService.shutdown();
         if (machineService != null) machineService.shutdown();
         if (service != null) service.stopTasks();
         if (renderer != null) renderer.shutdown();
@@ -175,6 +184,7 @@ public final class HexMinionsPlugin extends JavaPlugin {
         specialItems.registerVanillaRecipes(factory, storageChests, definitions);
         renderer.reload(definitions);
         service.reload(MinionsConfig.load(getConfig()), definitions, storageChests, specialItems);
+        if (advancementService != null) advancementService.reload();
     }
 
     private void saveResourceIfMissing(String name) {

@@ -1,0 +1,40 @@
+id: "mobs.spider"
+aliases: ["mob_spider", "spider", "spider_kills", "pajak", "pająk", "minecraft:spider"]
+enabled: true
+
+display:
+  name: "&4Zabite pająki"
+  category: "mobs"
+  menu_slot: 42
+  icon:
+    material: SPIDER_EYE
+
+valid_sources: [NATURAL_MOB_DROP, CUSTOM_PLUGIN_GRANTED]
+
+sources:
+  - trigger: minions.mob.killed
+    amount-from: amount
+    filters:
+      mobType: spider
+
+source_rules:
+  NATURAL_MOB_DROP:
+    allowed_worlds: [world, resource_world, mining_world]
+    blocked_worlds: [spawn]
+    allow_in_town_claims: true
+  CUSTOM_PLUGIN_GRANTED:
+    allow_in_town_claims: true
+
+levels:
+  1: {required: 25, display_name: "&4Pająk I"}
+  2: {required: 100, display_name: "&4Pająk II"}
+  3: {required: 250, display_name: "&4Pająk III"}
+  4: {required: 500, display_name: "&4Pająk IV"}
+  5: {required: 1000, display_name: "&4Pająk V"}
+
+reward_claim_mode: AUTO
+placeholder:
+  progress_bar:
+    length: 20
+    filled_char: "■"
+    empty_char: "□"

@@ -46,9 +46,7 @@ public final class HexCollectionsPlugin extends JavaPlugin implements TabExecuto
 	public void onEnable() {
 		saveDefaultConfig();
 		saveResource("collections.yml", false);
-		saveResourceIfMissing("collections/mining_cobblestone.yml");
-		saveResourceIfMissing("collections/mining_iron.yml");
-		saveResourceIfMissing("collections/mining_dirt.yml");
+		saveBundledCollectionDefinitions();
 
 		var hexReg = Bukkit.getServicesManager().getRegistration(HexApi.class);
 		var townsReg = Bukkit.getServicesManager().getRegistration(TownsApi.class);
@@ -76,6 +74,36 @@ public final class HexCollectionsPlugin extends JavaPlugin implements TabExecuto
 			command.setTabCompleter(this);
 		}
 		getLogger().info("HexCollections enabled");
+	}
+
+	private void saveBundledCollectionDefinitions() {
+		String[] files = {
+				"collections/mining_cobblestone.yml",
+				"collections/mining_stone.yml",
+				"collections/mining_dirt.yml",
+				"collections/mining_iron.yml",
+				"collections/mining_gold.yml",
+				"collections/mining_coal.yml",
+				"collections/mining_redstone.yml",
+				"collections/mining_copper.yml",
+				"collections/mining_diamond.yml",
+				"collections/mining_obsidian.yml",
+				"collections/mining_netherite.yml",
+				"collections/mining_uranium.yml",
+				"collections/mining_rare_elements.yml",
+				"collections/foraging_oak_wood.yml",
+				"collections/foraging_spruce_wood.yml",
+				"collections/mob_zombie.yml",
+				"collections/mob_skeleton.yml",
+				"collections/mob_spider.yml",
+				"collections/mob_silverfish.yml",
+				"collections/animals_wool.yml",
+				"collections/animals_chicken_meat.yml",
+				"collections/animals_pork.yml",
+				"collections/animals_beef.yml",
+				"collections/animals_mutton.yml"
+		};
+		for (String file : files) saveResourceIfMissing(file);
 	}
 
 	private void saveResourceIfMissing(String path) {

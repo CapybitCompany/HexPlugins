@@ -8,15 +8,25 @@ public final class MinionWikiHolder implements InventoryHolder {
     private final String typeId;
     private final String machineId;
     private final String machineRecipeId;
+    private final int page;
 
     public MinionWikiHolder(String typeId) {
-        this(typeId, "", "");
+        this(typeId, "", "", 0);
+    }
+
+    public MinionWikiHolder(String typeId, int page) {
+        this(typeId, "", "", page);
     }
 
     private MinionWikiHolder(String typeId, String machineId, String machineRecipeId) {
+        this(typeId, machineId, machineRecipeId, 0);
+    }
+
+    private MinionWikiHolder(String typeId, String machineId, String machineRecipeId, int page) {
         this.typeId = typeId == null ? "" : typeId;
         this.machineId = machineId == null ? "" : machineId;
         this.machineRecipeId = machineRecipeId == null ? "" : machineRecipeId;
+        this.page = Math.max(0, page);
     }
 
     public static MinionWikiHolder machineIndex(String returnTypeId) {
@@ -61,6 +71,10 @@ public final class MinionWikiHolder implements InventoryHolder {
 
     public String machineRecipeId() {
         return machineRecipeId;
+    }
+
+    public int page() {
+        return page;
     }
 
     @Override

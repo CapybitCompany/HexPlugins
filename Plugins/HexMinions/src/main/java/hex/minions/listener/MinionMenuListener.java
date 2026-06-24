@@ -60,48 +60,48 @@ public final class MinionMenuListener implements Listener {
     private void handleMinionMenu(InventoryClickEvent event, Inventory top, MinionMenuHolder holder) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
         UUID id = holder.minionId();
-        if (event.getClickedInventory() != null && event.getClickedInventory().equals(top)) {
-            int slot = event.getSlot();
-            if (menu.isStorageSlot(slot)) {
-                event.setCancelled(true);
-                int visibleStorageSlot = visibleStorageSlotIndex(slot);
-                service.withdrawStorageSlot(player, id, visibleStorageSlot).thenAccept(result -> Bukkit.getScheduler().runTask(plugin, () -> {
-                    if (!result.success()) {
-                        hex.ui().send(player, result.messageKey(), result.tokens());
-                    }
-                    menu.refreshMinionInventory(player, id, top);
-                }));
-                return;
-            }
-            if (menu.isAddonSlot(slot)) {
-                ItemStack cursor = event.getCursor();
-                if (cursor != null && !cursor.getType().isAir() && !menu.isAllowedInAddonSlot(id, cursor)) {
-                    event.setCancelled(true);
-                    hex.ui().send(player, "minions.error.invalid-menu-item");
-                    return;
-                }
-                Bukkit.getScheduler().runTask(plugin, () -> {
-                    service.saveMinionMenu(id, top);
-                    menu.refreshMinionInventory(player, id, top);
-                });
-                return;
-            }
-            if (slot == MinionMenu.STORAGE_CHEST_SLOT) {
-                ItemStack cursor = event.getCursor();
-                if (cursor != null && !cursor.getType().isAir()) {
-                    event.setCancelled(true);
-                    OperationResult result = service.installStorageChestFromMenu(player, id, cursor);
-                    hex.ui().send(player, result.messageKey(), result.tokens());
-                    menu.open(player, id);
-                    return;
-                }
-                event.setCancelled(true);
-                menu.openStorageChest(player, id);
-                return;
-            }
+
+        // Pozwalamy normalnie podnieść item z własnego EQ na kursor, żeby można było
+        // włożyć booster/update/skrzynkę storage do odpowiedniego slotu w menu miniona.
+        // Shift-click z dolnego EQ blokujemy, bo Bukkit próbowałby automatycznie przerzucać
+        // itemy do dekoracyjnych/placeholderowych slotów GUI.
+        if (event.getClickedInventory() == null || !event.getClickedInventory().equals(top)) {
+            if (event.isShiftClick()) event.setCancelled(true);
+            return;
         }
+
+        int slot = event.getSlot();
+        if (menu.isStorageSlot(slot)) {
+            event.setCancelled(true);
+            int visibleStorageSlot = visibleStorageSlotIndex(slot);
+            service.withdrawStorageSlot(player, id, visibleStorageSlot).thenAccept(result -> Bukkit.getScheduler().runTask(plugin, () -> {
+                if (!result.success()) {
+                    hex.ui().send(player, result.messageKey(), result.tokens());
+                }
+                menu.refreshMinionInventory(player, id, top);
+            }));
+            return;
+        }
+        if (menu.isAddonSlot(slot)) {
+            event.setCancelled(true);
+            handleAddonSlotClick(player, top, id, slot, event.getCursor());
+            return;
+        }
+        if (slot == MinionMenu.STORAGE_CHEST_SLOT) {
+            ItemStack cursor = event.getCursor();
+            if (cursor != null && !cursor.getType().isAir()) {
+                event.setCancelled(true);
+                OperationResult result = service.installStorageChestFromMenu(player, id, cursor);
+                hex.ui().send(player, result.messageKey(), result.tokens());
+                menu.open(player, id);
+                return;
+            }
+            event.setCancelled(true);
+            menu.openStorageChest(player, id);
+            return;
+        }
+
         event.setCancelled(true);
-        if (event.getClickedInventory() == null || !event.getClickedInventory().equals(top)) return;
         if (event.getSlot() == 47) {
             menu.openWiki(player);
             return;
@@ -126,15 +126,20 @@ public final class MinionMenuListener implements Listener {
 
     private void handleStorageChestMenu(InventoryClickEvent event, Inventory top, MinionStorageChestMenuHolder holder) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
-        if (event.getClickedInventory() != null && event.getClickedInventory().equals(top) && event.getSlot() == 49) {
-            event.setCancelled(true);
-            menu.saveStorageChestMenu(holder.minionId(), top);
-            menu.open(player, holder.minionId());
+        int usableSlots = service.storageChestSlotCapacity(holder.minionId());
+        if (event.getClickedInventory() != null && event.getClickedInventory().equals(top)) {
+            if (event.getSlot() == top.getSize() - 5) {
+                event.setCancelled(true);
+                menu.saveStorageChestMenu(holder.minionId(), top);
+                menu.open(player, holder.minionId());
+                return;
+            }
+            if (event.getSlot() >= usableSlots) {
+                event.setCancelled(true);
+            }
             return;
         }
-        if (event.getClickedInventory() != null && event.getClickedInventory().equals(top) && event.getSlot() >= 45) {
-            event.setCancelled(true);
-        }
+        if (event.isShiftClick()) event.setCancelled(true);
     }
 
     private void handleRecipeMenu(InventoryClickEvent event, SpecialRecipeMenuHolder holder) {
@@ -147,6 +152,49 @@ public final class MinionMenuListener implements Listener {
         }
     }
 
+
+
+    private void handleAddonSlotClick(Player player, Inventory top, UUID minionId, int slot, ItemStack cursor) {
+        ItemStack current = top.getItem(slot);
+        boolean cursorHasItem = cursor != null && !cursor.getType().isAir();
+        boolean currentIsRealAddon = current != null && !current.getType().isAir()
+                && (menu.isAllowedInAddonSlot(minionId, current) || service.addonItem(minionId, addonSlotId(slot)) != null);
+
+        if (cursorHasItem) {
+            if (!menu.isAllowedInAddonSlot(minionId, cursor)) {
+                hex.ui().send(player, "minions.error.invalid-menu-item");
+                menu.refreshMinionInventory(player, minionId, top);
+                return;
+            }
+            if (currentIsRealAddon) {
+                player.getInventory().addItem(current.clone()).values().forEach(left -> player.getWorld().dropItemNaturally(player.getLocation(), left));
+            }
+            top.setItem(slot, cursor.clone());
+            player.setItemOnCursor(null);
+            service.saveMinionMenu(minionId, top);
+            menu.refreshMinionInventory(player, minionId, top);
+            return;
+        }
+
+        if (currentIsRealAddon) {
+            top.setItem(slot, null);
+            player.setItemOnCursor(current.clone());
+            service.saveMinionMenu(minionId, top);
+            menu.refreshMinionInventory(player, minionId, top);
+            return;
+        }
+
+        // Placeholdery slotów boostera/update'u/storage są tylko informacyjne.
+        // Nie pozwalamy podnieść ich kursorem ani zapisać jako realnego addonu.
+        menu.refreshMinionInventory(player, minionId, top);
+    }
+
+
+    private String addonSlotId(int slot) {
+        if (slot == MinionMenu.ADDON_SLOT_1) return "addon_1";
+        if (slot == MinionMenu.ADDON_SLOT_2) return "addon_2";
+        return "";
+    }
 
     private int visibleStorageSlotIndex(int slot) {
         for (int i = 0; i < MinionMenu.STORAGE_SLOTS.length; i++) {
@@ -185,7 +233,15 @@ public final class MinionMenuListener implements Listener {
                 player.closeInventory();
                 return;
             }
-            String typeId = menu.wikiTypeAtSlot(event.getSlot());
+            if (event.getSlot() == 48 && holder.page() > 0) {
+                menu.openWikiPage(player, holder.page() - 1);
+                return;
+            }
+            if (event.getSlot() == 50 && menu.wikiHasPage(holder.page() + 1)) {
+                menu.openWikiPage(player, holder.page() + 1);
+                return;
+            }
+            String typeId = menu.wikiTypeAtSlot(event.getSlot(), holder.page());
             if (!typeId.isBlank()) menu.openWikiType(player, typeId);
             return;
         }

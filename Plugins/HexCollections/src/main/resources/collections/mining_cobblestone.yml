@@ -3,7 +3,7 @@ aliases: ["mining_cobblestone", "cobblestone", "cabblestone", "minecraft:cobbles
 enabled: true
 
 display:
-  name: "&7Cabblestone"
+  name: "&7Bruk"
   category: "mining"
   menu_slot: 10
   icon:
@@ -17,7 +17,7 @@ tracked_items:
     enchanted_cobblestone:
       material: COBBLESTONE
       custom_model_data: 1001
-      display_name_contains: "Enchanted Cobblestone"
+      display_name_contains: "Skompresowany blok bruku"
       amount_value: 160
 
 valid_sources: [NATURAL_BLOCK_BREAK, MINION_COLLECT, CUSTOM_PLUGIN_GRANTED]
@@ -49,35 +49,35 @@ source_rules:
 levels:
   1:
     required: 50
-    display_name: "&7Cobblestone I"
+    display_name: "&7Bruk I"
     rewards:
       - type: MINION_RECIPE_UNLOCK
         id: "cobblestone_minion_tier_1"
   2:
     required: 250
-    display_name: "&7Cobblestone II"
+    display_name: "&7Bruk II"
     rewards:
       - type: SKILL_XP
         skill: "mining"
         amount: 100
   3:
     required: 1000
-    display_name: "&7Cobblestone III"
+    display_name: "&7Bruk III"
     rewards:
       - type: MINION_UPGRADE_UNLOCK
         id: "cobblestone_minion_storage_1"
   4:
     required: 2500
-    display_name: "&7Cobblestone IV"
+    display_name: "&7Bruk IV"
   5:
     required: 7500
-    display_name: "&7Cobblestone V"
+    display_name: "&7Bruk V"
   6:
     required: 15000
-    display_name: "&7Cobblestone VI"
+    display_name: "&7Bruk VI"
   7:
     required: 30000
-    display_name: "&7Cobblestone VII"
+    display_name: "&7Bruk VII"
     rewards:
       - type: CUSTOM_EVENT
         event: "COBBLESTONE_COLLECTION_MAX_MVP"

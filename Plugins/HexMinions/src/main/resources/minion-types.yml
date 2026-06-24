@@ -4,15 +4,15 @@ boosters:
 minion-types:
   cobblestone:
     enabled: true
-    display-name: <gray>Cabblestone Minion</gray>
+    display-name: <gray>Minion bruku</gray>
     category: mining
     item:
       material: PLAYER_HEAD
       texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19
-      display-name: <gray>Cobblestone Minion <yellow>Tier <tier></yellow></gray>
+      display-name: <gray>Minion bruku <yellow>Tier <tier></yellow></gray>
       lore:
       - <dark_gray>Minion miasta</dark_gray>
-      - '<gray>Generuje: <white>Cobblestone</white></gray>'
+      - '<gray>Generuje: <white>Bruk</white></gray>'
       - <gray>Postaw na terenie swojego miasta.</gray>
       custom-model-data: 0
     placement:
@@ -90,12 +90,12 @@ minion-types:
       auto-compressed-resources: true
   iron:
     enabled: true
-    display-name: <white>Iron Minion</white>
+    display-name: <white>Minion żelaza</white>
     category: mining
     item:
       material: PLAYER_HEAD
       texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19
-      display-name: <white>Iron Minion <yellow>Tier <tier></yellow></white>
+      display-name: <white>Minion żelaza <yellow>Tier <tier></yellow></white>
       lore:
       - <dark_gray>Minion miasta</dark_gray>
       - '<gray>Generuje: <white>Ruda żelaza</white></gray>'
@@ -189,15 +189,15 @@ minion-types:
         iron_ore: iron
   dirt:
     enabled: true
-    display-name: <gold>Dirt Minion</gold>
+    display-name: <gold>Minion ziemi</gold>
     category: mining
     item:
       material: PLAYER_HEAD
       texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19
-      display-name: <gold>Dirt Minion <yellow>Tier <tier></yellow></gold>
+      display-name: <gold>Minion ziemi <yellow>Tier <tier></yellow></gold>
       lore:
       - <dark_gray>Minion miasta</dark_gray>
-      - '<gray>Generuje: <gold>Dirt</gold></gray>'
+      - '<gray>Generuje: <gold>Ziemia</gold></gray>'
       - <gray>Postaw na terenie swojego miasta.</gray>
       custom-model-data: 0
     placement:
@@ -269,15 +269,15 @@ minion-types:
       auto-compressed-resources: true
   stone:
     enabled: true
-    display-name: <gray>Stone Minion</gray>
+    display-name: <gray>Minion kamienia</gray>
     category: mining
     item:
       material: PLAYER_HEAD
       texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19
-      display-name: <gray>Stone Minion <yellow>Tier <tier></yellow></gray>
+      display-name: <gray>Minion kamienia <yellow>Tier <tier></yellow></gray>
       lore:
       - <dark_gray>Minion miasta</dark_gray>
-      - '<gray>Generuje: <white>Stone</white></gray>'
+      - '<gray>Generuje: <white>Kamień</white></gray>'
       - <gray>Postaw na terenie swojego miasta.</gray>
       custom-model-data: 0
     placement:
@@ -356,12 +356,12 @@ minion-types:
       auto-compressed-resources: true
   oak_plank:
     enabled: true
-    display-name: <gold>Oak Wood Minion</gold>
+    display-name: <gold>Minion drewna dębowego</gold>
     category: farming
     item:
       material: PLAYER_HEAD
       texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19
-      display-name: <gold>Oak Wood Minion <yellow>Tier <tier></yellow></gold>
+      display-name: <gold>Minion drewna dębowego <yellow>Tier <tier></yellow></gold>
       lore:
       - <dark_gray>Minion miasta</dark_gray>
       - '<gray>Generuje: <gold>Drewno dębowe</gold></gray>'
@@ -436,12 +436,12 @@ minion-types:
       auto-compressed-resources: true
   coal:
     enabled: true
-    display-name: <dark_gray>Coal Minion</dark_gray>
+    display-name: <dark_gray>Minion węgla</dark_gray>
     category: mining
     item:
       material: PLAYER_HEAD
       texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19
-      display-name: <dark_gray>Coal Minion <yellow>Tier <tier></yellow></dark_gray>
+      display-name: <dark_gray>Minion węgla <yellow>Tier <tier></yellow></dark_gray>
       lore:
       - <dark_gray>Minion miasta</dark_gray>
       - '<gray>Generuje: <white>Węgiel</white></gray>'
@@ -533,12 +533,12 @@ minion-types:
       auto-compressed-resources: true
   redstone:
     enabled: true
-    display-name: <red>Redstone Minion</red>
+    display-name: <red>Minion redstone</red>
     category: mining
     item:
       material: PLAYER_HEAD
       texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19
-      display-name: <red>Redstone Minion <yellow>Tier <tier></yellow></red>
+      display-name: <red>Minion redstone <yellow>Tier <tier></yellow></red>
       lore:
       - <dark_gray>Minion miasta</dark_gray>
       - '<gray>Generuje: <red>Redstone</red></gray>'
@@ -613,12 +613,12 @@ minion-types:
       auto-compressed-resources: true
   uranium:
     enabled: true
-    display-name: <#32CD32>Uranium Minion</#32CD32>
+    display-name: <#32CD32>Minion uranu</#32CD32>
     category: mining
     item:
       material: PLAYER_HEAD
       texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19
-      display-name: <#32CD32>Uranium Minion <yellow>Tier <tier></yellow></#32CD32>
+      display-name: <#32CD32>Minion uranu <yellow>Tier <tier></yellow></#32CD32>
       lore:
       - <dark_gray>Minion miasta</dark_gray>
       - '<gray>Generuje: <#32CD32>Uran</#32CD32></gray>'
@@ -708,7 +708,7 @@ minion-types:
     item:
       material: PLAYER_HEAD
       texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19
-      display-name: <gold>Złoty Golem</gold> <yellow>Tier <tier></yellow>
+      display-name: <gold>Złoty Golem <yellow>Tier <tier></yellow></gold>
       lore:
       - <dark_gray>Minion miasta</dark_gray>
       - '<gray>Generuje: <gold>Ruda złota</gold></gray>'
@@ -797,12 +797,12 @@ minion-types:
         gold_ore: gold
   obsidian:
     enabled: true
-    display-name: <dark_purple>Obsidian Minion</dark_purple>
+    display-name: <dark_purple>Minion obsydianu</dark_purple>
     category: mining
     item:
       material: PLAYER_HEAD
       texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19
-      display-name: <dark_purple>Obsidian Minion</dark_purple> <yellow>Tier <tier></yellow>
+      display-name: <dark_purple>Minion obsydianu <yellow>Tier <tier></yellow></dark_purple>
       lore:
       - <dark_gray>Minion miasta</dark_gray>
       - '<gray>Generuje: <dark_purple>Obsydian</dark_purple></gray>'
@@ -897,12 +897,12 @@ minion-types:
       auto-compressed-resources: true
   diamond:
     enabled: true
-    display-name: <aqua>Diamond Minion</aqua>
+    display-name: <aqua>Minion diamentu</aqua>
     category: mining
     item:
       material: PLAYER_HEAD
       texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19
-      display-name: <aqua>Diamond Minion</aqua> <yellow>Tier <tier></yellow>
+      display-name: <aqua>Minion diamentu <yellow>Tier <tier></yellow></aqua>
       lore:
       - <dark_gray>Minion miasta</dark_gray>
       - '<gray>Generuje: <aqua>Diament</aqua></gray>'
@@ -975,15 +975,15 @@ minion-types:
       auto-compressed-resources: true
   netherite:
     enabled: true
-    display-name: <dark_gray>Netherite Minion</dark_gray>
+    display-name: <dark_gray>Minion netheritu</dark_gray>
     category: mining
     item:
       material: PLAYER_HEAD
       texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19
-      display-name: <dark_gray>Netherite Minion</dark_gray> <yellow>Tier <tier></yellow>
+      display-name: <dark_gray>Minion netheritu <yellow>Tier <tier></yellow></dark_gray>
       lore:
       - <dark_gray>Minion miasta</dark_gray>
-      - '<gray>Generuje: <dark_gray>Netherite Scrap</dark_gray></gray>'
+      - '<gray>Generuje: <dark_gray>Netherit Scrap</dark_gray></gray>'
       - <gray>Postaw na terenie swojego miasta.</gray>
     placement:
       footprint-radius-blocks: 1
@@ -1053,12 +1053,12 @@ minion-types:
       auto-compressed-resources: true
   zombie:
     enabled: true
-    display-name: <dark_green>Zombie Minion</dark_green>
+    display-name: <dark_green>Minion zombie</dark_green>
     category: combat
     drop-selection-mode: WEIGHTED_ONE
     item:
       material: ZOMBIE_HEAD
-      display-name: <dark_green>Zombie Minion <yellow>Tier <tier></yellow></dark_green>
+      display-name: <dark_green>Minion zombie <yellow>Tier <tier></yellow></dark_green>
       lore:
       - <dark_gray>Minion miasta</dark_gray>
       - <gray>Symuluje zabijanie zombie i generuje łupy.</gray>
@@ -1156,12 +1156,12 @@ minion-types:
       auto-compressed-resources: false
   skeleton:
     enabled: true
-    display-name: <gray>Szkielet Minion</gray>
+    display-name: <gray>Minion szkieleta</gray>
     category: combat
     drop-selection-mode: WEIGHTED_ONE
     item:
       material: SKELETON_SKULL
-      display-name: <gray>Szkielet Minion <yellow>Tier <tier></yellow></gray>
+      display-name: <gray>Minion szkieleta <yellow>Tier <tier></yellow></gray>
       lore:
       - <dark_gray>Minion miasta</dark_gray>
       - <gray>Symuluje zabijanie szkieletów i generuje łupy.</gray>
@@ -1252,13 +1252,13 @@ minion-types:
       auto-compressed-resources: false
   spider:
     enabled: true
-    display-name: <dark_red>Pająk Minion</dark_red>
+    display-name: <dark_red>Minion pająka</dark_red>
     category: combat
     drop-selection-mode: WEIGHTED_ONE
     item:
       material: PLAYER_HEAD
       texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19
-      display-name: <dark_red>Pająk Minion <yellow>Tier <tier></yellow></dark_red>
+      display-name: <dark_red>Minion pająka <yellow>Tier <tier></yellow></dark_red>
       lore:
       - <dark_gray>Minion miasta</dark_gray>
       - <gray>Symuluje zabijanie pająków i generuje łupy.</gray>
@@ -1340,13 +1340,13 @@ minion-types:
       auto-compressed-resources: false
   silverfish:
     enabled: true
-    display-name: <gray>Silverfish Minion</gray>
+    display-name: <gray>Minion rybika cukrowego</gray>
     category: combat
     drop-selection-mode: WEIGHTED_ONE
     item:
       material: PLAYER_HEAD
       texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19
-      display-name: <gray>Silverfish Minion <yellow>Tier <tier></yellow></gray>
+      display-name: <gray>Minion rybika cukrowego <yellow>Tier <tier></yellow></gray>
       lore:
       - <dark_gray>Minion miasta</dark_gray>
       - <gray>Symuluje zabijanie silverfishy i generuje doświadczenie.</gray>
@@ -1420,12 +1420,12 @@ minion-types:
       auto-compressed-resources: false
   spruce_wood:
     enabled: true
-    display-name: <dark_green>Spruce Wood Minion</dark_green>
+    display-name: <dark_green>Minion drewna świerkowego</dark_green>
     category: foraging
     item:
       material: PLAYER_HEAD
       texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19
-      display-name: <dark_green>Spruce Wood Minion <yellow>Tier <tier></yellow></dark_green>
+      display-name: <dark_green>Minion drewna świerkowego <yellow>Tier <tier></yellow></dark_green>
       lore:
       - <dark_gray>Minion miasta</dark_gray>
       - '<gray>Generuje: <dark_green>Drewno świerkowe</dark_green></gray>'
@@ -1597,3 +1597,399 @@ minion-types:
       - iron_frame
       - stone_frame
       auto-compressed-resources: true
+  sheep:
+    enabled: true
+    display-name: <white>Minion owcy</white>
+    category: animals
+    drop-selection-mode: WEIGHTED_ONE
+    item:
+      material: PLAYER_HEAD
+      display-name: <white>Minion owcy</white> <yellow>Tier <tier></yellow>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - '<gray>Generuje: <white>wełnę</white> oraz rzadziej <white>mięso owcy</white>.</gray>'
+      - '<gray>Startowo: <white>20s</white>, każdy tier skraca o <white>1s</white>.</gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
+      custom-model-data: 0
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: cobblestone_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+    resource-table:
+    - resource: wool
+      amount-min: 1
+      amount-max: 1
+      chance: 0.98
+    - resource: mutton
+      amount-min: 1
+      amount-max: 1
+      chance: 0.02
+    tiers:
+      1:
+        action-time-seconds: 20
+        storage: 64
+        storage-slots: 1
+        upgrade-requirements:
+          collections:
+            animals.wool: 25
+          items: {}
+      2:
+        action-time-seconds: 19
+        storage: 128
+        storage-slots: 2
+        upgrade-requirements:
+          collections:
+            animals.wool: 100
+          items: {}
+      3:
+        action-time-seconds: 18
+        storage: 192
+        storage-slots: 3
+        upgrade-requirements:
+          collections:
+            animals.wool: 250
+          items: {}
+      4:
+        action-time-seconds: 17
+        storage: 256
+        storage-slots: 4
+        upgrade-requirements:
+          collections:
+            animals.wool: 500
+          items: {}
+      5:
+        action-time-seconds: 16
+        storage: 320
+        storage-slots: 5
+        upgrade-requirements:
+          collections:
+            animals.wool: 1000
+          items: {}
+      6:
+        action-time-seconds: 15
+        storage: 384
+        storage-slots: 6
+        upgrade-requirements:
+          collections:
+            animals.wool: 2500
+          items: {}
+      7:
+        action-time-seconds: 14
+        storage: 448
+        storage-slots: 7
+        upgrade-requirements:
+          collections:
+            animals.wool: 5000
+          items: {}
+    max-tier: 7
+    wiki:
+      special-items: []
+      auto-compressed-resources: false
+  pig:
+    enabled: true
+    display-name: <light_purple>Minion świni</light_purple>
+    category: animals
+    drop-selection-mode: WEIGHTED_ONE
+    item:
+      material: PLAYER_HEAD
+      display-name: <light_purple>Minion świni</light_purple> <yellow>Tier <tier></yellow>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - '<gray>Generuje: <light_purple>mięso świni</light_purple>.</gray>'
+      - '<gray>Startowo: <white>45s</white>, każdy tier skraca o <white>2s</white>.</gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
+      custom-model-data: 0
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: cobblestone_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+    resource-table:
+    - resource: porkchop
+      amount-min: 1
+      amount-max: 1
+      chance: 1.0
+    tiers:
+      1:
+        action-time-seconds: 45
+        storage: 64
+        storage-slots: 1
+        upgrade-requirements:
+          collections:
+            animals.pork: 25
+          items: {}
+      2:
+        action-time-seconds: 43
+        storage: 128
+        storage-slots: 2
+        upgrade-requirements:
+          collections:
+            animals.pork: 100
+          items: {}
+      3:
+        action-time-seconds: 41
+        storage: 192
+        storage-slots: 3
+        upgrade-requirements:
+          collections:
+            animals.pork: 250
+          items: {}
+      4:
+        action-time-seconds: 39
+        storage: 256
+        storage-slots: 4
+        upgrade-requirements:
+          collections:
+            animals.pork: 500
+          items: {}
+      5:
+        action-time-seconds: 37
+        storage: 320
+        storage-slots: 5
+        upgrade-requirements:
+          collections:
+            animals.pork: 1000
+          items: {}
+      6:
+        action-time-seconds: 35
+        storage: 384
+        storage-slots: 6
+        upgrade-requirements:
+          collections:
+            animals.pork: 2500
+          items: {}
+      7:
+        action-time-seconds: 33
+        storage: 448
+        storage-slots: 7
+        upgrade-requirements:
+          collections:
+            animals.pork: 5000
+          items: {}
+    max-tier: 7
+    wiki:
+      special-items: []
+      auto-compressed-resources: false
+  cow:
+    enabled: true
+    display-name: <red>Minion krowy</red>
+    category: animals
+    drop-selection-mode: WEIGHTED_ONE
+    item:
+      material: PLAYER_HEAD
+      display-name: <red>Minion krowy</red> <yellow>Tier <tier></yellow>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - '<gray>Generuje: <red>mięso krowy</red> oraz <gold>skórę</gold>.</gray>'
+      - '<gray>Startowo: <white>45s</white>, każdy tier skraca o <white>2s</white>.</gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
+      custom-model-data: 0
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: cobblestone_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+    resource-table:
+    - resource: leather
+      amount-min: 1
+      amount-max: 1
+      chance: 0.15
+    - resource: beef
+      amount-min: 1
+      amount-max: 1
+      chance: 0.85
+    tiers:
+      1:
+        action-time-seconds: 45
+        storage: 64
+        storage-slots: 1
+        upgrade-requirements:
+          collections:
+            animals.beef: 25
+          items: {}
+      2:
+        action-time-seconds: 43
+        storage: 128
+        storage-slots: 2
+        upgrade-requirements:
+          collections:
+            animals.beef: 100
+          items: {}
+      3:
+        action-time-seconds: 41
+        storage: 192
+        storage-slots: 3
+        upgrade-requirements:
+          collections:
+            animals.beef: 250
+          items: {}
+      4:
+        action-time-seconds: 39
+        storage: 256
+        storage-slots: 4
+        upgrade-requirements:
+          collections:
+            animals.beef: 500
+          items: {}
+      5:
+        action-time-seconds: 37
+        storage: 320
+        storage-slots: 5
+        upgrade-requirements:
+          collections:
+            animals.beef: 1000
+          items: {}
+      6:
+        action-time-seconds: 35
+        storage: 384
+        storage-slots: 6
+        upgrade-requirements:
+          collections:
+            animals.beef: 2500
+          items: {}
+      7:
+        action-time-seconds: 33
+        storage: 448
+        storage-slots: 7
+        upgrade-requirements:
+          collections:
+            animals.beef: 5000
+          items: {}
+    max-tier: 7
+    wiki:
+      special-items: []
+      auto-compressed-resources: false
+  chicken:
+    enabled: true
+    display-name: <yellow>Minion kurczaka</yellow>
+    category: animals
+    drop-selection-mode: WEIGHTED_ONE
+    item:
+      material: PLAYER_HEAD
+      display-name: <yellow>Minion kurczaka</yellow> <yellow>Tier <tier></yellow>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - '<gray>Generuje: <white>pióra</white>, <yellow>jajka</yellow> oraz mięso.</gray>'
+      - '<gray>Domyślnie: <white>30s</white>, każdy tier skraca o <white>1s</white>.</gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
+      custom-model-data: 0
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: cobblestone_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+    resource-table:
+    - resource: feather
+      amount-min: 1
+      amount-max: 1
+      chance: 0.7
+    - resource: egg
+      amount-min: 1
+      amount-max: 1
+      chance: 0.15
+    - resource: chicken_meat
+      amount-min: 1
+      amount-max: 1
+      chance: 0.15
+    tiers:
+      1:
+        action-time-seconds: 30
+        storage: 64
+        storage-slots: 1
+        upgrade-requirements:
+          collections:
+            animals.chicken_meat: 25
+          items: {}
+      2:
+        action-time-seconds: 29
+        storage: 128
+        storage-slots: 2
+        upgrade-requirements:
+          collections:
+            animals.chicken_meat: 100
+          items: {}
+      3:
+        action-time-seconds: 28
+        storage: 192
+        storage-slots: 3
+        upgrade-requirements:
+          collections:
+            animals.chicken_meat: 250
+          items: {}
+      4:
+        action-time-seconds: 27
+        storage: 256
+        storage-slots: 4
+        upgrade-requirements:
+          collections:
+            animals.chicken_meat: 500
+          items: {}
+      5:
+        action-time-seconds: 26
+        storage: 320
+        storage-slots: 5
+        upgrade-requirements:
+          collections:
+            animals.chicken_meat: 1000
+          items: {}
+      6:
+        action-time-seconds: 25
+        storage: 384
+        storage-slots: 6
+        upgrade-requirements:
+          collections:
+            animals.chicken_meat: 2500
+          items: {}
+      7:
+        action-time-seconds: 24
+        storage: 448
+        storage-slots: 7
+        upgrade-requirements:
+          collections:
+            animals.chicken_meat: 5000
+          items: {}
+    max-tier: 7
+    wiki:
+      special-items: []
+      auto-compressed-resources: false

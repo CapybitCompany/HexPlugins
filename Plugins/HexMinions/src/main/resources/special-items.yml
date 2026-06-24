@@ -4,11 +4,11 @@ special-items:
     material: COBBLESTONE
     custom-model-data: 10001
     amount: 1
-    display-name: <aqua>Skompresowany Bruk</aqua>
+    display-name: <#40E0D0>Skompresowany blok bruku</#40E0D0>
     lore:
     - '<gray>Wartość: <white>128</white> szt. surowca.</gray>'
     - '<gray>Crafting: 4 sloty po 32 bruku.</gray>'
-    - <dark_gray>Wymaga Cobblestone Minion lvl 5.</dark_gray>
+    - <dark_gray>Wymaga Miniona bruku lvl 5.</dark_gray>
     enchant-glint: true
   storage_expander:
     enabled: true
@@ -17,10 +17,11 @@ special-items:
     amount: 1
     display-name: <gold>Rozszerzenie storage miniona</gold>
     lore:
-    - <gray>Specjalne ulepszenie miejsca dla miniona.</gray>
-    - <gray>Daje <green>+5 slotów storage</green> w menu miniona.</gray>
-    - <gray>Włóż je do slotu rozszerzenia storage.</gray>
-    - <dark_gray>Wymaga Oak Plank Minion lvl 5.</dark_gray>
+    - <gray>Specjalna skrzynka rozszerzeń dla miniona.</gray>
+    - <gray>Po włożeniu do slotu Minion Storage stawia fizyczną skrzynkę obok miniona.</gray>
+    - <gray>Pojemność: <green>3 sloty</green>.</gray>
+    - <gray>Minion najpierw wypełnia tę skrzynkę, potem własny magazyn.</gray>
+    - <dark_gray>Wymaga Miniona drewna dębowego lvl 5.</dark_gray>
     enchant-glint: true
   minion_booster_tier_1:
     enabled: true
@@ -43,7 +44,7 @@ special-items:
     lore:
     - <gray>Specjalny stół do craftingu skompresowanych itemów.</gray>
     - <gray>Można postawić tylko na terenie swojego miasta.</gray>
-    - <dark_gray>Wymaga Dirt Minion lvl 5.</dark_gray>
+    - <dark_gray>Wymaga Miniona ziemi lvl 5.</dark_gray>
     enchant-glint: true
     placeable: true
     block-kind: ENCHANTED_CRAFTING_TABLE
@@ -55,7 +56,7 @@ special-items:
     display-name: <#32CD32>Blok uranu</#32CD32>
     lore:
     - <gray>Blok z 9 sztuk uranu.</gray>
-    - <dark_gray>Odblokowanie: Uranium Minion Tier 2.</dark_gray>
+    - <dark_gray>Odblokowanie: Minion uranu Tier 2.</dark_gray>
     enchant-glint: true
     placeable: false
   enriched_uranium:
@@ -80,7 +81,7 @@ special-items:
     - <gray>Custom block display z menu wzbogacacza.</gray>
     - <gray>5% uran, 33% blok uranu, 100% skompresowany uran.</gray>
     - <gray>Czas: <white>2h</white> na konwersję.</gray>
-    - <dark_gray>Odblokowanie: Uranium Minion Tier 5.</dark_gray>
+    - <dark_gray>Odblokowanie: Minion uranu Tier 5.</dark_gray>
     enchant-glint: true
     placeable: true
     block-kind: URANIUM_ENRICHER
@@ -92,7 +93,7 @@ special-items:
     display-name: <gray>Stal</gray>
     lore:
     - <gray>Stop żelaza i węgla z pieca hutniczego.</gray>
-    - <dark_gray>Odblokowanie: Iron Minion Tier 5.</dark_gray>
+    - <dark_gray>Odblokowanie: Minion żelaza Tier 5.</dark_gray>
     enchant-glint: true
   smelting_furnace:
     enabled: true
@@ -115,7 +116,7 @@ special-items:
     lore:
     - <gray>Rozszerzenie storage dla uranu i wzbogaconego uranu.</gray>
     - <gray>5 slotów, stack wzbogaconego uranu do 16.</gray>
-    - <dark_gray>Odblokowanie: Iron Minion Tier 6 i Coal Minion Tier 6.</dark_gray>
+    - <dark_gray>Odblokowanie: Minion żelaza Tier 6 i Minion węgla Tier 6.</dark_gray>
     enchant-glint: true
   advanced_redstone:
     enabled: true
@@ -135,7 +136,7 @@ special-items:
     display-name: <gold>Paliwo Opałowe</gold>
     lore:
     - <gray>Działa jak 4x skompresowane drewno.</gray>
-    - <dark_gray>Odblokowanie: Coal Minion Tier 7.</dark_gray>
+    - <dark_gray>Odblokowanie: Minion węgla Tier 7.</dark_gray>
     enchant-glint: true
     fuel:
       eu: 16000
@@ -151,7 +152,7 @@ special-items:
     - <gray>Update miniona przepalający rudy w locie.</gray>
     - <gray>Włóż do slotu update miniona.</gray>
     - <gray>Działa tylko na minionach z flagą auto-smelter.enabled.</gray>
-    - <dark_gray>Wymaga Netherite Minion Tier 5.</dark_gray>
+    - <dark_gray>Wymaga Netherit Minion Tier 5.</dark_gray>
     enchant-glint: true
     placeable: false
   coal_generator:
@@ -163,7 +164,7 @@ special-items:
     lore:
     - <gray>Wytwarza energię EU z paliwa.</gray>
     - <gray>Zasila maszyny po lewej i prawej stronie.</gray>
-    - '<dark_gray>Odblokowanie: Coal Minion Tier 5.</dark_gray>'
+    - '<dark_gray>Odblokowanie: Minion węgla Tier 5.</dark_gray>'
     enchant-glint: true
     placeable: true
     block-kind: COAL_GENERATOR
@@ -176,7 +177,7 @@ special-items:
     lore:
     - <gray>Elektryczna maszyna do kruszenia rud i surowców na pyły.</gray>
     - <gray>Może pobierać EU z generatora lub redstone w slocie paliwa.</gray>
-    - '<dark_gray>Odblokowanie: Stone Minion Tier 5.</dark_gray>'
+    - '<dark_gray>Odblokowanie: Minion kamienia Tier 5.</dark_gray>'
     enchant-glint: true
     placeable: true
     block-kind: MACERATOR
@@ -276,7 +277,7 @@ special-items:
     display-name: <gray>Kamienna Rama</gray>
     lore:
     - <gray>Podstawowa rama do craftingu minionów górniczych.</gray>
-    - '<dark_gray>Odblokowanie: Cobblestone Minion Tier 5.</dark_gray>'
+    - '<dark_gray>Odblokowanie: Minion bruku Tier 5.</dark_gray>'
     enchant-glint: true
     placeable: false
   iron_frame:
@@ -287,7 +288,7 @@ special-items:
     display-name: <white>Żelazna Rama</white>
     lore:
     - <gray>Wzmocniona rama do bardziej zaawansowanych minionów.</gray>
-    - '<dark_gray>Odblokowanie: Iron Minion Tier 5.</dark_gray>'
+    - '<dark_gray>Odblokowanie: Minion żelaza Tier 5.</dark_gray>'
     enchant-glint: true
     placeable: false
   rare_elements:
@@ -321,7 +322,7 @@ special-items:
     lore:
     - <gray>Elektryczna maszyna do wolnej kompresji i syntezy materiałów.</gray>
     - <gray>Zużywa <white>50 EU/s</white>, jedna konwersja trwa <white>90 sekund</white>.</gray>
-    - '<dark_gray>Odblokowanie: Obsidian Minion Tier 7.</dark_gray>'
+    - '<dark_gray>Odblokowanie: Minion obsydianu Tier 7.</dark_gray>'
     enchant-glint: true
     placeable: true
     block-kind: COMPRESSOR
@@ -401,9 +402,9 @@ recipes:
     enabled: true
     station: ENCHANTED_CRAFTING_TABLE
     shape:
-    - 'CC '
-    - 'CC '
-    - '   '
+    - ' C '
+    - CCC
+    - ' C '
     ingredients:
       C:
         material: COBBLESTONE
@@ -435,14 +436,14 @@ recipes:
     enabled: true
     station: ENCHANTED_CRAFTING_TABLE
     shape:
-    - CCC
-    - CXC
-    - CCC
+    - WWW
+    - WCW
+    - WWW
     ingredients:
-      C:
-        material: OAK_PLANKS
+      W:
+        material: OAK_LOG
         amount: 32
-      X:
+      C:
         material: CHEST
         amount: 1
     output:
@@ -606,9 +607,9 @@ recipes:
     enabled: true
     station: ENCHANTED_CRAFTING_TABLE
     shape:
+    - ' C '
     - CCC
-    - 'CC '
-    - '   '
+    - ' C '
     ingredients:
       C:
         material: EMERALD_BLOCK
@@ -1075,16 +1076,16 @@ compression:
     compressed:
       value: 128
       shape:
-      - 'CC '
-      - 'CC '
-      - '   '
+      - ' C '
+      - CCC
+      - ' C '
       ingredient-amount: 32
-      display-name: <#40E0D0>Skompresowany <resource></#40E0D0>
+      display-name: <#40E0D0>Skompresowany blok — <resource></#40E0D0>
     super:
       value: 20480
       shape:
+      - ' C '
       - CCC
-      - 'CC '
-      - '   '
+      - ' C '
       ingredient-amount: 32
-      display-name: <#FFA500>Superskompresowany <resource></#FFA500>
+      display-name: <#FFA500>Superskompresowany blok — <resource></#FFA500>

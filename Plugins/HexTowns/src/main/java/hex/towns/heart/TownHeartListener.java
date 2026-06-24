@@ -142,6 +142,13 @@ public final class TownHeartListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onFluidFlow(BlockFromToEvent event) {
+        if (heartService.protectedHeartAt(event.getToBlock().getLocation()).isPresent()) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPistonExtend(BlockPistonExtendEvent event) {
         if (event.getBlocks().stream().anyMatch(block -> heartService.protectedHeartAt(block.getLocation()).isPresent()
                 || heartService.protectedHeartAt(block.getRelative(event.getDirection()).getLocation()).isPresent())) {
@@ -369,9 +376,23 @@ public final class TownHeartListener implements Listener {
         }
         if (rawSlot == BASE_MEMBER_PANEL_SLOT && townsService.isMember(player.getUniqueId(), town.id())) {
             player.closeInventory();
-            // DeluxeMenus używa kontekstu gracza, więc tylko członek miasta dostaje skrót do pełnego panelu.
-            player.performCommand("townmenu");
+            openFullTownMenu(player);
         }
+    }
+
+    private void openFullTownMenu(Player player) {
+        // DeluxeMenus nie zawsze rejestruje alias jako zwykłą komendę gracza w momencie kliknięcia
+        // z własnego GUI. Najpierw używamy oficjalnego polecenia konsolowego DeluxeMenus,
+        // a dopiero jeśli go nie ma, wracamy do aliasu open_command z menu.
+        if (Bukkit.getPluginCommand("dm") != null) {
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "dm open town_main " + player.getName());
+            return;
+        }
+        if (Bukkit.getPluginCommand("deluxemenus") != null) {
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "deluxemenus open town_main " + player.getName());
+            return;
+        }
+        player.performCommand("townmenu");
     }
 
     private ItemStack townStatsItem(Town town) {
@@ -391,6 +412,7 @@ public final class TownHeartListener implements Listener {
         if (collections == null) {
             return named(Material.BOOK, "§aKolekcje miasta", List.of("§7HexCollections nie jest aktualnie dostępny."));
         }
+        invoke(collections, "loadTown", new Class<?>[]{UUID.class}, town.id());
         Map<?, ?> all = mapResult(collections, "getAllCollections", new Class<?>[]{UUID.class}, town.id());
         int[] reached = new int[8];
         for (Object progress : all.values()) {
@@ -609,8 +631,37 @@ public final class TownHeartListener implements Listener {
         if (meta != null) {
             meta.setDisplayName(name);
             if (lore != null && !lore.isEmpty()) meta.setLore(lore);
+            addItemFlags(meta, "HIDE_ATTRIBUTES", "HIDE_ADDITIONAL_TOOLTIP");
+            if ((name == null || name.isBlank()) && (lore == null || lore.stream().allMatch(line -> line == null || line.isBlank()))) {
+                hideTooltip(meta);
+            }
             item.setItemMeta(meta);
         }
         return item;
+    }
+
+    private void addItemFlags(ItemMeta meta, String... flagNames) {
+        try {
+            Class<?> itemFlagClass = Class.forName("org.bukkit.inventory.ItemFlag");
+            List<Object> flags = new ArrayList<>();
+            for (String flagName : flagNames) {
+                try {
+                    flags.add(java.lang.Enum.valueOf((Class) itemFlagClass, flagName));
+                } catch (IllegalArgumentException ignored) {
+                }
+            }
+            if (flags.isEmpty()) return;
+            Object flagsArray = java.lang.reflect.Array.newInstance(itemFlagClass, flags.size());
+            for (int i = 0; i < flags.size(); i++) java.lang.reflect.Array.set(flagsArray, i, flags.get(i));
+            meta.getClass().getMethod("addItemFlags", flagsArray.getClass()).invoke(meta, flagsArray);
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private void hideTooltip(ItemMeta meta) {
+        try {
+            meta.getClass().getMethod("setHideTooltip", boolean.class).invoke(meta, true);
+        } catch (Throwable ignored) {
+        }
     }
 }

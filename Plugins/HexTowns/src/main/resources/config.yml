@@ -70,6 +70,12 @@ towns:
     # 200 tickow = ok. 10 sekund. Ustaw 0, zeby wylaczyc wymuszone odswiezanie stanu.
     state-refresh-ticks: 200
     pillar-height: 18
+    # Granice pionowe zaczynaja sie od minimalnego Y swiata.
+    # Dzieki temu /town check jest widoczny takze podczas kopania pod ziemia.
+    extend-to-world-min: true
+    # Oprocz czterech rogowych slupkow rysuj tez cienkie pionowe sciany-krawedzie
+    # wzdluz calej granicy chunka od min Y do gornego poziomu ramki.
+    vertical-edge-walls: true
     # /town check uzywa teraz efemerycznych BlockDisplay zamiast podmienianych blokow.
     # To daje mniej obiektow do renderowania i blokuje jakiekolwiek farmienie materialu Silk Touchem.
     # Szerokosc pionowych slupkow oraz poziomych krawedzi chunka. 0.15 = waska linia.

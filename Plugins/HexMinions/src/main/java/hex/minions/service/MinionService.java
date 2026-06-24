@@ -520,7 +520,7 @@ public final class MinionService implements MinionMenuDataService {
         List<MinionInstance> sorted = sortedTownMinions(townId.get());
         List<MinionMenuData> minions = new ArrayList<>();
         for (int i = 0; i < sorted.size(); i++) {
-            minions.add(toMenuData(sorted.get(i), i + 1));
+            minions.add(toMenuData(sorted.get(i), i + 1, viewer));
         }
         return new TownMinionMenuData(townId.get(), name, minions.size(), maxMinions(townId.get()), minions);
     }
@@ -529,7 +529,7 @@ public final class MinionService implements MinionMenuDataService {
     public Optional<MinionMenuData> minionData(Player viewer, UUID minionId) {
         MinionInstance minion = minionsById.get(minionId);
         if (minion == null || !towns.isMember(viewer.getUniqueId(), minion.townUuid())) return Optional.empty();
-        return Optional.of(toMenuData(minion, 0));
+        return Optional.of(toMenuData(minion, 0, viewer));
     }
 
     @Override
@@ -539,7 +539,7 @@ public final class MinionService implements MinionMenuDataService {
         if (townId.isEmpty()) return Optional.empty();
         List<MinionInstance> list = sortedTownMinions(townId.get());
         if (index > list.size()) return Optional.empty();
-        return Optional.of(toMenuData(list.get(index - 1), index));
+        return Optional.of(toMenuData(list.get(index - 1), index, viewer));
     }
 
     public Optional<MinionMenuData> selectedMinion(Player viewer) {
@@ -783,9 +783,17 @@ public final class MinionService implements MinionMenuDataService {
         long actionsDone = 0L;
         long mobKillsGenerated = 0L;
         boolean changed = false;
+        boolean storageCapped = false;
         for (long action = 0; action < possible; action++) {
             boolean anyAccepted = false;
-            for (GeneratedDrop generated : rollDrops(minion, type)) {
+            List<GeneratedDrop> rolledDrops = rollDrops(minion, type);
+            if (rolledDrops.isEmpty()) {
+                // Akcja produkcyjna mogła się odbyć, ale tabela dropów nie wylosowała żadnego itemu.
+                // Nie traktujemy tego jako przepełnienia storage.
+                actionsDone++;
+                continue;
+            }
+            for (GeneratedDrop generated : rolledDrops) {
                 String generatedResource = producedResourceId(minion, type, generated.resourceId());
                 long accepted = storeGeneratedResource(minion, generatedResource, generated.amount());
                 if (accepted > 0) {
@@ -793,7 +801,12 @@ public final class MinionService implements MinionMenuDataService {
                     changed = true;
                 }
             }
-            if (!anyAccepted && !minion.hasStorageSpace() && !hasAdjacentStorageChest(minion)) {
+            if (!anyAccepted) {
+                // Jeżeli offline catch-up dochodzi do limitu storage miniona + skrzynki,
+                // nie zostawiamy zaległego "długu produkcji". W przeciwnym razie po wyjęciu
+                // jednego stacka menu natychmiast ponownie wypełniało slot kolejnymi akcjami
+                // z tej samej godziny offline. Limit storage ma być realnym limitem produkcji.
+                storageCapped = true;
                 break;
             }
             if (anyAccepted && isMobMinion(type)) {
@@ -802,10 +815,15 @@ public final class MinionService implements MinionMenuDataService {
             actionsDone++;
         }
 
-        long accountedTime = Math.min(elapsed, Math.max(1L, actionsDone) * delay);
-        minion.setLastActionAt(Math.min(now, minion.lastActionAt() + accountedTime));
-        minion.setNextActionAt(minion.lastActionAt() + delay);
-        if (changed || actionsDone > 0) {
+        if (storageCapped) {
+            minion.setLastActionAt(now);
+            minion.setNextActionAt(now + delay);
+        } else {
+            long accountedTime = Math.min(elapsed, actionsDone * delay);
+            minion.setLastActionAt(Math.min(now, minion.lastActionAt() + accountedTime));
+            minion.setNextActionAt(minion.lastActionAt() + delay);
+        }
+        if (changed || actionsDone > 0 || storageCapped) {
             MinionTypeDefinition finalType = type;
             long finalActionsDone = actionsDone;
             long finalMobKillsGenerated = mobKillsGenerated;
@@ -823,10 +841,16 @@ public final class MinionService implements MinionMenuDataService {
 
     private long storeGeneratedResource(MinionInstance minion, String resourceId, long amount) {
         if (amount <= 0) return 0L;
-        long accepted = minion.addStorage(resourceId, amount);
+        long accepted = 0L;
+
+        // Priorytet: najpierw fizyczna skrzynka rozszerzeń obok miniona, potem internal storage.
+        // Dzięki temu skrzynka jest realnym rozszerzeniem magazynu, a nie tylko dekoracją.
+        if (isChunkLoaded(minion.location())) {
+            accepted += depositToAdjacentStorageChest(minion, resourceId, amount);
+        }
         long remaining = amount - accepted;
-        if (remaining > 0 && isChunkLoaded(minion.location())) {
-            accepted += depositToAdjacentStorageChest(minion, resourceId, remaining);
+        if (remaining > 0) {
+            accepted += minion.addStorage(resourceId, remaining);
         }
         return accepted;
     }
@@ -965,12 +989,24 @@ public final class MinionService implements MinionMenuDataService {
     }
 
     public boolean isValidStorageChestItem(ItemStack item) {
-        if (itemFactory.readStorageChestItem(item).isPresent()) return true;
+        if (storageChestIdFromItem(item).isPresent()) return true;
         return !storageChests.requireSpecialItem() && item != null && isStorageChestMaterial(item.getType());
     }
 
     public void markPlacedStorageChest(Block block, ItemStack item) {
-        itemFactory.readStorageChestItem(item).ifPresent(data -> itemFactory.markStorageChestBlock(block, data.id()));
+        storageChestIdFromItem(item).ifPresent(id -> itemFactory.markStorageChestBlock(block, id));
+    }
+
+    private Optional<String> storageChestIdFromItem(ItemStack item) {
+        Optional<MinionItemFactory.StorageChestItemData> direct = itemFactory.readStorageChestItem(item);
+        if (direct.isPresent()) return Optional.of(direct.get().id());
+        return specialItems.readSpecialItemId(item)
+                .map(String::toLowerCase)
+                .flatMap(id -> switch (id) {
+                    case "storage_expander" -> Optional.of("small");
+                    case "iron_uranium_chest" -> Optional.of("iron_uranium");
+                    default -> Optional.empty();
+                });
     }
 
     private boolean isStorageChestBlock(Block block) {
@@ -1009,11 +1045,7 @@ public final class MinionService implements MinionMenuDataService {
         MinionInstance minion = minionsById.get(minionId);
         if (minion == null) return OperationResult.fail("minions.error.not-found");
         if (!towns.isMember(player.getUniqueId(), minion.townUuid())) return OperationResult.fail("minions.error.not-member");
-        Optional<MinionItemFactory.StorageChestItemData> data = itemFactory.readStorageChestItem(item);
-        String storageChestId = data.map(MinionItemFactory.StorageChestItemData::id).orElseGet(() -> specialItems.readSpecialItemId(item)
-                .filter(id -> id.equalsIgnoreCase("iron_uranium_chest"))
-                .map(id -> "iron_uranium")
-                .orElse(""));
+        String storageChestId = storageChestIdFromItem(item).orElse("");
         if (storageChestId.isBlank()) return OperationResult.fail("minions.storage-chest.error.special-required");
         if (storageChest(minion).isPresent()) return OperationResult.fail("minions.storage-chest.error.already-has");
         World world = Bukkit.getWorld(minion.location().world());
@@ -1059,8 +1091,7 @@ public final class MinionService implements MinionMenuDataService {
         if (minion == null) return false;
         MinionTypeDefinition type = definitions.minionTypes().get(minion.typeId());
         if (type == null) return false;
-        if (itemFactory.readStorageChestItem(item).isPresent()) return false;
-        if (isStorageExpanderItem(item)) return true;
+        if (storageChestIdFromItem(item).isPresent()) return false;
         if (isSupportedBoosterItem(type, item)) return true;
         if (isSupportedAutoSmelterItem(type, item)) return true;
         for (int tier = 1; tier <= type.maxTier(); tier++) {
@@ -1090,7 +1121,15 @@ public final class MinionService implements MinionMenuDataService {
         Optional<Chest> chest = storageChestForMenu(minionId);
         if (chest.isEmpty()) return;
         Inventory chestInv = chest.get().getBlockInventory();
-        for (int i = 0; i < Math.min(45, chestInv.getSize()); i++) chestInv.setItem(i, inv.getItem(i));
+        int usable = storageChestSlots(chest.get());
+        int limit = Math.min(Math.min(usable, inv.getSize()), chestInv.getSize());
+        for (int i = 0; i < limit; i++) chestInv.setItem(i, inv.getItem(i));
+        for (int i = limit; i < chestInv.getSize(); i++) chestInv.setItem(i, null);
+    }
+
+    public int storageChestSlotCapacity(UUID minionId) {
+        Optional<Chest> chest = storageChestForMenu(minionId);
+        return chest.map(this::storageChestSlots).orElse(0);
     }
 
     private StorageWithdrawal takeVisibleStorageStack(MinionInstance minion, int visibleStorageSlot) {
@@ -1201,23 +1240,6 @@ public final class MinionService implements MinionMenuDataService {
         }
     }
 
-    private void consumeTownCollectionRequirements(UUID townId, UpgradeRequirements requirements) {
-        if (collections == null || townId == null) return;
-        for (Map.Entry<String, Long> req : requirements.collectionAmounts().entrySet()) {
-            tryConsumeTownCollectionProgress(townId, req.getKey(), req.getValue());
-        }
-        try { collections.flushTown(townId); } catch (Throwable ignored) {}
-    }
-
-    private void tryConsumeTownCollectionProgress(UUID townId, String collectionId, long amount) {
-        if (collections == null || townId == null || collectionId == null || amount <= 0L) return;
-        try {
-            var method = collections.getClass().getMethod("consumeProgress", UUID.class, String.class, long.class, String.class);
-            method.invoke(collections, townId, collectionId, amount, "minion-upgrade");
-        } catch (Throwable ignored) {
-            // Older HexCollections builds expose read-only progress APIs only; skip consuming in that case.
-        }
-    }
 
     private ResourceDefinition resourceByCollectionId(String collectionId) {
         if (collectionId == null) return null;
@@ -1375,6 +1397,10 @@ public final class MinionService implements MinionMenuDataService {
     }
 
     private MinionMenuData toMenuData(MinionInstance minion, int slotHint) {
+        return toMenuData(minion, slotHint, null);
+    }
+
+    private MinionMenuData toMenuData(MinionInstance minion, int slotHint, Player viewer) {
         applyOfflineCatchup(minion, System.currentTimeMillis(), "menu-open");
         MinionTypeDefinition type = definitions.minionTypes().get(minion.typeId());
         TierDefinition tier = type == null ? new TierDefinition(minion.tier(), 0, minion.storageLimit(), 1, UpgradeRequirements.empty()) : type.tier(minion.tier());
@@ -1389,7 +1415,7 @@ public final class MinionService implements MinionMenuDataService {
         int boosterDuration = activeBooster.map(BoosterDefinition::durationSeconds).orElse(0);
         return new MinionMenuData(minion.id(), shortId(minion.id()), minion.typeId(), type == null ? minion.typeId() : type.displayName(), minion.tier(), type == null ? minion.tier() : type.maxTier(),
                 minion.location().world(), minion.location().x(), minion.location().y(), minion.location().z(), minion.storageUsed(), minion.storageLimit(), percent,
-                tier.actionTimeSeconds(), minion.state().name(), canUpgrade, requirementsText(type, minion.tier() + 1, minion.townUuid()), slotHint, unlockedStorageSlots(minion, type),
+                tier.actionTimeSeconds(), minion.state().name(), canUpgrade, requirementsText(type, minion.tier() + 1, minion.townUuid(), viewer), slotHint, unlockedStorageSlots(minion, type),
                 activeTier, boosterSeconds, boosterDuration, type == null ? 0 : queuedBoosterItems(minion, type), boosterPercent,
                 type == null ? "PLAYER_HEAD" : type.itemHeadMaterial(), Map.copyOf(minion.storage()));
     }
@@ -1398,11 +1424,9 @@ public final class MinionService implements MinionMenuDataService {
     private int unlockedStorageSlots(MinionInstance minion, MinionTypeDefinition type) {
         if (type == null) return 1;
         int baseSlots = type.tier(minion.tier()).storageSlots();
-        int bonus = 0;
-        for (ItemStack addon : minion.addonItems().values()) {
-            if (isStorageExpanderItem(addon)) bonus += 5;
-        }
-        return Math.max(1, Math.min(9, baseSlots + bonus));
+        // Storage jest teraz rozszerzane przez fizyczną skrzynkę obok miniona.
+        // Item storage_expander nie dodaje już wirtualnych slotów w menu miniona.
+        return Math.max(1, Math.min(9, baseSlots));
     }
 
     private boolean isStorageExpanderItem(ItemStack item) {
@@ -1496,21 +1520,25 @@ public final class MinionService implements MinionMenuDataService {
         }
     }
 
-    private String requirementsText(MinionTypeDefinition type, int tier, UUID townId) {
+    private String requirementsText(MinionTypeDefinition type, int tier, UUID townId, Player viewer) {
         if (type == null || tier > type.maxTier()) return "-";
         UpgradeRequirements req = type.tier(tier).upgradeRequirements();
         if (req.emptyRequirements()) return "-";
-        if (collections != null && townId != null && !req.collectionAmounts().isEmpty()) {
-            try { collections.loadTown(townId); } catch (Throwable ignored) {}
-        }
         List<String> parts = new ArrayList<>();
-        req.collectionAmounts().forEach((k, v) -> {
-            long current = collectionAmount(townId, k);
-            long missing = Math.max(0L, v - current);
-            parts.add("collection:" + k + " " + current + "/" + v + " (brakuje " + missing + ")");
+        req.collectionAmounts().forEach((collectionId, required) -> {
+            ResourceDefinition resource = resourceByCollectionId(collectionId);
+            long current = viewer != null && resource != null
+                    ? countInventoryResourceWeighted(viewer, resource)
+                    : collectionAmount(townId, collectionId);
+            long missing = Math.max(0L, required - current);
+            String label = resource == null ? collectionId : stripMini(resource.displayName());
+            String source = viewer != null && resource != null ? "EQ" : "kolekcja";
+            parts.add(source + ":" + label + " " + current + "/" + required + " (brakuje " + missing + ")");
         });
         for (ItemRequirement item : req.items()) {
-            parts.add("item:" + item.displayName() + " x" + item.amount() + (item.consume() ? "" : " (tylko posiadanie)"));
+            long current = viewer == null ? 0L : countInventoryItems(viewer, item);
+            long missing = Math.max(0L, item.amount() - current);
+            parts.add("item:" + item.displayName() + " " + current + "/" + item.amount() + " (brakuje " + missing + ")" + (item.consume() ? "" : " (tylko posiadanie)"));
         }
         return String.join(", ", parts);
     }
@@ -1628,6 +1656,11 @@ public final class MinionService implements MinionMenuDataService {
         } catch (Throwable throwable) {
             plugin.getLogger().warning("Could not publish minion collection trigger '" + triggerId + "': " + rootMessage(throwable));
         }
+    }
+
+    private String stripMini(String input) {
+        if (input == null) return "";
+        return input.replaceAll("<[^>]+>", "").trim();
     }
 
     private String shortId(UUID id) {

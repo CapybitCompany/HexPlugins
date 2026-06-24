@@ -1,6 +1,6 @@
 resources:
   cobblestone:
-    display-name: <gray>Cobblestone</gray>
+    display-name: <gray>Bruk</gray>
     material: COBBLESTONE
     collection-id: mining.cobblestone
     worth: 1.0
@@ -14,7 +14,7 @@ resources:
       compressed-material: COBBLESTONE
       unlock-minion-level: 5
   enchanted_cobblestone:
-    display-name: <aqua>Skompresowany Bruk</aqua>
+    display-name: <aqua>Skompresowany blok bruku</aqua>
     material: COBBLESTONE
     custom-model-data: 10001
     collection-id: mining.cobblestone
@@ -29,7 +29,7 @@ resources:
   diamond:
     display-name: <aqua>Diament</aqua>
     material: DIAMOND
-    collection-id: mining_diamond
+    collection-id: mining.diamond
     worth: 8.0
     stack-size: 64
     tags:
@@ -55,7 +55,7 @@ resources:
       compressed-material: IRON_BLOCK
       unlock-minion-level: 3
   dirt:
-    display-name: <gold>Dirt</gold>
+    display-name: <gold>Ziemia</gold>
     material: DIRT
     collection-id: mining.dirt
     worth: 0.5
@@ -69,7 +69,7 @@ resources:
       compressed-material: DIRT
       unlock-minion-level: 5
   stone:
-    display-name: <gray>Stone</gray>
+    display-name: <gray>Kamień</gray>
     material: STONE
     collection-id: mining.stone
     worth: 1.0
@@ -83,7 +83,7 @@ resources:
       compressed-material: STONE
       unlock-minion-level: 5
   compressed_cobblestone:
-    display-name: <aqua>Skompresowany Bruk</aqua>
+    display-name: <aqua>Skompresowany blok bruku</aqua>
     material: COBBLESTONE
     custom-model-data: 10001
     collection-id: mining.cobblestone
@@ -208,7 +208,7 @@ resources:
       compressed-material: OBSIDIAN
       unlock-minion-level: 5
   netherite:
-    display-name: <dark_gray>Netherite</dark_gray>
+    display-name: <dark_gray>Netherit</dark_gray>
     material: NETHERITE_SCRAP
     collection-id: mining.netherite
     worth: 250.0
@@ -275,7 +275,7 @@ resources:
     display-name: <aqua>Pył diamentu</aqua>
     material: GUNPOWDER
     custom-model-data: 13005
-    collection-id: mining_diamond
+    collection-id: mining.diamond
     worth: 8.0
     stack-size: 64
     tags:
@@ -554,3 +554,91 @@ resources:
       enabled: false
       block-convertible: false
     custom-model-data: 12703
+  wool:
+    display-name: <white>Wełna</white>
+    material: WHITE_WOOL
+    collection-id: animals.wool
+    worth: 1.0
+    stack-size: 64
+    tags:
+    - animal
+    - wool
+    compression:
+      enabled: false
+      block-convertible: false
+  mutton:
+    display-name: <white>Mięso owcy</white>
+    material: MUTTON
+    collection-id: animals.mutton
+    worth: 1.5
+    stack-size: 64
+    tags:
+    - animal
+    - meat
+    - sheep
+    compression:
+      enabled: false
+      block-convertible: false
+  porkchop:
+    display-name: <light_purple>Mięso świni</light_purple>
+    material: PORKCHOP
+    collection-id: animals.pork
+    worth: 1.5
+    stack-size: 64
+    tags:
+    - animal
+    - meat
+    - pig
+    compression:
+      enabled: false
+      block-convertible: false
+  beef:
+    display-name: <red>Mięso krowy</red>
+    material: BEEF
+    collection-id: animals.beef
+    worth: 1.5
+    stack-size: 64
+    tags:
+    - animal
+    - meat
+    - cow
+    compression:
+      enabled: false
+      block-convertible: false
+  leather:
+    display-name: <gold>Skóra krowy</gold>
+    material: LEATHER
+    collection-id: ''
+    worth: 1.0
+    stack-size: 64
+    tags:
+    - animal
+    - cow
+    compression:
+      enabled: false
+      block-convertible: false
+  chicken_meat:
+    display-name: <white>Mięso z kurczaka</white>
+    material: CHICKEN
+    collection-id: animals.chicken_meat
+    worth: 1.2
+    stack-size: 64
+    tags:
+    - animal
+    - meat
+    - chicken
+    compression:
+      enabled: false
+      block-convertible: false
+  egg:
+    display-name: <yellow>Jajko</yellow>
+    material: EGG
+    collection-id: ''
+    worth: 0.5
+    stack-size: 64
+    tags:
+    - animal
+    - chicken
+    compression:
+      enabled: false
+      block-convertible: false

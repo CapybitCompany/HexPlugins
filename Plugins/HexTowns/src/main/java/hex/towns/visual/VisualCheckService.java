@@ -160,11 +160,15 @@ public final class VisualCheckService implements Listener {
         int maxZ = minZ + 16;
         int highestBase = highestCornerBase(world, minX, minZ, maxX - 1, maxZ - 1);
         int topY = Math.min(world.getMaxHeight() - 2, highestBase + config.visualPillarHeight());
+        int bottomY = visualBottomY(world);
 
-        addCornerDisplay(player, displays, minX, minZ, topY, budget);
-        addCornerDisplay(player, displays, minX, maxZ, topY, budget);
-        addCornerDisplay(player, displays, maxX, minZ, topY, budget);
-        addCornerDisplay(player, displays, maxX, maxZ, topY, budget);
+        addCornerDisplay(player, displays, minX, minZ, topY, bottomY, budget);
+        addCornerDisplay(player, displays, minX, maxZ, topY, bottomY, budget);
+        addCornerDisplay(player, displays, maxX, minZ, topY, bottomY, budget);
+        addCornerDisplay(player, displays, maxX, maxZ, topY, bottomY, budget);
+        if (config.visualVerticalEdgeWalls()) {
+            addVerticalEdgeDisplays(player, displays, minX, minZ, maxX, maxZ, topY, bottomY, budget);
+        }
         addTopFrameDisplays(player, displays, minX, minZ, maxX, maxZ, topY, budget);
         addCenterSpark(player, chunkX, chunkZ, topY);
     }
@@ -176,13 +180,26 @@ public final class VisualCheckService implements Listener {
         );
     }
 
-    private void addCornerDisplay(Player player, Set<UUID> displays, int x, int z, int topY, RenderBudget budget) {
-        int baseY = surfaceBase(player.getWorld(), x, z);
+    private void addCornerDisplay(Player player, Set<UUID> displays, int x, int z, int topY, int bottomY, RenderBudget budget) {
+        int baseY = config.visualExtendToWorldMin() ? bottomY : surfaceBase(player.getWorld(), x, z);
         float width = config.visualDisplayWidth();
         float height = Math.max(1.0f, topY - baseY + config.visualEdgeThickness());
         Location location = new Location(player.getWorld(), x + 0.5 - width / 2.0, baseY, z + 0.5 - width / 2.0);
         spawnDisplay(player, displays, location, new Vector3f(width, height, width), budget);
         spawnSpark(player, x + 0.5, topY + 0.5, z + 0.5);
+    }
+
+    private void addVerticalEdgeDisplays(Player player, Set<UUID> displays, int minX, int minZ, int maxX, int maxZ, int topY, int bottomY, RenderBudget budget) {
+        int baseY = config.visualExtendToWorldMin() ? bottomY : highestCornerBase(player.getWorld(), minX, minZ, maxX - 1, maxZ - 1);
+        float width = config.visualDisplayWidth();
+        float thickness = config.visualEdgeThickness();
+        float height = Math.max(1.0f, topY - baseY + thickness);
+        float length = 16.0f;
+
+        spawnDisplay(player, displays, new Location(player.getWorld(), minX + 0.5, baseY, minZ + 0.5 - width / 2.0), new Vector3f(length, height, width), budget);
+        spawnDisplay(player, displays, new Location(player.getWorld(), minX + 0.5, baseY, maxZ + 0.5 - width / 2.0), new Vector3f(length, height, width), budget);
+        spawnDisplay(player, displays, new Location(player.getWorld(), minX + 0.5 - width / 2.0, baseY, minZ + 0.5), new Vector3f(width, height, length), budget);
+        spawnDisplay(player, displays, new Location(player.getWorld(), maxX + 0.5 - width / 2.0, baseY, minZ + 0.5), new Vector3f(width, height, length), budget);
     }
 
     private void addTopFrameDisplays(Player player, Set<UUID> displays, int minX, int minZ, int maxX, int maxZ, int topY, RenderBudget budget) {
@@ -232,6 +249,10 @@ public final class VisualCheckService implements Listener {
         int minY = world.getMinHeight() + 1;
         int maxY = world.getMaxHeight() - 2;
         return Math.max(minY, Math.min(world.getHighestBlockYAt(x, z) + 1, maxY));
+    }
+
+    private int visualBottomY(World world) {
+        return world.getMinHeight();
     }
 
     private void addCenterSpark(Player player, int chunkX, int chunkZ, int topY) {
