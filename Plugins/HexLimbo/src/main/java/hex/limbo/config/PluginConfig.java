@@ -17,6 +17,9 @@ public final class PluginConfig {
             String password,
             int poolSize,
             long connectionTimeoutMs,
+            long socketTimeoutMs,
+            boolean useSsl,
+            boolean allowPublicKeyRetrieval,
             boolean failFast
     ) {}
 

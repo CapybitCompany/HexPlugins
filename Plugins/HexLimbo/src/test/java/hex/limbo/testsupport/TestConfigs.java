@@ -19,7 +19,7 @@ public final class TestConfigs {
                 60L,
                 "hexlimbo.bypass",
                 List.of("login", "register", "limbo"),
-                new PluginConfig.Database("127.0.0.1", 3306, "db", "user", "pass", 10, 10_000L, true),
+                new PluginConfig.Database("127.0.0.1", 3306, "db", "user", "pass", 10, 10_000L, 10_000L, false, true, true),
                 new PluginConfig.Session(true, 240L, 10L),
                 new PluginConfig.Security(8, 3, 600L, 10, 4, "pepper"),
                 new PluginConfig.Premium(true, 600L, 10_000, 4_000L, false)

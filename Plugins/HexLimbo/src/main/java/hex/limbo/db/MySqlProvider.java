@@ -10,8 +10,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 /**
- * Owns the HikariCP connection pool to the MySQL/MariaDB database. The MariaDB JDBC driver is
- * compatible with both engines.
+ * Owns the HikariCP connection pool to the MySQL database.
  */
 public final class MySqlProvider {
 
@@ -22,16 +21,26 @@ public final class MySqlProvider {
         this.logger = logger;
         HikariConfig hikari = new HikariConfig();
         hikari.setJdbcUrl(String.format(
-                "jdbc:mariadb://%s:%d/%s?useUnicode=true&characterEncoding=utf8mb4&autoReconnect=true",
-                config.host(), config.port(), config.database()
+                "jdbc:mysql://%s:%d/%s?useUnicode=true&characterEncoding=utf8"
+                        + "&serverTimezone=UTC"
+                        + "&connectTimeout=%d"
+                        + "&socketTimeout=%d"
+                        + "&useSSL=%s"
+                        + "&allowPublicKeyRetrieval=%s",
+                config.host(),
+                config.port(),
+                config.database(),
+                Math.max(1_000L, config.connectionTimeoutMs()),
+                Math.max(1_000L, config.socketTimeoutMs()),
+                config.useSsl(),
+                config.allowPublicKeyRetrieval()
         ));
         hikari.setUsername(config.username());
         hikari.setPassword(config.password());
         hikari.setMaximumPoolSize(Math.max(1, config.poolSize()));
         hikari.setConnectionTimeout(Math.max(1_000L, config.connectionTimeoutMs()));
         hikari.setPoolName("HexLimbo-Hikari");
-        // MariaDB driver class name; the connector also responds to mysql:// URIs but we choose mariadb:// for safety.
-        hikari.setDriverClassName("org.mariadb.jdbc.Driver");
+        hikari.setDriverClassName("com.mysql.cj.jdbc.Driver");
         this.dataSource = new HikariDataSource(hikari);
     }
 

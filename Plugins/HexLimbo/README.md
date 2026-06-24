@@ -10,14 +10,14 @@ stable fake UUID persisted in MySQL.
 ./gradlew :plugins:HexLimbo:build
 ```
 
-Output: `Plugins/HexLimbo/build/libs/HexLimbo-1.0.0.jar` (shaded with BCrypt, HikariCP, MariaDB
-JDBC, and SnakeYAML).
+Output: `Plugins/HexLimbo/build/libs/HexLimbo-1.0.0.jar` (shaded with BCrypt, HikariCP, MySQL
+Connector/J, and SnakeYAML).
 
 ## Runtime requirements
 
 * Velocity 3.3+ (uses per-player `PreLoginEvent.PreLoginComponentResult#forceOnlineMode` /
   `forceOfflineMode`).
-* MySQL 5.7+ or MariaDB 10.4+.
+* MySQL 5.7+.
 * Two backend servers registered in `velocity.toml` whose names match `servers.limbo` and
   `servers.target` in `config.yml`.
 
@@ -50,6 +50,10 @@ for an auth plugin – we never want to let players in without the credential st
 
 Set `database.fail-fast: false` to use an in-memory fallback for development. A loud warning is
 emitted and accounts will NOT persist across restarts.
+
+HexLimbo uses MySQL Connector/J. For MySQL users with `sha256_password` or
+`caching_sha2_password`, keep `database.allow-public-key-retrieval: true` when `database.use-ssl:
+false`, or enable SSL and set `allow-public-key-retrieval: false`.
 
 ## Premium check semantics (tri-state)
 

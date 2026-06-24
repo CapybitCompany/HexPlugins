@@ -64,6 +64,9 @@ public final class ConfigLoader {
                 string(dbSection, "password", ""),
                 number(dbSection, "pool-size", 10).intValue(),
                 number(dbSection, "connection-timeout-ms", 10_000L).longValue(),
+                number(dbSection, "socket-timeout-ms", 10_000L).longValue(),
+                bool(dbSection, "use-ssl", false),
+                bool(dbSection, "allow-public-key-retrieval", true),
                 bool(dbSection, "fail-fast", true)
         );
 

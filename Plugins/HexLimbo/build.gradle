@@ -18,7 +18,7 @@ dependencies {
 
     implementation 'org.mindrot:jbcrypt:0.4'
     implementation 'com.zaxxer:HikariCP:5.1.0'
-    implementation 'org.mariadb.jdbc:mariadb-java-client:3.4.1'
+    implementation 'com.mysql:mysql-connector-j:8.4.0'
     implementation 'org.yaml:snakeyaml:2.2'
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.11.0'
@@ -46,12 +46,12 @@ shadowJar {
     archiveFileName = "HexLimbo-${version}.jar"
     relocate 'org.mindrot.jbcrypt', 'hex.limbo.libs.bcrypt'
     relocate 'com.zaxxer.hikari', 'hex.limbo.libs.hikari'
-    relocate 'org.mariadb', 'hex.limbo.libs.mariadb'
+    relocate 'com.mysql', 'hex.limbo.libs.mysql'
     relocate 'org.yaml.snakeyaml', 'hex.limbo.libs.snakeyaml'
     mergeServiceFiles()
     minimize {
-        // MariaDB driver loads classes by reflection (e.g., authentication plugins).
-        exclude(dependency('org.mariadb.jdbc:mariadb-java-client:.*'))
+        // MySQL Connector/J loads authentication plugins and protocol handlers by reflection.
+        exclude(dependency('com.mysql:mysql-connector-j:.*'))
         // HikariCP also reflects on the pool config.
         exclude(dependency('com.zaxxer:HikariCP:.*'))
     }

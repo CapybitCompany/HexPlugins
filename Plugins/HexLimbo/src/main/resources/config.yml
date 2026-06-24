@@ -37,6 +37,13 @@ database:
   password: ""
   pool-size: 10
   connection-timeout-ms: 10000
+  socket-timeout-ms: 10000
+  # Enable this when your MySQL server requires TLS or you use public hosting where credentials
+  # should not cross the network in clear text.
+  use-ssl: false
+  # Needed for MySQL users that authenticate with sha256_password/caching_sha2_password without SSL.
+  # If use-ssl is true, this can usually be false.
+  allow-public-key-retrieval: true
   # When true (default, production-safe): if MySQL is unavailable at startup the plugin REFUSES to
   # serve auth and instead kicks every incoming connection with a "service unavailable" message.
   # When false: HexLimbo falls back to an in-memory account store. Accounts will NOT persist across
