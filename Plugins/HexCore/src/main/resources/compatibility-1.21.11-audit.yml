@@ -1,0 +1,17 @@
+target:
+  minecraft: "1.21.11"
+  runtime: "Purpur"
+  java: 21
+api:
+  plugin_yml_api_version: "1.21"
+  policy: "public Bukkit/Paper API only; no direct org.purpurmc, CraftBukkit, NMS or versioned v1_* imports"
+checks:
+  yaml_sources_parse: true
+  direct_purpur_imports: false
+  direct_nms_imports: false
+  direct_craftbukkit_imports: false
+  versioned_server_package_imports: false
+notes:
+  - "Purpur is Paper-compatible, so the plugins intentionally avoid Purpur-only APIs unless a future feature explicitly needs one."
+  - "Bukkit.getUnsafe is used only for runtime advancement registration in HexMinions; no NMS/CraftBukkit classes are imported."
+  - "Gradle dependency coordinates are outside src and were not changed in this package."

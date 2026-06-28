@@ -2,6 +2,7 @@ package hex.core.service.ui;
 
 import hex.core.api.config.ConfigKey;
 import hex.core.api.config.ConfigService;
+import hex.core.api.compat.SoundCompatibility;
 import hex.core.api.ui.TemplateDefinition;
 import hex.core.api.ui.UiPreset;
 import hex.core.api.ui.UiService;
@@ -374,11 +375,7 @@ public final class UiServiceImpl implements UiService {
     }
 
     private Sound parseSound(String soundName) {
-        try {
-            return Sound.valueOf(soundName);
-        } catch (IllegalArgumentException ignored) {
-            return null;
-        }
+        return SoundCompatibility.resolve(soundName);
     }
 
     private void sendConsole(Component component) {

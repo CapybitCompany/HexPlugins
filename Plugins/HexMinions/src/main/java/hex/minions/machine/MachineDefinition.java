@@ -15,6 +15,7 @@ public record MachineDefinition(
         String stationId,
         String type,
         int inputSlot,
+        List<Integer> inputSlots,
         int secondarySlot,
         int fuelSlot,
         int arrowSlot,
@@ -44,7 +45,8 @@ public record MachineDefinition(
                 section.getString("special-item", id),
                 section.getString("station-id", id.toUpperCase(java.util.Locale.ROOT)),
                 section.getString("type", "GENERIC"),
-                section.getInt("menu.input-slot", 20),
+                firstInputSlot(section),
+                inputSlots(section),
                 section.getInt("menu.secondary-slot", 21),
                 section.getInt("menu.fuel-slot", 22),
                 section.getInt("menu.arrow-slot", 23),
@@ -57,7 +59,19 @@ public record MachineDefinition(
         );
     }
 
+    private static int firstInputSlot(ConfigurationSection section) {
+        List<Integer> slots = inputSlots(section);
+        return slots.isEmpty() ? section.getInt("menu.input-slot", 20) : slots.get(0);
+    }
+
+    private static List<Integer> inputSlots(ConfigurationSection section) {
+        List<Integer> slots = section.getIntegerList("menu.input-slots");
+        if (slots == null || slots.isEmpty()) return List.of(section.getInt("menu.input-slot", 20));
+        return List.copyOf(slots.stream().filter(slot -> slot >= 0 && slot < 54).distinct().toList());
+    }
+
     public boolean hasSecondarySlot() {
+        if (inputSlots.size() > 1) return false;
         return recipes.stream().anyMatch(recipe -> !recipe.secondarySpecialItem().isBlank() || recipe.secondaryMaterial() != Material.AIR);
     }
 

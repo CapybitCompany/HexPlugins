@@ -84,19 +84,24 @@ public final class MinionMenuListener implements Listener {
         }
         if (menu.isAddonSlot(slot)) {
             event.setCancelled(true);
-            handleAddonSlotClick(player, top, id, slot, event.getCursor());
+            handleAddonSlotClick(player, top, id, slot, event.getCursor(), event.isRightClick());
             return;
         }
         if (slot == MinionMenu.STORAGE_CHEST_SLOT) {
             ItemStack cursor = event.getCursor();
+            event.setCancelled(true);
+            if (event.isRightClick() && (cursor == null || cursor.getType().isAir())) {
+                OperationResult result = service.uninstallStorageChestFromMenu(player, id);
+                hex.ui().send(player, result.messageKey(), result.tokens());
+                menu.open(player, id);
+                return;
+            }
             if (cursor != null && !cursor.getType().isAir()) {
-                event.setCancelled(true);
                 OperationResult result = service.installStorageChestFromMenu(player, id, cursor);
                 hex.ui().send(player, result.messageKey(), result.tokens());
                 menu.open(player, id);
                 return;
             }
-            event.setCancelled(true);
             menu.openStorageChest(player, id);
             return;
         }
@@ -154,11 +159,22 @@ public final class MinionMenuListener implements Listener {
 
 
 
-    private void handleAddonSlotClick(Player player, Inventory top, UUID minionId, int slot, ItemStack cursor) {
-        ItemStack current = top.getItem(slot);
+    private void handleAddonSlotClick(Player player, Inventory top, UUID minionId, int slot, ItemStack cursor, boolean rightClick) {
+        String slotId = addonSlotId(slot);
+        ItemStack current = service.addonItem(minionId, slotId);
         boolean cursorHasItem = cursor != null && !cursor.getType().isAir();
-        boolean currentIsRealAddon = current != null && !current.getType().isAir()
-                && (menu.isAllowedInAddonSlot(minionId, current) || service.addonItem(minionId, addonSlotId(slot)) != null);
+        boolean currentIsRealAddon = current != null && !current.getType().isAir();
+
+        if (rightClick && !cursorHasItem) {
+            if (currentIsRealAddon) {
+                ItemStack removed = service.removeAddonItem(minionId, slotId);
+                if (removed != null && !removed.getType().isAir()) {
+                    player.getInventory().addItem(removed).values().forEach(left -> player.getWorld().dropItemNaturally(player.getLocation(), left));
+                }
+            }
+            menu.refreshMinionInventory(player, minionId, top);
+            return;
+        }
 
         if (cursorHasItem) {
             if (!menu.isAllowedInAddonSlot(minionId, cursor)) {
@@ -167,7 +183,10 @@ public final class MinionMenuListener implements Listener {
                 return;
             }
             if (currentIsRealAddon) {
-                player.getInventory().addItem(current.clone()).values().forEach(left -> player.getWorld().dropItemNaturally(player.getLocation(), left));
+                ItemStack removed = service.removeAddonItem(minionId, slotId);
+                if (removed != null && !removed.getType().isAir()) {
+                    player.getInventory().addItem(removed).values().forEach(left -> player.getWorld().dropItemNaturally(player.getLocation(), left));
+                }
             }
             top.setItem(slot, cursor.clone());
             player.setItemOnCursor(null);
@@ -177,9 +196,10 @@ public final class MinionMenuListener implements Listener {
         }
 
         if (currentIsRealAddon) {
-            top.setItem(slot, null);
-            player.setItemOnCursor(current.clone());
-            service.saveMinionMenu(minionId, top);
+            ItemStack removed = service.removeAddonItem(minionId, slotId);
+            if (removed != null && !removed.getType().isAir()) {
+                player.setItemOnCursor(removed);
+            }
             menu.refreshMinionInventory(player, minionId, top);
             return;
         }
@@ -224,10 +244,25 @@ public final class MinionMenuListener implements Listener {
         }
     }
 
+    private boolean tryCopyWikiItemForTesting(InventoryClickEvent event, Player player, Inventory top) {
+        if (!service.wikiTestMode() || !event.isRightClick()) return false;
+        ItemStack item = top.getItem(event.getSlot());
+        if (item == null || item.getType().isAir()) return false;
+        switch (item.getType()) {
+            case BLACK_STAINED_GLASS_PANE, GRAY_STAINED_GLASS_PANE, RED_STAINED_GLASS_PANE, ARROW, BARRIER -> { return false; }
+            default -> { }
+        }
+        ItemStack copy = item.clone();
+        player.getInventory().addItem(copy).values().forEach(left -> player.getWorld().dropItemNaturally(player.getLocation(), left));
+        hex.ui().send(player, "minions.wiki.test-copy.success");
+        return true;
+    }
+
     private void handleWikiMenu(InventoryClickEvent event, Inventory top, MinionWikiHolder holder) {
         event.setCancelled(true);
         if (!(event.getWhoClicked() instanceof Player player)) return;
         if (event.getClickedInventory() == null || !event.getClickedInventory().equals(top)) return;
+        if (tryCopyWikiItemForTesting(event, player, top)) return;
         if (holder.index()) {
             if (event.getSlot() == 45) {
                 player.closeInventory();

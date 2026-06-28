@@ -65,7 +65,9 @@ public final class SpecialCraftingListener implements Listener {
             hex.ui().send(event.getPlayer(), "minions.special-crafting.error.place-town");
             return;
         }
-        event.getBlockPlaced().setType(def.material());
+        String blockKind = def.blockKind().isBlank() ? specialId.get() : def.blockKind();
+        Material placedMaterial = registry.station(blockKind).map(station -> station.block()).orElse(def.material());
+        event.getBlockPlaced().setType(placedMaterial);
         if (event.getBlockPlaced().getBlockData() instanceof Directional directional) {
             BlockData data = event.getBlockPlaced().getBlockData();
             if (data instanceof Directional oriented) {
@@ -73,7 +75,7 @@ public final class SpecialCraftingListener implements Listener {
                 event.getBlockPlaced().setBlockData(oriented, false);
             }
         }
-        registry.markSpecialBlock(event.getBlockPlaced(), def.blockKind().isBlank() ? specialId.get() : def.blockKind());
+        registry.markSpecialBlock(event.getBlockPlaced(), blockKind);
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -95,6 +97,7 @@ public final class SpecialCraftingListener implements Listener {
         Block block = event.getClickedBlock();
         Optional<String> stationId = service.specialItems().readSpecialBlockId(block);
         if (stationId.isEmpty()) return;
+        if (stationId.get().toUpperCase(java.util.Locale.ROOT).startsWith("CABLE_")) return;
         event.setCancelled(true);
         if (towns.townAt(block.getLocation()).filter(t -> towns.isMember(event.getPlayer().getUniqueId(), t.id())).isEmpty()) {
             hex.ui().send(event.getPlayer(), "minions.special-crafting.error.place-town");

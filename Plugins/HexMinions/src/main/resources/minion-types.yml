@@ -171,16 +171,26 @@ minion-types:
           collections:
             mining.iron: 2560
           items: {}
-    max-tier: 6
+      7:
+        action-time-seconds: 9
+        storage: 448
+        storage-slots: 7
+        upgrade-requirements:
+          collections:
+            mining.iron: 2560
+          items: {}
+    max-tier: 7
     wiki:
       special-items:
       - stone_frame
       - iron_frame
       - iron_minion
+      - tin_minion
       - smelting_furnace
       - steel_ingot
       - auto_smelter
       - compressed_iron
+      - advanced_steel_frame
       auto-compressed-resources: true
     auto-smelter:
       enabled: true
@@ -604,12 +614,29 @@ minion-types:
           collections:
             mining.redstone: 4096
           items: {}
-    max-tier: 5
+      6:
+        action-time-seconds: 15
+        storage: 1344
+        storage-slots: 7
+        upgrade-requirements:
+          collections:
+            mining.redstone: 2560
+          items: {}
+      7:
+        action-time-seconds: 10
+        storage: 1408
+        storage-slots: 8
+        upgrade-requirements:
+          collections:
+            mining.redstone: 5120
+          items: {}
+    max-tier: 7
     wiki:
       special-items:
       - advanced_redstone
       - technical_block
       - redstone_minion
+      - advanced_chip
       auto-compressed-resources: true
   uranium:
     enabled: true
@@ -782,13 +809,23 @@ minion-types:
           collections:
             mining.gold: 2560
           items: {}
-    max-tier: 6
+      7:
+        action-time-seconds: 55
+        storage: 448
+        storage-slots: 7
+        upgrade-requirements:
+          collections:
+            mining.gold: 2560
+          items: {}
+    max-tier: 7
     wiki:
       special-items:
       - auto_smelter
       - compressed_gold
       - technical_block
       - gold_minion
+      - golden_coil
+      - medium_minion_storage
       auto-compressed-resources: true
     auto-smelter:
       enabled: true
@@ -890,10 +927,12 @@ minion-types:
       - technical_block
       - obsidian_minion
       - compressor
+      - compressor_update
       - compressed_obsidian
       - super_compressed_obsidian
       - graphite
       - graphene
+      - large_minion_storage
       auto-compressed-resources: true
   diamond:
     enabled: true
@@ -934,7 +973,7 @@ minion-types:
         storage-slots: 1
         upgrade-requirements:
           collections:
-            mining_diamond: 80
+            mining.diamond: 80
           items: {}
       2:
         action-time-seconds: 40
@@ -942,7 +981,7 @@ minion-types:
         storage-slots: 2
         upgrade-requirements:
           collections:
-            mining_diamond: 160
+            mining.diamond: 160
           items: {}
       3:
         action-time-seconds: 35
@@ -950,7 +989,7 @@ minion-types:
         storage-slots: 3
         upgrade-requirements:
           collections:
-            mining_diamond: 320
+            mining.diamond: 320
           items: {}
       4:
         action-time-seconds: 30
@@ -958,7 +997,7 @@ minion-types:
         storage-slots: 4
         upgrade-requirements:
           collections:
-            mining_diamond: 640
+            mining.diamond: 640
           items: {}
       5:
         action-time-seconds: 25
@@ -966,7 +1005,7 @@ minion-types:
         storage-slots: 5
         upgrade-requirements:
           collections:
-            mining_diamond: 1280
+            mining.diamond: 1280
           items: {}
     max-tier: 5
     wiki:
@@ -1046,10 +1085,27 @@ minion-types:
           collections:
             mining.netherite: 1280
           items: {}
-    max-tier: 5
+      6:
+        action-time-seconds: 105
+        storage: 384
+        storage-slots: 6
+        upgrade-requirements:
+          collections:
+            mining.netherite: 2560
+          items: {}
+      7:
+        action-time-seconds: 90
+        storage: 448
+        storage-slots: 7
+        upgrade-requirements:
+          collections:
+            mining.netherite: 5120
+          items: {}
+    max-tier: 7
     wiki:
       special-items:
       - auto_smelter
+      - large_minion_storage
       auto-compressed-resources: true
   zombie:
     enabled: true
@@ -1450,7 +1506,15 @@ minion-types:
     - resource: spruce_wood
       amount-min: 1
       amount-max: 1
-      chance: 1.0
+      chance: 0.98
+    - resource: spruce_resin
+      amount-min: 1
+      amount-max: 1
+      chance: 0.005
+      special-drop: true
+      special-drop-scaling:
+        from-tier: 5
+        per-tier-bonus: 0.003
     tiers:
       1:
         action-time-seconds: 14
@@ -1492,10 +1556,30 @@ minion-types:
           collections:
             foraging.spruce_wood: 1280
           items: {}
-    max-tier: 5
+      6:
+        action-time-seconds: 9
+        storage: 384
+        storage-slots: 6
+        upgrade-requirements:
+          collections:
+            foraging.spruce_wood: 2560
+          items: {}
+      7:
+        action-time-seconds: 8
+        storage: 448
+        storage-slots: 7
+        upgrade-requirements:
+          collections:
+            foraging.spruce_wood: 5120
+          items: {}
+    max-tier: 7
     wiki:
       special-items:
       - spruce_wood_minion
+      - hazmat_helmet
+      - hazmat_chestplate
+      - hazmat_leggings
+      - hazmat_boots
       auto-compressed-resources: true
   copper:
     enabled: true
@@ -1596,6 +1680,110 @@ minion-types:
       - rare_elements
       - iron_frame
       - stone_frame
+      auto-compressed-resources: true
+
+  tin:
+    enabled: true
+    display-name: <gray>Minion cyny</gray>
+    category: mining
+    item:
+      material: PLAYER_HEAD
+      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19
+      display-name: <gray>Minion cyny <yellow>Tier <tier></yellow></gray>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - '<gray>Generuje: <white>Ruda cyny</white></gray>'
+      - <gray>Rudę cyny można przetopić w piecu hutniczym.</gray>
+      - <gray>Postaw na terenie swojego miasta.</gray>
+      custom-model-data: 0
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: cobblestone_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+    resource-table:
+    - resource: tin_ore
+      amount-min: 1
+      amount-max: 1
+      chance: 1.0
+    tiers:
+      1:
+        action-time-seconds: 200
+        storage: 64
+        storage-slots: 1
+        upgrade-requirements:
+          collections:
+            mining.tin: 80
+          items: {}
+      2:
+        action-time-seconds: 190
+        storage: 128
+        storage-slots: 2
+        upgrade-requirements:
+          collections:
+            mining.tin: 160
+          items: {}
+      3:
+        action-time-seconds: 180
+        storage: 192
+        storage-slots: 3
+        upgrade-requirements:
+          collections:
+            mining.tin: 320
+          items: {}
+      4:
+        action-time-seconds: 170
+        storage: 256
+        storage-slots: 4
+        upgrade-requirements:
+          collections:
+            mining.tin: 640
+          items: {}
+      5:
+        action-time-seconds: 160
+        storage: 320
+        storage-slots: 5
+        upgrade-requirements:
+          collections:
+            mining.tin: 1280
+          items: {}
+      6:
+        action-time-seconds: 150
+        storage: 384
+        storage-slots: 6
+        upgrade-requirements:
+          collections:
+            mining.tin: 2560
+          items: {}
+      7:
+        action-time-seconds: 140
+        storage: 448
+        storage-slots: 7
+        upgrade-requirements:
+          collections:
+            mining.tin: 5120
+          items: {}
+    max-tier: 7
+    wiki:
+      special-items:
+      - tin_minion
+      - tin_ingot
+      - tin_dust
+      - copper_cable
+      - battery
+      - bronze_ingot
+      - solar_panel_generator
+      - bronze_wrench
       auto-compressed-resources: true
   sheep:
     enabled: true

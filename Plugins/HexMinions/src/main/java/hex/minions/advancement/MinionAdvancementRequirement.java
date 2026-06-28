@@ -7,20 +7,28 @@ import java.util.Locale;
 public record MinionAdvancementRequirement(
         String type,
         String minionType,
-        int minTier
+        int minTier,
+        String collectionId,
+        long minAmount,
+        int minLevel
 ) {
     public static MinionAdvancementRequirement fromConfig(ConfigurationSection section) {
         if (section == null) {
-            return new MinionAdvancementRequirement("manual", "", 1);
+            return new MinionAdvancementRequirement("manual", "", 1, "", 0L, 1);
         }
         String rawType = section.getString("type", "manual");
         String type = rawType == null ? "manual" : rawType.toLowerCase(Locale.ROOT).replace('_', '-');
         String minionType = section.getString("minion-type", section.getString("minion", ""));
         if (minionType == null) minionType = "";
+        String collectionId = section.getString("collection-id", section.getString("collection", ""));
+        if (collectionId == null) collectionId = "";
         return new MinionAdvancementRequirement(
                 type,
                 minionType.toLowerCase(Locale.ROOT),
-                Math.max(1, section.getInt("min-tier", section.getInt("tier", 1)))
+                Math.max(1, section.getInt("min-tier", section.getInt("tier", 1))),
+                collectionId.toLowerCase(Locale.ROOT),
+                Math.max(0L, section.getLong("min-amount", section.getLong("amount", section.getLong("required", 0L)))),
+                Math.max(1, section.getInt("min-level", section.getInt("level", 1)))
         );
     }
 
@@ -34,5 +42,17 @@ public record MinionAdvancementRequirement(
 
     public boolean isMinionTier() {
         return "minion-tier".equals(type) || "tier".equals(type);
+    }
+
+    public boolean isCollectionAmount() {
+        return "collection-amount".equals(type) || "collection".equals(type) || "collection-progress".equals(type);
+    }
+
+    public boolean isCollectionLevel() {
+        return "collection-level".equals(type) || "collection-tier".equals(type);
+    }
+
+    public boolean isAnyCollectionLevel() {
+        return "any-collection-level".equals(type) || "first-collection-level".equals(type) || "any-collection-tier".equals(type);
     }
 }

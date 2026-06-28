@@ -125,6 +125,11 @@ public final class MinionService implements MinionMenuDataService {
         this.triggerService = findTriggerService(hex);
     }
 
+
+    public HexCollectionsApi collections() { return collections; }
+
+    public TownsApi towns() { return towns; }
+
     public void reload(MinionsConfig config, Definitions definitions, StorageChestRegistry storageChests, SpecialItemRegistry specialItems) {
         this.config = config;
         this.definitions = definitions;
@@ -315,7 +320,7 @@ public final class MinionService implements MinionMenuDataService {
         if (!towns.isMember(player.getUniqueId(), minion.townUuid())) return CompletableFuture.completedFuture(OperationResult.fail("minions.error.not-member"));
         MinionTypeDefinition type = definitions.minionTypes().get(minion.typeId());
         if (type == null) return CompletableFuture.completedFuture(OperationResult.fail("minions.error.unknown-type"));
-        if (minion.hasAddonItems()) return CompletableFuture.completedFuture(OperationResult.fail("minions.pickup.error.addons-not-empty"));
+        Map<String, ItemStack> droppedAddons = drainAddonItems(minion);
         Map<String, Long> droppedStorage = minion.drainStorage();
         synchronized (mutationLock) {
             minion.setState(MinionState.DELETING);
@@ -328,9 +333,13 @@ public final class MinionService implements MinionMenuDataService {
             Bukkit.getScheduler().runTask(plugin, () -> {
                 unindex(minion);
                 renderer.despawn(minion.id());
+                World minionWorld = Bukkit.getWorld(minion.location().world());
+                Location dropLocation = minionWorld == null ? player.getLocation() : minionWorld.getBlockAt(minion.location().x(), minion.location().y(), minion.location().z()).getLocation();
                 Map<Integer, ItemStack> leftover = player.getInventory().addItem(itemFactory.createPickupItem(type, minion.tier(), minion.id()));
                 leftover.values().forEach(stack -> player.getWorld().dropItemNaturally(player.getLocation(), stack));
-                dropResources(player.getWorld().getBlockAt(minion.location().x(), minion.location().y(), minion.location().z()).getLocation(), droppedStorage);
+                dropResources(dropLocation, droppedStorage);
+                dropAddonItems(dropLocation, droppedAddons);
+                removeLinkedStorageChest(minion, dropLocation, true);
                 publish("minions.picked_up", minion, player.getUniqueId(), Map.of());
             });
             return result;
@@ -593,6 +602,20 @@ public final class MinionService implements MinionMenuDataService {
         return true;
     }
 
+
+    public boolean townHasMinionLevel(UUID townUuid, String typeId, int requiredTier) {
+        if (townUuid == null || typeId == null || typeId.isBlank()) return false;
+        long townInternalId = towns.findTown(townUuid).map(Town::internalId).orElse(0L);
+        if (townInternalId <= 0) townInternalId = repository.findInternalTownId(townUuid).orElse(0L);
+        if (townInternalId <= 0) {
+            for (MinionInstance minion : sortedTownMinions(townUuid)) {
+                townInternalId = minion.townInternalId();
+                break;
+            }
+        }
+        return townInternalId > 0 && repository.townMinionMaxTier(townInternalId, typeId.toLowerCase(java.util.Locale.ROOT)) >= Math.max(1, requiredTier);
+    }
+
     public String recipeUnlockText(SpecialRecipeDefinition recipe) {
         if (recipe == null || recipe.unlock().isEmpty()) return "Brak";
         List<String> parts = new ArrayList<>();
@@ -852,6 +875,9 @@ public final class MinionService implements MinionMenuDataService {
         if (remaining > 0) {
             accepted += minion.addStorage(resourceId, remaining);
         }
+        if (accepted > 0 && hasActiveCompressorUpdate(minion, definitions.minionTypes().get(minion.typeId()))) {
+            compactStoredResource(minion, resourceId);
+        }
         return accepted;
     }
 
@@ -947,6 +973,36 @@ public final class MinionService implements MinionMenuDataService {
         return stack.getAmount() - remaining;
     }
 
+    private int effectiveStorageUsed(MinionInstance minion) {
+        long used = minion.storageUsed();
+        if (Bukkit.isPrimaryThread() && isChunkLoaded(minion.location())) {
+            Chest chest = storageChest(minion).orElse(null);
+            if (chest != null) used += countStorageChestItems(chest);
+        }
+        return (int) Math.min(Integer.MAX_VALUE, used);
+    }
+
+    private int effectiveStorageLimit(MinionInstance minion) {
+        long limit = Math.max(0, minion.storageLimit());
+        if (Bukkit.isPrimaryThread() && isChunkLoaded(minion.location())) {
+            Chest chest = storageChest(minion).orElse(null);
+            if (chest != null) limit += (long) storageChestSlots(chest) * 64L;
+        }
+        return (int) Math.min(Integer.MAX_VALUE, limit);
+    }
+
+    private int countStorageChestItems(Chest chest) {
+        if (chest == null) return 0;
+        Inventory inventory = chest.getBlockInventory();
+        int limit = Math.min(storageChestSlots(chest), inventory.getSize());
+        long amount = 0L;
+        for (int i = 0; i < limit; i++) {
+            ItemStack item = inventory.getItem(i);
+            if (item != null && !item.getType().isAir()) amount += item.getAmount();
+        }
+        return (int) Math.min(Integer.MAX_VALUE, amount);
+    }
+
     private int storageChestSlots(Chest chest) {
         Optional<String> id = itemFactory.readStorageChestBlockId(chest.getBlock());
         if (id.isPresent()) {
@@ -957,7 +1013,7 @@ public final class MinionService implements MinionMenuDataService {
         String lower = name.toLowerCase(java.util.Locale.ROOT);
         if (lower.contains("x-large") || lower.contains("xlarge")) return 21;
         if (lower.contains("large")) return 15;
-        if (lower.contains("medium")) return 9;
+        if (lower.contains("medium")) return 5;
         return 3;
     }
 
@@ -1004,6 +1060,8 @@ public final class MinionService implements MinionMenuDataService {
                 .map(String::toLowerCase)
                 .flatMap(id -> switch (id) {
                     case "storage_expander" -> Optional.of("small");
+                    case "medium_minion_storage" -> Optional.of("medium");
+                    case "large_minion_storage" -> Optional.of("large");
                     case "iron_uranium_chest" -> Optional.of("iron_uranium");
                     default -> Optional.empty();
                 });
@@ -1025,6 +1083,56 @@ public final class MinionService implements MinionMenuDataService {
         if (minion == null) return null;
         ItemStack item = minion.addonItems().get(slotId);
         return item == null ? null : item.clone();
+    }
+
+    public boolean wikiTestMode() {
+        return config.wikiTestMode();
+    }
+
+    public ItemStack removeAddonItem(UUID minionId, String slotId) {
+        MinionInstance minion = minionsById.get(minionId);
+        if (minion == null || slotId == null || slotId.isBlank()) return null;
+        ItemStack removed = minion.addonItems().remove(slotId);
+        markMinionDirty(minion, false, false, true);
+        notifyChanged(minion);
+        return brokenIfCompressorUpdate(removed);
+    }
+
+    public OperationResult uninstallStorageChestFromMenu(Player player, UUID minionId) {
+        MinionInstance minion = minionsById.get(minionId);
+        if (minion == null) return OperationResult.fail("minions.error.not-found");
+        if (!towns.isMember(player.getUniqueId(), minion.townUuid())) return OperationResult.fail("minions.error.not-member");
+        Chest chest = storageChest(minion).orElse(null);
+        if (chest == null) return OperationResult.fail("minions.storage-chest.error.not-found");
+        Block block = chest.getBlock();
+        Optional<String> id = itemFactory.readStorageChestBlockId(block);
+        ItemStack storageItem = id.flatMap(storageChests::find)
+                .map(def -> itemFactory.createStorageChestItem(def, 1))
+                .orElseGet(() -> new ItemStack(block.getType() == Material.TRAPPED_CHEST ? Material.TRAPPED_CHEST : Material.CHEST, 1));
+        Location dropLocation = block.getLocation();
+        removeLinkedStorageChest(minion, dropLocation, false);
+        player.getInventory().addItem(storageItem).values().forEach(left -> player.getWorld().dropItemNaturally(player.getLocation(), left));
+        return OperationResult.ok("minions.storage-chest.uninstall.success");
+    }
+
+    private Map<String, ItemStack> drainAddonItems(MinionInstance minion) {
+        java.util.LinkedHashMap<String, ItemStack> copy = new java.util.LinkedHashMap<>();
+        for (Map.Entry<String, ItemStack> entry : minion.addonItems().entrySet()) {
+            ItemStack item = entry.getValue();
+            if (item == null || item.getType().isAir()) continue;
+            ItemStack dropped = brokenIfCompressorUpdate(item);
+            if (dropped != null && !dropped.getType().isAir()) copy.put(entry.getKey(), dropped);
+        }
+        minion.addonItems().clear();
+        return copy;
+    }
+
+    private void dropAddonItems(Location location, Map<String, ItemStack> items) {
+        if (location == null || location.getWorld() == null || items == null || items.isEmpty()) return;
+        for (ItemStack item : items.values()) {
+            if (item == null || item.getType().isAir()) continue;
+            location.getWorld().dropItemNaturally(location, item.clone());
+        }
     }
 
     public boolean hasStorageChest(UUID minionId) {
@@ -1077,6 +1185,38 @@ public final class MinionService implements MinionMenuDataService {
     }
 
 
+    private void removeLinkedStorageChest(MinionInstance minion, Location dropLocation, boolean dropStorageItem) {
+        if (minion == null || dropLocation == null || dropLocation.getWorld() == null) return;
+        Chest chest = storageChest(minion).orElse(null);
+        if (chest == null) return;
+        Block block = chest.getBlock();
+        Inventory inventory = chest.getBlockInventory();
+        for (ItemStack item : inventory.getContents()) {
+            if (item != null && !item.getType().isAir()) {
+                dropLocation.getWorld().dropItemNaturally(dropLocation, item.clone());
+            }
+        }
+        inventory.clear();
+        if (dropStorageItem) {
+            Optional<String> id = itemFactory.readStorageChestBlockId(block);
+            ItemStack storageItem = id.flatMap(storageChests::find)
+                    .map(def -> itemFactory.createStorageChestItem(def, 1))
+                    .orElseGet(() -> new ItemStack(block.getType() == Material.TRAPPED_CHEST ? Material.TRAPPED_CHEST : Material.CHEST, 1));
+            dropLocation.getWorld().dropItemNaturally(dropLocation, storageItem);
+        }
+        removeStorageChestOverlays(block);
+        block.setType(Material.AIR, false);
+    }
+
+    private void removeStorageChestOverlays(Block chestBlock) {
+        if (chestBlock == null || chestBlock.getWorld() == null) return;
+        Location center = chestBlock.getLocation().add(0.5D, 0.5D, 0.5D);
+        for (Entity entity : chestBlock.getWorld().getNearbyEntities(center, 1.25D, 1.25D, 1.25D)) {
+            if (entity instanceof BlockDisplay) entity.remove();
+        }
+    }
+
+
     public boolean isResourceItem(ItemStack item) {
         if (item == null || item.getType().isAir()) return true;
         for (ResourceDefinition def : definitions.resources().values()) {
@@ -1094,6 +1234,7 @@ public final class MinionService implements MinionMenuDataService {
         if (storageChestIdFromItem(item).isPresent()) return false;
         if (isSupportedBoosterItem(type, item)) return true;
         if (isSupportedAutoSmelterItem(type, item)) return true;
+        if (isSupportedCompressorUpdateItem(type, item)) return true;
         for (int tier = 1; tier <= type.maxTier(); tier++) {
             for (ItemRequirement requirement : type.tier(tier).upgradeRequirements().items()) {
                 if (requirement.matches(item)) return true;
@@ -1401,10 +1542,17 @@ public final class MinionService implements MinionMenuDataService {
     }
 
     private MinionMenuData toMenuData(MinionInstance minion, int slotHint, Player viewer) {
-        applyOfflineCatchup(minion, System.currentTimeMillis(), "menu-open");
+        // DeluxeMenus/PlaceholderAPI potrafi liczyc placeholdery poza glownym watkiem.
+        // Offline catch-up dotyka swiata (chunk, skrzynia, encje labeli), wiec nie wolno go
+        // uruchamiac podczas asynchronicznego renderowania menu.
+        if (Bukkit.isPrimaryThread()) {
+            applyOfflineCatchup(minion, System.currentTimeMillis(), "menu-open");
+        }
         MinionTypeDefinition type = definitions.minionTypes().get(minion.typeId());
         TierDefinition tier = type == null ? new TierDefinition(minion.tier(), 0, minion.storageLimit(), 1, UpgradeRequirements.empty()) : type.tier(minion.tier());
-        int percent = minion.storageLimit() <= 0 ? 0 : (int) Math.min(100, Math.round(minion.storageUsed() * 100.0 / minion.storageLimit()));
+        int effectiveStorageUsed = effectiveStorageUsed(minion);
+        int effectiveStorageLimit = effectiveStorageLimit(minion);
+        int percent = effectiveStorageLimit <= 0 ? 0 : (int) Math.min(100, Math.round(effectiveStorageUsed * 100.0 / effectiveStorageLimit));
         boolean canUpgrade = type != null && minion.tier() < type.maxTier();
         long now = System.currentTimeMillis();
         if (type != null) ensureActiveBooster(minion, type, now);
@@ -1414,7 +1562,7 @@ public final class MinionService implements MinionMenuDataService {
         double boosterPercent = activeBooster.map(BoosterDefinition::speedBoostPercent).orElse(0.0D);
         int boosterDuration = activeBooster.map(BoosterDefinition::durationSeconds).orElse(0);
         return new MinionMenuData(minion.id(), shortId(minion.id()), minion.typeId(), type == null ? minion.typeId() : type.displayName(), minion.tier(), type == null ? minion.tier() : type.maxTier(),
-                minion.location().world(), minion.location().x(), minion.location().y(), minion.location().z(), minion.storageUsed(), minion.storageLimit(), percent,
+                minion.location().world(), minion.location().x(), minion.location().y(), minion.location().z(), effectiveStorageUsed, effectiveStorageLimit, percent,
                 tier.actionTimeSeconds(), minion.state().name(), canUpgrade, requirementsText(type, minion.tier() + 1, minion.townUuid(), viewer), slotHint, unlockedStorageSlots(minion, type),
                 activeTier, boosterSeconds, boosterDuration, type == null ? 0 : queuedBoosterItems(minion, type), boosterPercent,
                 type == null ? "PLAYER_HEAD" : type.itemHeadMaterial(), Map.copyOf(minion.storage()));
@@ -1434,6 +1582,57 @@ public final class MinionService implements MinionMenuDataService {
                 && specialItems.readSpecialItemId(item)
                 .map(id -> id.equalsIgnoreCase("storage_expander"))
                 .orElse(false);
+    }
+
+    private boolean isCompressorUpdateItem(ItemStack item) {
+        return specialItems != null
+                && specialItems.readSpecialItemId(item)
+                .map(id -> id.equalsIgnoreCase("compressor_update"))
+                .orElse(false);
+    }
+
+    private boolean isSupportedCompressorUpdateItem(MinionTypeDefinition type, ItemStack item) {
+        return isCompressorUpdateItem(item) && typeSupportsCompression(type);
+    }
+
+    private boolean typeSupportsCompression(MinionTypeDefinition type) {
+        if (type == null) return false;
+        for (ResourceDrop drop : type.resourceTable()) {
+            ResourceDefinition resource = definitions.resources().get(drop.resourceId());
+            if (resource == null || !resource.compressionEnabled() || !resource.blockConvertible()) continue;
+            if (definitions.resources().containsKey("compressed_" + resource.id().toLowerCase(java.util.Locale.ROOT))) return true;
+        }
+        return false;
+    }
+
+    private boolean hasActiveCompressorUpdate(MinionInstance minion, MinionTypeDefinition type) {
+        if (minion == null || type == null || !typeSupportsCompression(type)) return false;
+        return minion.addonItems().values().stream().anyMatch(this::isCompressorUpdateItem);
+    }
+
+    private void compactStoredResource(MinionInstance minion, String resourceId) {
+        if (minion == null || resourceId == null || resourceId.isBlank()) return;
+        ResourceDefinition resource = definitions.resources().get(resourceId);
+        if (resource == null || !resource.compressionEnabled() || !resource.blockConvertible()) return;
+        String compressedId = "compressed_" + resource.id().toLowerCase(java.util.Locale.ROOT);
+        if (!definitions.resources().containsKey(compressedId)) return;
+        long unit = specialItems == null ? 128L : Math.max(1, specialItems.compressedUnitValue());
+        long current = minion.storage().getOrDefault(resource.id(), 0L);
+        if (current < unit) return;
+        long compressed = current / unit;
+        long remainder = current % unit;
+        java.util.LinkedHashMap<String, Long> newStorage = new java.util.LinkedHashMap<>(minion.storage());
+        if (remainder <= 0L) newStorage.remove(resource.id()); else newStorage.put(resource.id(), remainder);
+        newStorage.put(compressedId, newStorage.getOrDefault(compressedId, 0L) + compressed);
+        minion.replaceStorage(newStorage);
+    }
+
+    private ItemStack brokenIfCompressorUpdate(ItemStack item) {
+        if (item == null || item.getType().isAir()) return null;
+        if (!isCompressorUpdateItem(item)) return item.clone();
+        ItemStack broken = specialItems == null ? null : specialItems.createItem("damaged_compressor_update", Math.max(1, item.getAmount()));
+        if (broken == null || broken.getType().isAir()) return null;
+        return broken;
     }
 
     private boolean isSupportedAutoSmelterItem(MinionTypeDefinition type, ItemStack item) {
@@ -1586,7 +1785,7 @@ public final class MinionService implements MinionMenuDataService {
     private double adjustedDropChance(MinionInstance minion, ResourceDrop drop) {
         double chance = drop.chance();
         if (drop.specialDrop()) {
-            chance += Math.max(0, minion.tier() - 1) * Math.max(0.0D, drop.specialDropPerTierBonus());
+            chance += Math.max(0, minion.tier() - drop.specialDropScalingFromTier() + 1) * Math.max(0.0D, drop.specialDropPerTierBonus());
             if (drop.specialDropUpgradeItem() != null && !drop.specialDropUpgradeItem().isBlank() && minion.addonItems().values().stream().anyMatch(item -> specialItems.readSpecialItemId(item).map(id -> id.equalsIgnoreCase(drop.specialDropUpgradeItem())).orElse(false))) {
                 chance += Math.max(0.0D, drop.specialDropUpgradeBonus());
             }

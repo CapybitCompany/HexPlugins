@@ -977,7 +977,8 @@ public final class MinionMenu {
                 lore.add("<gray>Slot boostera miniona.</gray>");
                 lore.add(boosterSummaryLine(data));
                 lore.add(boosterQueueLine(data));
-                lore.add("<dark_gray>Wyjmij item, aby zatrzymać kolejkowanie kolejnych boosterów.</dark_gray>");
+                lore.add("<yellow>PPM: wyjmij update z miniona.</yellow>");
+                lore.add("<dark_gray>Wyjęcie zatrzymuje kolejkowanie kolejnych boosterów.</dark_gray>");
                 applyLore(meta, lore);
                 hideAttributes(meta);
                 copy.setItemMeta(meta);
@@ -988,6 +989,7 @@ public final class MinionMenu {
                 "<gray>Włóż tutaj <white>Minion Booster Tier I</white>.</gray>",
                 "<gray>Tier I: <green>+10%</green> szybkości przez <white>30s</white>.</gray>",
                 "<gray>Boostery można stackować.</gray>",
+                "<yellow>PPM na slocie: wyjmij update z miniona.</yellow>",
                 "<dark_gray>Obsługiwane tiery zależą od minion-types.yml.</dark_gray>"
         ));
     }
@@ -1008,10 +1010,23 @@ public final class MinionMenu {
 
     private ItemStack addonItem(MinionMenuData data, String slotId, Material placeholder, String name) {
         ItemStack saved = service.addonItem(data.id(), slotId);
-        if (saved != null && !saved.getType().isAir()) return saved;
+        if (saved != null && !saved.getType().isAir()) {
+            ItemStack copy = saved.clone();
+            ItemMeta meta = copy.getItemMeta();
+            if (meta != null) {
+                List<String> lore = new ArrayList<>();
+                lore.add("<gray>Update aktywny w tym slocie.</gray>");
+                lore.add("<yellow>PPM: wyjmij update z miniona.</yellow>");
+                applyLore(meta, lore);
+                hideAttributes(meta);
+                copy.setItemMeta(meta);
+            }
+            return copy;
+        }
         return item(placeholder, name, List.of(
                 "<gray>Włóż tutaj specjalny item update'u.</gray>",
                 "<gray>np. Auto Smelter albo inny dodatek produkcji.</gray>",
+                "<yellow>PPM na slocie: wyjmij update z miniona.</yellow>",
                 "<dark_gray>Skrzynkę storage wkłada się w osobny slot na dole menu.</dark_gray>"
         ));
     }
@@ -1022,12 +1037,14 @@ public final class MinionMenu {
                     "<gray>Kliknij, aby otworzyć menu fizycznej skrzynki.</gray>",
                     "<gray>Minion najpierw próbuje wkładać dropy do tej skrzynki,</gray>",
                     "<gray>a dopiero potem do internal storage.</gray>",
-                    "<dark_gray>Skrzynka jest chroniona przed ręcznym zniszczeniem.</dark_gray>"
+                    "<yellow>PPM: odłącz skrzynkę i zwróć update.</yellow>",
+                    "<dark_gray>Zawartość skrzynki wypadnie obok miniona.</dark_gray>"
             ));
         }
         return item(Material.ENDER_CHEST, "<yellow>Slot Minion Storage</yellow>", List.of(
                 "<gray>Włóż tu <gold>Rozszerzenie storage miniona</gold>.</gray>",
                 "<gray>Po kliknięciu itemem skrzynka pojawi się po lewej stronie miniona.</gray>",
+                "<yellow>PPM: odłącz aktualną skrzynkę, jeśli istnieje.</yellow>",
                 "<gray>Podstawowa skrzynka ma <white>3</white> sloty.</gray>",
                 "<red>Jeśli po lewej nie ma miejsca, dostaniesz komunikat.</red>"
         ));

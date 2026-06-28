@@ -6,9 +6,11 @@ import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 public class WaterDrawnConfig {
@@ -127,10 +129,27 @@ public class WaterDrawnConfig {
     }
 
     private Sound parseSound(String name) {
+        Sound parsed = resolveSound(name);
+        return parsed != null ? parsed : resolveSound("BLOCK_NOTE_BLOCK_PLING");
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private Sound resolveSound(String name) {
+        if (name == null || name.isBlank()) {
+            return null;
+        }
         try {
-            return Sound.valueOf(name.toUpperCase());
-        } catch (Exception ignored) {
-            return Sound.BLOCK_NOTE_BLOCK_PLING;
+            Class<?> soundClass = Class.forName("org.bukkit.Sound");
+            Object sound;
+            if (soundClass.isEnum()) {
+                sound = Enum.valueOf((Class<? extends Enum>) soundClass.asSubclass(Enum.class), name.trim().toUpperCase(Locale.ROOT));
+            } else {
+                Method valueOf = soundClass.getMethod("valueOf", String.class);
+                sound = valueOf.invoke(null, name.trim().toUpperCase(Locale.ROOT));
+            }
+            return (Sound) sound;
+        } catch (ReflectiveOperationException | IllegalArgumentException | ClassCastException | LinkageError ignored) {
+            return null;
         }
     }
 

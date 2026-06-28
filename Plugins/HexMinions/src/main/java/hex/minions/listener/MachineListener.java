@@ -1,6 +1,7 @@
 package hex.minions.listener;
 
 import hex.core.api.HexApi;
+import hex.core.api.compat.SoundCompatibility;
 import hex.minions.machine.MachineDefinition;
 import hex.minions.machine.MachineRecipe;
 import hex.minions.machine.MachineRuntime;
@@ -64,7 +65,10 @@ public final class MachineListener implements Listener {
                     : Optional.of(machines.machineAt(event.getBlockPlaced()).stationId());
             stationId.flatMap(machines.registry()::byStation).ifPresent(machine -> {
                 MachineRuntime runtime = machines.runtime(machines.key(event.getBlockPlaced().getLocation()), machine.id());
+                runtime.touchActiveNow();
+                machines.markRuntimeDirty(runtime);
                 ensureVisual(event.getBlockPlaced(), machine);
+                machines.recordEnergyGeneratorPlaced(event.getBlockPlaced(), machine);
                 machines.saveSoon();
             });
         });
@@ -78,6 +82,10 @@ public final class MachineListener implements Listener {
         event.setCancelled(true);
         if (towns.townAt(event.getClickedBlock().getLocation()).filter(t -> towns.isMember(event.getPlayer().getUniqueId(), t.id())).isEmpty()) {
             event.getPlayer().sendMessage("§cMożesz obsługiwać tę maszynę tylko w swoim mieście.");
+            return;
+        }
+        if (machines.isBronzeWrench(event.getItem())) {
+            handleBronzeWrench(event.getPlayer(), event.getClickedBlock(), event.getBlockFace(), machine);
             return;
         }
         ensureVisual(event.getClickedBlock(), machine);
@@ -132,9 +140,42 @@ public final class MachineListener implements Listener {
         machines.saveSoon();
     }
 
+
+    private void handleBronzeWrench(Player player, Block block, BlockFace clickedFace, MachineDefinition machine) {
+        if ("ACCUMULATOR".equalsIgnoreCase(machine.type())) {
+            BlockFace currentInput = machines.accumulatorInputFace(block);
+            if (clickedFace == null || clickedFace == BlockFace.SELF) {
+                player.sendMessage("§cKliknij konkretny bok akumulatora, który ma zostać wejściem EU.");
+                return;
+            }
+            if (clickedFace == currentInput) {
+                player.sendMessage("§eTen bok jest już wejściem EU akumulatora.");
+                return;
+            }
+            machines.setAccumulatorInputFace(block, clickedFace);
+            cleanupVisuals(block.getLocation());
+            ensureVisual(block, machine);
+            SoundCompatibility.play(player, block.getLocation(), "BLOCK_ANVIL_USE", 0.7f, 1.35f);
+            player.sendMessage("§aPrzeniesiono wejście EU akumulatora na bok: §f" + clickedFace.name() + "§a. Poprzedni bok stał się wyjściem.");
+            return;
+        }
+
+        if (!machines.hasConfigurablePorts(machine)) {
+            Location drop = block.getLocation().add(0.5, 0.5, 0.5);
+            ItemStack machineItem = machines.createMachineItem(machine);
+            machines.remove(machines.key(block.getLocation()), drop);
+            cleanupVisuals(block.getLocation());
+            block.setType(Material.AIR, false);
+            if (machineItem != null && !machineItem.getType().isAir()) drop.getWorld().dropItemNaturally(drop, machineItem);
+            SoundCompatibility.play(player, drop, "BLOCK_ANVIL_USE", 0.8f, 0.75f);
+            player.sendMessage("§eRozkręcono maszynę. Item maszyny i zawartość wypadły obok.");
+        }
+    }
+
     private void openMachine(Player player, Block block, MachineDefinition machine) {
         String key = machines.key(block.getLocation());
         MachineRuntime runtime = machines.runtime(key, machine.id());
+        machines.applyOfflineCatchup(block, machine, runtime);
         Inventory inv = Bukkit.createInventory(new MachineMenuHolder(machine.id(), key), 54, mini.deserialize(machine.displayName()));
         fill(inv, machine);
         machines.syncToInventory(machine, runtime, inv);
@@ -146,7 +187,7 @@ public final class MachineListener implements Listener {
     private void fill(Inventory inv, MachineDefinition machine) {
         ItemStack filler = named(Material.BLACK_STAINED_GLASS_PANE, " ", "");
         for (int i = 0; i < inv.getSize(); i++) inv.setItem(i, filler);
-        if (!machine.recipes().isEmpty()) inv.setItem(machine.inputSlot(), null);
+        if (!machine.recipes().isEmpty()) for (int inputSlot : machine.inputSlots()) inv.setItem(inputSlot, null);
         if (machine.hasSecondarySlot()) inv.setItem(machine.secondarySlot(), null);
         if (machine.energy().enabled() || machine.hasRecipeFuelSlot()) inv.setItem(machine.fuelSlot(), null);
         inv.setItem(machine.outputSlot(), null);
@@ -165,10 +206,38 @@ public final class MachineListener implements Listener {
     private ItemStack machineInfoItem(MachineDefinition machine, MachineRuntime runtime) {
         if (!machine.energy().enabled()) return named(Material.BOOK, machine.displayName(), "§7Maszyna konfigurowalna w machines.yml");
         if (machine.energy().generator()) {
+            if ("SOLAR_PANEL_GENERATOR".equalsIgnoreCase(machine.type()) || "SOLAR_GENERATOR".equalsIgnoreCase(machine.type())) {
+                return named(Material.DAYLIGHT_DETECTOR, machine.displayName(),
+                        "§7Bufor: §f" + runtime.energy() + "§7/§f" + runtime.capacity(machine) + " EU\n" +
+                                "§7Produkcja: §f" + machine.energy().euPerSecond() + " EU/s przy świetle 15\n" +
+                                "§7Zasila: §flewo, potem prawo");
+            }
+            if ("ACCUMULATOR".equalsIgnoreCase(machine.type())) {
+                return named(Material.OAK_WOOD, machine.displayName(),
+                        "§7Bufor: §f" + runtime.energy() + "§7/§f" + runtime.capacity(machine) + " EU\n" +
+                                "§7Wejście: §f" + machines.accumulatorInputFace(machines.blockFromKey(runtime.blockKey())).name() + "\n" +
+                                "§7Wyjście: §fpozostałe strony\n" +
+                                "§8Kluczem z brązu kliknij port wyjściowy, aby przenieść wejście.");
+            }
             return named(Material.REDSTONE_BLOCK, machine.displayName(),
                     "§7Bufor: §f" + runtime.energy() + "§7/§f" + runtime.capacity(machine) + " EU\n" +
                             "§7Spalanie: §f" + runtime.burnRemainingSeconds() + "s\n" +
                             "§7Zasila: §flewo, potem prawo");
+        }
+        if ("EXTRACTOR".equalsIgnoreCase(machine.type())) {
+            return named(Material.DISPENSER, machine.displayName(),
+                    "§7Bufor: §f" + runtime.energy() + "§7/§f" + runtime.capacity(machine) + " EU\n" +
+                            "§7Zużycie: §f" + machine.energy().euPerSecond() + " EU/s\n" +
+                            "§7Proces: §f20 min, skompresowane drewno świerkowe -> żywica\n" +
+                            "§7Awaryjne paliwo: §fredstone/blok redstone");
+        }
+        if ("ELECTRIC_MILL".equalsIgnoreCase(machine.type())) {
+            return named(Material.COMPOSTER, machine.displayName(),
+                    "§7Bufor: §f" + runtime.energy() + "§7/§f" + runtime.capacity(machine) + " EU\n" +
+                            "§7Zużycie: §f" + machine.energy().euPerSecond() + " EU/s\n" +
+                            "§7Inputy: §f3 sloty, od lewej do prawej\n" +
+                            "§7Pszenica: §f2% na paszę w 4 min\n" +
+                            "§7Port EU: §ftył i dół, paliwo awaryjne: redstone/blok redstone");
         }
         return named(Material.REDSTONE, machine.displayName(),
                 "§7Bufor: §f" + runtime.energy() + "§7/§f" + runtime.capacity(machine) + " EU\n" +
@@ -189,11 +258,78 @@ public final class MachineListener implements Listener {
         } else if ("COAL_GENERATOR".equalsIgnoreCase(machine.type())) {
             spawnDisplay(block.getLocation(), block.getLocation(), Material.DEEPSLATE, new Vector3f(-0.03f, -0.03f, -0.03f), new Vector3f(1.06f, 1.06f, 1.06f));
             spawnDisplay(block.getLocation(), block.getLocation().add(0.24, 0.88, 0.24), Material.COAL_BLOCK, new Vector3f(0f, 0f, 0f), new Vector3f(0.52f, 0.18f, 0.52f));
+        } else if ("SOLAR_PANEL_GENERATOR".equalsIgnoreCase(machine.type()) || "SOLAR_GENERATOR".equalsIgnoreCase(machine.type())) {
+            spawnDisplay(block.getLocation(), block.getLocation(), Material.IRON_BLOCK, new Vector3f(-0.02f, -0.02f, -0.02f), new Vector3f(1.04f, 1.04f, 1.04f));
+            spawnDisplay(block.getLocation(), block.getLocation().add(0.10, 1.02, 0.10), Material.COAL_BLOCK, new Vector3f(0f, 0f, 0f), new Vector3f(0.80f, 0.10f, 0.80f));
+        } else if ("ACCUMULATOR".equalsIgnoreCase(machine.type())) {
+            spawnAccumulatorVisual(block);
         } else if ("MACERATOR".equalsIgnoreCase(machine.type())) {
             spawnDisplay(block.getLocation(), block.getLocation(), Material.STONECUTTER, new Vector3f(-0.02f, -0.02f, -0.02f), new Vector3f(1.04f, 1.04f, 1.04f));
             spawnDisplay(block.getLocation(), block.getLocation().add(0.36, 0.78, 0.36), Material.FLINT, new Vector3f(0f, 0f, 0f), new Vector3f(0.28f, 0.28f, 0.28f));
         } else if ("COMPRESSOR".equalsIgnoreCase(machine.type())) {
             spawnCompressorVisual(block);
+        } else if ("EXTRACTOR".equalsIgnoreCase(machine.type())) {
+            spawnExtractorVisual(block);
+        } else if ("ELECTRIC_MILL".equalsIgnoreCase(machine.type())) {
+            spawnElectricMillVisual(block);
+        }
+        spawnEnergyPorts(block, machine);
+    }
+
+
+    private void spawnEnergyPorts(Block block, MachineDefinition machine) {
+        if (!machine.energy().enabled()) return;
+        if ("ACCUMULATOR".equalsIgnoreCase(machine.type())) return; // akumulator ma pełny zestaw portów w swoim visualu.
+        if (machine.energy().generator()) {
+            port(block.getLocation(), machines.leftOf(block), Material.BLUE_CONCRETE, false);
+            port(block.getLocation(), machines.rightOf(block), Material.BLUE_CONCRETE, false);
+            return;
+        }
+        if ("ELECTRIC_MILL".equalsIgnoreCase(machine.type())) {
+            port(block.getLocation(), machines.facing(block).getOppositeFace(), Material.ORANGE_CONCRETE, true);
+            port(block.getLocation(), BlockFace.DOWN, Material.ORANGE_CONCRETE, true);
+            return;
+        }
+        BlockFace input = machines.facing(block).getOppositeFace();
+        port(block.getLocation(), input, Material.ORANGE_CONCRETE, true);
+    }
+
+    private void spawnElectricMillVisual(Block block) {
+        Location base = block.getLocation();
+        spawnDisplay(base, base, Material.COMPOSTER, new Vector3f(-0.02f, -0.02f, -0.02f), new Vector3f(1.04f, 1.04f, 1.04f));
+        // Kamienna podstawa: dolne 0.3 bloku, szersza o 0.1 w każdym kierunku.
+        spawnDisplay(base, base, Material.COBBLESTONE, new Vector3f(-0.10f, -0.02f, -0.10f), new Vector3f(1.20f, 0.30f, 1.20f));
+    }
+
+    private void spawnExtractorVisual(Block block) {
+        Location base = block.getLocation();
+        spawnDisplay(base, base, Material.DISPENSER, new Vector3f(-0.02f, -0.02f, -0.02f), new Vector3f(1.04f, 1.04f, 1.04f));
+        // Błękitne paski po bokach: szerokość 0.1, wysokość 0.8, wysunięcie 0.1 poza blok.
+        spawnDisplay(base, base, Material.LIGHT_BLUE_CONCRETE, new Vector3f(-0.08f, 0.10f, 0.45f), new Vector3f(0.10f, 0.80f, 0.10f));
+        spawnDisplay(base, base, Material.LIGHT_BLUE_CONCRETE, new Vector3f(0.98f, 0.10f, 0.45f), new Vector3f(0.10f, 0.80f, 0.10f));
+    }
+
+    private void spawnAccumulatorVisual(Block block) {
+        Location base = block.getLocation();
+        spawnDisplay(base, base, Material.OAK_WOOD, new Vector3f(-0.02f, -0.02f, -0.02f), new Vector3f(1.04f, 1.04f, 1.04f));
+        BlockFace input = machines.accumulatorInputFace(block);
+        port(base, input, Material.ORANGE_CONCRETE, true);
+        for (BlockFace face : List.of(BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST, BlockFace.UP)) {
+            if (face != input) port(base, face, Material.BLUE_CONCRETE, false);
+        }
+    }
+
+    private void port(Location base, BlockFace face, Material material, boolean input) {
+        float size = 0.30f;
+        float depth = 0.10f;
+        switch (face) {
+            case NORTH -> spawnDisplay(base, base, material, new Vector3f(0.35f, 0.35f, -0.06f), new Vector3f(size, size, depth));
+            case SOUTH -> spawnDisplay(base, base, material, new Vector3f(0.35f, 0.35f, 0.96f), new Vector3f(size, size, depth));
+            case EAST -> spawnDisplay(base, base, material, new Vector3f(0.96f, 0.35f, 0.35f), new Vector3f(depth, size, size));
+            case WEST -> spawnDisplay(base, base, material, new Vector3f(-0.06f, 0.35f, 0.35f), new Vector3f(depth, size, size));
+            case UP -> spawnDisplay(base, base, material, new Vector3f(0.39f, 0.96f, 0.39f), new Vector3f(size, depth, size));
+            case DOWN -> spawnDisplay(base, base, material, new Vector3f(0.39f, -0.06f, 0.39f), new Vector3f(size, depth, size));
+            default -> { }
         }
     }
 

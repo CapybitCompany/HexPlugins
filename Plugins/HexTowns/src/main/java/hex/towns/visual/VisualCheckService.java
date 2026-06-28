@@ -194,12 +194,25 @@ public final class VisualCheckService implements Listener {
         float width = config.visualDisplayWidth();
         float thickness = config.visualEdgeThickness();
         float height = Math.max(1.0f, topY - baseY + thickness);
-        float length = 16.0f;
 
-        spawnDisplay(player, displays, new Location(player.getWorld(), minX + 0.5, baseY, minZ + 0.5 - width / 2.0), new Vector3f(length, height, width), budget);
-        spawnDisplay(player, displays, new Location(player.getWorld(), minX + 0.5, baseY, maxZ + 0.5 - width / 2.0), new Vector3f(length, height, width), budget);
-        spawnDisplay(player, displays, new Location(player.getWorld(), minX + 0.5 - width / 2.0, baseY, minZ + 0.5), new Vector3f(width, height, length), budget);
-        spawnDisplay(player, displays, new Location(player.getWorld(), maxX + 0.5 - width / 2.0, baseY, minZ + 0.5), new Vector3f(width, height, length), budget);
+        // Wczesniej byly to cztery dlugie BlockDisplay o skali 16xH, czyli w praktyce pelne sciany.
+        // /town check ma pokazywac granice jako waskie slupki 0.1x0.1 rozmieszczone na krawedziach chunka.
+        for (int x = minX + 1; x < maxX; x++) {
+            addThinEdgePost(player, displays, x, minZ, baseY, height, width, budget);
+            addThinEdgePost(player, displays, x, maxZ, baseY, height, width, budget);
+        }
+        for (int z = minZ + 1; z < maxZ; z++) {
+            addThinEdgePost(player, displays, minX, z, baseY, height, width, budget);
+            addThinEdgePost(player, displays, maxX, z, baseY, height, width, budget);
+        }
+    }
+
+    private void addThinEdgePost(Player player, Set<UUID> displays, int x, int z, int baseY, float height, float width, RenderBudget budget) {
+        if (!budget.hasRemaining()) {
+            return;
+        }
+        Location location = new Location(player.getWorld(), x + 0.5 - width / 2.0, baseY, z + 0.5 - width / 2.0);
+        spawnDisplay(player, displays, location, new Vector3f(width, height, width), budget);
     }
 
     private void addTopFrameDisplays(Player player, Set<UUID> displays, int minX, int minZ, int maxX, int maxZ, int topY, RenderBudget budget) {

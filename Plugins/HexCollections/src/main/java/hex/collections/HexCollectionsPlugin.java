@@ -1,5 +1,6 @@
 package hex.collections;
 
+import hex.core.api.compat.MinecraftCompatibility;
 import hex.collections.api.HexCollectionsApi;
 import hex.collections.api.CollectionProgressContext;
 import hex.collections.config.CollectionRegistry;
@@ -44,6 +45,7 @@ public final class HexCollectionsPlugin extends JavaPlugin implements TabExecuto
 
 	@Override
 	public void onEnable() {
+		MinecraftCompatibility.logStartupCompatibility(this);
 		saveDefaultConfig();
 		saveResource("collections.yml", false);
 		saveBundledCollectionDefinitions();

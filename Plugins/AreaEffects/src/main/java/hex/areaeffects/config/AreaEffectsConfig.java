@@ -5,6 +5,9 @@ import org.bukkit.Sound;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.lang.reflect.Method;
+import java.util.Locale;
+
 public class AreaEffectsConfig {
 
     private final String world;
@@ -89,10 +92,27 @@ public class AreaEffectsConfig {
     }
 
     private Sound parseSound(String name) {
+        Sound parsed = resolveSound(name);
+        return parsed != null ? parsed : resolveSound("ENTITY_GENERIC_EXPLODE");
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private Sound resolveSound(String name) {
+        if (name == null || name.isBlank()) {
+            return null;
+        }
         try {
-            return Sound.valueOf(name.toUpperCase());
-        } catch (Exception ignored) {
-            return Sound.ENTITY_GENERIC_EXPLODE;
+            Class<?> soundClass = Class.forName("org.bukkit.Sound");
+            Object sound;
+            if (soundClass.isEnum()) {
+                sound = Enum.valueOf((Class<? extends Enum>) soundClass.asSubclass(Enum.class), name.trim().toUpperCase(Locale.ROOT));
+            } else {
+                Method valueOf = soundClass.getMethod("valueOf", String.class);
+                sound = valueOf.invoke(null, name.trim().toUpperCase(Locale.ROOT));
+            }
+            return (Sound) sound;
+        } catch (ReflectiveOperationException | IllegalArgumentException | ClassCastException | LinkageError ignored) {
+            return null;
         }
     }
 

@@ -1,6 +1,7 @@
 package hex.towns.heart;
 
 import hex.core.api.HexApi;
+import hex.core.api.compat.SoundCompatibility;
 import hex.core.api.ui.UiTokens;
 import hex.towns.api.event.TownRenamedEvent;
 import hex.towns.config.TownsConfig;
@@ -12,7 +13,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -527,7 +527,7 @@ public final class TownHeartListener implements Listener {
             }
             heartService.installHeart(town, placement.clickedLocation());
             consumeOneHeart(player);
-            player.playSound(player.getLocation(), Sound.BLOCK_BEACON_ACTIVATE, 0.8f, 1.2f);
+            SoundCompatibility.play(player, player.getLocation(), "BLOCK_BEACON_ACTIVATE", 0.8f, 1.2f);
             api.ui().send(player, "towns.heart.placed", UiTokens.of("town", town.name()));
             return;
         }
@@ -553,7 +553,7 @@ public final class TownHeartListener implements Listener {
                     .append(Component.text(town.name(), NamedTextColor.GOLD))
                     .append(Component.text(" założone przez ", NamedTextColor.GREEN))
                     .append(Component.text(player.getName(), NamedTextColor.AQUA)));
-            player.playSound(player.getLocation(), Sound.BLOCK_BEACON_ACTIVATE, 0.8f, 1.2f);
+            SoundCompatibility.play(player, player.getLocation(), "BLOCK_BEACON_ACTIVATE", 0.8f, 1.2f);
             api.ui().send(player, result.templateKey(), result.tokens());
         }));
     }

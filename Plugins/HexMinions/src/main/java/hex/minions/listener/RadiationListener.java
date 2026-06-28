@@ -33,9 +33,10 @@ public final class RadiationListener implements Listener {
             Inventory top = player.getOpenInventory().getTopInventory();
             if (top != null && top.getHolder() instanceof Chest) enriched += countEnriched(top);
             if (enriched <= 0) continue;
-            double damage = 2.0D * enriched;
-            player.damage(damage);
-            player.sendActionBar(net.kyori.adventure.text.Component.text("§a☢ §cPromieniowanie: §f" + enriched + "x wzbogacony uran"));
+            double reduction = radiationReduction(player);
+            double damage = (2.0D * enriched) * Math.max(0.0D, 1.0D - reduction);
+            if (damage > 0.0D) player.damage(damage);
+            player.sendActionBar(net.kyori.adventure.text.Component.text("§a☢ §cPromieniowanie: §f" + enriched + "x wzbogacony uran §7(ochrona " + Math.round(reduction * 100.0D) + "%)"));
         }
     }
 
@@ -45,8 +46,10 @@ public final class RadiationListener implements Listener {
         if (!(event.getInventory().getHolder() instanceof Chest)) return;
         int enriched = countEnriched(event.getInventory());
         if (enriched > 0) {
-            player.damage(2.0D * enriched);
-            player.sendMessage("§cW skrzyni znajduje się wzbogacony uran. Promieniowanie zadało obrażenia.");
+            double reduction = radiationReduction(player);
+            double damage = (2.0D * enriched) * Math.max(0.0D, 1.0D - reduction);
+            if (damage > 0.0D) player.damage(damage);
+            player.sendMessage("§cW skrzyni znajduje się wzbogacony uran. Ochrona kombinezonu: " + Math.round(reduction * 100.0D) + "%.");
         }
     }
 
@@ -77,6 +80,21 @@ public final class RadiationListener implements Listener {
                 return;
             }
         }
+    }
+
+    private double radiationReduction(Player player) {
+        if (player == null) return 0.0D;
+        double reduction = 0.0D;
+        reduction += armorPieceReduction(player.getInventory().getHelmet(), "hazmat_helmet", 0.20D);
+        reduction += armorPieceReduction(player.getInventory().getChestplate(), "hazmat_chestplate", 0.40D);
+        reduction += armorPieceReduction(player.getInventory().getLeggings(), "hazmat_leggings", 0.30D);
+        reduction += armorPieceReduction(player.getInventory().getBoots(), "hazmat_boots", 0.10D);
+        return Math.max(0.0D, Math.min(1.0D, reduction));
+    }
+
+    private double armorPieceReduction(ItemStack item, String specialId, double value) {
+        if (item == null || item.getType() == Material.AIR) return 0.0D;
+        return service.specialItems().readSpecialItemId(item).map(id -> id.equalsIgnoreCase(specialId) ? value : 0.0D).orElse(0.0D);
     }
 
     private int countEnriched(Inventory inventory) {

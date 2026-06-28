@@ -90,8 +90,10 @@ public class DrownListener implements Listener {
             } else {
                 if (!countdownStarted.contains(uuid)) {
                     countdownStarted.add(uuid);
-                    player.playSound(player.getLocation(), config.getCountdownStartSound(),
-                            config.getCountdownStartSoundVolume(), config.getCountdownStartSoundPitch());
+                    if (config.getCountdownStartSound() != null) {
+                        player.playSound(player.getLocation(), config.getCountdownStartSound(),
+                                config.getCountdownStartSoundVolume(), config.getCountdownStartSoundPitch());
+                    }
                 }
 
                 int remainingTicks = Math.max(0, killTicks - ticks);

@@ -7,6 +7,7 @@ public final class MachineRuntime {
     private final String blockKey;
     private String machineId;
     private ItemStack input;
+    private final ItemStack[] extraInputs = new ItemStack[2];
     private ItemStack secondary;
     private ItemStack fuel;
     private ItemStack output;
@@ -17,6 +18,8 @@ public final class MachineRuntime {
     private int lastFuelSeconds;
     private int burnRemainingSeconds;
     private int burnEuRemaining;
+    private long lastActiveAtMillis = System.currentTimeMillis();
+    private String accumulatorInputFace = "";
 
     public MachineRuntime(String blockKey, String machineId) {
         this.blockKey = blockKey;
@@ -28,6 +31,16 @@ public final class MachineRuntime {
     public void machineId(String machineId) { this.machineId = machineId == null ? "" : machineId.toLowerCase(java.util.Locale.ROOT); }
     public ItemStack input() { return clone(input); }
     public void input(ItemStack input) { this.input = clone(input); }
+    public ItemStack extraInput(int index) { return index >= 0 && index < extraInputs.length ? clone(extraInputs[index]) : null; }
+    public void extraInput(int index, ItemStack item) { if (index >= 0 && index < extraInputs.length) extraInputs[index] = clone(item); }
+    public ItemStack inputAt(int index) {
+        if (index <= 0) return input();
+        return extraInput(index - 1);
+    }
+    public void inputAt(int index, ItemStack item) {
+        if (index <= 0) input(item);
+        else extraInput(index - 1, item);
+    }
     public ItemStack secondary() { return clone(secondary); }
     public void secondary(ItemStack secondary) { this.secondary = clone(secondary); }
     public ItemStack fuel() { return clone(fuel); }
@@ -57,6 +70,11 @@ public final class MachineRuntime {
     public int lastFuelSeconds() { return lastFuelSeconds; }
     public int burnRemainingSeconds() { return burnRemainingSeconds; }
     public int burnEuRemaining() { return burnEuRemaining; }
+    public long lastActiveAtMillis() { return lastActiveAtMillis; }
+    public void lastActiveAtMillis(long value) { this.lastActiveAtMillis = Math.max(0L, value); }
+    public void touchActiveNow() { this.lastActiveAtMillis = System.currentTimeMillis(); }
+    public String accumulatorInputFace() { return accumulatorInputFace; }
+    public void accumulatorInputFace(String face) { this.accumulatorInputFace = face == null ? "" : face.toUpperCase(java.util.Locale.ROOT); }
 
     public void resetProcess() {
         recipeId = "";
@@ -117,13 +135,17 @@ public final class MachineRuntime {
         if (fuel.getAmount() <= 0) fuel = null;
     }
 
-    public void consumeInput(int amount) { input = consume(input, amount); }
+    public void consumeInput(int amount) { consumeInputAt(0, amount); }
+    public void consumeInputAt(int index, int amount) {
+        if (index <= 0) input = consume(input, amount);
+        else if (index - 1 >= 0 && index - 1 < extraInputs.length) extraInputs[index - 1] = consume(extraInputs[index - 1], amount);
+    }
     public void consumeSecondary(int amount) { secondary = consume(secondary, amount); }
     public void consumeRecipeFuel(int amount) { fuel = consume(fuel, amount); }
 
     public void drop(Location loc) {
         if (loc == null || loc.getWorld() == null) return;
-        for (ItemStack item : new ItemStack[]{input, secondary, fuel, output, upgrades[0], upgrades[1], upgrades[2]}) {
+        for (ItemStack item : new ItemStack[]{input, extraInputs[0], extraInputs[1], secondary, fuel, output, upgrades[0], upgrades[1], upgrades[2]}) {
             if (item != null && !item.getType().isAir()) loc.getWorld().dropItemNaturally(loc, item);
         }
     }

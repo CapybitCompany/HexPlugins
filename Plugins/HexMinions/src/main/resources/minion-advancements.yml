@@ -3,14 +3,6 @@ advancements:
   namespace: hexminions
   check-on-join: true
   tab-background: minecraft:textures/gui/advancements/backgrounds/stone.png
-
-  # Advancementy są ładowane dynamicznie do vanilla widoku osiągnięć (domyślnie klawisz L).
-  # Każda definicja używa ręcznego kryterium minecraft:impossible, a plugin przyznaje je
-  # po spełnieniu warunku z sekcji requirement.
-  # Dostępne typy requirement:
-  # - town-member: gracz należy do dowolnego miasta
-  # - minion-type: miasto gracza posiada miniona danego typu, opcjonalnie od konkretnego tieru
-  # - minion-tier: miasto gracza posiada dowolnego miniona na wskazanym tierze lub wyżej
   nodes:
     city_root:
       path: city/root
@@ -23,7 +15,6 @@ advancements:
       hidden: false
       requirement:
         type: town-member
-
     cobblestone_minion:
       path: minions/cobblestone
       parent: city/root
@@ -38,7 +29,6 @@ advancements:
         type: minion-type
         minion-type: cobblestone
         min-tier: 1
-
     dirt_minion:
       path: minions/dirt
       parent: minions/cobblestone
@@ -53,7 +43,6 @@ advancements:
         type: minion-type
         minion-type: dirt
         min-tier: 1
-
     oak_wood_minion:
       path: minions/oak_wood
       parent: minions/dirt
@@ -68,7 +57,6 @@ advancements:
         type: minion-type
         minion-type: oak_plank
         min-tier: 1
-
     spruce_wood_minion:
       path: minions/spruce_wood
       parent: minions/dirt
@@ -83,7 +71,6 @@ advancements:
         type: minion-type
         minion-type: spruce_wood
         min-tier: 1
-
     stone_minion:
       path: minions/stone
       parent: minions/dirt
@@ -98,7 +85,6 @@ advancements:
         type: minion-type
         minion-type: stone
         min-tier: 1
-
     tier_1:
       path: tiers/1
       parent: city/root
@@ -112,7 +98,6 @@ advancements:
       requirement:
         type: minion-tier
         min-tier: 1
-
     tier_2:
       path: tiers/2
       parent: tiers/1
@@ -126,7 +111,6 @@ advancements:
       requirement:
         type: minion-tier
         min-tier: 2
-
     tier_3:
       path: tiers/3
       parent: tiers/2
@@ -140,7 +124,7 @@ advancements:
       requirement:
         type: minion-tier
         min-tier: 3
-
+      growth-points: 1
     tier_4:
       path: tiers/4
       parent: tiers/3
@@ -154,7 +138,6 @@ advancements:
       requirement:
         type: minion-tier
         min-tier: 4
-
     tier_5:
       path: tiers/5
       parent: tiers/4
@@ -168,7 +151,6 @@ advancements:
       requirement:
         type: minion-tier
         min-tier: 5
-
     tier_6:
       path: tiers/6
       parent: tiers/5
@@ -182,7 +164,7 @@ advancements:
       requirement:
         type: minion-tier
         min-tier: 6
-
+      growth-points: 1
     tier_7:
       path: tiers/7
       parent: tiers/6
@@ -195,4 +177,1999 @@ advancements:
       hidden: false
       requirement:
         type: minion-tier
+        min-tier: 7
+    collections_root:
+      path: collections/root
+      title: Kolekcje
+      description: Postaw miasto albo dołącz do istniejącego miasta, aby rozwijać kolekcje miasta.
+      icon: BOOK
+      frame: task
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: town-member
+    collections_first_level:
+      path: collections/first_level
+      parent: collections/root
+      title: Pierwsza kolekcja I
+      description: Osiągnij poziom I w dowolnej kolekcji miasta.
+      icon: CHEST
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: any-collection-level
+        min-level: 1
+    collection_req_animals_beef_25_cow_1:
+      path: collections/animals_beef/cow_1_25
+      parent: collections/first_level
+      title: Minion krowy Tier 1
+      description: 'Zdobądź 25 punktów w kolekcji animals.beef, aby spełnić wymaganie dla: Minion krowy Tier 1.'
+      icon: BEEF
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: animals.beef
+        amount: 25
+    collection_req_animals_beef_100_cow_2:
+      path: collections/animals_beef/cow_2_100
+      parent: collections/animals_beef/cow_1_25
+      title: Minion krowy Tier 2
+      description: 'Zdobądź 100 punktów w kolekcji animals.beef, aby spełnić wymaganie dla: Minion krowy Tier 2.'
+      icon: BEEF
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: animals.beef
+        amount: 100
+    collection_req_animals_beef_250_cow_3:
+      path: collections/animals_beef/cow_3_250
+      parent: collections/animals_beef/cow_2_100
+      title: Minion krowy Tier 3
+      description: 'Zdobądź 250 punktów w kolekcji animals.beef, aby spełnić wymaganie dla: Minion krowy Tier 3.'
+      icon: BEEF
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: animals.beef
+        amount: 250
+    collection_req_animals_beef_500_cow_4:
+      path: collections/animals_beef/cow_4_500
+      parent: collections/animals_beef/cow_3_250
+      title: Minion krowy Tier 4
+      description: 'Zdobądź 500 punktów w kolekcji animals.beef, aby spełnić wymaganie dla: Minion krowy Tier 4.'
+      icon: BEEF
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: animals.beef
+        amount: 500
+    collection_req_animals_beef_1000_cow_5:
+      path: collections/animals_beef/cow_5_1000
+      parent: collections/animals_beef/cow_4_500
+      title: Minion krowy Tier 5
+      description: 'Zdobądź 1000 punktów w kolekcji animals.beef, aby spełnić wymaganie dla: Minion krowy Tier 5.'
+      icon: BEEF
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: animals.beef
+        amount: 1000
+    collection_req_animals_beef_2500_cow_6:
+      path: collections/animals_beef/cow_6_2500
+      parent: collections/animals_beef/cow_5_1000
+      title: Minion krowy Tier 6
+      description: 'Zdobądź 2500 punktów w kolekcji animals.beef, aby spełnić wymaganie dla: Minion krowy Tier 6.'
+      icon: BEEF
+      frame: goal
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: animals.beef
+        amount: 2500
+    collection_req_animals_beef_5000_cow_7:
+      path: collections/animals_beef/cow_7_5000
+      parent: collections/animals_beef/cow_6_2500
+      title: Minion krowy Tier 7
+      description: 'Zdobądź 5000 punktów w kolekcji animals.beef, aby spełnić wymaganie dla: Minion krowy Tier 7.'
+      icon: BEEF
+      frame: goal
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: animals.beef
+        amount: 5000
+    collection_req_animals_chicken_meat_25_chicken_1:
+      path: collections/animals_chicken_meat/chicken_1_25
+      parent: collections/first_level
+      title: Minion kurczaka Tier 1
+      description: 'Zdobądź 25 punktów w kolekcji animals.chicken_meat, aby spełnić wymaganie dla: Minion kurczaka Tier 1.'
+      icon: CHICKEN
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: animals.chicken_meat
+        amount: 25
+    collection_req_animals_chicken_meat_100_chicken_2:
+      path: collections/animals_chicken_meat/chicken_2_100
+      parent: collections/animals_chicken_meat/chicken_1_25
+      title: Minion kurczaka Tier 2
+      description: 'Zdobądź 100 punktów w kolekcji animals.chicken_meat, aby spełnić wymaganie dla: Minion kurczaka Tier 2.'
+      icon: CHICKEN
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: animals.chicken_meat
+        amount: 100
+    collection_req_animals_chicken_meat_250_chicken_3:
+      path: collections/animals_chicken_meat/chicken_3_250
+      parent: collections/animals_chicken_meat/chicken_2_100
+      title: Minion kurczaka Tier 3
+      description: 'Zdobądź 250 punktów w kolekcji animals.chicken_meat, aby spełnić wymaganie dla: Minion kurczaka Tier 3.'
+      icon: CHICKEN
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: animals.chicken_meat
+        amount: 250
+    collection_req_animals_chicken_meat_500_chicken_4:
+      path: collections/animals_chicken_meat/chicken_4_500
+      parent: collections/animals_chicken_meat/chicken_3_250
+      title: Minion kurczaka Tier 4
+      description: 'Zdobądź 500 punktów w kolekcji animals.chicken_meat, aby spełnić wymaganie dla: Minion kurczaka Tier 4.'
+      icon: CHICKEN
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: animals.chicken_meat
+        amount: 500
+    collection_req_animals_chicken_meat_1000_chicken_5:
+      path: collections/animals_chicken_meat/chicken_5_1000
+      parent: collections/animals_chicken_meat/chicken_4_500
+      title: Minion kurczaka Tier 5
+      description: 'Zdobądź 1000 punktów w kolekcji animals.chicken_meat, aby spełnić wymaganie dla: Minion kurczaka Tier 5.'
+      icon: CHICKEN
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: animals.chicken_meat
+        amount: 1000
+    collection_req_animals_chicken_meat_2500_chicken_6:
+      path: collections/animals_chicken_meat/chicken_6_2500
+      parent: collections/animals_chicken_meat/chicken_5_1000
+      title: Minion kurczaka Tier 6
+      description: 'Zdobądź 2500 punktów w kolekcji animals.chicken_meat, aby spełnić wymaganie dla: Minion kurczaka Tier 6.'
+      icon: CHICKEN
+      frame: goal
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: animals.chicken_meat
+        amount: 2500
+    collection_req_animals_chicken_meat_5000_chicken_7:
+      path: collections/animals_chicken_meat/chicken_7_5000
+      parent: collections/animals_chicken_meat/chicken_6_2500
+      title: Minion kurczaka Tier 7
+      description: 'Zdobądź 5000 punktów w kolekcji animals.chicken_meat, aby spełnić wymaganie dla: Minion kurczaka Tier 7.'
+      icon: CHICKEN
+      frame: goal
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: animals.chicken_meat
+        amount: 5000
+    collection_req_animals_pork_25_pig_1:
+      path: collections/animals_pork/pig_1_25
+      parent: collections/first_level
+      title: Minion świni Tier 1
+      description: 'Zdobądź 25 punktów w kolekcji animals.pork, aby spełnić wymaganie dla: Minion świni Tier 1.'
+      icon: PORKCHOP
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: animals.pork
+        amount: 25
+    collection_req_animals_pork_100_pig_2:
+      path: collections/animals_pork/pig_2_100
+      parent: collections/animals_pork/pig_1_25
+      title: Minion świni Tier 2
+      description: 'Zdobądź 100 punktów w kolekcji animals.pork, aby spełnić wymaganie dla: Minion świni Tier 2.'
+      icon: PORKCHOP
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: animals.pork
+        amount: 100
+    collection_req_animals_pork_250_pig_3:
+      path: collections/animals_pork/pig_3_250
+      parent: collections/animals_pork/pig_2_100
+      title: Minion świni Tier 3
+      description: 'Zdobądź 250 punktów w kolekcji animals.pork, aby spełnić wymaganie dla: Minion świni Tier 3.'
+      icon: PORKCHOP
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: animals.pork
+        amount: 250
+    collection_req_animals_pork_500_pig_4:
+      path: collections/animals_pork/pig_4_500
+      parent: collections/animals_pork/pig_3_250
+      title: Minion świni Tier 4
+      description: 'Zdobądź 500 punktów w kolekcji animals.pork, aby spełnić wymaganie dla: Minion świni Tier 4.'
+      icon: PORKCHOP
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: animals.pork
+        amount: 500
+    collection_req_animals_pork_1000_pig_5:
+      path: collections/animals_pork/pig_5_1000
+      parent: collections/animals_pork/pig_4_500
+      title: Minion świni Tier 5
+      description: 'Zdobądź 1000 punktów w kolekcji animals.pork, aby spełnić wymaganie dla: Minion świni Tier 5.'
+      icon: PORKCHOP
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: animals.pork
+        amount: 1000
+    collection_req_animals_pork_2500_pig_6:
+      path: collections/animals_pork/pig_6_2500
+      parent: collections/animals_pork/pig_5_1000
+      title: Minion świni Tier 6
+      description: 'Zdobądź 2500 punktów w kolekcji animals.pork, aby spełnić wymaganie dla: Minion świni Tier 6.'
+      icon: PORKCHOP
+      frame: goal
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: animals.pork
+        amount: 2500
+    collection_req_animals_pork_5000_pig_7:
+      path: collections/animals_pork/pig_7_5000
+      parent: collections/animals_pork/pig_6_2500
+      title: Minion świni Tier 7
+      description: 'Zdobądź 5000 punktów w kolekcji animals.pork, aby spełnić wymaganie dla: Minion świni Tier 7.'
+      icon: PORKCHOP
+      frame: goal
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: animals.pork
+        amount: 5000
+    collection_req_animals_wool_25_sheep_1:
+      path: collections/animals_wool/sheep_1_25
+      parent: collections/first_level
+      title: Minion owcy Tier 1
+      description: 'Zdobądź 25 punktów w kolekcji animals.wool, aby spełnić wymaganie dla: Minion owcy Tier 1.'
+      icon: WHITE_WOOL
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: animals.wool
+        amount: 25
+    collection_req_animals_wool_100_sheep_2:
+      path: collections/animals_wool/sheep_2_100
+      parent: collections/animals_wool/sheep_1_25
+      title: Minion owcy Tier 2
+      description: 'Zdobądź 100 punktów w kolekcji animals.wool, aby spełnić wymaganie dla: Minion owcy Tier 2.'
+      icon: WHITE_WOOL
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: animals.wool
+        amount: 100
+    collection_req_animals_wool_250_sheep_3:
+      path: collections/animals_wool/sheep_3_250
+      parent: collections/animals_wool/sheep_2_100
+      title: Minion owcy Tier 3
+      description: 'Zdobądź 250 punktów w kolekcji animals.wool, aby spełnić wymaganie dla: Minion owcy Tier 3.'
+      icon: WHITE_WOOL
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: animals.wool
+        amount: 250
+    collection_req_animals_wool_500_sheep_4:
+      path: collections/animals_wool/sheep_4_500
+      parent: collections/animals_wool/sheep_3_250
+      title: Minion owcy Tier 4
+      description: 'Zdobądź 500 punktów w kolekcji animals.wool, aby spełnić wymaganie dla: Minion owcy Tier 4.'
+      icon: WHITE_WOOL
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: animals.wool
+        amount: 500
+    collection_req_animals_wool_1000_sheep_5:
+      path: collections/animals_wool/sheep_5_1000
+      parent: collections/animals_wool/sheep_4_500
+      title: Minion owcy Tier 5
+      description: 'Zdobądź 1000 punktów w kolekcji animals.wool, aby spełnić wymaganie dla: Minion owcy Tier 5.'
+      icon: WHITE_WOOL
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: animals.wool
+        amount: 1000
+    collection_req_animals_wool_2500_sheep_6:
+      path: collections/animals_wool/sheep_6_2500
+      parent: collections/animals_wool/sheep_5_1000
+      title: Minion owcy Tier 6
+      description: 'Zdobądź 2500 punktów w kolekcji animals.wool, aby spełnić wymaganie dla: Minion owcy Tier 6.'
+      icon: WHITE_WOOL
+      frame: goal
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: animals.wool
+        amount: 2500
+    collection_req_animals_wool_5000_sheep_7:
+      path: collections/animals_wool/sheep_7_5000
+      parent: collections/animals_wool/sheep_6_2500
+      title: Minion owcy Tier 7
+      description: 'Zdobądź 5000 punktów w kolekcji animals.wool, aby spełnić wymaganie dla: Minion owcy Tier 7.'
+      icon: WHITE_WOOL
+      frame: goal
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: animals.wool
+        amount: 5000
+    collection_req_foraging_oak_wood_80_oak_plank_1:
+      path: collections/foraging_oak_wood/oak_plank_1_80
+      parent: collections/first_level
+      title: Minion drewna dębowego Tier 1
+      description: 'Zdobądź 80 punktów w kolekcji foraging.oak_wood, aby spełnić wymaganie dla: Minion drewna dębowego Tier 1.'
+      icon: OAK_LOG
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: foraging.oak_wood
+        amount: 80
+    collection_req_foraging_oak_wood_160_oak_plank_2:
+      path: collections/foraging_oak_wood/oak_plank_2_160
+      parent: collections/foraging_oak_wood/oak_plank_1_80
+      title: Minion drewna dębowego Tier 2
+      description: 'Zdobądź 160 punktów w kolekcji foraging.oak_wood, aby spełnić wymaganie dla: Minion drewna dębowego Tier 2.'
+      icon: OAK_LOG
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: foraging.oak_wood
+        amount: 160
+    collection_req_foraging_oak_wood_320_oak_plank_3:
+      path: collections/foraging_oak_wood/oak_plank_3_320
+      parent: collections/foraging_oak_wood/oak_plank_2_160
+      title: Minion drewna dębowego Tier 3
+      description: 'Zdobądź 320 punktów w kolekcji foraging.oak_wood, aby spełnić wymaganie dla: Minion drewna dębowego Tier 3.'
+      icon: OAK_LOG
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: foraging.oak_wood
+        amount: 320
+    collection_req_foraging_oak_wood_640_oak_plank_4:
+      path: collections/foraging_oak_wood/oak_plank_4_640
+      parent: collections/foraging_oak_wood/oak_plank_3_320
+      title: Minion drewna dębowego Tier 4
+      description: 'Zdobądź 640 punktów w kolekcji foraging.oak_wood, aby spełnić wymaganie dla: Minion drewna dębowego Tier 4.'
+      icon: OAK_LOG
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: foraging.oak_wood
+        amount: 640
+    collection_req_foraging_oak_wood_1280_oak_plank_5:
+      path: collections/foraging_oak_wood/oak_plank_5_1280
+      parent: collections/foraging_oak_wood/oak_plank_4_640
+      title: Minion drewna dębowego Tier 5
+      description: 'Zdobądź 1280 punktów w kolekcji foraging.oak_wood, aby spełnić wymaganie dla: Minion drewna dębowego Tier 5.'
+      icon: OAK_LOG
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: foraging.oak_wood
+        amount: 1280
+    collection_req_foraging_spruce_wood_80_spruce_wood_1:
+      path: collections/foraging_spruce_wood/spruce_wood_1_80
+      parent: collections/first_level
+      title: Minion drewna świerkowego Tier 1
+      description: 'Zdobądź 80 punktów w kolekcji foraging.spruce_wood, aby spełnić wymaganie dla: Minion drewna świerkowego Tier 1.'
+      icon: SPRUCE_LOG
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: foraging.spruce_wood
+        amount: 80
+    collection_req_foraging_spruce_wood_160_spruce_wood_2:
+      path: collections/foraging_spruce_wood/spruce_wood_2_160
+      parent: collections/foraging_spruce_wood/spruce_wood_1_80
+      title: Minion drewna świerkowego Tier 2
+      description: 'Zdobądź 160 punktów w kolekcji foraging.spruce_wood, aby spełnić wymaganie dla: Minion drewna świerkowego Tier 2.'
+      icon: SPRUCE_LOG
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: foraging.spruce_wood
+        amount: 160
+    collection_req_foraging_spruce_wood_320_spruce_wood_3:
+      path: collections/foraging_spruce_wood/spruce_wood_3_320
+      parent: collections/foraging_spruce_wood/spruce_wood_2_160
+      title: Minion drewna świerkowego Tier 3
+      description: 'Zdobądź 320 punktów w kolekcji foraging.spruce_wood, aby spełnić wymaganie dla: Minion drewna świerkowego Tier 3.'
+      icon: SPRUCE_LOG
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: foraging.spruce_wood
+        amount: 320
+    collection_req_foraging_spruce_wood_640_spruce_wood_4:
+      path: collections/foraging_spruce_wood/spruce_wood_4_640
+      parent: collections/foraging_spruce_wood/spruce_wood_3_320
+      title: Minion drewna świerkowego Tier 4
+      description: 'Zdobądź 640 punktów w kolekcji foraging.spruce_wood, aby spełnić wymaganie dla: Minion drewna świerkowego Tier 4.'
+      icon: SPRUCE_LOG
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: foraging.spruce_wood
+        amount: 640
+    collection_req_foraging_spruce_wood_1280_spruce_wood_5:
+      path: collections/foraging_spruce_wood/spruce_wood_5_1280
+      parent: collections/foraging_spruce_wood/spruce_wood_4_640
+      title: Minion drewna świerkowego Tier 5
+      description: 'Zdobądź 1280 punktów w kolekcji foraging.spruce_wood, aby spełnić wymaganie dla: Minion drewna świerkowego Tier 5.'
+      icon: SPRUCE_LOG
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: foraging.spruce_wood
+        amount: 1280
+    collection_req_mining_coal_80_coal_1:
+      path: collections/mining_coal/coal_1_80
+      parent: collections/first_level
+      title: Minion węgla Tier 1
+      description: 'Zdobądź 80 punktów w kolekcji mining.coal, aby spełnić wymaganie dla: Minion węgla Tier 1.'
+      icon: COAL
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.coal
+        amount: 80
+    collection_req_mining_coal_160_coal_2:
+      path: collections/mining_coal/coal_2_160
+      parent: collections/mining_coal/coal_1_80
+      title: Minion węgla Tier 2
+      description: 'Zdobądź 160 punktów w kolekcji mining.coal, aby spełnić wymaganie dla: Minion węgla Tier 2.'
+      icon: COAL
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.coal
+        amount: 160
+    collection_req_mining_coal_320_coal_3:
+      path: collections/mining_coal/coal_3_320
+      parent: collections/mining_coal/coal_2_160
+      title: Minion węgla Tier 3
+      description: 'Zdobądź 320 punktów w kolekcji mining.coal, aby spełnić wymaganie dla: Minion węgla Tier 3.'
+      icon: COAL
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.coal
+        amount: 320
+    collection_req_mining_coal_640_coal_4:
+      path: collections/mining_coal/coal_4_640
+      parent: collections/mining_coal/coal_3_320
+      title: Minion węgla Tier 4
+      description: 'Zdobądź 640 punktów w kolekcji mining.coal, aby spełnić wymaganie dla: Minion węgla Tier 4.'
+      icon: COAL
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.coal
+        amount: 640
+    collection_req_mining_coal_1280_coal_5:
+      path: collections/mining_coal/coal_5_1280
+      parent: collections/mining_coal/coal_4_640
+      title: Minion węgla Tier 5
+      description: 'Zdobądź 1280 punktów w kolekcji mining.coal, aby spełnić wymaganie dla: Minion węgla Tier 5.'
+      icon: COAL
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.coal
+        amount: 1280
+    collection_req_mining_coal_2560_coal_6:
+      path: collections/mining_coal/coal_6_2560
+      parent: collections/mining_coal/coal_5_1280
+      title: Minion węgla Tier 6
+      description: 'Zdobądź 2560 punktów w kolekcji mining.coal, aby spełnić wymaganie dla: Minion węgla Tier 6.'
+      icon: COAL
+      frame: goal
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.coal
+        amount: 2560
+    collection_req_mining_coal_5120_coal_7:
+      path: collections/mining_coal/coal_7_5120
+      parent: collections/mining_coal/coal_6_2560
+      title: Minion węgla Tier 7
+      description: 'Zdobądź 5120 punktów w kolekcji mining.coal, aby spełnić wymaganie dla: Minion węgla Tier 7.'
+      icon: COAL
+      frame: goal
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.coal
+        amount: 5120
+    collection_req_mining_cobblestone_80_cobblestone_1:
+      path: collections/mining_cobblestone/cobblestone_1_80
+      parent: collections/first_level
+      title: Minion bruku Tier 1
+      description: 'Zdobądź 80 punktów w kolekcji mining.cobblestone, aby spełnić wymaganie dla: Minion bruku Tier 1.'
+      icon: COBBLESTONE
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.cobblestone
+        amount: 80
+    collection_req_mining_cobblestone_160_cobblestone_2:
+      path: collections/mining_cobblestone/cobblestone_2_160
+      parent: collections/mining_cobblestone/cobblestone_1_80
+      title: Minion bruku Tier 2
+      description: 'Zdobądź 160 punktów w kolekcji mining.cobblestone, aby spełnić wymaganie dla: Minion bruku Tier 2.'
+      icon: COBBLESTONE
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.cobblestone
+        amount: 160
+    collection_req_mining_cobblestone_320_cobblestone_3:
+      path: collections/mining_cobblestone/cobblestone_3_320
+      parent: collections/mining_cobblestone/cobblestone_2_160
+      title: Minion bruku Tier 3
+      description: 'Zdobądź 320 punktów w kolekcji mining.cobblestone, aby spełnić wymaganie dla: Minion bruku Tier 3.'
+      icon: COBBLESTONE
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.cobblestone
+        amount: 320
+    collection_req_mining_cobblestone_640_cobblestone_4:
+      path: collections/mining_cobblestone/cobblestone_4_640
+      parent: collections/mining_cobblestone/cobblestone_3_320
+      title: Minion bruku Tier 4
+      description: 'Zdobądź 640 punktów w kolekcji mining.cobblestone, aby spełnić wymaganie dla: Minion bruku Tier 4.'
+      icon: COBBLESTONE
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.cobblestone
+        amount: 640
+    collection_req_mining_cobblestone_1280_cobblestone_5:
+      path: collections/mining_cobblestone/cobblestone_5_1280
+      parent: collections/mining_cobblestone/cobblestone_4_640
+      title: Minion bruku Tier 5
+      description: 'Zdobądź 1280 punktów w kolekcji mining.cobblestone, aby spełnić wymaganie dla: Minion bruku Tier 5.'
+      icon: COBBLESTONE
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.cobblestone
+        amount: 1280
+    collection_req_mining_copper_80_copper_1:
+      path: collections/mining_copper/copper_1_80
+      parent: collections/first_level
+      title: Miedziany Golem Tier 1
+      description: 'Zdobądź 80 punktów w kolekcji mining.copper, aby spełnić wymaganie dla: Miedziany Golem Tier 1.'
+      icon: COPPER_INGOT
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.copper
+        amount: 80
+    collection_req_mining_copper_160_copper_2:
+      path: collections/mining_copper/copper_2_160
+      parent: collections/mining_copper/copper_1_80
+      title: Miedziany Golem Tier 2
+      description: 'Zdobądź 160 punktów w kolekcji mining.copper, aby spełnić wymaganie dla: Miedziany Golem Tier 2.'
+      icon: COPPER_INGOT
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.copper
+        amount: 160
+    collection_req_mining_copper_320_copper_3:
+      path: collections/mining_copper/copper_3_320
+      parent: collections/mining_copper/copper_2_160
+      title: Miedziany Golem Tier 3
+      description: 'Zdobądź 320 punktów w kolekcji mining.copper, aby spełnić wymaganie dla: Miedziany Golem Tier 3.'
+      icon: COPPER_INGOT
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.copper
+        amount: 320
+    collection_req_mining_copper_640_copper_4:
+      path: collections/mining_copper/copper_4_640
+      parent: collections/mining_copper/copper_3_320
+      title: Miedziany Golem Tier 4
+      description: 'Zdobądź 640 punktów w kolekcji mining.copper, aby spełnić wymaganie dla: Miedziany Golem Tier 4.'
+      icon: COPPER_INGOT
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.copper
+        amount: 640
+    collection_req_mining_copper_1280_copper_5:
+      path: collections/mining_copper/copper_5_1280
+      parent: collections/mining_copper/copper_4_640
+      title: Miedziany Golem Tier 5
+      description: 'Zdobądź 1280 punktów w kolekcji mining.copper, aby spełnić wymaganie dla: Miedziany Golem Tier 5.'
+      icon: COPPER_INGOT
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.copper
+        amount: 1280
+    collection_req_mining_copper_2560_copper_6:
+      path: collections/mining_copper/copper_6_2560
+      parent: collections/mining_copper/copper_5_1280
+      title: Miedziany Golem Tier 6
+      description: 'Zdobądź 2560 punktów w kolekcji mining.copper, aby spełnić wymaganie dla: Miedziany Golem Tier 6.'
+      icon: COPPER_INGOT
+      frame: goal
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.copper
+        amount: 2560
+    collection_req_mining_diamond_80_diamond_1:
+      path: collections/mining_diamond/diamond_1_80
+      parent: collections/first_level
+      title: Minion diamentu Tier 1
+      description: 'Zdobądź 80 punktów w kolekcji mining.diamond, aby spełnić wymaganie dla: Minion diamentu Tier 1.'
+      icon: DIAMOND
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.diamond
+        amount: 80
+    collection_req_mining_diamond_160_diamond_2:
+      path: collections/mining_diamond/diamond_2_160
+      parent: collections/mining_diamond/diamond_1_80
+      title: Minion diamentu Tier 2
+      description: 'Zdobądź 160 punktów w kolekcji mining.diamond, aby spełnić wymaganie dla: Minion diamentu Tier 2.'
+      icon: DIAMOND
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.diamond
+        amount: 160
+    collection_req_mining_diamond_320_diamond_3:
+      path: collections/mining_diamond/diamond_3_320
+      parent: collections/mining_diamond/diamond_2_160
+      title: Minion diamentu Tier 3
+      description: 'Zdobądź 320 punktów w kolekcji mining.diamond, aby spełnić wymaganie dla: Minion diamentu Tier 3.'
+      icon: DIAMOND
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.diamond
+        amount: 320
+    collection_req_mining_diamond_640_diamond_4:
+      path: collections/mining_diamond/diamond_4_640
+      parent: collections/mining_diamond/diamond_3_320
+      title: Minion diamentu Tier 4
+      description: 'Zdobądź 640 punktów w kolekcji mining.diamond, aby spełnić wymaganie dla: Minion diamentu Tier 4.'
+      icon: DIAMOND
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.diamond
+        amount: 640
+    collection_req_mining_diamond_1280_diamond_5:
+      path: collections/mining_diamond/diamond_5_1280
+      parent: collections/mining_diamond/diamond_4_640
+      title: Minion diamentu Tier 5
+      description: 'Zdobądź 1280 punktów w kolekcji mining.diamond, aby spełnić wymaganie dla: Minion diamentu Tier 5.'
+      icon: DIAMOND
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.diamond
+        amount: 1280
+    collection_req_mining_dirt_80_dirt_1:
+      path: collections/mining_dirt/dirt_1_80
+      parent: collections/first_level
+      title: Minion ziemi Tier 1
+      description: 'Zdobądź 80 punktów w kolekcji mining.dirt, aby spełnić wymaganie dla: Minion ziemi Tier 1.'
+      icon: DIRT
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.dirt
+        amount: 80
+    collection_req_mining_dirt_160_dirt_2:
+      path: collections/mining_dirt/dirt_2_160
+      parent: collections/mining_dirt/dirt_1_80
+      title: Minion ziemi Tier 2
+      description: 'Zdobądź 160 punktów w kolekcji mining.dirt, aby spełnić wymaganie dla: Minion ziemi Tier 2.'
+      icon: DIRT
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.dirt
+        amount: 160
+    collection_req_mining_dirt_320_dirt_3:
+      path: collections/mining_dirt/dirt_3_320
+      parent: collections/mining_dirt/dirt_2_160
+      title: Minion ziemi Tier 3
+      description: 'Zdobądź 320 punktów w kolekcji mining.dirt, aby spełnić wymaganie dla: Minion ziemi Tier 3.'
+      icon: DIRT
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.dirt
+        amount: 320
+    collection_req_mining_dirt_640_dirt_4:
+      path: collections/mining_dirt/dirt_4_640
+      parent: collections/mining_dirt/dirt_3_320
+      title: Minion ziemi Tier 4
+      description: 'Zdobądź 640 punktów w kolekcji mining.dirt, aby spełnić wymaganie dla: Minion ziemi Tier 4.'
+      icon: DIRT
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.dirt
+        amount: 640
+    collection_req_mining_dirt_1280_dirt_5:
+      path: collections/mining_dirt/dirt_5_1280
+      parent: collections/mining_dirt/dirt_4_640
+      title: Minion ziemi Tier 5
+      description: 'Zdobądź 1280 punktów w kolekcji mining.dirt, aby spełnić wymaganie dla: Minion ziemi Tier 5.'
+      icon: DIRT
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.dirt
+        amount: 1280
+    collection_req_mining_gold_80_gold_1:
+      path: collections/mining_gold/gold_1_80
+      parent: collections/first_level
+      title: Złoty Golem Tier 1
+      description: 'Zdobądź 80 punktów w kolekcji mining.gold, aby spełnić wymaganie dla: Złoty Golem Tier 1.'
+      icon: GOLD_INGOT
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.gold
+        amount: 80
+    collection_req_mining_gold_160_gold_2:
+      path: collections/mining_gold/gold_2_160
+      parent: collections/mining_gold/gold_1_80
+      title: Złoty Golem Tier 2
+      description: 'Zdobądź 160 punktów w kolekcji mining.gold, aby spełnić wymaganie dla: Złoty Golem Tier 2.'
+      icon: GOLD_INGOT
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.gold
+        amount: 160
+    collection_req_mining_gold_320_gold_3:
+      path: collections/mining_gold/gold_3_320
+      parent: collections/mining_gold/gold_2_160
+      title: Złoty Golem Tier 3
+      description: 'Zdobądź 320 punktów w kolekcji mining.gold, aby spełnić wymaganie dla: Złoty Golem Tier 3.'
+      icon: GOLD_INGOT
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.gold
+        amount: 320
+    collection_req_mining_gold_640_gold_4:
+      path: collections/mining_gold/gold_4_640
+      parent: collections/mining_gold/gold_3_320
+      title: Złoty Golem Tier 4
+      description: 'Zdobądź 640 punktów w kolekcji mining.gold, aby spełnić wymaganie dla: Złoty Golem Tier 4.'
+      icon: GOLD_INGOT
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.gold
+        amount: 640
+    collection_req_mining_gold_1280_gold_5:
+      path: collections/mining_gold/gold_5_1280
+      parent: collections/mining_gold/gold_4_640
+      title: Złoty Golem Tier 5
+      description: 'Zdobądź 1280 punktów w kolekcji mining.gold, aby spełnić wymaganie dla: Złoty Golem Tier 5.'
+      icon: GOLD_INGOT
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.gold
+        amount: 1280
+    collection_req_mining_gold_2560_gold_6:
+      path: collections/mining_gold/gold_6_2560
+      parent: collections/mining_gold/gold_5_1280
+      title: Złoty Golem Tier 6
+      description: 'Zdobądź 2560 punktów w kolekcji mining.gold, aby spełnić wymaganie dla: Złoty Golem Tier 6.'
+      icon: GOLD_INGOT
+      frame: goal
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.gold
+        amount: 2560
+    collection_req_mining_iron_80_iron_1:
+      path: collections/mining_iron/iron_1_80
+      parent: collections/first_level
+      title: Minion żelaza Tier 1
+      description: 'Zdobądź 80 punktów w kolekcji mining.iron, aby spełnić wymaganie dla: Minion żelaza Tier 1.'
+      icon: IRON_INGOT
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.iron
+        amount: 80
+    collection_req_mining_iron_160_iron_2:
+      path: collections/mining_iron/iron_2_160
+      parent: collections/mining_iron/iron_1_80
+      title: Minion żelaza Tier 2
+      description: 'Zdobądź 160 punktów w kolekcji mining.iron, aby spełnić wymaganie dla: Minion żelaza Tier 2.'
+      icon: IRON_INGOT
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.iron
+        amount: 160
+    collection_req_mining_iron_320_iron_3:
+      path: collections/mining_iron/iron_3_320
+      parent: collections/mining_iron/iron_2_160
+      title: Minion żelaza Tier 3
+      description: 'Zdobądź 320 punktów w kolekcji mining.iron, aby spełnić wymaganie dla: Minion żelaza Tier 3.'
+      icon: IRON_INGOT
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.iron
+        amount: 320
+    collection_req_mining_iron_640_iron_4:
+      path: collections/mining_iron/iron_4_640
+      parent: collections/mining_iron/iron_3_320
+      title: Minion żelaza Tier 4
+      description: 'Zdobądź 640 punktów w kolekcji mining.iron, aby spełnić wymaganie dla: Minion żelaza Tier 4.'
+      icon: IRON_INGOT
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.iron
+        amount: 640
+    collection_req_mining_iron_1280_iron_5:
+      path: collections/mining_iron/iron_5_1280
+      parent: collections/mining_iron/iron_4_640
+      title: Minion żelaza Tier 5
+      description: 'Zdobądź 1280 punktów w kolekcji mining.iron, aby spełnić wymaganie dla: Minion żelaza Tier 5.'
+      icon: IRON_INGOT
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.iron
+        amount: 1280
+    collection_req_mining_iron_2560_iron_6:
+      path: collections/mining_iron/iron_6_2560
+      parent: collections/mining_iron/iron_5_1280
+      title: Minion żelaza Tier 6
+      description: 'Zdobądź 2560 punktów w kolekcji mining.iron, aby spełnić wymaganie dla: Minion żelaza Tier 6.'
+      icon: IRON_INGOT
+      frame: goal
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.iron
+        amount: 2560
+    collection_req_mining_netherite_80_netherite_1:
+      path: collections/mining_netherite/netherite_1_80
+      parent: collections/first_level
+      title: Minion netheritu Tier 1
+      description: 'Zdobądź 80 punktów w kolekcji mining.netherite, aby spełnić wymaganie dla: Minion netheritu Tier 1.'
+      icon: NETHERITE_INGOT
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.netherite
+        amount: 80
+    collection_req_mining_netherite_160_netherite_2:
+      path: collections/mining_netherite/netherite_2_160
+      parent: collections/mining_netherite/netherite_1_80
+      title: Minion netheritu Tier 2
+      description: 'Zdobądź 160 punktów w kolekcji mining.netherite, aby spełnić wymaganie dla: Minion netheritu Tier 2.'
+      icon: NETHERITE_INGOT
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.netherite
+        amount: 160
+    collection_req_mining_netherite_320_netherite_3:
+      path: collections/mining_netherite/netherite_3_320
+      parent: collections/mining_netherite/netherite_2_160
+      title: Minion netheritu Tier 3
+      description: 'Zdobądź 320 punktów w kolekcji mining.netherite, aby spełnić wymaganie dla: Minion netheritu Tier 3.'
+      icon: NETHERITE_INGOT
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.netherite
+        amount: 320
+    collection_req_mining_netherite_640_netherite_4:
+      path: collections/mining_netherite/netherite_4_640
+      parent: collections/mining_netherite/netherite_3_320
+      title: Minion netheritu Tier 4
+      description: 'Zdobądź 640 punktów w kolekcji mining.netherite, aby spełnić wymaganie dla: Minion netheritu Tier 4.'
+      icon: NETHERITE_INGOT
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.netherite
+        amount: 640
+    collection_req_mining_netherite_1280_netherite_5:
+      path: collections/mining_netherite/netherite_5_1280
+      parent: collections/mining_netherite/netherite_4_640
+      title: Minion netheritu Tier 5
+      description: 'Zdobądź 1280 punktów w kolekcji mining.netherite, aby spełnić wymaganie dla: Minion netheritu Tier 5.'
+      icon: NETHERITE_INGOT
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.netherite
+        amount: 1280
+    collection_req_mining_obsidian_80_obsidian_1:
+      path: collections/mining_obsidian/obsidian_1_80
+      parent: collections/first_level
+      title: Minion obsydianu Tier 1
+      description: 'Zdobądź 80 punktów w kolekcji mining.obsidian, aby spełnić wymaganie dla: Minion obsydianu Tier 1.'
+      icon: OBSIDIAN
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.obsidian
+        amount: 80
+    collection_req_mining_obsidian_160_obsidian_2:
+      path: collections/mining_obsidian/obsidian_2_160
+      parent: collections/mining_obsidian/obsidian_1_80
+      title: Minion obsydianu Tier 2
+      description: 'Zdobądź 160 punktów w kolekcji mining.obsidian, aby spełnić wymaganie dla: Minion obsydianu Tier 2.'
+      icon: OBSIDIAN
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.obsidian
+        amount: 160
+    collection_req_mining_obsidian_320_obsidian_3:
+      path: collections/mining_obsidian/obsidian_3_320
+      parent: collections/mining_obsidian/obsidian_2_160
+      title: Minion obsydianu Tier 3
+      description: 'Zdobądź 320 punktów w kolekcji mining.obsidian, aby spełnić wymaganie dla: Minion obsydianu Tier 3.'
+      icon: OBSIDIAN
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.obsidian
+        amount: 320
+    collection_req_mining_obsidian_640_obsidian_4:
+      path: collections/mining_obsidian/obsidian_4_640
+      parent: collections/mining_obsidian/obsidian_3_320
+      title: Minion obsydianu Tier 4
+      description: 'Zdobądź 640 punktów w kolekcji mining.obsidian, aby spełnić wymaganie dla: Minion obsydianu Tier 4.'
+      icon: OBSIDIAN
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.obsidian
+        amount: 640
+    collection_req_mining_obsidian_1280_obsidian_5:
+      path: collections/mining_obsidian/obsidian_5_1280
+      parent: collections/mining_obsidian/obsidian_4_640
+      title: Minion obsydianu Tier 5
+      description: 'Zdobądź 1280 punktów w kolekcji mining.obsidian, aby spełnić wymaganie dla: Minion obsydianu Tier 5.'
+      icon: OBSIDIAN
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.obsidian
+        amount: 1280
+    collection_req_mining_obsidian_2560_obsidian_6:
+      path: collections/mining_obsidian/obsidian_6_2560
+      parent: collections/mining_obsidian/obsidian_5_1280
+      title: Minion obsydianu Tier 6
+      description: 'Zdobądź 2560 punktów w kolekcji mining.obsidian, aby spełnić wymaganie dla: Minion obsydianu Tier 6.'
+      icon: OBSIDIAN
+      frame: goal
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.obsidian
+        amount: 2560
+    collection_req_mining_obsidian_5120_obsidian_7:
+      path: collections/mining_obsidian/obsidian_7_5120
+      parent: collections/mining_obsidian/obsidian_6_2560
+      title: Minion obsydianu Tier 7
+      description: 'Zdobądź 5120 punktów w kolekcji mining.obsidian, aby spełnić wymaganie dla: Minion obsydianu Tier 7.'
+      icon: OBSIDIAN
+      frame: goal
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.obsidian
+        amount: 5120
+    collection_req_mining_redstone_256_redstone_1:
+      path: collections/mining_redstone/redstone_1_256
+      parent: collections/first_level
+      title: Minion redstone Tier 1
+      description: 'Zdobądź 256 punktów w kolekcji mining.redstone, aby spełnić wymaganie dla: Minion redstone Tier 1.'
+      icon: REDSTONE
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.redstone
+        amount: 256
+    collection_req_mining_redstone_512_redstone_2:
+      path: collections/mining_redstone/redstone_2_512
+      parent: collections/mining_redstone/redstone_1_256
+      title: Minion redstone Tier 2
+      description: 'Zdobądź 512 punktów w kolekcji mining.redstone, aby spełnić wymaganie dla: Minion redstone Tier 2.'
+      icon: REDSTONE
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.redstone
+        amount: 512
+    collection_req_mining_redstone_1024_redstone_3:
+      path: collections/mining_redstone/redstone_3_1024
+      parent: collections/mining_redstone/redstone_2_512
+      title: Minion redstone Tier 3
+      description: 'Zdobądź 1024 punktów w kolekcji mining.redstone, aby spełnić wymaganie dla: Minion redstone Tier 3.'
+      icon: REDSTONE
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.redstone
+        amount: 1024
+    collection_req_mining_redstone_2048_redstone_4:
+      path: collections/mining_redstone/redstone_4_2048
+      parent: collections/mining_redstone/redstone_3_1024
+      title: Minion redstone Tier 4
+      description: 'Zdobądź 2048 punktów w kolekcji mining.redstone, aby spełnić wymaganie dla: Minion redstone Tier 4.'
+      icon: REDSTONE
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.redstone
+        amount: 2048
+    collection_req_mining_redstone_4096_redstone_5:
+      path: collections/mining_redstone/redstone_5_4096
+      parent: collections/mining_redstone/redstone_4_2048
+      title: Minion redstone Tier 5
+      description: 'Zdobądź 4096 punktów w kolekcji mining.redstone, aby spełnić wymaganie dla: Minion redstone Tier 5.'
+      icon: REDSTONE
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.redstone
+        amount: 4096
+    collection_req_mining_stone_80_stone_1:
+      path: collections/mining_stone/stone_1_80
+      parent: collections/first_level
+      title: Minion kamienia Tier 1
+      description: 'Zdobądź 80 punktów w kolekcji mining.stone, aby spełnić wymaganie dla: Minion kamienia Tier 1.'
+      icon: STONE
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.stone
+        amount: 80
+    collection_req_mining_stone_160_stone_2:
+      path: collections/mining_stone/stone_2_160
+      parent: collections/mining_stone/stone_1_80
+      title: Minion kamienia Tier 2
+      description: 'Zdobądź 160 punktów w kolekcji mining.stone, aby spełnić wymaganie dla: Minion kamienia Tier 2.'
+      icon: STONE
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.stone
+        amount: 160
+    collection_req_mining_stone_320_stone_3:
+      path: collections/mining_stone/stone_3_320
+      parent: collections/mining_stone/stone_2_160
+      title: Minion kamienia Tier 3
+      description: 'Zdobądź 320 punktów w kolekcji mining.stone, aby spełnić wymaganie dla: Minion kamienia Tier 3.'
+      icon: STONE
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.stone
+        amount: 320
+    collection_req_mining_stone_640_stone_4:
+      path: collections/mining_stone/stone_4_640
+      parent: collections/mining_stone/stone_3_320
+      title: Minion kamienia Tier 4
+      description: 'Zdobądź 640 punktów w kolekcji mining.stone, aby spełnić wymaganie dla: Minion kamienia Tier 4.'
+      icon: STONE
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.stone
+        amount: 640
+    collection_req_mining_stone_1280_stone_5:
+      path: collections/mining_stone/stone_5_1280
+      parent: collections/mining_stone/stone_4_640
+      title: Minion kamienia Tier 5
+      description: 'Zdobądź 1280 punktów w kolekcji mining.stone, aby spełnić wymaganie dla: Minion kamienia Tier 5.'
+      icon: STONE
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.stone
+        amount: 1280
+    collection_req_mining_uranium_16_uranium_1:
+      path: collections/mining_uranium/uranium_1_16
+      parent: collections/first_level
+      title: Minion uranu Tier 1
+      description: 'Zdobądź 16 punktów w kolekcji mining.uranium, aby spełnić wymaganie dla: Minion uranu Tier 1.'
+      icon: EMERALD
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.uranium
+        amount: 16
+    collection_req_mining_uranium_32_uranium_2:
+      path: collections/mining_uranium/uranium_2_32
+      parent: collections/mining_uranium/uranium_1_16
+      title: Minion uranu Tier 2
+      description: 'Zdobądź 32 punktów w kolekcji mining.uranium, aby spełnić wymaganie dla: Minion uranu Tier 2.'
+      icon: EMERALD
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.uranium
+        amount: 32
+    collection_req_mining_uranium_64_uranium_3:
+      path: collections/mining_uranium/uranium_3_64
+      parent: collections/mining_uranium/uranium_2_32
+      title: Minion uranu Tier 3
+      description: 'Zdobądź 64 punktów w kolekcji mining.uranium, aby spełnić wymaganie dla: Minion uranu Tier 3.'
+      icon: EMERALD
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.uranium
+        amount: 64
+    collection_req_mining_uranium_128_uranium_4:
+      path: collections/mining_uranium/uranium_4_128
+      parent: collections/mining_uranium/uranium_3_64
+      title: Minion uranu Tier 4
+      description: 'Zdobądź 128 punktów w kolekcji mining.uranium, aby spełnić wymaganie dla: Minion uranu Tier 4.'
+      icon: EMERALD
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.uranium
+        amount: 128
+    collection_req_mining_uranium_256_uranium_5:
+      path: collections/mining_uranium/uranium_5_256
+      parent: collections/mining_uranium/uranium_4_128
+      title: Minion uranu Tier 5
+      description: 'Zdobądź 256 punktów w kolekcji mining.uranium, aby spełnić wymaganie dla: Minion uranu Tier 5.'
+      icon: EMERALD
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.uranium
+        amount: 256
+    collection_req_mining_uranium_512_uranium_6:
+      path: collections/mining_uranium/uranium_6_512
+      parent: collections/mining_uranium/uranium_5_256
+      title: Minion uranu Tier 6
+      description: 'Zdobądź 512 punktów w kolekcji mining.uranium, aby spełnić wymaganie dla: Minion uranu Tier 6.'
+      icon: EMERALD
+      frame: goal
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mining.uranium
+        amount: 512
+    collection_req_mobs_silverfish_25_silverfish_1:
+      path: collections/mobs_silverfish/silverfish_1_25
+      parent: collections/first_level
+      title: Minion rybika cukrowego Tier 1
+      description: 'Zdobądź 25 punktów w kolekcji mobs.silverfish, aby spełnić wymaganie dla: Minion rybika cukrowego Tier 1.'
+      icon: STONE
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mobs.silverfish
+        amount: 25
+    collection_req_mobs_silverfish_100_silverfish_2:
+      path: collections/mobs_silverfish/silverfish_2_100
+      parent: collections/mobs_silverfish/silverfish_1_25
+      title: Minion rybika cukrowego Tier 2
+      description: 'Zdobądź 100 punktów w kolekcji mobs.silverfish, aby spełnić wymaganie dla: Minion rybika cukrowego Tier 2.'
+      icon: STONE
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mobs.silverfish
+        amount: 100
+    collection_req_mobs_silverfish_250_silverfish_3:
+      path: collections/mobs_silverfish/silverfish_3_250
+      parent: collections/mobs_silverfish/silverfish_2_100
+      title: Minion rybika cukrowego Tier 3
+      description: 'Zdobądź 250 punktów w kolekcji mobs.silverfish, aby spełnić wymaganie dla: Minion rybika cukrowego Tier 3.'
+      icon: STONE
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mobs.silverfish
+        amount: 250
+    collection_req_mobs_silverfish_500_silverfish_4:
+      path: collections/mobs_silverfish/silverfish_4_500
+      parent: collections/mobs_silverfish/silverfish_3_250
+      title: Minion rybika cukrowego Tier 4
+      description: 'Zdobądź 500 punktów w kolekcji mobs.silverfish, aby spełnić wymaganie dla: Minion rybika cukrowego Tier 4.'
+      icon: STONE
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mobs.silverfish
+        amount: 500
+    collection_req_mobs_silverfish_1000_silverfish_5:
+      path: collections/mobs_silverfish/silverfish_5_1000
+      parent: collections/mobs_silverfish/silverfish_4_500
+      title: Minion rybika cukrowego Tier 5
+      description: 'Zdobądź 1000 punktów w kolekcji mobs.silverfish, aby spełnić wymaganie dla: Minion rybika cukrowego Tier 5.'
+      icon: STONE
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mobs.silverfish
+        amount: 1000
+    collection_req_mobs_skeleton_25_skeleton_1:
+      path: collections/mobs_skeleton/skeleton_1_25
+      parent: collections/first_level
+      title: Minion szkieleta Tier 1
+      description: 'Zdobądź 25 punktów w kolekcji mobs.skeleton, aby spełnić wymaganie dla: Minion szkieleta Tier 1.'
+      icon: BONE
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mobs.skeleton
+        amount: 25
+    collection_req_mobs_skeleton_100_skeleton_2:
+      path: collections/mobs_skeleton/skeleton_2_100
+      parent: collections/mobs_skeleton/skeleton_1_25
+      title: Minion szkieleta Tier 2
+      description: 'Zdobądź 100 punktów w kolekcji mobs.skeleton, aby spełnić wymaganie dla: Minion szkieleta Tier 2.'
+      icon: BONE
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mobs.skeleton
+        amount: 100
+    collection_req_mobs_skeleton_250_skeleton_3:
+      path: collections/mobs_skeleton/skeleton_3_250
+      parent: collections/mobs_skeleton/skeleton_2_100
+      title: Minion szkieleta Tier 3
+      description: 'Zdobądź 250 punktów w kolekcji mobs.skeleton, aby spełnić wymaganie dla: Minion szkieleta Tier 3.'
+      icon: BONE
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mobs.skeleton
+        amount: 250
+    collection_req_mobs_skeleton_500_skeleton_4:
+      path: collections/mobs_skeleton/skeleton_4_500
+      parent: collections/mobs_skeleton/skeleton_3_250
+      title: Minion szkieleta Tier 4
+      description: 'Zdobądź 500 punktów w kolekcji mobs.skeleton, aby spełnić wymaganie dla: Minion szkieleta Tier 4.'
+      icon: BONE
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mobs.skeleton
+        amount: 500
+    collection_req_mobs_skeleton_1000_skeleton_5:
+      path: collections/mobs_skeleton/skeleton_5_1000
+      parent: collections/mobs_skeleton/skeleton_4_500
+      title: Minion szkieleta Tier 5
+      description: 'Zdobądź 1000 punktów w kolekcji mobs.skeleton, aby spełnić wymaganie dla: Minion szkieleta Tier 5.'
+      icon: BONE
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mobs.skeleton
+        amount: 1000
+    collection_req_mobs_spider_25_spider_1:
+      path: collections/mobs_spider/spider_1_25
+      parent: collections/first_level
+      title: Minion pająka Tier 1
+      description: 'Zdobądź 25 punktów w kolekcji mobs.spider, aby spełnić wymaganie dla: Minion pająka Tier 1.'
+      icon: STRING
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mobs.spider
+        amount: 25
+    collection_req_mobs_spider_100_spider_2:
+      path: collections/mobs_spider/spider_2_100
+      parent: collections/mobs_spider/spider_1_25
+      title: Minion pająka Tier 2
+      description: 'Zdobądź 100 punktów w kolekcji mobs.spider, aby spełnić wymaganie dla: Minion pająka Tier 2.'
+      icon: STRING
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mobs.spider
+        amount: 100
+    collection_req_mobs_spider_250_spider_3:
+      path: collections/mobs_spider/spider_3_250
+      parent: collections/mobs_spider/spider_2_100
+      title: Minion pająka Tier 3
+      description: 'Zdobądź 250 punktów w kolekcji mobs.spider, aby spełnić wymaganie dla: Minion pająka Tier 3.'
+      icon: STRING
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mobs.spider
+        amount: 250
+    collection_req_mobs_spider_500_spider_4:
+      path: collections/mobs_spider/spider_4_500
+      parent: collections/mobs_spider/spider_3_250
+      title: Minion pająka Tier 4
+      description: 'Zdobądź 500 punktów w kolekcji mobs.spider, aby spełnić wymaganie dla: Minion pająka Tier 4.'
+      icon: STRING
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mobs.spider
+        amount: 500
+    collection_req_mobs_spider_1000_spider_5:
+      path: collections/mobs_spider/spider_5_1000
+      parent: collections/mobs_spider/spider_4_500
+      title: Minion pająka Tier 5
+      description: 'Zdobądź 1000 punktów w kolekcji mobs.spider, aby spełnić wymaganie dla: Minion pająka Tier 5.'
+      icon: STRING
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mobs.spider
+        amount: 1000
+    collection_req_mobs_zombie_25_zombie_1:
+      path: collections/mobs_zombie/zombie_1_25
+      parent: collections/first_level
+      title: Minion zombie Tier 1
+      description: 'Zdobądź 25 punktów w kolekcji mobs.zombie, aby spełnić wymaganie dla: Minion zombie Tier 1.'
+      icon: ROTTEN_FLESH
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mobs.zombie
+        amount: 25
+    collection_req_mobs_zombie_100_zombie_2:
+      path: collections/mobs_zombie/zombie_2_100
+      parent: collections/mobs_zombie/zombie_1_25
+      title: Minion zombie Tier 2
+      description: 'Zdobądź 100 punktów w kolekcji mobs.zombie, aby spełnić wymaganie dla: Minion zombie Tier 2.'
+      icon: ROTTEN_FLESH
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mobs.zombie
+        amount: 100
+    collection_req_mobs_zombie_250_zombie_3:
+      path: collections/mobs_zombie/zombie_3_250
+      parent: collections/mobs_zombie/zombie_2_100
+      title: Minion zombie Tier 3
+      description: 'Zdobądź 250 punktów w kolekcji mobs.zombie, aby spełnić wymaganie dla: Minion zombie Tier 3.'
+      icon: ROTTEN_FLESH
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mobs.zombie
+        amount: 250
+    collection_req_mobs_zombie_500_zombie_4:
+      path: collections/mobs_zombie/zombie_4_500
+      parent: collections/mobs_zombie/zombie_3_250
+      title: Minion zombie Tier 4
+      description: 'Zdobądź 500 punktów w kolekcji mobs.zombie, aby spełnić wymaganie dla: Minion zombie Tier 4.'
+      icon: ROTTEN_FLESH
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mobs.zombie
+        amount: 500
+    collection_req_mobs_zombie_1000_zombie_5:
+      path: collections/mobs_zombie/zombie_5_1000
+      parent: collections/mobs_zombie/zombie_4_500
+      title: Minion zombie Tier 5
+      description: 'Zdobądź 1000 punktów w kolekcji mobs.zombie, aby spełnić wymaganie dla: Minion zombie Tier 5.'
+      icon: ROTTEN_FLESH
+      frame: task
+      show-toast: false
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: mobs.zombie
+        amount: 1000
+    industrial_root:
+      path: industrialization/root
+      title: Industrializacja
+      description: Rozpocznij przemysłową część rozwoju miasta.
+      icon: FURNACE
+      frame: task
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: town-member
+    industrial_first_generator:
+      path: industrialization/first_generator
+      parent: industrialization/root
+      title: Pierwszy generator
+      description: Postaw generator węglowy albo panel słoneczny i rozpocznij kolekcję energii.
+      icon: REDSTONE_BLOCK
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: industrial.energy
+        amount: 1
+    industrial_energy_1:
+      path: industrialization/energy_1
+      parent: industrialization/first_generator
+      title: Energia I
+      description: Wygeneruj 1 000 000 EU w mieście.
+      icon: REDSTONE_BLOCK
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: industrial.energy
+        level: 1
+    industrial_energy_2:
+      path: industrialization/energy_2
+      parent: industrialization/energy_1
+      title: Energia II
+      description: Wygeneruj 10 000 000 EU w mieście.
+      icon: REDSTONE_BLOCK
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: industrial.energy
+        level: 2
+    industrial_energy_3:
+      path: industrialization/energy_3
+      parent: industrialization/energy_2
+      title: Energia III
+      description: Wygeneruj 250 000 000 EU w mieście.
+      icon: REDSTONE_BLOCK
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: industrial.energy
+        level: 3
+    industrial_energy_4:
+      path: industrialization/energy_4
+      parent: industrialization/energy_3
+      title: Energia IV
+      description: Wygeneruj 1 000 000 000 EU w mieście.
+      icon: REDSTONE_BLOCK
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: industrial.energy
+        level: 4
+    industrial_energy_5:
+      path: industrialization/energy_5
+      parent: industrialization/energy_4
+      title: Energia V
+      description: Wygeneruj 10 000 000 000 EU w mieście.
+      icon: REDSTONE_BLOCK
+      frame: challenge
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: industrial.energy
+        level: 5
+    industrial_energy_6:
+      path: industrialization/energy_6
+      parent: industrialization/energy_5
+      title: Energia VI
+      description: Wygeneruj 25 000 000 000 EU w mieście.
+      icon: REDSTONE_BLOCK
+      frame: challenge
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: industrial.energy
+        level: 6
+    industrial_energy_7:
+      path: industrialization/energy_7
+      parent: industrialization/energy_6
+      title: Energia VII
+      description: Wygeneruj 50 000 000 000 EU w mieście.
+      icon: REDSTONE_BLOCK
+      frame: challenge
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: industrial.energy
+        level: 7
+    industrial_tin_minion:
+      path: industrialization/tin_minion
+      parent: industrialization/root
+      title: Minion cyny
+      description: Odblokuj i postaw Miniona cyny.
+      icon: RAW_IRON
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: minion-type
+        minion-type: tin
+        min-tier: 1
+    industrial_battery:
+      path: industrialization/battery
+      parent: industrialization/tin_minion
+      title: Bateria
+      description: Osiągnij Miniona cyny Tier V, aby odblokować baterię.
+      icon: REDSTONE_TORCH
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: minion-type
+        minion-type: tin
+        min-tier: 5
+    industrial_bronze:
+      path: industrialization/bronze
+      parent: industrialization/tin_minion
+      title: Brąz
+      description: Osiągnij Miniona cyny Tier III, aby odblokować wytwarzanie brązu.
+      icon: COPPER_INGOT
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: minion-type
+        minion-type: tin
+        min-tier: 3
+    industrial_solar_panel:
+      path: industrialization/solar_panel
+      parent: industrialization/battery
+      title: Panel słoneczny
+      description: Rozwijaj elektronikę i wytwórz generator słoneczny.
+      icon: DAYLIGHT_DETECTOR
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-amount
+        collection: industrial.energy
+        amount: 1
+    industrial_wrench:
+      path: industrialization/bronze_wrench
+      parent: industrialization/bronze
+      title: Klucz z brązu
+      description: Osiągnij Miniona cyny Tier III i wytwórz klucz do demontażu maszyn oraz konfiguracji akumulatora.
+      icon: TRIPWIRE_HOOK
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: minion-type
+        minion-type: tin
+        min-tier: 3
+    industrial_netherite_ender_chest:
+      path: industrialization/netherite_ender_chest
+      parent: tiers/7
+      title: Enderowy magazyn
+      description: Osiągnij Miniona netheritu Tier VII, aby odblokować dodatkową linię Ender Chest.
+      icon: ENDER_CHEST
+      frame: goal
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: minion-type
+        minion-type: netherite
         min-tier: 7

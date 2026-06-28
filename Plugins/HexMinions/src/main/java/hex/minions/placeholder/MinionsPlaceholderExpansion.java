@@ -40,8 +40,15 @@ public final class MinionsPlaceholderExpansion extends PlaceholderExpansion {
     private String resolve(Player player, String params) {
         if (player == null) return "";
         String key = normalize(params).toLowerCase(Locale.ROOT);
-        TownMinionMenuData town = api.menuData(player);
 
+        if (key.startsWith("selected_")) {
+            return selectedPlaceholder(player, key).orElse("");
+        }
+        if (key.startsWith("index_")) {
+            return indexPlaceholder(player, key);
+        }
+
+        TownMinionMenuData town = api.menuData(player);
         return switch (key) {
             case "town_uuid" -> town.townUuid() == null ? "" : town.townUuid().toString();
             case "town_name" -> town.townName();
@@ -50,7 +57,7 @@ public final class MinionsPlaceholderExpansion extends PlaceholderExpansion {
             case "remaining" -> String.valueOf(Math.max(0, town.minionLimit() - town.minionCount()));
             case "percent" -> percent(town.minionCount(), town.minionLimit());
             case "has_town" -> String.valueOf(town.townUuid() != null);
-            default -> selectedPlaceholder(player, key).orElseGet(() -> indexPlaceholder(player, key));
+            default -> "";
         };
     }
 
@@ -124,12 +131,15 @@ public final class MinionsPlaceholderExpansion extends PlaceholderExpansion {
 
     private static String menuSafeHeadMaterial(String raw) {
         if (raw == null || raw.isBlank()) return "PLAYER_HEAD";
+        if (raw.startsWith("basehead-") || raw.startsWith("head-")) return raw;
         return raw.startsWith("head:") ? "PLAYER_HEAD" : raw;
     }
 
     private static String headTexture(String raw) {
-        if (raw == null || raw.isBlank() || !raw.startsWith("head:")) return "";
-        return raw.substring("head:".length());
+        if (raw == null || raw.isBlank()) return "";
+        if (raw.startsWith("basehead-")) return raw.substring("basehead-".length());
+        if (raw.startsWith("head:")) return raw.substring("head:".length());
+        return "";
     }
 
 

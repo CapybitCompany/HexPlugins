@@ -1,7 +1,7 @@
 name: HexCollections
 version: '1.0.0'
 main: hex.collections.HexCollectionsPlugin
-api-version: '1.21'
+api-version: "1.21"
 description: Config-driven collection engine for Hex SMP
 authors: [HexTeam]
 depend:

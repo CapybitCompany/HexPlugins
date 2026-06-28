@@ -1,0 +1,50 @@
+id: industrial.energy
+aliases:
+- industrial_energy
+- energy
+- eu
+- electricity
+enabled: true
+display:
+  name: '&eEnergia EU'
+  category: industrial
+  menu_slot: 31
+  icon:
+    material: REDSTONE_BLOCK
+valid_sources:
+- CUSTOM_PLUGIN_GRANTED
+source_rules:
+  CUSTOM_PLUGIN_GRANTED:
+    allow_in_town_claims: true
+levels:
+  1:
+    required: 1000000
+    display_name: '&eEnergia I'
+  2:
+    required: 10000000
+    display_name: '&eEnergia II'
+  3:
+    required: 250000000
+    display_name: '&eEnergia III'
+  4:
+    required: 1000000000
+    display_name: '&eEnergia IV'
+  5:
+    required: 10000000000
+    display_name: '&eEnergia V'
+  6:
+    required: 25000000000
+    display_name: '&eEnergia VI'
+  7:
+    required: 50000000000
+    display_name: '&eEnergia VII'
+reward_claim_mode: AUTO
+placeholder:
+  progress_bar:
+    length: 20
+    filled_char: ■
+    empty_char: □
+sources:
+- trigger: minions.machine.energy_generated
+  amount-from: amount
+schema-version: 1

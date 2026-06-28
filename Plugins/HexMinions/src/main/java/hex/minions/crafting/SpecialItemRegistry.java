@@ -168,11 +168,11 @@ public final class SpecialItemRegistry {
             items.putIfAbsent(compressedId, new SpecialItemDefinition(compressedId, true, outputMaterial, cmd, 1,
                     compressedNameTemplate.replace("<resource>", stripMini(display)),
                     List.of("<gray>Wartość: <white>" + compressedValue + "</white> szt. surowca.</gray>", "<dark_gray>Item generowany automatycznie z resources.yml.</dark_gray>"),
-                    glint, placeable, ""));
+                    glint, placeable, "", ""));
             items.putIfAbsent(superId, new SpecialItemDefinition(superId, true, outputMaterial, superCmd, 1,
                     superNameTemplate.replace("<resource>", stripMini(display)),
                     List.of("<gray>Wartość: <white>" + superValue + "</white> szt. surowca.</gray>", "<dark_gray>Item generowany automatycznie z resources.yml.</dark_gray>"),
-                    glint, placeable, ""));
+                    glint, placeable, "", ""));
 
             SpecialItemDefinition compressedDef = items.get(compressedId);
             Material compressedMaterial = compressedDef == null ? outputMaterial : compressedDef.material();

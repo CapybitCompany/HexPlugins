@@ -1,5 +1,6 @@
 package hex.core;
 
+import hex.core.api.compat.MinecraftCompatibility;
 import hex.core.api.HexApi;
 import hex.core.api.config.ConfigSpec;
 import hex.core.api.config.ReloadResult;
@@ -72,6 +73,7 @@ public final class HexCore extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        MinecraftCompatibility.logStartupCompatibility(this);
         // 1) Services
         var configs = new ConfigServiceImpl(this);
 

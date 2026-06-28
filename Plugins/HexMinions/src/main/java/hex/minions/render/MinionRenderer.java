@@ -86,6 +86,10 @@ public final class MinionRenderer {
     }
 
     public void updateLabel(MinionInstance minion, MinionTypeDefinition type) {
+        if (!Bukkit.isPrimaryThread()) {
+            Bukkit.getScheduler().runTask(plugin, () -> updateLabel(minion, type));
+            return;
+        }
         Set<UUID> ids = entityIdsByMinion.get(minion.id());
         if (ids == null) return;
         for (UUID id : ids) {

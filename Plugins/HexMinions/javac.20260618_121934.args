@@ -1,0 +1,11 @@
+-proc:none
+-d
+/tmp/javac_test
+-cp
+build/classes/java/main:../HexCollections/build/libs/HexCollections-1.0.0.jar:../HexTowns/build/libs/HexTowns-1.0.0.jar
+src/main/java/hex/minions/machine/MachineDefinition.java
+src/main/java/hex/minions/machine/MachineRuntime.java
+src/main/java/hex/minions/machine/MachineRuntimeRepository.java
+src/main/java/hex/minions/machine/MachineService.java
+src/main/java/hex/minions/listener/MachineListener.java
+src/main/java/hex/minions/energy/CableService.java

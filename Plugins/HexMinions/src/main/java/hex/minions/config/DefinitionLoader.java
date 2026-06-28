@@ -125,6 +125,24 @@ public final class DefinitionLoader {
                     parseMaterial(s.getString("compression.compressed-material", material.name()), material)
             ));
         }
+        for (ResourceDefinition resource : new ArrayList<>(result.values())) {
+            if (!resource.compressionEnabled() || !resource.blockConvertible()) continue;
+            String compressedId = "compressed_" + resource.id().toLowerCase(Locale.ROOT);
+            if (result.containsKey(compressedId)) continue;
+            result.put(compressedId, new ResourceDefinition(
+                    compressedId,
+                    "<aqua>Skompresowany " + resource.displayName() + "</aqua>",
+                    resource.compressedMaterial(),
+                    0,
+                    resource.collectionId(),
+                    resource.worth() * 128.0D,
+                    64,
+                    List.of("compressed", "special"),
+                    false,
+                    false,
+                    resource.compressedMaterial()
+            ));
+        }
         return result;
     }
 
@@ -152,16 +170,18 @@ public final class DefinitionLoader {
                 double chance = number(map.get("chance"), 1.0).doubleValue();
                 boolean specialDrop = booleanValue(map.get("special-drop"), booleanValue(map.get("special-item"), chance <= 0.01D));
                 double perTierBonus = 0.0D;
+                int scalingFromTier = 1;
                 String upgradeItem = "";
                 double upgradeBonus = 0.0D;
                 Object scaling = map.get("special-drop-scaling");
                 if (scaling instanceof Map<?, ?> scalingMap) {
                     perTierBonus = number(scalingMap.get("per-tier-bonus"), 0.0D).doubleValue();
+                    scalingFromTier = number(scalingMap.get("from-tier"), 1).intValue();
                     Object rawUpgradeItem = scalingMap.get("upgrade-item");
                     upgradeItem = rawUpgradeItem == null ? "" : String.valueOf(rawUpgradeItem);
                     upgradeBonus = number(scalingMap.get("upgrade-bonus"), 0.0D).doubleValue();
                 }
-                drops.add(new ResourceDrop(resource, min, max, chance, specialDrop, perTierBonus, upgradeItem, upgradeBonus));
+                drops.add(new ResourceDrop(resource, min, max, chance, specialDrop, perTierBonus, Math.max(1, scalingFromTier), upgradeItem, upgradeBonus));
             }
             Map<Integer, TierDefinition> tiers = new LinkedHashMap<>();
             ConfigurationSection tiersSection = s.getConfigurationSection("tiers");

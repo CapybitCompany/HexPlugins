@@ -221,6 +221,35 @@ machines:
           amount: 1
         success-chance: 1.0
         time-seconds: 8
+      tin_ore_to_ingot:
+        input:
+          material: RAW_IRON
+          custom-model-data: 14001
+          amount: 1
+        fuel:
+          material: COAL
+          amount: 1
+        output:
+          special-item: tin_ingot
+          amount: 1
+        success-chance: 1.0
+        time-seconds: 8
+      bronze_from_tin_copper:
+        input:
+          special-item: tin_dust
+          amount: 3
+        secondary:
+          special-item: copper_dust
+          amount: 1
+        fuel:
+          special-item: steel_ingot
+          material: IRON_INGOT
+          amount: 1
+        output:
+          special-item: bronze_ingot
+          amount: 1
+        success-chance: 1.0
+        time-seconds: 30
   coal_generator:
     enabled: true
     type: COAL_GENERATOR
@@ -249,6 +278,46 @@ machines:
         COAL_BLOCK: 80
         combustion_fuel: 320
         compressed_coal: 1024
+    recipes: {}
+  solar_panel_generator:
+    enabled: true
+    type: SOLAR_PANEL_GENERATOR
+    display-name: <aqua>Panel słoneczny</aqua>
+    base-block: FURNACE
+    special-item: solar_panel_generator
+    station-id: SOLAR_PANEL_GENERATOR
+    menu:
+      fuel-slot: 22
+      upgrade-slots:
+      - 40
+    energy:
+      enabled: true
+      generator: true
+      buffer-capacity: 10000
+      eu-per-second: 10
+      transfer-per-second: 250
+      battery-slot: 40
+      battery-extra-capacity: 0
+    recipes: {}
+  accumulator:
+    enabled: true
+    type: ACCUMULATOR
+    display-name: <gold>Akumulator</gold>
+    base-block: BARREL
+    special-item: accumulator
+    station-id: ACCUMULATOR
+    menu:
+      fuel-slot: 22
+      upgrade-slots:
+      - 40
+    energy:
+      enabled: true
+      generator: false
+      buffer-capacity: 250000
+      eu-per-second: 0
+      transfer-per-second: 250
+      battery-slot: 40
+      battery-extra-capacity: 0
     recipes: {}
   macerator:
     enabled: true
@@ -421,6 +490,116 @@ machines:
           amount: 1
         time-seconds: 8
         success-chance: 1.0
+      tin_ingot_to_dust:
+        input:
+          special-item: tin_ingot
+          material: IRON_INGOT
+          amount: 1
+        output:
+          special-item: tin_dust
+          amount: 1
+        time-seconds: 8
+        success-chance: 1.0
+      tin_ore_to_dust:
+        input:
+          material: RAW_IRON
+          custom-model-data: 14001
+          amount: 1
+        output:
+          special-item: tin_dust
+          amount: 2
+        time-seconds: 8
+        success-chance: 1.0
+
+  extractor:
+    enabled: true
+    type: EXTRACTOR
+    display-name: <aqua>Ekstraktor</aqua>
+    base-block: DISPENSER
+    special-item: extractor
+    station-id: EXTRACTOR
+    menu:
+      input-slot: 20
+      fuel-slot: 22
+      arrow-slot: 23
+      output-slot: 24
+      upgrade-slots:
+      - 40
+    storage:
+      slots: 5
+      output-stack-size: 16
+    energy:
+      enabled: true
+      generator: false
+      buffer-capacity: 500
+      eu-per-second: 10
+      battery-slot: 40
+      battery-extra-capacity: 0
+      fallback-fuel-eu:
+        REDSTONE: 10
+        REDSTONE_BLOCK: 50
+      fallback-fuel-burn-seconds:
+        REDSTONE: 1
+        REDSTONE_BLOCK: 5
+    recipes:
+      compressed_spruce_wood_to_resin:
+        input:
+          special-item: compressed_spruce_wood
+          material: SPRUCE_LOG
+          amount: 1
+        output:
+          material: HONEYCOMB
+          custom-model-data: 14010
+          amount: 1
+        success-chance: 1.0
+        time-seconds: 1200
+
+  electric_mill:
+    enabled: true
+    type: ELECTRIC_MILL
+    display-name: <green>Elektryczny młyn</green>
+    base-block: COMPOSTER
+    special-item: electric_mill
+    station-id: ELECTRIC_MILL
+    menu:
+      input-slots:
+      - 19
+      - 20
+      - 21
+      fuel-slot: 31
+      arrow-slot: 23
+      output-slot: 25
+      upgrade-slots:
+      - 37
+      - 38
+      - 39
+    storage:
+      slots: 3
+      output-stack-size: 64
+    energy:
+      enabled: true
+      generator: false
+      buffer-capacity: 1000
+      eu-per-second: 20
+      battery-slot: 40
+      battery-extra-capacity: 0
+      fallback-fuel-eu:
+        REDSTONE: 20
+        REDSTONE_BLOCK: 100
+      fallback-fuel-burn-seconds:
+        REDSTONE: 1
+        REDSTONE_BLOCK: 5
+    recipes:
+      wheat_to_feed:
+        input:
+          material: WHEAT
+          amount: 1
+        output:
+          special-item: feed
+          amount: 1
+        success-chance: 0.02
+        time-seconds: 240
+
   compressor:
     enabled: true
     type: COMPRESSOR

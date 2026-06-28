@@ -1,5 +1,6 @@
 package hex.minions;
 
+import hex.core.api.compat.MinecraftCompatibility;
 import hex.core.api.HexApi;
 import hex.collections.api.HexCollectionsApi;
 import hex.minions.advancement.MinionAdvancementService;
@@ -10,9 +11,12 @@ import hex.minions.config.Definitions;
 import hex.minions.config.MinionsConfig;
 import hex.minions.config.StorageChestRegistry;
 import hex.minions.crafting.SpecialItemRegistry;
+import hex.minions.customdrops.CustomResourceDropEngine;
 import hex.minions.listener.SpecialCraftingListener;
 import hex.minions.listener.MachineListener;
+import hex.minions.listener.EnderChestExpansionListener;
 import hex.minions.machine.MachineService;
+import hex.minions.energy.CableService;
 import hex.minions.listener.RadiationListener;
 import hex.minions.database.MinionRepository;
 import hex.minions.listener.MinionInteractionListener;
@@ -38,12 +42,15 @@ public final class HexMinionsPlugin extends JavaPlugin {
     private MinionService service;
     private MinionRenderer renderer;
     private MachineService machineService;
+    private CableService cableService;
+    private CustomResourceDropEngine customResourceDropEngine;
     private MinionAdvancementService advancementService;
     private MinionsApi api;
     private MinionsPlaceholderExpansion placeholderExpansion;
 
     @Override
     public void onEnable() {
+        MinecraftCompatibility.logStartupCompatibility(this);
         saveDefaultConfig();
         saveResourceIfMissing("resources.yml");
         saveResourceIfMissing("minion-types.yml");
@@ -92,8 +99,13 @@ public final class HexMinionsPlugin extends JavaPlugin {
         this.renderer = new MinionRenderer(this, definitions);
         this.service = new MinionService(this, hex, towns, collections, repository, renderer, itemFactory, config, definitions, storageChests, specialItems);
         this.machineService = new MachineService(this, hex, service);
+        this.cableService = new CableService(this, hex, towns, service);
+        this.cableService.attachMachines(machineService);
+        this.machineService.attachCableService(cableService);
+        this.customResourceDropEngine = new CustomResourceDropEngine(this, hex, towns, service);
+        this.customResourceDropEngine.start();
         this.machineService.start();
-        this.advancementService = new MinionAdvancementService(this, towns, service);
+        this.advancementService = new MinionAdvancementService(this, towns, collections, service);
         this.advancementService.reload();
         this.service.registerListener(advancementService);
         this.api = new MinionsApiImpl(service);
@@ -114,9 +126,12 @@ public final class HexMinionsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new MinionMenuListener(this, hex, service, menu), this);
         getServer().getPluginManager().registerEvents(new SpecialCraftingListener(this, hex, towns, service, menu), this);
         getServer().getPluginManager().registerEvents(new MachineListener(this, hex, towns, machineService), this);
+        getServer().getPluginManager().registerEvents(cableService, this);
+        getServer().getPluginManager().registerEvents(customResourceDropEngine, this);
         getServer().getPluginManager().registerEvents(new RadiationListener(this, service), this);
         getServer().getPluginManager().registerEvents(new TownLifecycleListener(service, machineService), this);
-        getServer().getPluginManager().registerEvents(new MinionWorldListener(this, service), this);
+        getServer().getPluginManager().registerEvents(new MinionWorldListener(this, service, machineService), this);
+        getServer().getPluginManager().registerEvents(new EnderChestExpansionListener(this, towns, service), this);
         getServer().getPluginManager().registerEvents(advancementService, this);
 
         hex.db().async(() -> {
@@ -145,6 +160,8 @@ public final class HexMinionsPlugin extends JavaPlugin {
     public void onDisable() {
         if (advancementService != null) advancementService.shutdown();
         if (machineService != null) machineService.shutdown();
+        if (cableService != null) cableService.shutdown();
+        if (customResourceDropEngine != null) customResourceDropEngine.shutdown();
         if (service != null) service.stopTasks();
         if (renderer != null) renderer.shutdown();
         if (placeholderExpansion != null) {
@@ -184,6 +201,7 @@ public final class HexMinionsPlugin extends JavaPlugin {
         specialItems.registerVanillaRecipes(factory, storageChests, definitions);
         renderer.reload(definitions);
         service.reload(MinionsConfig.load(getConfig()), definitions, storageChests, specialItems);
+        if (customResourceDropEngine != null) customResourceDropEngine.reload();
         if (advancementService != null) advancementService.reload();
     }
 
@@ -218,6 +236,8 @@ public final class HexMinionsPlugin extends JavaPlugin {
                     Map.entry("upgrade.missing-requirements", "<red>Nie spelniasz wymagan ulepszenia.</red>"),
                     Map.entry("storage-chest.place.success", "<green>Podlaczono skrzynke storage do miniona.</green>"),
                     Map.entry("storage-chest.install.success", "<green>Utworzono i podlaczono skrzynke storage po lewej stronie miniona.</green>"),
+                    Map.entry("storage-chest.uninstall.success", "<green>Odlaczono skrzynke storage. Jej zawartosc wypadla obok miniona.</green>"),
+                    Map.entry("storage-chest.error.not-found", "<gray>Ten minion nie ma podlaczonej skrzynki storage.</gray>"),
                     Map.entry("storage-chest.error.special-required", "<red>Obok miniona mozna postawic tylko skonfigurowany Minion Storage.</red>"),
                     Map.entry("storage-chest.error.already-has", "<red>Ten minion ma juz skrzynke storage.</red>"),
                     Map.entry("storage-chest.error.next-to-chest", "<red>Nie mozesz postawic Minion Storage obok innej skrzynki.</red>"),
@@ -235,6 +255,7 @@ public final class HexMinionsPlugin extends JavaPlugin {
                     Map.entry("list.header", "<gold>Miniony miasta:</gold> <white><count>/<limit></white>"),
                     Map.entry("list.line", "<gray>- <white><id></white> <yellow><name></yellow> T<tier> @ <location></gray>"),
                     Map.entry("wiki.open", "<green>Otwieram wiki minionów.</green>"),
+                    Map.entry("wiki.test-copy.success", "<green>Skopiowano item z wiki do ekwipunku testowego.</green>"),
                     Map.entry("reload.success", "<green>Przeladowano HexMinions.</green>"),
                     Map.entry("ok", "<green>OK</green>")
             ));

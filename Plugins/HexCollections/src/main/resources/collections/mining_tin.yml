@@ -1,0 +1,64 @@
+id: mining.tin
+aliases:
+- mining_tin
+- tin
+- tin_ore
+- tin_ingot
+- minecraft:raw_iron
+enabled: true
+display:
+  name: '&7Cyna'
+  category: mining
+  menu_slot: 18
+  icon:
+    material: RAW_IRON
+valid_sources:
+- MINION_COLLECT
+- CUSTOM_PLUGIN_GRANTED
+source_rules:
+  MINION_COLLECT:
+    allowed_minion_types:
+    - TIN_MINION
+    - tin
+    allow_in_town_claims: true
+levels:
+  1:
+    required: 50
+    display_name: '&7Cyna I'
+    rewards:
+    - type: MINION_RECIPE_UNLOCK
+      id: tin_minion_tier_1
+  2:
+    required: 250
+    display_name: '&7Cyna II'
+  3:
+    required: 1000
+    display_name: '&7Cyna III'
+  4:
+    required: 2500
+    display_name: '&7Cyna IV'
+  5:
+    required: 7500
+    display_name: '&7Cyna V'
+    rewards:
+    - type: CUSTOM_EVENT
+      event: BATTERY_RECIPE_UNLOCK
+  6:
+    required: 15000
+    display_name: '&7Cyna VI'
+  7:
+    required: 30000
+    display_name: '&7Cyna VII'
+    rewards:
+    - type: CUSTOM_EVENT
+      event: BRONZE_RECIPE_UNLOCK
+reward_claim_mode: AUTO
+placeholder:
+  progress_bar:
+    length: 20
+    filled_char: ■
+    empty_char: □
+sources:
+- trigger: minions.resource.claimed
+  amount-from: amount
+schema-version: 1

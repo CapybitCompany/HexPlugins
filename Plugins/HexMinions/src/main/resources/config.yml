@@ -47,6 +47,11 @@ minions:
     repair-missing-entities-seconds: 30
     label-refresh-ticks: 40
 
+  testing:
+    # true = kliknięcie itemów w wiki minionów kopiuje je do EQ gracza do szybkich testów.
+    # false = wiki działa jako zwykłe, nieedytowalne menu informacyjne.
+    wiki-copy-items: false
+
   safety:
     protect-armor-stands: true
     remove-orphan-entities-on-startup: true
@@ -59,6 +64,15 @@ minions:
       # Przy dużej liczbie maszyn zapisujemy tylko zmienione rekordy.
       flush-interval-ticks: 200
       max-rows-per-flush: 500
+    offline:
+      # Maszyny nie tickują stale w niezaładowanych chunkach. Czas poza zasięgiem graczy
+      # jest rozliczany leniwie przy chunk load / otwarciu GUI z last_active_at.
+      # To rozszerza istniejący zapis machine_runtimes, nie tworzy drugiego systemu stanu.
+      # Transfer kablami w offline catch-up działa tylko przez aktualnie załadowaną trasę;
+      # generator nie ładuje zdalnie maszyn/akumulatorów w niezaładowanych chunkach.
+      enabled: true
+      max-seconds-per-machine: 86400
+      max-machines-per-chunk: 512
 
   database:
     write-behind: true
@@ -78,3 +92,63 @@ minions:
     selected-context:
       ttl-seconds: 120
 
+
+# Pasywny system kabli EU. Kable są segmentami w cache RAM i BlockDisplay jest tylko wizualizacją.
+# Jeżeli segment przechodzi przez kilka chunków, jest aktywną trasą/renderowany dopiero, gdy wszystkie te chunki są załadowane.
+energy:
+  tick_interval_ticks: 20
+  max_segments_per_network: 256
+  max_machines_per_network: 64
+  max_routes_per_network: 512
+  max_network_rebuilds_per_tick: 4
+  max_display_entities_per_chunk: 64
+  overloaded_network_policy: DISABLE_UNTIL_FIXED
+  cables:
+    copper:
+      display_name: "Miedziany Kabel"
+      max_segment_length: 3
+      loss_eu_per_meter: 0.25
+      max_eu_per_second: 32
+      display_material: BROWN_CONCRETE
+      display_thickness: 0.40
+      view_range: 32
+    gold:
+      display_name: "Złoty Kabel"
+      max_segment_length: 10
+      loss_eu_per_meter: 0.15
+      max_eu_per_second: 96
+      display_material: YELLOW_CONCRETE
+      display_thickness: 0.40
+      view_range: 32
+    glass:
+      display_name: "Szklany Kabel"
+      max_segment_length: 25
+      loss_eu_per_meter: 0.05
+      max_eu_per_second: 256
+      display_material: GLASS
+      display_thickness: 0.30
+      view_range: 48
+
+# Lekki silnik customowych dropów surowców. Cyna używa cache chunkowego ghost-copper,
+# batchowego zapisu do DB i nie wykonuje SQL w BlockBreakEvent.
+custom_resources:
+  tin:
+    enabled: true
+    chance: 0.002
+    drop_resource: tin_ore
+    scan_faces: 6
+    broken_materials:
+      - STONE
+      - DEEPSLATE
+    adjacent_ores:
+      - COPPER_ORE
+      - DEEPSLATE_COPPER_ORE
+    silk_touch_allowed: false
+    fortune:
+      enabled: false
+      fortune_1_chance: 0.0025
+      fortune_2_chance: 0.0030
+      fortune_3_chance: 0.0035
+    autosave_interval_seconds: 10
+    max_chunk_load_batch_size: 100
+    max_chunk_save_batch_size: 100

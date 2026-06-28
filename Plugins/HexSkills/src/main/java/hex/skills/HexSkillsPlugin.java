@@ -1,5 +1,7 @@
 package hex.skills;
 
+import hex.core.api.compat.MinecraftCompatibility;
+import hex.core.api.compat.SoundCompatibility;
 import hex.core.api.HexApi;
 import hex.skills.config.SkillRegistry;
 import hex.skills.database.SkillRepository;
@@ -10,7 +12,6 @@ import hex.skills.model.XpSource;
 import hex.towns.api.TownsApi;
 import org.bukkit.Bukkit;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import org.bukkit.Sound;
 import org.bukkit.Material;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -52,6 +53,7 @@ public final class HexSkillsPlugin extends JavaPlugin implements TabExecutor, Li
 
     @Override
     public void onEnable() {
+        MinecraftCompatibility.logStartupCompatibility(this);
         saveResourceIfMissing("skills.yml");
         saveResourceIfMissing("deluxemenus/hexskills.yml");
 
@@ -223,7 +225,7 @@ public final class HexSkillsPlugin extends JavaPlugin implements TabExecutor, Li
                                 if (change.after().level() > change.before().level()) {
                                     var player = Bukkit.getPlayer(finalPlayerUuid);
                                     if (player != null) {
-                                        player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.2f);
+                                        SoundCompatibility.play(player, player.getLocation(), "ENTITY_PLAYER_LEVELUP", 1.0f, 1.2f);
                                         player.sendMessage(miniMessage.deserialize("<green>Awans skillu!</green> <yellow>" + skill.displayName() + "</yellow> <gray>z poziomu</gray> <white>" + change.before().level() + "</white> <gray>na</gray> <white>" + change.after().level() + "</white><gray>.</gray>"));
                                     }
                                 }
@@ -395,7 +397,7 @@ public final class HexSkillsPlugin extends JavaPlugin implements TabExecutor, Li
                     if (change.after().level() > change.before().level()) {
                         var player = Bukkit.getPlayer(playerId);
                         if (player != null) {
-                            player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.2f);
+                            SoundCompatibility.play(player, player.getLocation(), "ENTITY_PLAYER_LEVELUP", 1.0f, 1.2f);
                             player.sendMessage(miniMessage.deserialize("<green>Awans skillu!</green> <yellow>" + skill.get().displayName() + "</yellow> <gray>z poziomu</gray> <white>" + change.before().level() + "</white> <gray>na</gray> <white>" + change.after().level() + "</white><gray>.</gray>"));
                         }
                     }

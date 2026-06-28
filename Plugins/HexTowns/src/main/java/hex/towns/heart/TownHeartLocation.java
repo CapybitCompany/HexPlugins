@@ -28,6 +28,16 @@ public record TownHeartLocation(UUID townId, String world, int x, int y, int z, 
     }
 
     public boolean inProtectedBuildZone(Location location) {
-        return inHeartChunk(location) && location.getBlockY() >= y - 1;
+        return (inHeartChunk(location) && location.getBlockY() >= y - 1) || inBedrockFoundation(location);
+    }
+
+    public boolean inBedrockFoundation(Location location) {
+        return location != null && location.getWorld() != null
+                && location.getWorld().getName().equals(world)
+                && location.getBlockY() == y - 2
+                && location.getBlockX() >= x - 4
+                && location.getBlockX() <= x + 4
+                && location.getBlockZ() >= z - 4
+                && location.getBlockZ() <= z + 4;
     }
 }

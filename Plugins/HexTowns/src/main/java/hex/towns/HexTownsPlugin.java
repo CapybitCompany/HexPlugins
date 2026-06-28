@@ -1,5 +1,6 @@
 package hex.towns;
 
+import hex.core.api.compat.MinecraftCompatibility;
 import hex.core.api.HexApi;
 import hex.towns.api.TownsApi;
 import hex.towns.command.TownCommand;
@@ -19,7 +20,6 @@ import hex.towns.service.TownsApiImpl;
 import hex.towns.service.TownsService;
 import hex.towns.visual.VisualCheckService;
 import org.bukkit.Bukkit;
-import org.bukkit.Sound;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -42,6 +42,7 @@ public final class HexTownsPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        MinecraftCompatibility.logStartupCompatibility(this);
         saveDefaultConfig();
 
         var reg = Bukkit.getServicesManager().getRegistration(HexApi.class);
@@ -206,7 +207,7 @@ public final class HexTownsPlugin extends JavaPlugin {
                 Map.entry("heart.placed", "<green>Postawiono Serce Miasta dla <yellow><town></yellow>.</green>"),
                 Map.entry("heart.indestructible", "<red>Serce miasta jest niezniszczalne.</red>"),
                 Map.entry("heart.protected-zone", "<red>W centralnym chunku nad sercem mozna budowac tylko ponizej poziomu ochrony.</red>"),
-                Map.entry("sound.success", Sound.ENTITY_PLAYER_LEVELUP.name())
+                Map.entry("sound.success", "ENTITY_PLAYER_LEVELUP")
         ));
     }
 

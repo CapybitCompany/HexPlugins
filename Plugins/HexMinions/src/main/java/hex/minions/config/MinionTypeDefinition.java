@@ -43,13 +43,13 @@ public record MinionTypeDefinition(
             return itemMaterial().name();
         }
         if (!itemSpec().headTextureBase64().isBlank()) {
-            return "head:" + itemSpec().headTextureBase64();
+            return "basehead-" + itemSpec().headTextureBase64();
         }
         if (!itemSpec().headTextureUrl().isBlank()) {
-            return "head:" + ItemSpec.base64FromUrl(itemSpec().headTextureUrl());
+            return "basehead-" + ItemSpec.base64FromUrl(itemSpec().headTextureUrl());
         }
         if (!itemSpec().headOwner().isBlank()) {
-            return "head:" + itemSpec().headOwner();
+            return "head-" + itemSpec().headOwner();
         }
         return "PLAYER_HEAD";
     }

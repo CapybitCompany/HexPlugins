@@ -1,5 +1,6 @@
 package hex.economy;
 
+import hex.core.api.compat.MinecraftCompatibility;
 import hex.core.api.HexApi;
 import hex.economy.api.HexEconomyApi;
 import hex.economy.command.EconomyCommand;
@@ -19,6 +20,7 @@ public final class HexEconomyPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        MinecraftCompatibility.logStartupCompatibility(this);
         saveDefaultConfig();
 
         var registration = Bukkit.getServicesManager().getRegistration(HexApi.class);

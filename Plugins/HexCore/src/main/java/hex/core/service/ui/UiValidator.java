@@ -2,6 +2,7 @@ package hex.core.service.ui;
 
 import hex.core.api.config.ValidationResult;
 import hex.core.api.config.Validator;
+import hex.core.api.compat.SoundCompatibility;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -110,9 +111,7 @@ public final class UiValidator implements Validator<UiConfig> {
             }
 
             if (preset.getSound() != null && !preset.getSound().isBlank()) {
-                try {
-                    org.bukkit.Sound.valueOf(preset.getSound());
-                } catch (IllegalArgumentException ignored) {
+                if (SoundCompatibility.resolve(preset.getSound()) == null) {
                     errors.add("preset '" + id + "' has unknown sound: " + preset.getSound());
                 }
             }

@@ -73,15 +73,15 @@ towns:
     # Granice pionowe zaczynaja sie od minimalnego Y swiata.
     # Dzieki temu /town check jest widoczny takze podczas kopania pod ziemia.
     extend-to-world-min: true
-    # Oprocz czterech rogowych slupkow rysuj tez cienkie pionowe sciany-krawedzie
-    # wzdluz calej granicy chunka od min Y do gornego poziomu ramki.
+    # Rysuj dodatkowe waskie slupki 0.10x0.10 wzdluz krawedzi chunka od min Y do gornego poziomu ramki.
+    # Kod nie tworzy juz pelnych scian 16xH, tylko pojedyncze cienkie slupki na linii granicy.
     vertical-edge-walls: true
     # /town check uzywa teraz efemerycznych BlockDisplay zamiast podmienianych blokow.
     # To daje mniej obiektow do renderowania i blokuje jakiekolwiek farmienie materialu Silk Touchem.
-    # Szerokosc pionowych slupkow oraz poziomych krawedzi chunka. 0.15 = waska linia.
-    display-width: 0.15
+    # Szerokosc pionowych slupkow oraz poziomych krawedzi chunka. 0.10 = bardzo waska linia/slupek.
+    display-width: 0.10
     # Grubosc gornych krawedzi ramki.
-    edge-thickness: 0.15
+    edge-thickness: 0.10
     # Zasieg widocznosci displayow dla gracza.
     display-view-range: 64
     # Limit tworzonych displayow na tick dla wszystkich graczy z wlaczonym /town check.

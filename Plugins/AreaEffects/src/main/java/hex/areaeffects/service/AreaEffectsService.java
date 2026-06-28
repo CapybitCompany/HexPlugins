@@ -88,7 +88,7 @@ public class AreaEffectsService {
                 world.createExplosion(point.getX(), point.getY(), point.getZ(), config.explosionPower(), false, false);
             }
 
-            if (config.soundEnabled()) {
+            if (config.soundEnabled() && config.sound() != null) {
                 world.playSound(point, config.sound(), config.volume(), config.pitch());
             }
         }
