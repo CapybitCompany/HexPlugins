@@ -11,8 +11,10 @@ import net.kyori.adventure.text.Component;
 import java.util.Optional;
 
 /**
- * Stops unauthenticated players from connecting to anything other than the limbo server.
- * Authenticated players (and admin-bypass users) are unrestricted.
+ * Stops unauthenticated players from connecting to anything other than the internal void limbo.
+ * If a player tries to connect to a non-limbo backend while unauthenticated, we redirect to the
+ * limbo – unless the limbo is unavailable, in which case the connection attempt is denied with
+ * {@code disconnect.limbo-unavailable}.
  */
 public final class ServerConnectListener {
 
@@ -42,12 +44,12 @@ public final class ServerConnectListener {
         if (router.isLimbo(targetName)) {
             return;
         }
-        event.getPlayer().sendMessage(Component.text(context.messages().raw("error.must-authenticate-first")));
-        Optional<RegisteredServer> limbo = router.limboServer();
-        if (limbo.isPresent()) {
-            event.setResult(ServerPreConnectEvent.ServerResult.allowed(limbo.get()));
-        } else {
+        if (!router.isLimboReady()) {
+            event.getPlayer().disconnect(Component.text(context.messages().raw("disconnect.limbo-unavailable")));
             event.setResult(ServerPreConnectEvent.ServerResult.denied());
+            return;
         }
+        event.getPlayer().sendMessage(Component.text(context.messages().raw("error.must-authenticate-first")));
+        event.setResult(ServerPreConnectEvent.ServerResult.allowed(router.limboServer().orElseThrow()));
     }
 }

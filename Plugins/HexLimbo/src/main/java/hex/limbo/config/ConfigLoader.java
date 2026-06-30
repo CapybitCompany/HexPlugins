@@ -48,8 +48,10 @@ public final class ConfigLoader {
         Map<String, Object> sessionSection = section(root, "session");
         Map<String, Object> securitySection = section(root, "security");
         Map<String, Object> premiumSection = section(root, "premium");
+        Map<String, Object> limboSection = section(root, "limbo");
+        Map<String, Object> limboSpawn = section(limboSection, "spawn");
+        Map<String, Object> limboForwarding = section(limboSection, "forwarding");
 
-        String limboServer = string(servers, "limbo", "limbo");
         String targetServer = string(servers, "target", "lobby");
         long loginTimeoutSeconds = number(auth, "login-timeout-seconds", 60L).longValue();
         String adminBypass = string(auth, "admin-bypass-permission", "hexlimbo.bypass");
@@ -93,8 +95,34 @@ public final class ConfigLoader {
                 bool(premiumSection, "fail-open-on-check-error", false)
         );
 
+        PluginConfig.Forwarding forwarding = new PluginConfig.Forwarding(
+                ForwardingMode.parse(string(limboForwarding, "mode", "MODERN"), ForwardingMode.MODERN),
+                string(limboForwarding, "secret", "")
+        );
+
+        PluginConfig.Limbo limbo = new PluginConfig.Limbo(
+                string(limboSection, "server-name", "hexlimbo-limbo"),
+                string(limboSection, "bind-host", "127.0.0.1"),
+                number(limboSection, "bind-port", 25580).intValue(),
+                number(limboSpawn, "x", 0.5).doubleValue(),
+                number(limboSpawn, "y", 64.0).doubleValue(),
+                number(limboSpawn, "z", 0.5).doubleValue(),
+                number(limboSpawn, "yaw", 0.0).floatValue(),
+                number(limboSpawn, "pitch", 0.0).floatValue(),
+                // Default off: the v1 NBT text-component encoding has not been verified against
+                // every 1.21.4 client build and a malformed packet here disconnects the player.
+                bool(limboSection, "actionbar-enabled", false),
+                string(limboSection, "actionbar-text", "Please login or register."),
+                forwarding,
+                bool(limboSection, "debug-protocol", false)
+        );
+
+        if (servers.containsKey("limbo")) {
+            logger.warn("config.yml: 'servers.limbo' is deprecated; HexLimbo manages its own internal limbo server. "
+                    + "Configure 'limbo.server-name' instead.");
+        }
+
         return new PluginConfig(
-                limboServer,
                 targetServer,
                 loginTimeoutSeconds,
                 adminBypass,
@@ -102,7 +130,8 @@ public final class ConfigLoader {
                 database,
                 session,
                 security,
-                premium
+                premium,
+                limbo
         );
     }
 

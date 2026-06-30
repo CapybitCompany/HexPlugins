@@ -14,7 +14,7 @@ class RuntimeContextTest {
     @Test
     void initialValuesReadable() {
         RuntimeContext context = new RuntimeContext(TestConfigs.defaultConfig(), new MessagesConfig(Map.of("hello", "world")));
-        assertEquals("limbo", context.config().limboServer());
+        assertEquals("hexlimbo-limbo", context.config().limboServer());
         assertEquals("world", context.messages().raw("hello"));
     }
 

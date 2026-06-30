@@ -8,6 +8,8 @@ disconnect.premium-name-required: "This name is a premium Mojang account. Please
 disconnect.account-state-error: "Your account is in an inconsistent state. Please contact staff."
 disconnect.premium-check-unavailable: "Cannot verify premium status with Mojang right now. Please try again in a few minutes."
 disconnect.service-unavailable: "HexLimbo is currently unavailable. Please try again later."
+disconnect.limbo-unavailable: "Authentication limbo is currently unavailable. Please try again later."
+disconnect.forwarding-failed: "Could not complete Velocity forwarding handshake. Please contact staff."
 
 # Inline errors.
 error.must-authenticate-first: "Please /login or /register first."
@@ -60,7 +62,7 @@ limbo.help-changepassword: "  /changepassword <oldPassword> <newPassword>"
 limbo.help-premium: "  /premium"
 
 # Admin command output.
-admin.usage: "Usage: /hexlimbo <reload|info|resetpassword|forcelogout|unregister|sessions|migrate|debug>"
+admin.usage: "Usage: /hexlimbo <reload|info|resetpassword|forcelogout|unregister|sessions|migrate|debug|limbo>"
 admin.usage.info: "Usage: /hexlimbo info <player>"
 admin.usage.resetpassword: "Usage: /hexlimbo resetpassword <player> <newPassword>"
 admin.usage.forcelogout: "Usage: /hexlimbo forcelogout <player>"
@@ -90,3 +92,7 @@ admin.info.field: "  {0}: {1}"
 # {0} = field name, {1} = value. Used for every line of /hexlimbo debug <player>.
 admin.debug.header: "HexLimbo debug {0}"
 admin.debug.field: "  {0}: {1}"
+admin.limbo.usage: "Usage: /hexlimbo limbo"
+admin.limbo.status: "Limbo status: {0}"
+admin.limbo.field: "  {0}: {1}"
+admin.limbo.no-error: "(none)"

@@ -30,6 +30,8 @@ import hex.limbo.config.RuntimeContext;
 import hex.limbo.db.AuditLogService;
 import hex.limbo.db.MySqlProvider;
 import hex.limbo.limbo.LimboRouter;
+import hex.limbo.limbo.LimboServer;
+import hex.limbo.limbo.server.MinecraftLimboServer;
 import hex.limbo.listener.ChatListener;
 import hex.limbo.listener.CommandListener;
 import hex.limbo.listener.DisconnectListener;
@@ -48,6 +50,10 @@ import hex.limbo.uuid.FakeUuidService;
 import net.kyori.adventure.text.Component;
 import org.slf4j.Logger;
 
+import com.velocitypowered.api.proxy.server.RegisteredServer;
+import com.velocitypowered.api.proxy.server.ServerInfo;
+
+import java.net.InetSocketAddress;
 import java.nio.file.Path;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -76,6 +82,7 @@ public final class HexLimboPlugin {
     private AuthService authService;
     private SessionService sessionService;
     private PremiumResolverHandle premiumResolver;
+    private LimboServer limboServer;
     private LimboRouter router;
     private PasswordHasher passwordHasher;
     private AuditLogService auditLog;
@@ -150,7 +157,21 @@ public final class HexLimboPlugin {
 
         premiumResolver = new PremiumResolverHandle(buildPremiumResolver(config.premium()));
 
-        router = new LimboRouter(proxy, runtimeContext, logger);
+        // Start the internal void backend BEFORE registering listeners so that the moment
+        // PreLoginEvent can fire, the limbo is either ready or the listeners will safely kick.
+        limboServer = new MinecraftLimboServer(
+                config.limbo(),
+                () -> runtimeContext.messages().raw("disconnect.forwarding-failed"),
+                logger);
+        limboServer.start();
+        if (limboServer.isReady()) {
+            registerLimboWithVelocity(config.limbo());
+        } else {
+            logger.error("Internal limbo backend did not start: {}",
+                    limboServer.lastStartError().orElse("unknown reason"));
+        }
+
+        router = new LimboRouter(proxy, runtimeContext, limboServer, logger);
         FakeUuidService fakeUuidService = new FakeUuidService();
 
         registerListeners(fakeUuidService, ipHasher);
@@ -217,6 +238,31 @@ public final class HexLimboPlugin {
         mysqlProvider = null;
     }
 
+    private void registerLimboWithVelocity(PluginConfig.Limbo cfg) {
+        String name = cfg.serverName();
+        proxy.getServer(name).ifPresent(existing -> {
+            logger.warn("A server named '{}' is already registered with Velocity (velocity.toml or another plugin). "
+                    + "HexLimbo will unregister it and re-register pointing at the internal backend.", name);
+            proxy.unregisterServer(existing.getServerInfo());
+        });
+        try {
+            ServerInfo info = new ServerInfo(name, new InetSocketAddress(cfg.bindHost(), cfg.bindPort()));
+            RegisteredServer registered = proxy.registerServer(info);
+            logger.info("Registered HexLimbo internal backend with Velocity as '{}' at {}:{}.",
+                    registered.getServerInfo().getName(), cfg.bindHost(), cfg.bindPort());
+        } catch (RuntimeException ex) {
+            logger.error("Could not register limbo server '{}' with Velocity: {}", name, ex.getMessage());
+        }
+    }
+
+    private void unregisterLimboFromVelocity() {
+        if (runtimeContext == null) {
+            return;
+        }
+        String name = runtimeContext.config().limbo().serverName();
+        proxy.getServer(name).ifPresent(server -> proxy.unregisterServer(server.getServerInfo()));
+    }
+
     private CachedPremiumResolver buildPremiumResolver(PluginConfig.Premium premiumConfig) {
         MojangPremiumResolver mojang = new MojangPremiumResolver(premiumConfig.httpTimeoutMs(), logger);
         return new CachedPremiumResolver(mojang, premiumConfig.cacheTtlSeconds(), premiumConfig.cacheMaxEntries());
@@ -250,7 +296,7 @@ public final class HexLimboPlugin {
         register(cm, "changepassword", new ChangePasswordCommand(authService, sessionService, runtimeContext, auditLog, authExecutor, logger), "cpw");
         register(cm, "premium", new PremiumCommand(authService, repository, runtimeContext, auditLog, authExecutor, logger));
         register(cm, "limbo", new LimboCommand(runtimeContext));
-        register(cm, "hexlimbo", new HexLimboAdminCommand(this, proxy, authService, repository, sessionService, passwordHasher, router, runtimeContext, premiumResolver, auditLog, authExecutor, logger));
+        register(cm, "hexlimbo", new HexLimboAdminCommand(this, proxy, authService, repository, sessionService, passwordHasher, router, runtimeContext, premiumResolver, auditLog, limboServer, authExecutor, logger));
     }
 
     private void register(CommandManager cm, String name, com.velocitypowered.api.command.Command command, String... aliases) {
@@ -311,34 +357,55 @@ public final class HexLimboPlugin {
             return;
         }
         PluginConfig oldConfig = runtimeContext.config();
-        PluginConfig newConfig = configLoader.loadConfig();
+        PluginConfig parsedConfig = configLoader.loadConfig();
         MessagesConfig newMessages = configLoader.loadMessages();
-        runtimeContext.update(newConfig, newMessages);
 
-        if (oldConfig.session().purgeIntervalMinutes() != newConfig.session().purgeIntervalMinutes()) {
+        // limbo.* is restart-only in v1: the running TCP backend, the server name registered with
+        // Velocity, and the spawn position all depend on values we cannot safely hot-swap. Force
+        // the live runtime to keep the OLD limbo block regardless of what the on-disk file now
+        // says, and emit a warning if the user touched it.
+        if (!oldConfig.limbo().equals(parsedConfig.limbo())) {
+            logger.warn("HexLimbo: limbo.* settings were edited (server-name, bind-host, bind-port, spawn, "
+                    + "actionbar). These fields are RESTART-ONLY in v1; the running limbo backend continues "
+                    + "with the previous values until you restart the proxy.");
+        }
+        PluginConfig effectiveConfig = new PluginConfig(
+                parsedConfig.targetServer(),
+                parsedConfig.loginTimeoutSeconds(),
+                parsedConfig.adminBypassPermission(),
+                parsedConfig.allowedCommandsUnauthenticated().stream().toList(),
+                parsedConfig.database(),
+                parsedConfig.session(),
+                parsedConfig.security(),
+                parsedConfig.premium(),
+                oldConfig.limbo()
+        );
+        runtimeContext.update(effectiveConfig, newMessages);
+
+        if (oldConfig.session().purgeIntervalMinutes() != effectiveConfig.session().purgeIntervalMinutes()) {
             logger.info("Session purge interval changed from {} → {} minutes. Rescheduling task.",
-                    oldConfig.session().purgeIntervalMinutes(), newConfig.session().purgeIntervalMinutes());
+                    oldConfig.session().purgeIntervalMinutes(), effectiveConfig.session().purgeIntervalMinutes());
             schedulePeriodicPurge();
         }
 
-        if (premiumResolver != null && !oldConfig.premium().equals(newConfig.premium())) {
-            CachedPremiumResolver fresh = buildPremiumResolver(newConfig.premium());
+        if (premiumResolver != null && !oldConfig.premium().equals(effectiveConfig.premium())) {
+            CachedPremiumResolver fresh = buildPremiumResolver(effectiveConfig.premium());
             premiumResolver.swap(fresh);
             logger.info("Premium resolver replaced after reload (ttl={}s, max={}, http-timeout={}ms, enabled={}, fail-open={}).",
-                    newConfig.premium().cacheTtlSeconds(),
-                    newConfig.premium().cacheMaxEntries(),
-                    newConfig.premium().httpTimeoutMs(),
-                    newConfig.premium().enabled(),
-                    newConfig.premium().failOpenOnCheckError());
+                    effectiveConfig.premium().cacheTtlSeconds(),
+                    effectiveConfig.premium().cacheMaxEntries(),
+                    effectiveConfig.premium().httpTimeoutMs(),
+                    effectiveConfig.premium().enabled(),
+                    effectiveConfig.premium().failOpenOnCheckError());
         }
 
-        if (!oldConfig.database().equals(newConfig.database())) {
+        if (!oldConfig.database().equals(effectiveConfig.database())) {
             logger.warn("HexLimbo: database.* settings were edited. Connection settings only take effect after a proxy restart.");
         }
-        if (oldConfig.security().rateLimitPerMinute() != newConfig.security().rateLimitPerMinute()) {
+        if (oldConfig.security().rateLimitPerMinute() != effectiveConfig.security().rateLimitPerMinute()) {
             logger.warn("HexLimbo: security.rate-limit-per-minute was edited. The sliding-window size only takes effect after a proxy restart.");
         }
-        if (!oldConfig.security().ipHashPepper().equals(newConfig.security().ipHashPepper())) {
+        if (!oldConfig.security().ipHashPepper().equals(effectiveConfig.security().ipHashPepper())) {
             logger.warn("HexLimbo: security.ip-hash-pepper was edited. The new pepper only takes effect after a proxy restart and will invalidate every existing IP hash.");
         }
 
@@ -355,6 +422,11 @@ public final class HexLimboPlugin {
             sessionPurgeTask.cancel();
             sessionPurgeTask = null;
         }
+        if (limboServer != null) {
+            try { limboServer.stop(); } catch (RuntimeException ignored) {}
+            limboServer = null;
+        }
+        unregisterLimboFromVelocity();
         closeMysqlProviderQuietly();
         if (repository != null) {
             repository.close();

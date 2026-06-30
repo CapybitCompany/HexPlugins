@@ -1,15 +1,62 @@
 # HexLimbo configuration.
 # Values that can be hot-reloaded with `/hexlimbo reload`:
-#   servers.*, auth.*, session.duration-minutes, session.purge-interval-minutes (next tick),
-#   security.* (live except rate-limit-per-minute window – requires restart),
-#   premium.* (live), messages.yml content.
-# Database connection settings require a proxy restart.
+#   servers.target, auth.*, session.* (duration / enabled live on every call;
+#   purge-interval-minutes triggers a re-schedule), security.* (live except
+#   rate-limit-per-minute window which is fixed at startup), premium.*, messages.yml,
+#   limbo.actionbar-* (visual only).
+# Restart-required: database.*, security.ip-hash-pepper, security.rate-limit-per-minute,
+# limbo.server-name / bind-host / bind-port / spawn.* (these define the internal backend).
 
 servers:
-  # The server players are routed to while unauthenticated. Must be registered in velocity.toml.
-  limbo: "limbo"
   # The server players are sent to once authenticated.
   target: "lobby"
+
+# HexLimbo runs its own minimal internal backend server. There is no need to register
+# an external "limbo" server in velocity.toml; HexLimbo registers itself dynamically.
+limbo:
+  # Name HexLimbo registers its backend under, both with the Velocity proxy and in routing.
+  server-name: "hexlimbo-limbo"
+  # Address the internal server binds to. 127.0.0.1 keeps it private to the proxy host.
+  bind-host: "127.0.0.1"
+  # TCP port for the internal server. Must be free and not exposed to the public internet.
+  bind-port: 25580
+
+  # Void spawn coordinates. There are no blocks, players free-fall into a configurable
+  # spawn position and are repeatedly snapped back to it.
+  spawn:
+    x: 0.5
+    y: 64.0
+    z: 0.5
+    yaw: 0.0
+    pitch: 0.0
+
+  # Visual-only: show an actionbar message reminding the player to /login or /register.
+  # Default OFF in v1: the NBT TextComponent encoding for the action-bar packet is fragile
+  # across 1.21.4 client builds. Re-enable once you've smoke-tested it against your client.
+  actionbar-enabled: false
+  actionbar-text: "Please login or register."
+
+  # Toggle structured INFO-level logs around each step of the backend protocol handshake.
+  # Useful for live-debugging "client disconnects right after joining limbo" reports. Logs each
+  # transition (handshake protocol version, forwarding mode, login success sent, login
+  # acknowledged received, known-packs sent/received, finish configuration sent/received, play
+  # opening sequence sent). Leave off in normal operation; the logs are chatty.
+  debug-protocol: false
+
+  forwarding:
+    # Velocity proxy → backend forwarding mode.
+    #   MODERN  – backend sends a velocity:player_info Login Plugin Request and uses the
+    #             forwarded UUID/username/IP. Matches velocity.toml
+    #             player-info-forwarding-mode = "modern".
+    #   LEGACY  – BungeeCord-style forwarding; the backend trusts the username in Login Start.
+    #             Treated identically to NONE by the limbo today.
+    #   NONE    – no handshake; the backend trusts the username in Login Start.
+    mode: "MODERN"
+    # Velocity forwarding secret (the contents of velocity/forwarding.secret). Required for HMAC
+    # validation of the Login Plugin Response. Leave empty to SKIP HMAC validation – the limbo
+    # still consumes the forwarded data, but no cryptographic proof of authenticity is enforced.
+    # Skipping validation is acceptable when the limbo only listens on 127.0.0.1.
+    secret: ""
 
 auth:
   # How many seconds an unauthenticated player may stay connected before being kicked.

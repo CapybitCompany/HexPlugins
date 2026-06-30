@@ -30,7 +30,6 @@ class RegisterPremiumGateTest {
     private PluginConfig withPremiumEnabled(boolean enabled) {
         PluginConfig base = TestConfigs.defaultConfig();
         return new PluginConfig(
-                base.limboServer(),
                 base.targetServer(),
                 base.loginTimeoutSeconds(),
                 base.adminBypassPermission(),
@@ -44,7 +43,8 @@ class RegisterPremiumGateTest {
                         base.premium().cacheMaxEntries(),
                         base.premium().httpTimeoutMs(),
                         base.premium().failOpenOnCheckError()
-                )
+                ),
+                base.limbo()
         );
     }
 

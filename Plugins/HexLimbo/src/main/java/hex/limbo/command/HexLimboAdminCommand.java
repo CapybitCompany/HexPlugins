@@ -16,6 +16,8 @@ import hex.limbo.config.MessagesConfig;
 import hex.limbo.config.RuntimeContext;
 import hex.limbo.db.AuditLogService;
 import hex.limbo.limbo.LimboRouter;
+import hex.limbo.limbo.LimboServer;
+import hex.limbo.limbo.server.Protocol;
 import hex.limbo.premium.PremiumResolverHandle;
 import net.kyori.adventure.text.Component;
 import org.slf4j.Logger;
@@ -44,6 +46,7 @@ public final class HexLimboAdminCommand implements SimpleCommand {
     private final RuntimeContext context;
     private final PremiumResolverHandle premiumResolver;
     private final AuditLogService auditLog;
+    private final LimboServer limboServer;
     private final Executor authExecutor;
     private final Logger logger;
 
@@ -58,6 +61,7 @@ public final class HexLimboAdminCommand implements SimpleCommand {
             RuntimeContext context,
             PremiumResolverHandle premiumResolver,
             AuditLogService auditLog,
+            LimboServer limboServer,
             Executor authExecutor,
             Logger logger
     ) {
@@ -71,6 +75,7 @@ public final class HexLimboAdminCommand implements SimpleCommand {
         this.context = context;
         this.premiumResolver = premiumResolver;
         this.auditLog = auditLog;
+        this.limboServer = limboServer;
         this.authExecutor = authExecutor;
         this.logger = logger;
     }
@@ -99,6 +104,7 @@ public final class HexLimboAdminCommand implements SimpleCommand {
             case "sessions" -> dispatch(() -> handleSessions(source, args));
             case "migrate" -> dispatch(() -> handleMigrate(source, args));
             case "debug" -> handleDebug(source, args); // pure in-memory lookup, fine synchronously
+            case "limbo" -> handleLimboStatus(source); // pure in-memory lookup, fine synchronously
             default -> source.sendMessage(Component.text(messages.raw("admin.usage")));
         }
     }
@@ -286,6 +292,22 @@ public final class HexLimboAdminCommand implements SimpleCommand {
         source.sendMessage(Component.text(messages.format("admin.debug.field", "ipHash", s.ipHash())));
         source.sendMessage(Component.text(messages.format("admin.debug.field", "joinedAt", s.joinedAt())));
         source.sendMessage(Component.text(messages.format("admin.debug.field", "onlineMode", player.get().isOnlineMode())));
+    }
+
+    private void handleLimboStatus(CommandSource source) {
+        MessagesConfig messages = context.messages();
+        boolean ready = limboServer.isReady();
+        source.sendMessage(Component.text(messages.format("admin.limbo.status", ready ? "ready" : "not ready")));
+        source.sendMessage(Component.text(messages.format("admin.limbo.field", "server-name", limboServer.serverName())));
+        source.sendMessage(Component.text(messages.format("admin.limbo.field", "bind-host", limboServer.bindHost())));
+        source.sendMessage(Component.text(messages.format("admin.limbo.field", "bind-port", limboServer.bindPort())));
+        source.sendMessage(Component.text(messages.format("admin.limbo.field", "supported-protocol",
+                Protocol.MINECRAFT_VERSION_LABEL + " (id " + Protocol.MINECRAFT_PROTOCOL_VERSION + ")")));
+        source.sendMessage(Component.text(messages.format("admin.limbo.field", "ready", ready)));
+        source.sendMessage(Component.text(messages.format("admin.limbo.field", "active-sessions", limboServer.activeConnectionCount())));
+        source.sendMessage(Component.text(messages.format("admin.limbo.field", "tcp-connections", limboServer.tcpConnectionCount())));
+        String lastErr = limboServer.lastStartError().orElseGet(() -> messages.raw("admin.limbo.no-error"));
+        source.sendMessage(Component.text(messages.format("admin.limbo.field", "last-start-error", lastErr)));
     }
 
     private String sourceLabel(CommandSource source) {

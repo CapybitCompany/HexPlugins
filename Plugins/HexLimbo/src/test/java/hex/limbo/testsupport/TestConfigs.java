@@ -1,5 +1,6 @@
 package hex.limbo.testsupport;
 
+import hex.limbo.config.ForwardingMode;
 import hex.limbo.config.PluginConfig;
 
 import java.util.List;
@@ -12,9 +13,33 @@ public final class TestConfigs {
 
     private TestConfigs() {}
 
+    public static PluginConfig.Limbo defaultLimbo() {
+        return new PluginConfig.Limbo(
+                "hexlimbo-limbo",
+                "127.0.0.1",
+                25580,
+                0.5, 64.0, 0.5,
+                0.0f, 0.0f,
+                false,
+                "Please login or register.",
+                new PluginConfig.Forwarding(ForwardingMode.NONE, ""),
+                false
+        );
+    }
+
+    public static PluginConfig.Limbo limboWithForwarding(ForwardingMode mode, String secret) {
+        PluginConfig.Limbo base = defaultLimbo();
+        return new PluginConfig.Limbo(
+                base.serverName(), base.bindHost(), base.bindPort(),
+                base.spawnX(), base.spawnY(), base.spawnZ(), base.spawnYaw(), base.spawnPitch(),
+                base.actionbarEnabled(), base.actionbarText(),
+                new PluginConfig.Forwarding(mode, secret),
+                base.debugProtocol()
+        );
+    }
+
     public static PluginConfig defaultConfig() {
         return new PluginConfig(
-                "limbo",
                 "lobby",
                 60L,
                 "hexlimbo.bypass",
@@ -22,14 +47,14 @@ public final class TestConfigs {
                 new PluginConfig.Database("127.0.0.1", 3306, "db", "user", "pass", 10, 10_000L, 10_000L, false, true, true),
                 new PluginConfig.Session(true, 240L, 10L),
                 new PluginConfig.Security(8, 3, 600L, 10, 4, "pepper"),
-                new PluginConfig.Premium(true, 600L, 10_000, 4_000L, false)
+                new PluginConfig.Premium(true, 600L, 10_000, 4_000L, false),
+                defaultLimbo()
         );
     }
 
     public static PluginConfig withMinPasswordLength(int minLength) {
         PluginConfig base = defaultConfig();
         return new PluginConfig(
-                base.limboServer(),
                 base.targetServer(),
                 base.loginTimeoutSeconds(),
                 base.adminBypassPermission(),
@@ -44,14 +69,14 @@ public final class TestConfigs {
                         base.security().maxAccountsPerIp(),
                         base.security().ipHashPepper()
                 ),
-                base.premium()
+                base.premium(),
+                base.limbo()
         );
     }
 
     public static PluginConfig withAllowlist(List<String> allowed) {
         PluginConfig base = defaultConfig();
         return new PluginConfig(
-                base.limboServer(),
                 base.targetServer(),
                 base.loginTimeoutSeconds(),
                 base.adminBypassPermission(),
@@ -59,14 +84,22 @@ public final class TestConfigs {
                 base.database(),
                 base.session(),
                 base.security(),
-                base.premium()
+                base.premium(),
+                base.limbo()
         );
     }
 
-    public static PluginConfig withServers(String limboServer, String targetServer) {
+    public static PluginConfig withServers(String limboServerName, String targetServer) {
         PluginConfig base = defaultConfig();
+        PluginConfig.Limbo l = base.limbo();
+        PluginConfig.Limbo overriddenLimbo = new PluginConfig.Limbo(
+                limboServerName, l.bindHost(), l.bindPort(),
+                l.spawnX(), l.spawnY(), l.spawnZ(), l.spawnYaw(), l.spawnPitch(),
+                l.actionbarEnabled(), l.actionbarText(),
+                l.forwarding(),
+                l.debugProtocol()
+        );
         return new PluginConfig(
-                limboServer,
                 targetServer,
                 base.loginTimeoutSeconds(),
                 base.adminBypassPermission(),
@@ -74,14 +107,14 @@ public final class TestConfigs {
                 base.database(),
                 base.session(),
                 base.security(),
-                base.premium()
+                base.premium(),
+                overriddenLimbo
         );
     }
 
     public static PluginConfig withPremiumFailOpen(boolean failOpen) {
         PluginConfig base = defaultConfig();
         return new PluginConfig(
-                base.limboServer(),
                 base.targetServer(),
                 base.loginTimeoutSeconds(),
                 base.adminBypassPermission(),
@@ -95,7 +128,31 @@ public final class TestConfigs {
                         base.premium().cacheMaxEntries(),
                         base.premium().httpTimeoutMs(),
                         failOpen
-                )
+                ),
+                base.limbo()
+        );
+    }
+
+    public static PluginConfig withLimboPort(int port) {
+        PluginConfig base = defaultConfig();
+        PluginConfig.Limbo l = base.limbo();
+        PluginConfig.Limbo overridden = new PluginConfig.Limbo(
+                l.serverName(), l.bindHost(), port,
+                l.spawnX(), l.spawnY(), l.spawnZ(), l.spawnYaw(), l.spawnPitch(),
+                l.actionbarEnabled(), l.actionbarText(),
+                l.forwarding(),
+                l.debugProtocol()
+        );
+        return new PluginConfig(
+                base.targetServer(),
+                base.loginTimeoutSeconds(),
+                base.adminBypassPermission(),
+                base.allowedCommandsUnauthenticated().stream().toList(),
+                base.database(),
+                base.session(),
+                base.security(),
+                base.premium(),
+                overridden
         );
     }
 }

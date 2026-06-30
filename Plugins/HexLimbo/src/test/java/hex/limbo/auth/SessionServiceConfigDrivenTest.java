@@ -24,7 +24,6 @@ class SessionServiceConfigDrivenTest {
     private PluginConfig withSession(boolean enabled, long durationMinutes) {
         PluginConfig base = TestConfigs.defaultConfig();
         return new PluginConfig(
-                base.limboServer(),
                 base.targetServer(),
                 base.loginTimeoutSeconds(),
                 base.adminBypassPermission(),
@@ -32,7 +31,8 @@ class SessionServiceConfigDrivenTest {
                 base.database(),
                 new PluginConfig.Session(enabled, durationMinutes, base.session().purgeIntervalMinutes()),
                 base.security(),
-                base.premium()
+                base.premium(),
+                base.limbo()
         );
     }
 
