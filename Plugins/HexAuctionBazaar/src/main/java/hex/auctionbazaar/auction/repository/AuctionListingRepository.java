@@ -70,6 +70,25 @@ public final class AuctionListingRepository {
                 AuctionListingRepository::map, ListingState.ACTIVE.name(), limit, offset);
     }
 
+    public List<AuctionListing> findActiveSorted(int limit, int offset,
+                                                  hex.auctionbazaar.auction.service.AuctionService.SortMode sort) {
+        String orderBy = switch (sort) {
+            case PRICE_ASC -> "price ASC, id DESC";
+            case PRICE_DESC -> "price DESC, id DESC";
+            default -> "id DESC";
+        };
+        return db.query("SELECT * FROM " + t() + " WHERE state=? ORDER BY " + orderBy + " LIMIT ? OFFSET ?",
+                AuctionListingRepository::map, ListingState.ACTIVE.name(), limit, offset);
+    }
+
+    public int countActive() {
+        return db.queryOne(
+                "SELECT COUNT(*) AS c FROM " + t() + " WHERE state=?",
+                rs -> rs.getInt("c"),
+                ListingState.ACTIVE.name()
+        ).orElse(0);
+    }
+
     public List<AuctionListing> findActiveBySeller(UUID seller) {
         return db.query("SELECT * FROM " + t() + " WHERE seller_uuid=? AND state IN (?, ?) ORDER BY id DESC",
                 AuctionListingRepository::map, seller.toString(),

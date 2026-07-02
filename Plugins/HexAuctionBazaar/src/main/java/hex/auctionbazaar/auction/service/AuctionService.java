@@ -1,5 +1,7 @@
 package hex.auctionbazaar.auction.service;
 
+import hex.auctionbazaar.audit.model.AuditAction;
+import hex.auctionbazaar.audit.service.AuditService;
 import hex.auctionbazaar.auction.model.AuctionClaim;
 import hex.auctionbazaar.auction.model.AuctionListing;
 import hex.auctionbazaar.auction.model.ListingState;
@@ -69,6 +71,7 @@ public final class AuctionService {
     private final EconomyBridge economy;
     private final AuctionListingRepository listings;
     private final AuctionClaimRepository claims;
+    private final AuditService audit;
     private final Supplier<AuctionConfig> configSupplier;
 
     public AuctionService(Plugin plugin,
@@ -76,6 +79,7 @@ public final class AuctionService {
                           EconomyBridge economy,
                           AuctionListingRepository listings,
                           AuctionClaimRepository claims,
+                          AuditService audit,
                           Supplier<AuctionConfig> configSupplier) {
         this.plugin = Objects.requireNonNull(plugin, "plugin");
         this.logger = plugin.getLogger();
@@ -83,6 +87,7 @@ public final class AuctionService {
         this.economy = Objects.requireNonNull(economy, "economy");
         this.listings = Objects.requireNonNull(listings, "listings");
         this.claims = Objects.requireNonNull(claims, "claims");
+        this.audit = Objects.requireNonNull(audit, "audit");
         this.configSupplier = Objects.requireNonNull(configSupplier, "configSupplier");
     }
 
@@ -202,6 +207,14 @@ public final class AuctionService {
                             });
                             return;
                         }
+                        audit.log(audit.builder()
+                                .actor(sellerId, sellerName)
+                                .action(AuditAction.AUCTION_LISTING_CREATED)
+                                .market(AuditAction.MARKET_AUCTION)
+                                .listingId(id)
+                                .unitPrice(price)
+                                .total(price)
+                                .result(AuditAction.RESULT_OK));
                         onMain(() -> result.complete(SellOutcome.ok(id)));
                     });
         });
@@ -354,6 +367,14 @@ public final class AuctionService {
                             claimItemAsync(buyerId, rest,
                                     "auction-buy-overflow-" + listingId, listingId);
                         }
+                        audit.log(audit.builder()
+                                .actor(buyerId, buyer.getName())
+                                .action(AuditAction.AUCTION_LISTING_BOUGHT)
+                                .market(AuditAction.MARKET_AUCTION)
+                                .listingId(listingId)
+                                .unitPrice(price)
+                                .total(price)
+                                .result(AuditAction.RESULT_OK));
                         result.complete(BuyResult.ok(l));
                     });
                 });
@@ -394,6 +415,14 @@ public final class AuctionService {
                                     onMain(() -> result.complete(CancelOutcome.NOT_ACTIVE));
                                     return;
                                 }
+                                if (claimOpt.isPresent()) {
+                                    audit.log(audit.builder()
+                                            .actor(sellerId, seller.getName())
+                                            .action(AuditAction.AUCTION_LISTING_CANCELLED)
+                                            .market(AuditAction.MARKET_AUCTION)
+                                            .listingId(listingId)
+                                            .result(AuditAction.RESULT_OK));
+                                }
                                 onMain(() -> result.complete(claimOpt.isPresent()
                                         ? CancelOutcome.OK : CancelOutcome.NOT_ACTIVE));
                             });
@@ -410,6 +439,24 @@ public final class AuctionService {
                     return List.of();
                 });
     }
+
+    public CompletableFuture<List<AuctionListing>> listActive(int limit, int offset, SortMode sort) {
+        return hexCore.async(() -> listings.findActiveSorted(limit, offset, sort))
+                .exceptionally(ex -> {
+                    logger.log(Level.WARNING, "listActiveSorted failed", ex);
+                    return List.of();
+                });
+    }
+
+    public CompletableFuture<Integer> countActive() {
+        return hexCore.async(listings::countActive)
+                .exceptionally(ex -> {
+                    logger.log(Level.WARNING, "countActive failed", ex);
+                    return 0;
+                });
+    }
+
+    public enum SortMode { NEWEST, PRICE_ASC, PRICE_DESC }
 
     public CompletableFuture<List<AuctionListing>> listMine(UUID seller) {
         return hexCore.async(() -> listings.findActiveBySeller(seller))
@@ -560,7 +607,23 @@ public final class AuctionService {
             listings.releaseStaleReservations(now);
             List<AuctionListing> due = listings.findExpired(now, batchSize);
             if (due.isEmpty()) return 0;
-            return listings.expireBatchWithClaimsTx(due, now);
+            int processed = listings.expireBatchWithClaimsTx(due, now);
+            if (processed > 0) {
+                audit.log(audit.builder()
+                        .action(AuditAction.AUCTION_CLEANUP)
+                        .market(AuditAction.MARKET_AUCTION)
+                        .amount((long) processed)
+                        .result(AuditAction.RESULT_OK));
+                for (AuctionListing l : due) {
+                    audit.log(audit.builder()
+                            .actor(l.sellerUuid(), l.sellerName())
+                            .action(AuditAction.AUCTION_LISTING_EXPIRED)
+                            .market(AuditAction.MARKET_AUCTION)
+                            .listingId(l.id())
+                            .result(AuditAction.RESULT_OK));
+                }
+            }
+            return processed;
         }).exceptionally(ex -> {
             logger.log(Level.WARNING, "expire sweep failed", ex);
             return 0;

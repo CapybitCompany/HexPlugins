@@ -193,22 +193,57 @@ public final class AuctionCommand implements CommandExecutor, TabCompleter {
 
     private boolean handleAdmin(CommandSender sender, String[] args) {
         AuctionConfig cfg = plugin.config().auction();
-        if (!sender.hasPermission(cfg.permAdmin())) {
+        if (!hasAdmin(sender, cfg)) {
             plugin.messages().send(sender, "common.no-permission");
             return true;
         }
         if (args.length < 2) {
-            plugin.messages().send(sender, "common.no-permission");
+            plugin.messages().send(sender, "auction.admin-usage");
             return true;
         }
-        if (args[1].equalsIgnoreCase("cleanup")) {
+        String sub = args[1].toLowerCase(Locale.ROOT);
+        if (sub.equals("cleanup")) {
             plugin.auctionService().expireDueListings(1000).thenAccept(count ->
                     Bukkit.getScheduler().runTask(plugin, () ->
                             plugin.messages().send(sender, "auction.cleanup-done",
                                     placeholders("count", String.valueOf(count)))));
             return true;
         }
+        if (sub.equals("audit")) {
+            if (!sender.hasPermission("hexauction.admin.audit") && !sender.isOp()) {
+                plugin.messages().send(sender, "common.no-permission");
+                return true;
+            }
+            if (args.length < 4) {
+                plugin.messages().send(sender, "auction.admin-audit-usage");
+                return true;
+            }
+            String kind = args[2].toLowerCase(Locale.ROOT);
+            String value = args[3];
+            plugin.auditService().queryFormatted(kind, value, 20).thenAccept(lines ->
+                    Bukkit.getScheduler().runTask(plugin, () -> {
+                        if (lines.isEmpty()) {
+                            plugin.messages().send(sender, "auction.admin-audit-empty");
+                        } else {
+                            for (String line : lines) {
+                                sender.sendMessage(hex.auctionbazaar.util.LegacyFormat.component(line));
+                            }
+                        }
+                    }));
+            return true;
+        }
+        plugin.messages().send(sender, "auction.admin-usage");
         return true;
+    }
+
+    /**
+     * Admin uprawnienia: dokladnie skonfigurowana permisja LUB status OP.
+     * Powod: OP-y powinny miec zawsze dostep do panelu admina, nawet gdy
+     * uprawnienie nie jest im wyraznie nadane (kompatybilnosc z ekipa
+     * serwera zarzadzana na poziomie OP-list).
+     */
+    private boolean hasAdmin(CommandSender sender, AuctionConfig cfg) {
+        return sender.hasPermission(cfg.permAdmin()) || sender.isOp();
     }
 
     @Override
@@ -218,7 +253,10 @@ public final class AuctionCommand implements CommandExecutor, TabCompleter {
             return filter(List.of("sell", "mylistings", "cancel", "claims", "reload", "admin"), args[0]);
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("admin")) {
-            return filter(List.of("cleanup"), args[1]);
+            return filter(List.of("cleanup", "audit"), args[1]);
+        }
+        if (args.length == 3 && args[0].equalsIgnoreCase("admin") && args[1].equalsIgnoreCase("audit")) {
+            return filter(List.of("player", "item", "order", "listing", "market"), args[2]);
         }
         return List.of();
     }

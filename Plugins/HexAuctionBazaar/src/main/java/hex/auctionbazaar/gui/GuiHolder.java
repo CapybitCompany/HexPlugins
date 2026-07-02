@@ -21,9 +21,11 @@ public final class GuiHolder implements InventoryHolder {
         AUCTION_MY_LISTINGS,
         AUCTION_CLAIMS,
         AUCTION_CONFIRM_BUY,
+        AUCTION_SELL,
         BAZAAR_MAIN,
         BAZAAR_ITEM,
-        BAZAAR_QUANTITY
+        BAZAAR_QUANTITY,
+        BAZAAR_ORDER_CREATE
     }
 
     private final Kind kind;

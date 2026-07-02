@@ -1,10 +1,12 @@
 package hex.auctionbazaar.auction.gui;
 
+import hex.auctionbazaar.HexAuctionBazaarPlugin;
 import hex.auctionbazaar.auction.model.AuctionClaim;
 import hex.auctionbazaar.auction.service.AuctionService;
 import hex.auctionbazaar.bridge.EconomyBridge;
 import hex.auctionbazaar.config.AuctionConfig;
 import hex.auctionbazaar.gui.GuiHolder;
+import hex.auctionbazaar.util.ClaimReasonTranslator;
 import hex.auctionbazaar.util.ItemSerializer;
 import hex.auctionbazaar.util.LegacyFormat;
 import hex.auctionbazaar.util.MessageFactory;
@@ -21,6 +23,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
+/**
+ * GUI odbioru przedmiotow (claims). Wyswietla przyjazne tlumaczenie
+ * technicznego powodu claim-u (z messages.yml claim-reasons).
+ * Tytul GUI jest teraz "Odbiór przedmiotów" (nie "Odbiór nagród").
+ */
 public final class AuctionClaimsGui {
 
     public static void open(Plugin plugin, Player player, Supplier<AuctionConfig> cfg,
@@ -36,18 +43,25 @@ public final class AuctionClaimsGui {
         Inventory inv = Bukkit.createInventory(holder, 54, LegacyFormat.component(cfg.claimsTitle()));
         holder.bindInventory(inv);
 
+        HexAuctionBazaarPlugin main = plugin instanceof HexAuctionBazaarPlugin p ? p : null;
+        ClaimReasonTranslator translator = main == null ? null
+                : new ClaimReasonTranslator(() -> main.config().messages());
+
         int slot = 0;
         for (AuctionClaim c : list) {
             if (slot >= 54) break;
+            String friendlyReason = translator == null ? c.reason() : translator.friendly(c.reason());
             ItemStack icon;
             if (c.isMoney()) {
                 icon = new ItemStack(Material.GOLD_INGOT);
                 ItemMeta meta = icon.getItemMeta();
                 if (meta != null) {
-                    meta.displayName(LegacyFormat.component("&6" + economy.format(c.moneyAmount())));
+                    meta.displayName(LegacyFormat.component(messages.raw("auction.gui.claim-money-name",
+                            MessageFactory.placeholders("amount", economy.format(c.moneyAmount())))));
                     List<Component> lore = new ArrayList<>();
-                    lore.add(LegacyFormat.component("&7Reason: &f" + c.reason()));
-                    lore.add(LegacyFormat.component("&aLeft-click to collect"));
+                    lore.add(LegacyFormat.component(messages.raw("auction.gui.claim-reason",
+                            MessageFactory.placeholders("reason", friendlyReason))));
+                    lore.add(LegacyFormat.component(messages.raw("auction.gui.claim-collect-hint", null)));
                     meta.lore(lore);
                     icon.setItemMeta(meta);
                 }
@@ -58,8 +72,9 @@ public final class AuctionClaimsGui {
                 ItemMeta meta = icon.getItemMeta();
                 if (meta != null) {
                     List<Component> lore = new ArrayList<>();
-                    lore.add(LegacyFormat.component("&7Reason: &f" + c.reason()));
-                    lore.add(LegacyFormat.component("&aLeft-click to collect"));
+                    lore.add(LegacyFormat.component(messages.raw("auction.gui.claim-reason",
+                            MessageFactory.placeholders("reason", friendlyReason))));
+                    lore.add(LegacyFormat.component(messages.raw("auction.gui.claim-collect-hint", null)));
                     meta.lore(lore);
                     icon.setItemMeta(meta);
                 }
@@ -75,7 +90,7 @@ public final class AuctionClaimsGui {
                                         MessageFactory.placeholders(
                                                 "what", claim.isMoney()
                                                         ? economy.format(claim.moneyAmount())
-                                                        : "item"));
+                                                        : messages.raw("auction.gui.claim-item-collected", null)));
                                 open(plugin, ctx.player(), () -> cfg, service, economy, messages);
                             }
                             case INVENTORY_FULL -> messages.send(ctx.player(), "auction.inventory-full");

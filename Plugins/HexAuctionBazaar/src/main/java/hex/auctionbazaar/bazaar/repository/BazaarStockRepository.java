@@ -6,6 +6,9 @@ import hex.core.api.db.Db;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -51,6 +54,15 @@ public final class BazaarStockRepository {
     public Optional<BazaarStock> find(String itemKey) {
         return db.queryOne("SELECT * FROM " + t() + " WHERE item_key=?",
                 BazaarStockRepository::map, itemKey);
+    }
+
+    public Map<String, BazaarStock> findAll() {
+        List<BazaarStock> all = db.query("SELECT * FROM " + t(), BazaarStockRepository::map);
+        Map<String, BazaarStock> out = new LinkedHashMap<>();
+        for (BazaarStock s : all) {
+            out.put(s.itemKey(), s);
+        }
+        return out;
     }
 
     /** Idempotent insert of initial stock. */

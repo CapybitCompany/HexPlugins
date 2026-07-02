@@ -21,6 +21,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
+import static hex.auctionbazaar.util.MessageFactory.placeholders;
+
+/**
+ * GUI listy wlasnych aukcji gracza. Wszystkie widoczne stringi
+ * pochodza z messages.yml aby zachowac Polski jezyk.
+ */
 public final class AuctionMyListingsGui {
 
     public static void open(Plugin plugin, Player player, Supplier<AuctionConfig> cfg,
@@ -44,11 +50,14 @@ public final class AuctionMyListingsGui {
             ItemMeta meta = icon.getItemMeta();
             if (meta != null) {
                 List<Component> lore = new ArrayList<>();
-                lore.add(LegacyFormat.component("&7Listing &f#" + l.id()));
-                lore.add(LegacyFormat.component("&7Status: &f" + l.state().name()));
-                lore.add(LegacyFormat.component("&7Price: &e" + economy.format(l.price())));
+                lore.add(LegacyFormat.component(messages.raw("auction.gui.mine-id",
+                        placeholders("id", String.valueOf(l.id())))));
+                lore.add(LegacyFormat.component(messages.raw("auction.gui.mine-status",
+                        placeholders("status", l.state().name()))));
+                lore.add(LegacyFormat.component(messages.raw("auction.gui.mine-price",
+                        placeholders("price", economy.format(l.price())))));
                 lore.add(Component.empty());
-                lore.add(LegacyFormat.component("&cRight-click to cancel"));
+                lore.add(LegacyFormat.component(messages.raw("auction.gui.mine-cancel-hint", null)));
                 meta.lore(lore);
                 icon.setItemMeta(meta);
             }

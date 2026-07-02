@@ -11,8 +11,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -37,6 +39,17 @@ public final class ConfigLoader {
     }
 
     private static AuctionConfig loadAuction(FileConfiguration c) {
+        // Sloty kluczowych przyciskow. Walidowane w slot(...) - fallback do
+        // domyslnej wartosci gdy podany slot lezy poza zakresem 0..53.
+        int slotPrev = slot(c, "auction.gui.slot-prev-page", 45, "prev-page");
+        int slotNext = slot(c, "auction.gui.slot-next-page", 53, "next-page");
+        int slotRefresh = slot(c, "auction.gui.slot-refresh", 49, "refresh");
+        int slotMy = slot(c, "auction.gui.slot-my-listings", 47, "my-listings");
+        int slotClaims = slot(c, "auction.gui.slot-claims", 51, "claims");
+        int slotSellHelp = slot(c, "auction.gui.slot-sell-help", 48, "sell-help");
+        int slotSort = slot(c, "auction.gui.slot-sort", 50, "sort");
+        int slotEmpty = slot(c, "auction.gui.slot-empty-state", 22, "empty-state");
+        List<BigDecimal> sellPresets = loadSellPricePresets(c);
         return new AuctionConfig(
                 c.getBoolean("auction.enabled", true),
                 c.getLong("auction.default-duration-seconds", 86400L),
@@ -47,16 +60,55 @@ public final class ConfigLoader {
                 bd(c.getString("auction.sale-fee-percent"), "0"),
                 c.getLong("auction.reservation-ttl-seconds", 30L),
                 c.getInt("auction.expiry-scan-interval-ticks", 1200),
-                c.getString("auction.gui.title", "&8Auction House"),
+                sellPresets,
+                c.getString("auction.gui.title", "&8Dom Aukcyjny"),
                 Math.max(9, Math.min(45, c.getInt("auction.gui.page-size", 45))),
-                c.getString("auction.gui.my-listings-title", "&8My listings"),
-                c.getString("auction.gui.claims-title", "&8Claims"),
-                c.getString("auction.gui.confirm-title", "&8Confirm"),
+                c.getString("auction.gui.my-listings-title", "&8Moje aukcje"),
+                c.getString("auction.gui.claims-title", "&8Odbiór przedmiotów"),
+                c.getString("auction.gui.confirm-title", "&8Potwierdź zakup"),
+                c.getString("auction.gui.sell-title", "&8Wystaw przedmiot"),
+                c.getString("auction.gui.frame-material", "BLACK_STAINED_GLASS_PANE"),
+                slotPrev, slotNext, slotRefresh, slotMy, slotClaims,
+                slotSellHelp, slotSort, slotEmpty,
                 c.getString("auction.permissions.open", "hexauction.open"),
                 c.getString("auction.permissions.sell", "hexauction.sell"),
                 c.getString("auction.permissions.cancel-own", "hexauction.cancel"),
-                c.getString("auction.permissions.admin", "hexauction.admin")
+                c.getString("auction.permissions.admin", "hexauction.admin"),
+                c.getString("auction.permissions.admin-audit", "hexauction.admin.audit")
         );
+    }
+
+    private static List<BigDecimal> loadSellPricePresets(FileConfiguration c) {
+        List<BigDecimal> defaults = List.of(
+                new BigDecimal("100"), new BigDecimal("500"), new BigDecimal("1000"),
+                new BigDecimal("5000"), new BigDecimal("25000"), new BigDecimal("100000"));
+        if (!c.contains("auction.sell-price-presets")) return defaults;
+        List<?> raw = c.getList("auction.sell-price-presets");
+        if (raw == null || raw.isEmpty()) return defaults;
+        List<BigDecimal> out = new ArrayList<>();
+        for (Object o : raw) {
+            try {
+                BigDecimal v = new BigDecimal(String.valueOf(o).trim());
+                if (v.signum() > 0) out.add(v);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return out.isEmpty() ? defaults : out;
+    }
+
+    /**
+     * Bezpieczne odczytanie numeru slotu.
+     * Zwraca {@code fallback} jesli wartosc nie jest w zakresie 0..53.
+     */
+    static int slot(FileConfiguration c, String path, int fallback, String label) {
+        if (!c.contains(path)) return fallback;
+        int raw = c.getInt(path, fallback);
+        if (raw < 0 || raw > 53) {
+            System.err.println("[HexAuctionBazaar] " + path + " (" + raw
+                    + ") poza zakresem 0..53, uzywam wartosci domyslnej " + fallback + " (" + label + ")");
+            return fallback;
+        }
+        return raw;
     }
 
     private static BazaarConfig loadBazaar(FileConfiguration c, Map<String, BazaarItemConfig> items) {
@@ -69,16 +121,66 @@ public final class ConfigLoader {
         return new BazaarConfig(
                 c.getBoolean("bazaar.enabled", true),
                 c.getBoolean("bazaar.require-plain-item", true),
+                Math.max(1, c.getInt("bazaar.max-orders-per-player", 14)),
+                Math.max(0L, c.getLong("bazaar.order-expiry-seconds", 0L)),
+                Math.max(200, c.getInt("bazaar.order-expiry-scan-interval-ticks", 6000)),
                 pricing,
-                c.getString("bazaar.gui.title", "&8Bazaar"),
+                c.getString("bazaar.gui.title", "&8Bazar"),
                 c.getString("bazaar.gui.item-title", "&8%display%"),
-                c.getString("bazaar.gui.quantity-title", "&8Choose amount"),
+                c.getString("bazaar.gui.quantity-title", "&8Wybierz ilość"),
+                c.getString("bazaar.gui.orders-title", "&8Moje zlecenia"),
+                c.getString("bazaar.gui.order-create-title", "&8Twórz zlecenie"),
+                c.getString("bazaar.gui.frame-material", "GRAY_STAINED_GLASS_PANE"),
+                loadQuantityOptions(c),
+                c.getBoolean("bazaar.gui.auto-refresh-enabled", true),
+                Math.max(20, c.getInt("bazaar.gui.auto-refresh-interval-ticks", 60)),
+                Math.max(0L, c.getLong("bazaar.gui.snapshot-cache-ms", 1500L)),
+                loadCategories(c),
                 c.getString("bazaar.permissions.open", "hexbazaar.open"),
                 c.getString("bazaar.permissions.buy", "hexbazaar.buy"),
                 c.getString("bazaar.permissions.sell", "hexbazaar.sell"),
+                c.getString("bazaar.permissions.orders", "hexbazaar.orders"),
+                c.getString("bazaar.permissions.order-buy", "hexbazaar.order.create.buy"),
+                c.getString("bazaar.permissions.order-sell", "hexbazaar.order.create.sell"),
+                c.getString("bazaar.permissions.order-cancel", "hexbazaar.order.cancel"),
                 c.getString("bazaar.permissions.admin", "hexbazaar.admin"),
                 items
         );
+    }
+
+    private static List<Long> loadQuantityOptions(FileConfiguration c) {
+        List<Long> defaults = List.of(1L, 64L, 576L);
+        if (!c.contains("bazaar.gui.quantity-options")) {
+            return defaults;
+        }
+        List<?> raw = c.getList("bazaar.gui.quantity-options");
+        if (raw == null || raw.isEmpty()) return defaults;
+        List<Long> out = new ArrayList<>();
+        for (Object o : raw) {
+            try {
+                long v = Long.parseLong(String.valueOf(o).trim());
+                if (v > 0) out.add(v);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return out.isEmpty() ? defaults : out;
+    }
+
+    private static Map<String, BazaarConfig.CategoryConfig> loadCategories(FileConfiguration c) {
+        Map<String, BazaarConfig.CategoryConfig> out = new LinkedHashMap<>();
+        ConfigurationSection s = c.getConfigurationSection("bazaar.categories");
+        if (s == null) return out;
+        for (String rawKey : s.getKeys(false)) {
+            ConfigurationSection cat = s.getConfigurationSection(rawKey);
+            if (cat == null) continue;
+            String key = rawKey.toLowerCase(Locale.ROOT);
+            out.put(key, new BazaarConfig.CategoryConfig(
+                    key,
+                    cat.getString("display-name", key),
+                    cat.getString("material", "CHEST")
+            ));
+        }
+        return out;
     }
 
     private static Map<String, BazaarItemConfig> loadBazaarItems(File dataFolder, Logger logger) {

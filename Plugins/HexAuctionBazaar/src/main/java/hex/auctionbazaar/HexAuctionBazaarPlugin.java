@@ -1,18 +1,26 @@
 package hex.auctionbazaar;
 
+import hex.auctionbazaar.audit.repository.AuditLogRepository;
+import hex.auctionbazaar.audit.service.AuditService;
 import hex.auctionbazaar.auction.command.AuctionCommand;
 import hex.auctionbazaar.auction.repository.AuctionClaimRepository;
 import hex.auctionbazaar.auction.repository.AuctionListingRepository;
 import hex.auctionbazaar.auction.service.AuctionService;
 import hex.auctionbazaar.auction.task.AuctionExpiryTask;
 import hex.auctionbazaar.bazaar.command.BazaarCommand;
+import hex.auctionbazaar.bazaar.repository.BazaarOrderRepository;
 import hex.auctionbazaar.bazaar.repository.BazaarStockRepository;
+import hex.auctionbazaar.bazaar.service.BazaarOrderService;
 import hex.auctionbazaar.bazaar.service.BazaarService;
+import hex.auctionbazaar.bazaar.task.BazaarOrderExpiryTask;
 import hex.auctionbazaar.bridge.EconomyBridge;
 import hex.auctionbazaar.bridge.HexCoreBridge;
 import hex.auctionbazaar.config.ConfigLoader;
 import hex.auctionbazaar.config.PluginConfig;
+import hex.auctionbazaar.gui.ChatPromptFallbackImpl;
 import hex.auctionbazaar.gui.GuiInventoryListener;
+import hex.auctionbazaar.gui.SignPrompt;
+import hex.auctionbazaar.bazaar.gui.BazaarAutoRefreshTicker;
 import hex.auctionbazaar.util.MessageFactory;
 import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
@@ -30,14 +38,22 @@ public final class HexAuctionBazaarPlugin extends JavaPlugin {
     private HexCoreBridge hexCore;
     private EconomyBridge economy;
     private MessageFactory messages;
+    private SignPrompt signPrompt;
+    private ChatPromptFallbackImpl chatPromptFallback;
+    private BazaarAutoRefreshTicker autoRefreshTicker;
 
     private AuctionListingRepository listingRepo;
     private AuctionClaimRepository claimRepo;
     private BazaarStockRepository stockRepo;
+    private BazaarOrderRepository orderRepo;
+    private AuditLogRepository auditRepo;
 
     private AuctionService auctionService;
     private BazaarService bazaarService;
+    private BazaarOrderService orderService;
+    private AuditService auditService;
     private AuctionExpiryTask expiryTask;
+    private BazaarOrderExpiryTask orderExpiryTask;
 
     @Override
     public void onEnable() {
@@ -67,10 +83,19 @@ public final class HexAuctionBazaarPlugin extends JavaPlugin {
         this.listingRepo = new AuctionListingRepository(hexCore.rawDb());
         this.claimRepo = new AuctionClaimRepository(hexCore.rawDb());
         this.stockRepo = new BazaarStockRepository(hexCore.rawDb());
+        this.orderRepo = new BazaarOrderRepository(hexCore.rawDb());
+        this.auditRepo = new AuditLogRepository(hexCore.rawDb());
 
+        this.auditService = new AuditService(getLogger(), hexCore, auditRepo, messages);
+        this.orderService = new BazaarOrderService(this, hexCore, economy, orderRepo, claimRepo,
+                auditService,
+                () -> configRef.get().bazaar(),
+                () -> configRef.get().bazaar().maxOrdersPerPlayer());
         this.auctionService = new AuctionService(this, hexCore, economy, listingRepo, claimRepo,
+                auditService,
                 () -> configRef.get().auction());
         this.bazaarService = new BazaarService(this, hexCore, economy, stockRepo, claimRepo,
+                auditService, orderService,
                 () -> configRef.get().bazaar(),
                 () -> configRef.get().bazaar().requirePlainItem());
 
@@ -78,6 +103,8 @@ public final class HexAuctionBazaarPlugin extends JavaPlugin {
             listingRepo.ensureTable();
             claimRepo.ensureTable();
             stockRepo.ensureTable();
+            orderRepo.ensureTable();
+            auditRepo.ensureTable();
         }).thenCompose(v -> bazaarService.seedItems())
           .whenComplete((v, err) -> {
               if (err != null) {
@@ -91,10 +118,18 @@ public final class HexAuctionBazaarPlugin extends JavaPlugin {
                   getLogger().info("HexAuctionBazaar DB schema ready.");
                   expiryTask = new AuctionExpiryTask(this, auctionService, () -> configRef.get().auction());
                   expiryTask.start();
+                  orderExpiryTask = new BazaarOrderExpiryTask(this, orderService,
+                          () -> configRef.get().bazaar());
+                  orderExpiryTask.start();
               });
           });
 
         getServer().getPluginManager().registerEvents(new GuiInventoryListener(), this);
+        this.chatPromptFallback = new ChatPromptFallbackImpl(this);
+        this.signPrompt = new SignPrompt(this, chatPromptFallback);
+        this.autoRefreshTicker = new BazaarAutoRefreshTicker(this,
+                () -> configRef.get().bazaar());
+        this.autoRefreshTicker.start();
         registerCommand("hexauction", new AuctionCommand(this));
         registerCommand("hexbazaar", new BazaarCommand(this));
 
@@ -107,12 +142,36 @@ public final class HexAuctionBazaarPlugin extends JavaPlugin {
             expiryTask.stop();
             expiryTask = null;
         }
+        if (orderExpiryTask != null) {
+            orderExpiryTask.stop();
+            orderExpiryTask = null;
+        }
+        if (autoRefreshTicker != null) {
+            autoRefreshTicker.stop();
+            autoRefreshTicker = null;
+        }
+        if (signPrompt != null) {
+            signPrompt.shutdown();
+            signPrompt = null;
+        }
+        if (chatPromptFallback != null) {
+            chatPromptFallback.shutdown();
+            chatPromptFallback = null;
+        }
         if (economy != null) {
             economy.shutdown();
             economy = null;
         }
         schemaReady.set(false);
         getLogger().info("HexAuctionBazaar disabled.");
+    }
+
+    public SignPrompt signPrompt() {
+        return signPrompt;
+    }
+
+    public BazaarAutoRefreshTicker autoRefreshTicker() {
+        return autoRefreshTicker;
     }
 
     public boolean schemaReady() {
@@ -143,12 +202,23 @@ public final class HexAuctionBazaarPlugin extends JavaPlugin {
         return bazaarService;
     }
 
+    public BazaarOrderService orderService() {
+        return orderService;
+    }
+
+    public AuditService auditService() {
+        return auditService;
+    }
+
     public void reloadAllConfigs() {
         reloadConfig();
         PluginConfig fresh = ConfigLoader.load(getDataFolder(), getConfig(), getLogger());
         configRef.set(fresh);
         if (expiryTask != null) {
             expiryTask.start();
+        }
+        if (orderExpiryTask != null) {
+            orderExpiryTask.start();
         }
         if (bazaarService != null) {
             bazaarService.seedItems();

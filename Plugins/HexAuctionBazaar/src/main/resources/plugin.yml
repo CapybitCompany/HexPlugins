@@ -3,7 +3,7 @@ version: '1.0.0'
 main: hex.auctionbazaar.HexAuctionBazaarPlugin
 api-version: '1.21.11'
 authors: [HexDevTeam]
-description: AuctionHouse + Bazaar with instant buy/sell and dynamic pricing.
+description: Dom Aukcyjny oraz Bazar z natychmiastowa sprzedaza, orderbookiem i dynamicznymi cenami.
 
 depend:
   - HexCore
@@ -11,36 +11,51 @@ depend:
 
 commands:
   hexauction:
-    description: Open the auction house or manage your listings
-    usage: /hexauction [sell <price>|mylistings|cancel <id>|claims|admin cleanup|reload]
+    description: Otwiera Dom Aukcyjny lub zarzadza aukcjami
+    usage: /hexauction [sell <cena>|mylistings|cancel <id>|claims|admin cleanup|admin audit ...|reload]
     aliases: [auctionhouse, ah]
   hexbazaar:
-    description: Open the bazaar or trade items directly
-    usage: /hexbazaar [buy <key> <qty>|sell <key> <qty>|reload]
+    description: Otwiera Bazar lub zarzadza zleceniami
+    usage: /hexbazaar [buy <klucz> <ilosc>|sell <klucz> <ilosc>|orders|order cancel <id>|buyorder <klucz> <ilosc> <cena>|selloffer <klucz> <ilosc> <cena>|reload]
     aliases: [bazaar, bz]
 
 permissions:
   hexauction.open:
-    description: Open the auction house
+    description: Otwiera Dom Aukcyjny
     default: true
   hexauction.sell:
-    description: List items for sale
+    description: Wystawia przedmioty na aukcje
     default: true
   hexauction.cancel:
-    description: Cancel your own listings
+    description: Anuluje wlasne aukcje
     default: true
   hexauction.admin:
-    description: Auction house admin (reload, cleanup)
+    description: Administracja Domu Aukcyjnego (reload, cleanup)
+    default: op
+  hexauction.admin.audit:
+    description: Podglad logu audytowego rynku
     default: op
   hexbazaar.open:
-    description: Open the bazaar
+    description: Otwiera Bazar
     default: true
   hexbazaar.buy:
-    description: Buy from the bazaar
+    description: Natychmiastowe kupno w Bazarze
     default: true
   hexbazaar.sell:
-    description: Sell to the bazaar
+    description: Natychmiastowa sprzedaz w Bazarze
+    default: true
+  hexbazaar.orders:
+    description: Podglad wlasnych zlecen
+    default: true
+  hexbazaar.order.create.buy:
+    description: Wystawianie zlecen kupna
+    default: true
+  hexbazaar.order.create.sell:
+    description: Wystawianie ofert sprzedazy
+    default: true
+  hexbazaar.order.cancel:
+    description: Anulowanie wlasnych zlecen
     default: true
   hexbazaar.admin:
-    description: Bazaar admin (reload)
+    description: Administracja Bazaru (reload)
     default: op

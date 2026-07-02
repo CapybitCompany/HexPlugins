@@ -1,9 +1,9 @@
-# Bazaar items are defined exclusively here.
-# No material is automatically enabled.
+# Przedmioty dostępne w Bazarze definiujesz tutaj.
+# Kategoria musi pasować do jednego z kluczy w config.yml -> bazaar.categories.
 items:
   cobblestone:
     material: COBBLESTONE
-    display-name: "&7Cobblestone"
+    display-name: "&7Bruk"
     category: blocks
     base-price: 1.00
     min-price: 0.10
@@ -11,9 +11,19 @@ items:
     initial-stock: 10000
     buy-enabled: true
     sell-enabled: true
+  oak_log:
+    material: OAK_LOG
+    display-name: "&6Drewno dębowe"
+    category: blocks
+    base-price: 5.00
+    min-price: 0.50
+    max-price: 100.00
+    initial-stock: 8000
+    buy-enabled: true
+    sell-enabled: true
   iron_ingot:
     material: IRON_INGOT
-    display-name: "&fIron Ingot"
+    display-name: "&fŻelazna sztabka"
     category: minerals
     base-price: 10.00
     min-price: 1.00
@@ -21,13 +31,63 @@ items:
     initial-stock: 5000
     buy-enabled: true
     sell-enabled: true
+  gold_ingot:
+    material: GOLD_INGOT
+    display-name: "&eZłota sztabka"
+    category: minerals
+    base-price: 25.00
+    min-price: 2.50
+    max-price: 500.00
+    initial-stock: 4000
+    buy-enabled: true
+    sell-enabled: true
   diamond:
     material: DIAMOND
-    display-name: "&bDiamond"
+    display-name: "&bDiament"
     category: minerals
     base-price: 500.00
     min-price: 50.00
     max-price: 5000.00
     initial-stock: 1000
+    buy-enabled: true
+    sell-enabled: true
+  wheat:
+    material: WHEAT
+    display-name: "&ePszenica"
+    category: farming
+    base-price: 2.00
+    min-price: 0.20
+    max-price: 50.00
+    initial-stock: 12000
+    buy-enabled: true
+    sell-enabled: true
+  carrot:
+    material: CARROT
+    display-name: "&6Marchewka"
+    category: farming
+    base-price: 2.00
+    min-price: 0.20
+    max-price: 50.00
+    initial-stock: 12000
+    buy-enabled: true
+    sell-enabled: true
+  arrow:
+    material: ARROW
+    display-name: "&fStrzała"
+    category: combat
+    base-price: 3.00
+    min-price: 0.30
+    max-price: 100.00
+    initial-stock: 6000
+    buy-enabled: true
+    sell-enabled: true
+  ender_pearl:
+    material: ENDER_PEARL
+    display-name: "&5Perła Endu"
+    category: misc
+    base-price: 50.00
+    min-price: 5.00
+    max-price: 500.00
+    initial-stock: 500
     buy-enabled: true
     sell-enabled: true

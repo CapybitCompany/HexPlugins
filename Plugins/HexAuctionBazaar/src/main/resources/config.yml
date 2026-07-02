@@ -1,56 +1,101 @@
+# Konfiguracja HexAuctionBazaar. Domyślnie w języku polskim.
 enabled: true
 debug: false
-prefix: "&8[&6Hex&eMarket&8] &r"
+prefix: "&8[&6Hex&eRynek&8] &r"
 
 economy:
-  # true  = the plugin disables itself on startup if HexEconomyApi is missing.
-  # false = the plugin loads, but buy/sell features stay off.
+  # true  = plugin wyłączy się na starcie, gdy brak HexEconomyApi
+  # false = plugin się załaduje, ale kupno/sprzedaż pozostaną wyłączone
   required: true
 
 auction:
   enabled: true
-  default-duration-seconds: 86400         # 24h
+  default-duration-seconds: 86400
   max-active-listings-per-player: 10
   min-price: 1
   max-price: 1000000000
-  # One-time fee charged when a listing is created.
   listing-fee: 0
-  # Deducted from the sale price; the seller claims the net amount.
   sale-fee-percent: 0
-  # How long a reservation is held before being released back to ACTIVE.
   reservation-ttl-seconds: 30
-  # Interval for expiry + stale-reservation sweeps.
-  expiry-scan-interval-ticks: 1200        # 1 min
+  expiry-scan-interval-ticks: 1200
+  # Presety cen wystawienia dostępne w GUI (obok "Własna cena" na znaku).
+  sell-price-presets: [100, 500, 1000, 5000, 25000, 100000]
   gui:
-    title: "&8Auction House"
+    title: "&8&lDom Aukcyjny"
     page-size: 45
-    my-listings-title: "&8My listings"
-    claims-title: "&8Claims"
-    confirm-title: "&8Confirm"
+    my-listings-title: "&8Moje aukcje"
+    claims-title: "&8Odbiór przedmiotów"
+    confirm-title: "&8Potwierdź zakup"
+    sell-title: "&8Wystaw przedmiot"
+    frame-material: BLACK_STAINED_GLASS_PANE
+    # slot-y (0..53) kluczowych przycisków w GUI Domu Aukcyjnego
+    slot-prev-page: 45
+    slot-next-page: 53
+    slot-refresh: 49
+    slot-my-listings: 47
+    slot-claims: 51
+    slot-sell-help: 48
+    slot-sort: 50
+    slot-empty-state: 22
   permissions:
     open: hexauction.open
     sell: hexauction.sell
     cancel-own: hexauction.cancel
     admin: hexauction.admin
+    admin-audit: hexauction.admin.audit
 
 bazaar:
   enabled: true
-  # When true the sell flow only accepts vanilla "plain" stacks (no custom
-  # name, lore, enchantments, persistent data, model data or damage).
-  # Recommended ON to protect custom gear from accidental bulk-sells.
+  # true = tylko surowe przedmioty (bez NBT/enchantow) mogą trafić do bazaru
   require-plain-item: true
+  # maks. jednocześnie otwartych zleceń/ofert na gracza
+  max-orders-per-player: 14
+  # Czas życia zlecenia w sekundach. 0 = zlecenia nie wygasają.
+  order-expiry-seconds: 604800    # 7 dni
+  # Co ile tickow uruchamia się skaner wygasania.
+  order-expiry-scan-interval-ticks: 6000  # 5 minut
   pricing:
     elasticity: 0.5
     reference-stock: 10000
     buy-sell-spread-percent: 5
-    # Maximum price change relative to the last stored price per transaction.
     max-step-per-transaction-percent: 5
   gui:
-    title: "&8Bazaar"
+    title: "&8&lBazar"
     item-title: "&8%display%"
-    quantity-title: "&8Choose amount"
+    quantity-title: "&8Wybierz ilość"
+    orders-title: "&8Moje zlecenia"
+    order-create-title: "&8Twórz zlecenie"
+    frame-material: GRAY_STAINED_GLASS_PANE
+    # Presety ilości: 1, 64 (stack), 576 (rząd = 9 stacków), niestandardowa (znak).
+    quantity-options: [1, 64, 576]
+    # Auto-refresh GUI (tylko gdy otwarte). Interval w tickach - 20 tickow = 1 sec.
+    auto-refresh-enabled: true
+    auto-refresh-interval-ticks: 60
+    # TTL snapshotu rynku - powyzej tego czasu snapshot jest odswiezony z DB.
+    snapshot-cache-ms: 1500
+  # Kategorie do bocznej nawigacji w głównym GUI Bazaru.
+  categories:
+    blocks:
+      display-name: "&eBloki"
+      material: STONE
+    minerals:
+      display-name: "&bSurowce"
+      material: DIAMOND
+    farming:
+      display-name: "&2Farmerstwo"
+      material: WHEAT
+    combat:
+      display-name: "&cWalka"
+      material: DIAMOND_SWORD
+    misc:
+      display-name: "&dRóżne"
+      material: NETHER_STAR
   permissions:
     open: hexbazaar.open
     buy: hexbazaar.buy
     sell: hexbazaar.sell
+    orders: hexbazaar.orders
+    order-buy: hexbazaar.order.create.buy
+    order-sell: hexbazaar.order.create.sell
+    order-cancel: hexbazaar.order.cancel
     admin: hexbazaar.admin

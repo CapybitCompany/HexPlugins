@@ -20,6 +20,10 @@ import java.util.function.Supplier;
 
 import static hex.auctionbazaar.util.MessageFactory.placeholders;
 
+/**
+ * GUI potwierdzenia zakupu aukcji. Wszystkie widoczne teksty pochodza
+ * z messages.yml aby zachowac konfigurowalnosc i Polski jezyk.
+ */
 public final class AuctionConfirmGui {
 
     public static void open(Plugin plugin, Player player, long listingId,
@@ -51,8 +55,11 @@ public final class AuctionConfirmGui {
         }
         inv.setItem(13, item);
 
-        ItemStack confirm = withName(Material.LIME_WOOL, "&aBuy for &e" + economy.format(l.price()));
-        ItemStack cancel = withName(Material.RED_WOOL, "&cCancel");
+        ItemStack confirm = withName(Material.LIME_WOOL,
+                messages.raw("auction.gui.confirm-buy-button",
+                        placeholders("price", economy.format(l.price()))));
+        ItemStack cancel = withName(Material.RED_WOOL,
+                messages.raw("auction.gui.confirm-cancel-button", null));
         inv.setItem(11, confirm);
         inv.setItem(15, cancel);
 

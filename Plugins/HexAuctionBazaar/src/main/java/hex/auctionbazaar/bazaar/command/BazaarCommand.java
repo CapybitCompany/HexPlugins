@@ -1,7 +1,12 @@
 package hex.auctionbazaar.bazaar.command;
 
 import hex.auctionbazaar.HexAuctionBazaarPlugin;
+import hex.auctionbazaar.audit.model.AuditAction;
 import hex.auctionbazaar.bazaar.gui.BazaarMainGui;
+import hex.auctionbazaar.bazaar.gui.BazaarOrdersGui;
+import hex.auctionbazaar.bazaar.model.BazaarOrder;
+import hex.auctionbazaar.bazaar.model.OrderSide;
+import hex.auctionbazaar.bazaar.service.BazaarOrderService;
 import hex.auctionbazaar.bazaar.service.BazaarService;
 import hex.auctionbazaar.config.BazaarConfig;
 import hex.auctionbazaar.util.MessageFactory;
@@ -13,6 +18,7 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -58,17 +64,27 @@ public final class BazaarCommand implements CommandExecutor, TabCompleter {
             case "reload" -> handleReload(sender);
             case "buy" -> handleBuy(sender, args);
             case "sell" -> handleSell(sender, args);
+            case "orders" -> handleOrders(sender);
+            case "order" -> handleOrderSub(sender, args);
+            case "buyorder" -> handleBuyOrder(sender, args);
+            case "selloffer" -> handleSellOffer(sender, args);
             default -> true;
         };
     }
 
     private boolean handleReload(CommandSender sender) {
-        if (!sender.hasPermission(plugin.config().bazaar().permAdmin())) {
+        if (!sender.hasPermission(plugin.config().bazaar().permAdmin()) && !sender.isOp()) {
             plugin.messages().send(sender, "common.no-permission");
             return true;
         }
         plugin.reloadAllConfigs();
         plugin.messages().send(sender, "common.reloaded");
+        plugin.auditService().log(plugin.auditService().builder()
+                .actor(sender instanceof Player p ? p.getUniqueId() : null,
+                       sender.getName())
+                .action(AuditAction.ADMIN_RELOAD)
+                .market(AuditAction.MARKET_ADMIN)
+                .result(AuditAction.RESULT_OK));
         return true;
     }
 
@@ -126,6 +142,174 @@ public final class BazaarCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
+    private boolean handleOrders(CommandSender sender) {
+        BazaarConfig cfg = plugin.config().bazaar();
+        if (!(sender instanceof Player p)) {
+            plugin.messages().send(sender, "common.must-be-player");
+            return true;
+        }
+        if (!p.hasPermission(cfg.permOrders())) {
+            plugin.messages().send(sender, "common.no-permission");
+            return true;
+        }
+        plugin.orderService().listAll(p.getUniqueId(), 20).thenAccept(list ->
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    if (list.isEmpty()) {
+                        plugin.messages().send(p, "bazaar.order-list-empty");
+                        return;
+                    }
+                    plugin.messages().send(p, "bazaar.order-list-header");
+                    for (BazaarOrder o : list) {
+                        plugin.messages().send(p, "bazaar.order-list-line", placeholders(
+                                "id", String.valueOf(o.id()),
+                                "side", o.side().name(),
+                                "amount", o.amountRemaining() + "/" + o.amountTotal(),
+                                "item", o.itemKey(),
+                                "price", plugin.economy().format(o.pricePerUnit()),
+                                "state", o.state().name()));
+                    }
+                }));
+        return true;
+    }
+
+    private boolean handleOrderSub(CommandSender sender, String[] args) {
+        BazaarConfig cfg = plugin.config().bazaar();
+        if (!(sender instanceof Player p)) {
+            plugin.messages().send(sender, "common.must-be-player");
+            return true;
+        }
+        if (args.length >= 2 && args[1].equalsIgnoreCase("cancel")) {
+            if (!p.hasPermission(cfg.permOrderCancel())) {
+                plugin.messages().send(sender, "common.no-permission");
+                return true;
+            }
+            if (args.length < 3) {
+                plugin.messages().send(p, "bazaar.order-not-found", placeholders("id", "?"));
+                return true;
+            }
+            long id;
+            try {
+                id = Long.parseLong(args[2]);
+            } catch (NumberFormatException ex) {
+                plugin.messages().send(p, "bazaar.order-not-found", placeholders("id", args[2]));
+                return true;
+            }
+            plugin.orderService().cancel(p, id).thenAccept(res ->
+                    Bukkit.getScheduler().runTask(plugin, () -> reportCancel(p, id, res)));
+            return true;
+        }
+        // fallback: open GUI
+        BazaarOrdersGui.open(plugin, p, () -> plugin.config().bazaar(),
+                plugin.bazaarService(), plugin.economy(), plugin.messages());
+        return true;
+    }
+
+    private boolean handleBuyOrder(CommandSender sender, String[] args) {
+        BazaarConfig cfg = plugin.config().bazaar();
+        if (!(sender instanceof Player p)) {
+            plugin.messages().send(sender, "common.must-be-player");
+            return true;
+        }
+        if (!p.hasPermission(cfg.permOrderBuy())) {
+            plugin.messages().send(sender, "common.no-permission");
+            return true;
+        }
+        if (args.length < 4) {
+            plugin.messages().send(p, "bazaar.invalid-quantity");
+            return true;
+        }
+        String key = args[1].toLowerCase(Locale.ROOT);
+        long amount;
+        BigDecimal price;
+        try {
+            amount = Long.parseLong(args[2]);
+            price = new BigDecimal(args[3]);
+        } catch (NumberFormatException ex) {
+            plugin.messages().send(p, "bazaar.invalid-quantity");
+            return true;
+        }
+        plugin.orderService().placeBuyOrder(p, key, amount, price).thenAccept(outcome ->
+                Bukkit.getScheduler().runTask(plugin,
+                        () -> reportPlace(p, key, amount, price, outcome, OrderSide.BUY)));
+        return true;
+    }
+
+    private boolean handleSellOffer(CommandSender sender, String[] args) {
+        BazaarConfig cfg = plugin.config().bazaar();
+        if (!(sender instanceof Player p)) {
+            plugin.messages().send(sender, "common.must-be-player");
+            return true;
+        }
+        if (!p.hasPermission(cfg.permOrderSell())) {
+            plugin.messages().send(sender, "common.no-permission");
+            return true;
+        }
+        if (args.length < 4) {
+            plugin.messages().send(p, "bazaar.invalid-quantity");
+            return true;
+        }
+        String key = args[1].toLowerCase(Locale.ROOT);
+        long amount;
+        BigDecimal price;
+        try {
+            amount = Long.parseLong(args[2]);
+            price = new BigDecimal(args[3]);
+        } catch (NumberFormatException ex) {
+            plugin.messages().send(p, "bazaar.invalid-quantity");
+            return true;
+        }
+        plugin.orderService().placeSellOffer(p, key, amount, price).thenAccept(outcome ->
+                Bukkit.getScheduler().runTask(plugin,
+                        () -> reportPlace(p, key, amount, price, outcome, OrderSide.SELL)));
+        return true;
+    }
+
+    private void reportPlace(Player p, String key, long amount, BigDecimal price,
+                              BazaarOrderService.PlaceOutcome outcome, OrderSide side) {
+        switch (outcome.result()) {
+            case OK -> {
+                String msg = side == OrderSide.BUY
+                        ? "bazaar.order-placed-buy" : "bazaar.order-placed-sell";
+                plugin.messages().send(p, msg, placeholders(
+                        "id", String.valueOf(outcome.orderId()),
+                        "amount", String.valueOf(amount),
+                        "item", key,
+                        "price", plugin.economy().format(price),
+                        "total", plugin.economy().format(outcome.totalReserved())));
+            }
+            case UNKNOWN_ITEM -> plugin.messages().send(p, "bazaar.unknown-item",
+                    placeholders("key", key));
+            case INVALID_QTY -> plugin.messages().send(p, "bazaar.invalid-quantity");
+            case INVALID_PRICE -> {
+                BazaarConfig cfg = plugin.config().bazaar();
+                String min = cfg.item(key).map(i -> i.minPrice().toPlainString()).orElse("?");
+                String max = cfg.item(key).map(i -> i.maxPrice().toPlainString()).orElse("?");
+                plugin.messages().send(p, "bazaar.invalid-price",
+                        placeholders("min", min, "max", max));
+            }
+            case TOO_MANY_OPEN -> plugin.messages().send(p, "bazaar.order-too-many",
+                    placeholders("max", String.valueOf(plugin.config().bazaar().maxOrdersPerPlayer())));
+            case NOT_ENOUGH_MONEY -> plugin.messages().send(p, "bazaar.not-enough-money");
+            case NOT_ENOUGH_ITEMS -> plugin.messages().send(p, "bazaar.not-enough-items",
+                    placeholders("item", key));
+            case ECONOMY_UNAVAILABLE -> plugin.messages().send(p, "common.economy-missing");
+            case DB_FAILED -> plugin.messages().send(p, "common.schema-not-ready");
+            case FEATURE_DISABLED -> plugin.messages().send(p, "bazaar.order-feature-disabled");
+        }
+    }
+
+    private void reportCancel(Player p, long id, BazaarOrderService.CancelResult res) {
+        switch (res) {
+            case OK -> plugin.messages().send(p, "bazaar.order-cancelled",
+                    placeholders("id", String.valueOf(id)));
+            case NOT_FOUND -> plugin.messages().send(p, "bazaar.order-not-found",
+                    placeholders("id", String.valueOf(id)));
+            case NOT_OWNER -> plugin.messages().send(p, "bazaar.order-not-yours");
+            case NOT_OPEN -> plugin.messages().send(p, "bazaar.order-not-open");
+            case DB_FAILED -> plugin.messages().send(p, "common.schema-not-ready");
+        }
+    }
+
     private void reportBuy(Player p, String key, int qty, BazaarService.BuyOutcome outcome) {
         switch (outcome.result()) {
             case OK -> {
@@ -155,6 +339,14 @@ public final class BazaarCommand implements CommandExecutor, TabCompleter {
                     "amount", String.valueOf(qty),
                     "item", key,
                     "total", plugin.economy().format(outcome.total())));
+            case OK_PENDING_CLAIM -> {
+                plugin.messages().send(p, "bazaar.sold", placeholders(
+                        "amount", String.valueOf(qty),
+                        "item", key,
+                        "total", plugin.economy().format(outcome.total())));
+                plugin.messages().send(p, "bazaar.sell-pending-claim");
+            }
+            case PAYOUT_FAILED -> plugin.messages().send(p, "bazaar.sell-payout-failed");
             case NOT_ENOUGH_ITEMS -> plugin.messages().send(p, "bazaar.not-enough-items",
                     placeholders("item", key));
             case UNKNOWN_ITEM -> plugin.messages().send(p, "bazaar.unknown-item",
@@ -170,10 +362,19 @@ public final class BazaarCommand implements CommandExecutor, TabCompleter {
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command,
                                       @NotNull String alias, @NotNull String[] args) {
         if (args.length == 1) {
-            return filter(List.of("buy", "sell", "reload"), args[0]);
+            return filter(List.of("buy", "sell", "orders", "order",
+                    "buyorder", "selloffer", "reload"), args[0]);
         }
-        if (args.length == 2 && (args[0].equalsIgnoreCase("buy") || args[0].equalsIgnoreCase("sell"))) {
-            return filter(new ArrayList<>(plugin.config().bazaar().items().keySet()), args[1]);
+        if (args.length == 2) {
+            switch (args[0].toLowerCase(Locale.ROOT)) {
+                case "buy":
+                case "sell":
+                case "buyorder":
+                case "selloffer":
+                    return filter(new ArrayList<>(plugin.config().bazaar().items().keySet()), args[1]);
+                case "order":
+                    return filter(List.of("cancel"), args[1]);
+            }
         }
         return List.of();
     }
