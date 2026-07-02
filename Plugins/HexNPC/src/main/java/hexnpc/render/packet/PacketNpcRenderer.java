@@ -375,11 +375,28 @@ public final class PacketNpcRenderer implements NpcRenderer {
     }
 
     private void sendSkinLayers(Player viewer, int entityId) {
-        // Byte 17 = "skin parts visible" bit mask. 0x7F = all layers on.
-        EntityData data = new EntityData(17, EntityDataTypes.BYTE, (byte) 0x7F);
+        // Indeks metadanych "Displayed Skin Parts" zmienia sie miedzy wersjami Minecrafta
+        // (vide 1.21.9 - wstawiona klasa Avatar). Stary kod twardo wysylal indeks 17, co
+        // od 1.21.9 jest polem Float (Additional Hearts) i powoduje natychmiastowy
+        // disconnect klienta. Pelne uzasadnienie: zobacz PlayerSkinLayersMetadata.
+        Optional<Integer> index = resolveSkinLayersIndex(Bukkit.getServer().getMinecraftVersion());
+        if (index.isEmpty()) {
+            return;
+        }
+        EntityData data = new EntityData(index.get(), EntityDataTypes.BYTE,
+                PlayerSkinLayersMetadata.ALL_LAYERS_MASK);
         WrapperPlayServerEntityMetadata metadata = new WrapperPlayServerEntityMetadata(
                 entityId, List.of(data));
         PacketEvents.getAPI().getPlayerManager().sendPacket(viewer, metadata);
+    }
+
+    /**
+     * Test-friendly hook: delegacja do {@link PlayerSkinLayersMetadata}. Trzymamy
+     * tu cienka warstwe (zwracamy sam indeks, nie {@code EntityData}) zeby testy
+     * jednostkowe mogly weryfikowac wybor wersji bez inicjalizacji PacketEvents.
+     */
+    static Optional<Integer> resolveSkinLayersIndex(String minecraftVersion) {
+        return PlayerSkinLayersMetadata.resolve(minecraftVersion);
     }
 
     private void sendDestroy(Player viewer, int entityId) {
