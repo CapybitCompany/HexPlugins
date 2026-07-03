@@ -1,14 +1,16 @@
-id: "mining.cobblestone"
-aliases: ["mining_cobblestone", "cobblestone", "cabblestone", "minecraft:cobblestone"]
+id: mining.cobblestone
+aliases:
+- mining_cobblestone
+- cobblestone
+- cabblestone
+- minecraft:cobblestone
 enabled: true
-
 display:
-  name: "&7Bruk"
-  category: "mining"
+  name: '&7Bruk'
+  category: mining
   menu_slot: 10
   icon:
     material: COBBLESTONE
-
 tracked_items:
   base:
     material: COBBLESTONE
@@ -17,75 +19,67 @@ tracked_items:
     enchanted_cobblestone:
       material: COBBLESTONE
       custom_model_data: 1001
-      display_name_contains: "Skompresowany blok bruku"
+      display_name_contains: Skompresowany blok bruku
       amount_value: 160
-
-valid_sources: [NATURAL_BLOCK_BREAK, MINION_COLLECT, CUSTOM_PLUGIN_GRANTED]
-
+valid_sources:
+- NATURAL_BLOCK_BREAK
+- MINION_COLLECT
+- CUSTOM_PLUGIN_GRANTED
 sources:
-  - trigger: minions.resource.claimed
-    amount-from: amount
-    filters:
-      collectionId: mining.cobblestone
-      resourceId: cobblestone
-  - trigger: minions.resource.generated
-    amount-from: amount
-    filters:
-      collectionId: mining.cobblestone
-      resourceId: cobblestone
-
+- trigger: minions.resource.claimed
+  amount-from: amount
+  filters:
+    collectionId: mining.cobblestone
+    resourceId: cobblestone
+- trigger: minions.resource.generated
+  amount-from: amount
+  filters:
+    collectionId: mining.cobblestone
+    resourceId: cobblestone
 source_rules:
   NATURAL_BLOCK_BREAK:
-    allowed_materials: [COBBLESTONE, STONE]
-    allowed_worlds: [world, resource_world, mining_world]
-    blocked_worlds: [spawn]
+    allowed_materials:
+    - COBBLESTONE
+    - STONE
+    allowed_worlds:
+    - world
+    - resource_world
+    - mining_world
+    blocked_worlds:
+    - spawn
     allow_in_town_claims: false
     deny_player_placed_blocks: true
     deny_recently_broken_blocks: true
   MINION_COLLECT:
-    allowed_minion_types: [COBBLESTONE_MINION, cobblestone]
+    allowed_minion_types:
+    - COBBLESTONE_MINION
+    - cobblestone
     allow_in_town_claims: true
-
 levels:
   1:
-    required: 50
-    display_name: "&7Bruk I"
-    rewards:
-      - type: MINION_RECIPE_UNLOCK
-        id: "cobblestone_minion_tier_1"
-  2:
-    required: 250
-    display_name: "&7Bruk II"
-    rewards:
-      - type: SKILL_XP
-        skill: "mining"
-        amount: 100
-  3:
     required: 1000
-    display_name: "&7Bruk III"
-    rewards:
-      - type: MINION_UPGRADE_UNLOCK
-        id: "cobblestone_minion_storage_1"
+    display_name: '&7Bruk I'
+  2:
+    required: 10000
+    display_name: '&7Bruk II'
+  3:
+    required: 25000
+    display_name: '&7Bruk III'
   4:
-    required: 2500
-    display_name: "&7Bruk IV"
+    required: 250000
+    display_name: '&7Bruk IV'
   5:
-    required: 7500
-    display_name: "&7Bruk V"
+    required: 500000
+    display_name: '&7Bruk V'
   6:
-    required: 15000
-    display_name: "&7Bruk VI"
+    required: 2500000
+    display_name: '&7Bruk VI'
   7:
-    required: 30000
-    display_name: "&7Bruk VII"
-    rewards:
-      - type: CUSTOM_EVENT
-        event: "COBBLESTONE_COLLECTION_MAX_MVP"
-
+    required: 5000000
+    display_name: '&7Bruk VII'
 reward_claim_mode: AUTO
 placeholder:
   progress_bar:
     length: 20
-    filled_char: "■"
-    empty_char: "□"
-
+    filled_char: ■
+    empty_char: □

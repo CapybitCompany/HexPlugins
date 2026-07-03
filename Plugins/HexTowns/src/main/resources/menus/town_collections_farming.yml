@@ -1,0 +1,84 @@
+menu_title: '&8Kolekcje miasta &7- farming'
+open_command:
+  - towncollectionsfarming
+  - kolekcjefarming
+size: 54
+
+items:
+  filler:
+    material: BLACK_STAINED_GLASS_PANE
+    display_name: ' '
+    hide_tooltip: true
+    item_flags:
+      - HIDE_ATTRIBUTES
+      - HIDE_ADDITIONAL_TOOLTIP
+    slots:
+      - 0-19
+      - 24-53
+
+  wheat_icon:
+    material: WHEAT
+    slot: 20
+    display_name: '&eKolekcja pszenicy'
+    lore:
+      - '&7Poziom: &f%hexcollections_level_farming_wheat%&7/7'
+      - '&7Następny poziom: &f%hexcollections_next_level_farming_wheat%'
+      - '&7Ilość: &f%hexcollections_amount_farming_wheat%'
+      - '&7Do następnego: &f%hexcollections_remaining_farming_wheat%'
+      - '&7Procent: &f%hexcollections_progress_percent_farming_wheat%%%'
+      - ''
+      - '&a%hexcollections_progress_bar_farming_wheat%'
+  sugar_cane_icon:
+    material: SUGAR_CANE
+    slot: 21
+    display_name: '&aKolekcja trzciny cukrowej'
+    lore:
+      - '&7Poziom: &f%hexcollections_level_farming_sugar_cane%&7/7'
+      - '&7Następny poziom: &f%hexcollections_next_level_farming_sugar_cane%'
+      - '&7Ilość: &f%hexcollections_amount_farming_sugar_cane%'
+      - '&7Do następnego: &f%hexcollections_remaining_farming_sugar_cane%'
+      - '&7Procent: &f%hexcollections_progress_percent_farming_sugar_cane%%%'
+      - ''
+      - '&a%hexcollections_progress_bar_farming_sugar_cane%'
+  beetroot_icon:
+    material: BEETROOT
+    slot: 22
+    display_name: '&4Kolekcja buraka'
+    lore:
+      - '&7Poziom: &f%hexcollections_level_farming_beetroot%&7/7'
+      - '&7Następny poziom: &f%hexcollections_next_level_farming_beetroot%'
+      - '&7Ilość: &f%hexcollections_amount_farming_beetroot%'
+      - '&7Do następnego: &f%hexcollections_remaining_farming_beetroot%'
+      - '&7Procent: &f%hexcollections_progress_percent_farming_beetroot%%%'
+      - ''
+      - '&a%hexcollections_progress_bar_farming_beetroot%'
+  cactus_icon:
+    material: CACTUS
+    slot: 23
+    display_name: '&2Kolekcja kaktusa'
+    lore:
+      - '&7Poziom: &f%hexcollections_level_farming_cactus%&7/7'
+      - '&7Następny poziom: &f%hexcollections_next_level_farming_cactus%'
+      - '&7Ilość: &f%hexcollections_amount_farming_cactus%'
+      - '&7Do następnego: &f%hexcollections_remaining_farming_cactus%'
+      - '&7Procent: &f%hexcollections_progress_percent_farming_cactus%%%'
+      - ''
+      - '&a%hexcollections_progress_bar_farming_cactus%'
+  back:
+    material: ARROW
+    slot: 45
+    display_name: '&ePowrót'
+    left_click_commands:
+      - '[openguimenu] town_main'
+  previous_page:
+    material: ARROW
+    slot: 48
+    display_name: '&ePoprzednia strona'
+    left_click_commands:
+      - '[openguimenu] town_collections'
+  next_page:
+    material: ARROW
+    slot: 50
+    display_name: '&eNastępna strona'
+    left_click_commands:
+      - '[openguimenu] town_collections_animals'

@@ -48,25 +48,25 @@ source_rules:
     allow_in_town_claims: true
 levels:
   1:
-    required: 100
+    required: 50
     display_name: '&5Obsydian I'
   2:
-    required: 500
+    required: 1000
     display_name: '&5Obsydian II'
   3:
-    required: 1500
+    required: 2500
     display_name: '&5Obsydian III'
   4:
-    required: 3000
+    required: 25000
     display_name: '&5Obsydian IV'
   5:
-    required: 7500
+    required: 50000
     display_name: '&5Obsydian V'
   6:
-    required: 15000
+    required: 250000
     display_name: '&5Obsydian VI'
   7:
-    required: 30000
+    required: 500000
     display_name: '&5Obsydian VII'
 reward_claim_mode: AUTO
 placeholder:

@@ -23,35 +23,26 @@ source_rules:
     allow_in_town_claims: true
 levels:
   1:
-    required: 50
+    required: 35
     display_name: '&7Cyna I'
-    rewards:
-    - type: MINION_RECIPE_UNLOCK
-      id: tin_minion_tier_1
   2:
-    required: 250
+    required: 500
     display_name: '&7Cyna II'
   3:
-    required: 1000
+    required: 2500
     display_name: '&7Cyna III'
   4:
-    required: 2500
+    required: 10000
     display_name: '&7Cyna IV'
   5:
-    required: 7500
+    required: 25000
     display_name: '&7Cyna V'
-    rewards:
-    - type: CUSTOM_EVENT
-      event: BATTERY_RECIPE_UNLOCK
   6:
-    required: 15000
+    required: 100000
     display_name: '&7Cyna VI'
   7:
-    required: 30000
+    required: 250000
     display_name: '&7Cyna VII'
-    rewards:
-    - type: CUSTOM_EVENT
-      event: BRONZE_RECIPE_UNLOCK
 reward_claim_mode: AUTO
 placeholder:
   progress_bar:

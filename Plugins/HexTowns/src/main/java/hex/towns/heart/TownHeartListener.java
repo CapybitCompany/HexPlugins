@@ -7,6 +7,7 @@ import hex.towns.api.event.TownRenamedEvent;
 import hex.towns.config.TownsConfig;
 import hex.towns.model.Town;
 import hex.towns.service.TownsService;
+import hex.towns.gui.NativeTownMenu;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
@@ -28,6 +29,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
@@ -54,21 +56,27 @@ public final class TownHeartListener implements Listener {
     private final Plugin plugin;
     private final HexApi api;
     private final TownsService townsService;
-    private final TownsConfig config;
+    private volatile TownsConfig config;
     private final TownHeartItem itemFactory;
     private final TownHeartService heartService;
+    private final NativeTownMenu nativeTownMenu;
     private final NamespacedKey heartVisualTownKey;
     private final Map<UUID, PendingHeartPlacement> pending = new ConcurrentHashMap<>();
     private final Set<UUID> activeNameAnvils = ConcurrentHashMap.newKeySet();
 
-    public TownHeartListener(Plugin plugin, HexApi api, TownsService townsService, TownsConfig config, TownHeartItem itemFactory, TownHeartService heartService) {
+    public TownHeartListener(Plugin plugin, HexApi api, TownsService townsService, TownsConfig config, TownHeartItem itemFactory, TownHeartService heartService, NativeTownMenu nativeTownMenu) {
         this.plugin = plugin;
         this.api = api;
         this.townsService = townsService;
         this.config = config;
         this.itemFactory = itemFactory;
         this.heartService = heartService;
+        this.nativeTownMenu = nativeTownMenu;
         this.heartVisualTownKey = new NamespacedKey(plugin, "town_heart_visual_town");
+    }
+
+    public void reloadConfig(TownsConfig config) {
+        this.config = config;
     }
 
 
@@ -196,7 +204,7 @@ public final class TownHeartListener implements Listener {
         if (event.isShiftClick()) {
             event.setCancelled(true);
             if (event.getWhoClicked() instanceof Player player) {
-                player.sendMessage("§cSerce miasta craftuj pojedynczym kliknięciem, bez shift-clicka.");
+                api.ui().send(player, "towns.heart.craft.no-shift");
             }
             return;
         }
@@ -232,7 +240,7 @@ public final class TownHeartListener implements Listener {
             return;
         }
         if (holder.kind() == TownHeartMenuHolder.Kind.NAME_ANVIL && event.getRawSlot() == ANVIL_RESULT_SLOT) {
-            String name = anvilRenameText(event.getView());
+            String name = anvilRenameText(event.getInventory(), event.getView());
             String normalized = townsService.normalizeTownNameForInput(name);
             if (normalized.isBlank()) {
                 api.ui().send(player, "towns.rename.invalid", UiTokens.of("max", String.valueOf(config.maxNameLength())));
@@ -251,7 +259,7 @@ public final class TownHeartListener implements Listener {
         if (!(event.getView().getPlayer() instanceof Player player)) return;
         if (!activeNameAnvils.contains(player.getUniqueId())) return;
         setAnvilRepairCost(event.getView(), 0);
-        String raw = anvilRenameText(event.getView());
+        String raw = anvilRenameText(event.getInventory(), event.getView());
         event.setResult(named(Material.NAME_TAG, raw == null || raw.isBlank() ? "Nazwa miasta" : raw, List.of("§7Kliknij, aby wrócić do menu potwierdzenia.")));
     }
 
@@ -323,6 +331,12 @@ public final class TownHeartListener implements Listener {
         }
         boolean member = townsService.isMember(player.getUniqueId(), town.id());
         boolean owner = townsService.isOwner(player.getUniqueId(), town.id());
+        if (member) {
+            // Członkowie miasta nie muszą przechodzić przez publiczny podgląd serca.
+            // Kliknięcie serca otwiera od razu główne menu właściciela/COOP.
+            openFullTownMenu(player);
+            return;
+        }
         Inventory inv = Bukkit.createInventory(new TownHeartMenuHolder(TownHeartMenuHolder.Kind.BASE, player.getUniqueId(), townId), 54, "Baza miasta: " + town.name());
         ItemStack glass = named(Material.GRAY_STAINED_GLASS_PANE, " ", List.of());
         for (int i = 0; i < inv.getSize(); i++) inv.setItem(i, glass);
@@ -381,18 +395,7 @@ public final class TownHeartListener implements Listener {
     }
 
     private void openFullTownMenu(Player player) {
-        // DeluxeMenus nie zawsze rejestruje alias jako zwykłą komendę gracza w momencie kliknięcia
-        // z własnego GUI. Najpierw używamy oficjalnego polecenia konsolowego DeluxeMenus,
-        // a dopiero jeśli go nie ma, wracamy do aliasu open_command z menu.
-        if (Bukkit.getPluginCommand("dm") != null) {
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "dm open town_main " + player.getName());
-            return;
-        }
-        if (Bukkit.getPluginCommand("deluxemenus") != null) {
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "deluxemenus open town_main " + player.getName());
-            return;
-        }
-        player.performCommand("townmenu");
+        nativeTownMenu.openMain(player);
     }
 
     private ItemStack townStatsItem(Town town) {
@@ -496,6 +499,32 @@ public final class TownHeartListener implements Listener {
         } catch (Throwable ignored) {
             return null;
         }
+    }
+
+    private String anvilRenameText(Inventory inventory, InventoryView view) {
+        if (inventory instanceof AnvilInventory anvil) {
+            String text = anvil.getRenameText();
+            if (text != null && !text.isBlank()) {
+                return text;
+            }
+        }
+        String resultName = itemDisplayName(inventory.getItem(ANVIL_RESULT_SLOT));
+        if (!resultName.isBlank()) {
+            return resultName;
+        }
+        String inputName = itemDisplayName(inventory.getItem(ANVIL_INPUT_SLOT));
+        if (!inputName.isBlank()) {
+            return inputName;
+        }
+        return anvilRenameText(view);
+    }
+
+    private String itemDisplayName(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) {
+            return "";
+        }
+        ItemMeta meta = item.getItemMeta();
+        return meta != null && meta.hasDisplayName() ? meta.getDisplayName() : "";
     }
 
     private String anvilRenameText(InventoryView view) {

@@ -1,0 +1,63 @@
+id: animals.leather
+aliases:
+- animals_leather
+- leather
+- skora
+enabled: true
+display:
+  name: '&6Skóra'
+  category: animals
+  menu_slot: 0
+  icon:
+    material: LEATHER
+tracked_items:
+  base:
+    material: LEATHER
+    amount_value: 1
+valid_sources:
+- MINION_COLLECT
+- CUSTOM_PLUGIN_GRANTED
+sources:
+- trigger: minions.resource.generated
+  amount-from: amount
+  filters:
+    collectionId: animals.leather
+    resourceId: leather
+- trigger: minions.resource.claimed
+  amount-from: amount
+  filters:
+    collectionId: animals.leather
+    resourceId: leather
+source_rules:
+  MINION_COLLECT:
+    allow_in_town_claims: true
+  CUSTOM_PLUGIN_GRANTED:
+    allow_in_town_claims: true
+levels:
+  1:
+    required: 10
+    display_name: '&6Skóra I'
+  2:
+    required: 125
+    display_name: '&6Skóra II'
+  3:
+    required: 500
+    display_name: '&6Skóra III'
+  4:
+    required: 5000
+    display_name: '&6Skóra IV'
+  5:
+    required: 10000
+    display_name: '&6Skóra V'
+  6:
+    required: 50000
+    display_name: '&6Skóra VI'
+  7:
+    required: 100000
+    display_name: '&6Skóra VII'
+reward_claim_mode: AUTO
+placeholder:
+  progress_bar:
+    length: 20
+    filled_char: ■
+    empty_char: □

@@ -46,7 +46,7 @@ public final class TownsService {
     private final HexApi api;
     private final TownRepository repository;
     private final TownDataRegistry dataRegistry;
-    private final TownsConfig config;
+    private volatile TownsConfig config;
     private final HexMessageBus messageBus;
     private final Object mutationLock = new Object();
     private final AtomicBoolean growthSyncRunning = new AtomicBoolean(false);
@@ -98,6 +98,12 @@ public final class TownsService {
             playerIndex.put(member.playerId(), new Membership(member.townId(), member.role()));
             membersByTown.computeIfAbsent(member.townId(), ignored -> ConcurrentHashMap.newKeySet()).add(member.playerId());
         }
+    }
+
+
+    public void reloadConfig(TownsConfig config) {
+        this.config = config;
+        startGrowthSync();
     }
 
     public void startGrowthSync() {
@@ -439,7 +445,16 @@ public final class TownsService {
                 if (town == null || town.status() != TownStatus.ACTIVE) {
                     return OperationResult.fail("towns.error.no-town");
                 }
+                long now = System.currentTimeMillis();
+                long cooldownMillis = 48L * 60L * 60L * 1000L;
+                long lastRenameAt = parseLong(repository.getMeta(town.internalId(), "towns", "rename.last_at", "0"), 0L);
+                if (lastRenameAt > 0L && now - lastRenameAt < cooldownMillis) {
+                    long remainingMillis = cooldownMillis - (now - lastRenameAt);
+                    long hours = Math.max(1L, (remainingMillis + 3_599_999L) / 3_600_000L);
+                    return OperationResult.fail("towns.rename.cooldown", UiTokens.of("hours", String.valueOf(hours)));
+                }
                 repository.renameTown(town.internalId(), newName);
+                repository.setMeta(town.internalId(), "towns", "rename.last_at", String.valueOf(now));
                 town.setName(newName);
                 Bukkit.getScheduler().runTask(plugin, () -> Bukkit.getPluginManager().callEvent(new TownRenamedEvent(town, playerId, newName)));
                 publish("towns.renamed", HexMessageData.builder()
@@ -624,6 +639,15 @@ public final class TownsService {
         return repository.listCoopRequests(town.internalId(), config.requestTtlSeconds() * 1000L, limit).stream()
                 .map(record -> new CoopRequestInfo(record.requesterId(), safePlayerName(record.requesterId(), null), record.createdAt()))
                 .toList();
+    }
+
+
+    private static long parseLong(String raw, long def) {
+        try {
+            return Long.parseLong(raw == null ? "" : raw.trim());
+        } catch (NumberFormatException ignored) {
+            return def;
+        }
     }
 
     public void registerListener(TownsListener listener) {

@@ -14,6 +14,7 @@ import hex.collections.placeholder.CollectionPlaceholderExpansion;
 import hex.collections.service.AntiExploitService;
 import hex.collections.service.CollectionProgressService;
 import hex.core.api.HexApi;
+import hex.core.api.ui.UiTokens;
 import hex.core.api.trigger.TriggerListener;
 import hex.core.api.trigger.TriggerService;
 import hex.towns.api.TownsApi;
@@ -50,6 +51,10 @@ public final class HexCollectionsPlugin extends JavaPlugin implements TabExecuto
 		saveResource("collections.yml", false);
 		saveBundledCollectionDefinitions();
 
+		if (!isHexTownsEnabled()) {
+			return;
+		}
+
 		var hexReg = Bukkit.getServicesManager().getRegistration(HexApi.class);
 		var townsReg = Bukkit.getServicesManager().getRegistration(TownsApi.class);
 		if (hexReg == null || townsReg == null) {
@@ -58,6 +63,7 @@ public final class HexCollectionsPlugin extends JavaPlugin implements TabExecuto
 			return;
 		}
 		this.hexApi = hexReg.getProvider();
+		registerUiDefaults();
 		this.towns = townsReg.getProvider();
 		this.triggers = findTriggerService();
 		this.repository = new CollectionRepository(hexApi.db().db());
@@ -78,6 +84,16 @@ public final class HexCollectionsPlugin extends JavaPlugin implements TabExecuto
 		getLogger().info("HexCollections enabled");
 	}
 
+	private boolean isHexTownsEnabled() {
+		if (Bukkit.getPluginManager().isPluginEnabled("HexTowns")) {
+			return true;
+		}
+
+		getLogger().severe("HexTowns is not enabled; disabling HexCollections.");
+		getServer().getPluginManager().disablePlugin(this);
+		return false;
+	}
+
 	private void saveBundledCollectionDefinitions() {
 		String[] files = {
 				"collections/mining_cobblestone.yml",
@@ -89,12 +105,21 @@ public final class HexCollectionsPlugin extends JavaPlugin implements TabExecuto
 				"collections/mining_redstone.yml",
 				"collections/mining_copper.yml",
 				"collections/mining_diamond.yml",
+				"collections/mining_emerald.yml",
 				"collections/mining_obsidian.yml",
+				"collections/mining_netherrack.yml",
 				"collections/mining_netherite.yml",
 				"collections/mining_uranium.yml",
 				"collections/mining_rare_elements.yml",
+				"collections/industrial_energy.yml",
+				"collections/industrial_enriched_uranium.yml",
 				"collections/foraging_oak_wood.yml",
 				"collections/foraging_spruce_wood.yml",
+				"collections/foraging_spruce_resin.yml",
+				"collections/farming_wheat.yml",
+				"collections/farming_sugar_cane.yml",
+				"collections/farming_beetroot.yml",
+				"collections/farming_cactus.yml",
 				"collections/mob_zombie.yml",
 				"collections/mob_skeleton.yml",
 				"collections/mob_spider.yml",
@@ -103,6 +128,7 @@ public final class HexCollectionsPlugin extends JavaPlugin implements TabExecuto
 				"collections/animals_chicken_meat.yml",
 				"collections/animals_pork.yml",
 				"collections/animals_beef.yml",
+				"collections/animals_leather.yml",
 				"collections/animals_mutton.yml"
 		};
 		for (String file : files) saveResourceIfMissing(file);
@@ -230,11 +256,23 @@ public final class HexCollectionsPlugin extends JavaPlugin implements TabExecuto
 	public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
 		if (args.length > 0 && args[0].equalsIgnoreCase("reload")) {
 			reloadCollections();
-			sender.sendMessage("HexCollections reloaded. collections=" + registry.all().size());
+			hexApi.ui().send(sender, "collections.reload.success", UiTokens.of("count", String.valueOf(registry.all().size())));
 			return true;
 		}
-		sender.sendMessage("HexCollections: collections=" + registry.all().size() + ", triggers=" + subscriptions.size());
+		hexApi.ui().send(sender, "collections.info", UiTokens.of("count", String.valueOf(registry.all().size())).put("triggers", String.valueOf(subscriptions.size())));
 		return true;
+	}
+
+
+	private void registerUiDefaults() {
+		try {
+			hexApi.ui().registerDefaults("collections", Map.of(
+					"reload.success", "<green>Przeladowano HexCollections.</green> <gray>Kolekcje:</gray> <white><count></white>",
+					"info", "<gold>HexCollections</gold> <gray>| kolekcje:</gray> <white><count></white> <gray>| triggery:</gray> <white><triggers></white>"
+			));
+		} catch (Throwable t) {
+			getLogger().warning("Could not register UI defaults: " + t.getMessage());
+		}
 	}
 
 	@Override

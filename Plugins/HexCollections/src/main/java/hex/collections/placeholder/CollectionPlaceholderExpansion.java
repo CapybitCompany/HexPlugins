@@ -15,9 +15,15 @@ import org.jetbrains.annotations.Nullable;
 import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.UUID;
 
 public final class CollectionPlaceholderExpansion extends PlaceholderExpansion {
+    private static final Pattern HEX_TAG = Pattern.compile("<#([A-Fa-f0-9]{6})>");
+    private static final Pattern COLOR_HEX_TAG = Pattern.compile("<color:#([A-Fa-f0-9]{6})>");
+    private static final Pattern CLOSING_TAG = Pattern.compile("</[^>]+>");
+    private static final Pattern UNKNOWN_TAG = Pattern.compile("<[^>]+>");
     private final Plugin plugin;
     private final CollectionProgressService service;
     private final CollectionRegistry registry;
@@ -115,7 +121,7 @@ public final class CollectionPlaceholderExpansion extends PlaceholderExpansion {
                 case "IN_PROGRESS" -> "YELLOW_STAINED_GLASS_PANE";
                 default -> "RED_STAINED_GLASS_PANE";
             };
-            case "display" -> def.displayName() + " " + level;
+            case "display" -> legacyColors(def.displayName()) + " " + level;
             case "lore" -> "Postęp: " + service.getAmount(townId, def.id()) + "/" + def.requiredFor(level);
             default -> "";
         };
@@ -127,6 +133,41 @@ public final class CollectionPlaceholderExpansion extends PlaceholderExpansion {
     private String bar(UUID townId, String id) { CollectionDefinition def = definition(id); int len = def == null ? 20 : def.progressBarLength(); int filled = (int)Math.round(len * service.getProgressPercent(townId, id) / 100D); String full = def == null ? "■" : def.progressBarFilledChar(); String empty = def == null ? "□" : def.progressBarEmptyChar(); return full.repeat(Math.max(0, filled)) + empty.repeat(Math.max(0, len - filled)); }
     private static int intValue(String value) { try { return Integer.parseInt(value); } catch (Exception e) { return 0; } }
     private static String join(String[] parts, int from, int to) { StringBuilder b = new StringBuilder(); for (int i=from;i<to;i++) { if (i>from) b.append('_'); b.append(parts[i]); } return b.toString(); }
+
+    private static String legacyColors(String input) {
+        if (input == null || input.isBlank()) return "";
+        String value = input;
+        value = value.replace("<black>", "§0").replace("<dark_blue>", "§1").replace("<dark_green>", "§2")
+                .replace("<dark_aqua>", "§3").replace("<dark_red>", "§4").replace("<dark_purple>", "§5")
+                .replace("<gold>", "§6").replace("<gray>", "§7").replace("<grey>", "§7")
+                .replace("<dark_gray>", "§8").replace("<dark_grey>", "§8").replace("<blue>", "§9")
+                .replace("<green>", "§a").replace("<aqua>", "§b").replace("<red>", "§c")
+                .replace("<light_purple>", "§d").replace("<yellow>", "§e").replace("<white>", "§f")
+                .replace("<bold>", "§l").replace("<b>", "§l").replace("<italic>", "§o").replace("<i>", "§o")
+                .replace("<underlined>", "§n").replace("<underline>", "§n").replace("<u>", "§n")
+                .replace("<strikethrough>", "§m").replace("<st>", "§m").replace("<obfuscated>", "§k")
+                .replace("<reset>", "§r");
+        Matcher colorHex = COLOR_HEX_TAG.matcher(value);
+        StringBuffer colorBuffer = new StringBuffer();
+        while (colorHex.find()) colorHex.appendReplacement(colorBuffer, Matcher.quoteReplacement(legacyHex(colorHex.group(1))));
+        colorHex.appendTail(colorBuffer);
+        value = colorBuffer.toString();
+        Matcher hex = HEX_TAG.matcher(value);
+        StringBuffer hexBuffer = new StringBuffer();
+        while (hex.find()) hex.appendReplacement(hexBuffer, Matcher.quoteReplacement(legacyHex(hex.group(1))));
+        hex.appendTail(hexBuffer);
+        value = CLOSING_TAG.matcher(value).replaceAll("");
+        value = UNKNOWN_TAG.matcher(value).replaceAll("");
+        return value;
+    }
+
+    private static String legacyHex(String hex) {
+        if (hex == null || hex.length() != 6) return "";
+        StringBuilder builder = new StringBuilder("§x");
+        for (char c : hex.toCharArray()) builder.append('§').append(c);
+        return builder.toString();
+    }
+
     private String normalizeIdentifier(String identifier) { if (identifier == null || identifier.isBlank()) return ""; return identifier.startsWith(":") ? identifier.substring(1) : identifier; }
     private CollectionDefinition definition(String id) { return registry.find(id).orElse(null); }
 }

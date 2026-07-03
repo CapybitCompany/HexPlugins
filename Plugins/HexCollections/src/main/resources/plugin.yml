@@ -1,5 +1,5 @@
 name: HexCollections
-version: '1.0.0'
+version: '1.0.1'
 main: hex.collections.HexCollectionsPlugin
 api-version: "1.21"
 description: Config-driven collection engine for Hex SMP

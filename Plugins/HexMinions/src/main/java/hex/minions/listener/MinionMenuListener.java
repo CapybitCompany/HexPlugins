@@ -107,7 +107,11 @@ public final class MinionMenuListener implements Listener {
         }
 
         event.setCancelled(true);
-        if (event.getSlot() == 47) {
+        if (event.getSlot() == MinionMenu.ELECTRONICS_WIKI_SLOT) {
+            menu.openElectronicsWiki(player);
+            return;
+        }
+        if (event.getSlot() == MinionMenu.MINION_WIKI_SLOT) {
             menu.openWiki(player);
             return;
         }
@@ -151,9 +155,21 @@ public final class MinionMenuListener implements Listener {
         event.setCancelled(true);
         if (!(event.getWhoClicked() instanceof Player player)) return;
         if (event.getClickedInventory() == null || !event.getClickedInventory().equals(event.getView().getTopInventory())) return;
+        if (tryCopyWikiItemForTesting(event, player, event.getView().getTopInventory())) return;
+        if (event.getSlot() == 53) {
+            menu.toggleWikiViewMode(player);
+            menu.openRecipe(player, holder.recipeId(), holder.returnTypeId());
+            return;
+        }
         if (event.getSlot() == 45) {
-            if (holder.returnTypeId() == null || holder.returnTypeId().isBlank()) menu.openWiki(player);
+            if (MinionWikiHolder.ELECTRONICS_RETURN_ID.equals(holder.returnTypeId())) menu.openElectronicsWiki(player);
+            else if (holder.returnTypeId() == null || holder.returnTypeId().isBlank()) menu.openWiki(player);
             else menu.openWikiType(player, holder.returnTypeId());
+            return;
+        }
+        String nestedRecipeId = menu.wikiRecipeForItem(event.getView().getTopInventory().getItem(event.getSlot()));
+        if (!nestedRecipeId.isBlank()) {
+            menu.openRecipe(player, nestedRecipeId, holder.returnTypeId());
         }
     }
 
@@ -177,7 +193,7 @@ public final class MinionMenuListener implements Listener {
         }
 
         if (cursorHasItem) {
-            if (!menu.isAllowedInAddonSlot(minionId, cursor)) {
+            if (!menu.isAllowedInAddonSlot(minionId, slot, cursor)) {
                 hex.ui().send(player, "minions.error.invalid-menu-item");
                 menu.refreshMinionInventory(player, minionId, top);
                 return;
@@ -245,7 +261,7 @@ public final class MinionMenuListener implements Listener {
     }
 
     private boolean tryCopyWikiItemForTesting(InventoryClickEvent event, Player player, Inventory top) {
-        if (!service.wikiTestMode() || !event.isRightClick()) return false;
+        if (!service.wikiTestMode() || !event.isShiftClick()) return false;
         ItemStack item = top.getItem(event.getSlot());
         if (item == null || item.getType().isAir()) return false;
         switch (item.getType()) {
@@ -264,6 +280,11 @@ public final class MinionMenuListener implements Listener {
         if (event.getClickedInventory() == null || !event.getClickedInventory().equals(top)) return;
         if (tryCopyWikiItemForTesting(event, player, top)) return;
         if (holder.index()) {
+            if (event.getSlot() == 53) {
+                menu.toggleWikiViewMode(player);
+                menu.openWikiPage(player, holder.page());
+                return;
+            }
             if (event.getSlot() == 45) {
                 player.closeInventory();
                 return;
@@ -276,44 +297,92 @@ public final class MinionMenuListener implements Listener {
                 menu.openWikiPage(player, holder.page() + 1);
                 return;
             }
-            String typeId = menu.wikiTypeAtSlot(event.getSlot(), holder.page());
+            String typeId = menu.wikiTypeAtSlot(player, event.getSlot(), holder.page());
             if (!typeId.isBlank()) menu.openWikiType(player, typeId);
             return;
         }
         if (holder.machineIndex()) {
-            if (event.getSlot() == 45) {
-                menu.openWikiType(player, holder.typeId());
+            if (event.getSlot() == 53) {
+                menu.toggleWikiViewMode(player);
+                if (holder.electronicsReturn()) menu.openElectronicsWiki(player);
+                else menu.openWikiMachines(player, holder.typeId());
                 return;
             }
-            String machineId = menu.wikiMachineAtSlot(holder.typeId(), event.getSlot());
+            if (event.getSlot() == 45) {
+                if (holder.electronicsReturn()) player.closeInventory();
+                else menu.openWikiType(player, holder.typeId());
+                return;
+            }
+            if (holder.electronicsReturn()) {
+                menu.openElectronicsEntryAtSlot(player, event.getSlot());
+                return;
+            }
+            String machineId = menu.wikiMachineAtSlot(player, holder.typeId(), event.getSlot());
             if (!machineId.isBlank()) menu.openWikiMachine(player, holder.typeId(), machineId);
             return;
         }
         if (holder.machine()) {
+            if (event.getSlot() == 53) {
+                menu.toggleWikiViewMode(player);
+                menu.openWikiMachine(player, holder.typeId(), holder.machineId());
+                return;
+            }
             if (event.getSlot() == 45) {
-                menu.openWikiMachines(player, holder.typeId());
+                if (holder.electronicsReturn()) menu.openElectronicsWiki(player);
+                else menu.openWikiMachines(player, holder.typeId());
                 return;
             }
             String processId = menu.wikiMachineProcessAtSlot(holder.machineId(), event.getSlot());
-            if (!processId.isBlank()) menu.openWikiMachineRecipe(player, holder.typeId(), holder.machineId(), processId);
+            if (!processId.isBlank()) {
+                menu.openWikiMachineRecipe(player, holder.typeId(), holder.machineId(), processId);
+                return;
+            }
+            String recipeId = menu.wikiRecipeForItem(top.getItem(event.getSlot()));
+            if (!recipeId.isBlank()) menu.openRecipe(player, recipeId, holder.typeId());
             return;
         }
         if (holder.machineRecipe()) {
+            if (event.getSlot() == 53) {
+                menu.toggleWikiViewMode(player);
+                menu.openWikiMachineRecipe(player, holder.typeId(), holder.machineId(), holder.machineRecipeId());
+                return;
+            }
             if (event.getSlot() == 45) {
                 menu.openWikiMachine(player, holder.typeId(), holder.machineId());
+                return;
             }
+            String recipeId = menu.wikiRecipeForItem(top.getItem(event.getSlot()));
+            if (!recipeId.isBlank()) menu.openRecipe(player, recipeId, holder.typeId());
+            return;
+        }
+        if (event.getSlot() == 53) {
+            menu.toggleWikiViewMode(player);
+            menu.openWikiTypePage(player, holder.typeId(), holder.page());
             return;
         }
         if (event.getSlot() == 45) {
             menu.openWiki(player);
             return;
         }
+        if (event.getSlot() == 48 && holder.page() > 0) {
+            menu.openWikiTypePage(player, holder.typeId(), holder.page() - 1);
+            return;
+        }
+        if (event.getSlot() == 50 && menu.wikiSpecialHasPage(player, holder.typeId(), holder.page() + 1)) {
+            menu.openWikiTypePage(player, holder.typeId(), holder.page() + 1);
+            return;
+        }
         if (event.getSlot() == 43) {
             menu.openWikiMachines(player, holder.typeId());
             return;
         }
-        String recipeId = menu.wikiRecipeAtSlot(holder.typeId(), event.getSlot());
-        if (!recipeId.isBlank()) menu.openRecipe(player, recipeId, holder.typeId());
+        String recipeId = menu.wikiRecipeAtSlot(player, holder.typeId(), event.getSlot(), holder.page());
+        if (!recipeId.isBlank()) {
+            menu.openRecipe(player, recipeId, holder.typeId());
+            return;
+        }
+        String clickedRecipeId = menu.wikiRecipeForItem(top.getItem(event.getSlot()));
+        if (!clickedRecipeId.isBlank()) menu.openRecipe(player, clickedRecipeId, holder.typeId());
     }
 }
 

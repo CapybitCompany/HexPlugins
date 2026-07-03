@@ -1,0 +1,63 @@
+id: farming.beetroot
+aliases:
+- farming_beetroot
+- beetroot
+- burak
+enabled: true
+display:
+  name: '&4Burak'
+  category: farming
+  menu_slot: 0
+  icon:
+    material: BEETROOT
+tracked_items:
+  base:
+    material: BEETROOT
+    amount_value: 1
+valid_sources:
+- MINION_COLLECT
+- CUSTOM_PLUGIN_GRANTED
+sources:
+- trigger: minions.resource.generated
+  amount-from: amount
+  filters:
+    collectionId: farming.beetroot
+    resourceId: beetroot
+- trigger: minions.resource.claimed
+  amount-from: amount
+  filters:
+    collectionId: farming.beetroot
+    resourceId: beetroot
+source_rules:
+  MINION_COLLECT:
+    allow_in_town_claims: true
+  CUSTOM_PLUGIN_GRANTED:
+    allow_in_town_claims: true
+levels:
+  1:
+    required: 50
+    display_name: '&4Burak I'
+  2:
+    required: 1000
+    display_name: '&4Burak II'
+  3:
+    required: 2500
+    display_name: '&4Burak III'
+  4:
+    required: 25000
+    display_name: '&4Burak IV'
+  5:
+    required: 50000
+    display_name: '&4Burak V'
+  6:
+    required: 250000
+    display_name: '&4Burak VI'
+  7:
+    required: 500000
+    display_name: '&4Burak VII'
+reward_claim_mode: AUTO
+placeholder:
+  progress_bar:
+    length: 20
+    filled_char: ■
+    empty_char: □

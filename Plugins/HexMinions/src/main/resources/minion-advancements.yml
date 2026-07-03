@@ -202,6 +202,3926 @@ advancements:
       requirement:
         type: any-collection-level
         min-level: 1
+    collection_level_animals_beef_1:
+      path: collections/levels/animals_beef/1
+      parent: collections/first_level
+      title: Mięso krowy I
+      description: Osiągnij poziom I kolekcji Mięso krowy.
+      icon: BEEF
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.beef
+        min-level: 1
+    collection_level_animals_beef_2:
+      path: collections/levels/animals_beef/2
+      parent: collections/levels/animals_beef/1
+      title: Mięso krowy II
+      description: Osiągnij poziom II kolekcji Mięso krowy.
+      icon: BEEF
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.beef
+        min-level: 2
+    collection_level_animals_beef_3:
+      path: collections/levels/animals_beef/3
+      parent: collections/levels/animals_beef/2
+      title: Mięso krowy III
+      description: Osiągnij poziom III kolekcji Mięso krowy.
+      icon: BEEF
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.beef
+        min-level: 3
+    collection_level_animals_beef_4:
+      path: collections/levels/animals_beef/4
+      parent: collections/levels/animals_beef/3
+      title: Mięso krowy IV
+      description: Osiągnij poziom IV kolekcji Mięso krowy.
+      icon: BEEF
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.beef
+        min-level: 4
+    collection_level_animals_beef_5:
+      path: collections/levels/animals_beef/5
+      parent: collections/levels/animals_beef/4
+      title: Mięso krowy V
+      description: Osiągnij poziom V kolekcji Mięso krowy.
+      icon: BEEF
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.beef
+        min-level: 5
+    collection_level_animals_beef_6:
+      path: collections/levels/animals_beef/6
+      parent: collections/levels/animals_beef/5
+      title: Mięso krowy VI
+      description: Osiągnij poziom VI kolekcji Mięso krowy.
+      icon: BEEF
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.beef
+        min-level: 6
+    collection_level_animals_beef_7:
+      path: collections/levels/animals_beef/7
+      parent: collections/levels/animals_beef/6
+      title: Mięso krowy VII
+      description: Osiągnij poziom VII kolekcji Mięso krowy.
+      icon: BEEF
+      frame: goal
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.beef
+        min-level: 7
+    collection_complete_animals_beef:
+      path: collections/complete/animals_beef
+      parent: collections/levels/animals_beef/7
+      title: 'Mistrz kolekcji: Mięso krowy'
+      description: 'Osiągnij aktualnie najwyższy poziom kolekcji Mięso krowy. Nagroda: +1 Growth Point miasta.'
+      icon: BEEF
+      frame: challenge
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-max-level
+        collection: animals.beef
+      growth-points: 1
+    collection_level_animals_chicken_meat_1:
+      path: collections/levels/animals_chicken_meat/1
+      parent: collections/first_level
+      title: Mięso kurczaka I
+      description: Osiągnij poziom I kolekcji Mięso kurczaka.
+      icon: CHICKEN
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.chicken_meat
+        min-level: 1
+    collection_level_animals_chicken_meat_2:
+      path: collections/levels/animals_chicken_meat/2
+      parent: collections/levels/animals_chicken_meat/1
+      title: Mięso kurczaka II
+      description: Osiągnij poziom II kolekcji Mięso kurczaka.
+      icon: CHICKEN
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.chicken_meat
+        min-level: 2
+    collection_level_animals_chicken_meat_3:
+      path: collections/levels/animals_chicken_meat/3
+      parent: collections/levels/animals_chicken_meat/2
+      title: Mięso kurczaka III
+      description: Osiągnij poziom III kolekcji Mięso kurczaka.
+      icon: CHICKEN
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.chicken_meat
+        min-level: 3
+    collection_level_animals_chicken_meat_4:
+      path: collections/levels/animals_chicken_meat/4
+      parent: collections/levels/animals_chicken_meat/3
+      title: Mięso kurczaka IV
+      description: Osiągnij poziom IV kolekcji Mięso kurczaka.
+      icon: CHICKEN
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.chicken_meat
+        min-level: 4
+    collection_level_animals_chicken_meat_5:
+      path: collections/levels/animals_chicken_meat/5
+      parent: collections/levels/animals_chicken_meat/4
+      title: Mięso kurczaka V
+      description: Osiągnij poziom V kolekcji Mięso kurczaka.
+      icon: CHICKEN
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.chicken_meat
+        min-level: 5
+    collection_level_animals_chicken_meat_6:
+      path: collections/levels/animals_chicken_meat/6
+      parent: collections/levels/animals_chicken_meat/5
+      title: Mięso kurczaka VI
+      description: Osiągnij poziom VI kolekcji Mięso kurczaka.
+      icon: CHICKEN
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.chicken_meat
+        min-level: 6
+    collection_level_animals_chicken_meat_7:
+      path: collections/levels/animals_chicken_meat/7
+      parent: collections/levels/animals_chicken_meat/6
+      title: Mięso kurczaka VII
+      description: Osiągnij poziom VII kolekcji Mięso kurczaka.
+      icon: CHICKEN
+      frame: goal
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.chicken_meat
+        min-level: 7
+    collection_complete_animals_chicken_meat:
+      path: collections/complete/animals_chicken_meat
+      parent: collections/levels/animals_chicken_meat/7
+      title: 'Mistrz kolekcji: Mięso kurczaka'
+      description: 'Osiągnij aktualnie najwyższy poziom kolekcji Mięso kurczaka. Nagroda: +1 Growth Point miasta.'
+      icon: CHICKEN
+      frame: challenge
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-max-level
+        collection: animals.chicken_meat
+      growth-points: 1
+    collection_level_animals_leather_1:
+      path: collections/levels/animals_leather/1
+      parent: collections/first_level
+      title: Skóra I
+      description: Osiągnij poziom I kolekcji Skóra.
+      icon: LEATHER
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.leather
+        min-level: 1
+    collection_level_animals_leather_2:
+      path: collections/levels/animals_leather/2
+      parent: collections/levels/animals_leather/1
+      title: Skóra II
+      description: Osiągnij poziom II kolekcji Skóra.
+      icon: LEATHER
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.leather
+        min-level: 2
+    collection_level_animals_leather_3:
+      path: collections/levels/animals_leather/3
+      parent: collections/levels/animals_leather/2
+      title: Skóra III
+      description: Osiągnij poziom III kolekcji Skóra.
+      icon: LEATHER
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.leather
+        min-level: 3
+    collection_level_animals_leather_4:
+      path: collections/levels/animals_leather/4
+      parent: collections/levels/animals_leather/3
+      title: Skóra IV
+      description: Osiągnij poziom IV kolekcji Skóra.
+      icon: LEATHER
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.leather
+        min-level: 4
+    collection_level_animals_leather_5:
+      path: collections/levels/animals_leather/5
+      parent: collections/levels/animals_leather/4
+      title: Skóra V
+      description: Osiągnij poziom V kolekcji Skóra.
+      icon: LEATHER
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.leather
+        min-level: 5
+    collection_level_animals_leather_6:
+      path: collections/levels/animals_leather/6
+      parent: collections/levels/animals_leather/5
+      title: Skóra VI
+      description: Osiągnij poziom VI kolekcji Skóra.
+      icon: LEATHER
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.leather
+        min-level: 6
+    collection_level_animals_leather_7:
+      path: collections/levels/animals_leather/7
+      parent: collections/levels/animals_leather/6
+      title: Skóra VII
+      description: Osiągnij poziom VII kolekcji Skóra.
+      icon: LEATHER
+      frame: goal
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.leather
+        min-level: 7
+    collection_complete_animals_leather:
+      path: collections/complete/animals_leather
+      parent: collections/levels/animals_leather/7
+      title: 'Mistrz kolekcji: Skóra'
+      description: 'Osiągnij aktualnie najwyższy poziom kolekcji Skóra. Nagroda: +1 Growth Point miasta.'
+      icon: LEATHER
+      frame: challenge
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-max-level
+        collection: animals.leather
+      growth-points: 1
+    collection_level_animals_mutton_1:
+      path: collections/levels/animals_mutton/1
+      parent: collections/first_level
+      title: Mięso owcy I
+      description: Osiągnij poziom I kolekcji Mięso owcy.
+      icon: MUTTON
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.mutton
+        min-level: 1
+    collection_level_animals_mutton_2:
+      path: collections/levels/animals_mutton/2
+      parent: collections/levels/animals_mutton/1
+      title: Mięso owcy II
+      description: Osiągnij poziom II kolekcji Mięso owcy.
+      icon: MUTTON
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.mutton
+        min-level: 2
+    collection_level_animals_mutton_3:
+      path: collections/levels/animals_mutton/3
+      parent: collections/levels/animals_mutton/2
+      title: Mięso owcy III
+      description: Osiągnij poziom III kolekcji Mięso owcy.
+      icon: MUTTON
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.mutton
+        min-level: 3
+    collection_level_animals_mutton_4:
+      path: collections/levels/animals_mutton/4
+      parent: collections/levels/animals_mutton/3
+      title: Mięso owcy IV
+      description: Osiągnij poziom IV kolekcji Mięso owcy.
+      icon: MUTTON
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.mutton
+        min-level: 4
+    collection_level_animals_mutton_5:
+      path: collections/levels/animals_mutton/5
+      parent: collections/levels/animals_mutton/4
+      title: Mięso owcy V
+      description: Osiągnij poziom V kolekcji Mięso owcy.
+      icon: MUTTON
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.mutton
+        min-level: 5
+    collection_level_animals_mutton_6:
+      path: collections/levels/animals_mutton/6
+      parent: collections/levels/animals_mutton/5
+      title: Mięso owcy VI
+      description: Osiągnij poziom VI kolekcji Mięso owcy.
+      icon: MUTTON
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.mutton
+        min-level: 6
+    collection_level_animals_mutton_7:
+      path: collections/levels/animals_mutton/7
+      parent: collections/levels/animals_mutton/6
+      title: Mięso owcy VII
+      description: Osiągnij poziom VII kolekcji Mięso owcy.
+      icon: MUTTON
+      frame: goal
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.mutton
+        min-level: 7
+    collection_complete_animals_mutton:
+      path: collections/complete/animals_mutton
+      parent: collections/levels/animals_mutton/7
+      title: 'Mistrz kolekcji: Mięso owcy'
+      description: 'Osiągnij aktualnie najwyższy poziom kolekcji Mięso owcy. Nagroda: +1 Growth Point miasta.'
+      icon: MUTTON
+      frame: challenge
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-max-level
+        collection: animals.mutton
+      growth-points: 1
+    collection_level_animals_pork_1:
+      path: collections/levels/animals_pork/1
+      parent: collections/first_level
+      title: Mięso świni I
+      description: Osiągnij poziom I kolekcji Mięso świni.
+      icon: PORKCHOP
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.pork
+        min-level: 1
+    collection_level_animals_pork_2:
+      path: collections/levels/animals_pork/2
+      parent: collections/levels/animals_pork/1
+      title: Mięso świni II
+      description: Osiągnij poziom II kolekcji Mięso świni.
+      icon: PORKCHOP
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.pork
+        min-level: 2
+    collection_level_animals_pork_3:
+      path: collections/levels/animals_pork/3
+      parent: collections/levels/animals_pork/2
+      title: Mięso świni III
+      description: Osiągnij poziom III kolekcji Mięso świni.
+      icon: PORKCHOP
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.pork
+        min-level: 3
+    collection_level_animals_pork_4:
+      path: collections/levels/animals_pork/4
+      parent: collections/levels/animals_pork/3
+      title: Mięso świni IV
+      description: Osiągnij poziom IV kolekcji Mięso świni.
+      icon: PORKCHOP
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.pork
+        min-level: 4
+    collection_level_animals_pork_5:
+      path: collections/levels/animals_pork/5
+      parent: collections/levels/animals_pork/4
+      title: Mięso świni V
+      description: Osiągnij poziom V kolekcji Mięso świni.
+      icon: PORKCHOP
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.pork
+        min-level: 5
+    collection_level_animals_pork_6:
+      path: collections/levels/animals_pork/6
+      parent: collections/levels/animals_pork/5
+      title: Mięso świni VI
+      description: Osiągnij poziom VI kolekcji Mięso świni.
+      icon: PORKCHOP
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.pork
+        min-level: 6
+    collection_level_animals_pork_7:
+      path: collections/levels/animals_pork/7
+      parent: collections/levels/animals_pork/6
+      title: Mięso świni VII
+      description: Osiągnij poziom VII kolekcji Mięso świni.
+      icon: PORKCHOP
+      frame: goal
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.pork
+        min-level: 7
+    collection_complete_animals_pork:
+      path: collections/complete/animals_pork
+      parent: collections/levels/animals_pork/7
+      title: 'Mistrz kolekcji: Mięso świni'
+      description: 'Osiągnij aktualnie najwyższy poziom kolekcji Mięso świni. Nagroda: +1 Growth Point miasta.'
+      icon: PORKCHOP
+      frame: challenge
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-max-level
+        collection: animals.pork
+      growth-points: 1
+    collection_level_animals_wool_1:
+      path: collections/levels/animals_wool/1
+      parent: collections/first_level
+      title: Wełna I
+      description: Osiągnij poziom I kolekcji Wełna.
+      icon: WHITE_WOOL
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.wool
+        min-level: 1
+    collection_level_animals_wool_2:
+      path: collections/levels/animals_wool/2
+      parent: collections/levels/animals_wool/1
+      title: Wełna II
+      description: Osiągnij poziom II kolekcji Wełna.
+      icon: WHITE_WOOL
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.wool
+        min-level: 2
+    collection_level_animals_wool_3:
+      path: collections/levels/animals_wool/3
+      parent: collections/levels/animals_wool/2
+      title: Wełna III
+      description: Osiągnij poziom III kolekcji Wełna.
+      icon: WHITE_WOOL
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.wool
+        min-level: 3
+    collection_level_animals_wool_4:
+      path: collections/levels/animals_wool/4
+      parent: collections/levels/animals_wool/3
+      title: Wełna IV
+      description: Osiągnij poziom IV kolekcji Wełna.
+      icon: WHITE_WOOL
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.wool
+        min-level: 4
+    collection_level_animals_wool_5:
+      path: collections/levels/animals_wool/5
+      parent: collections/levels/animals_wool/4
+      title: Wełna V
+      description: Osiągnij poziom V kolekcji Wełna.
+      icon: WHITE_WOOL
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.wool
+        min-level: 5
+    collection_level_animals_wool_6:
+      path: collections/levels/animals_wool/6
+      parent: collections/levels/animals_wool/5
+      title: Wełna VI
+      description: Osiągnij poziom VI kolekcji Wełna.
+      icon: WHITE_WOOL
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.wool
+        min-level: 6
+    collection_level_animals_wool_7:
+      path: collections/levels/animals_wool/7
+      parent: collections/levels/animals_wool/6
+      title: Wełna VII
+      description: Osiągnij poziom VII kolekcji Wełna.
+      icon: WHITE_WOOL
+      frame: goal
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: animals.wool
+        min-level: 7
+    collection_complete_animals_wool:
+      path: collections/complete/animals_wool
+      parent: collections/levels/animals_wool/7
+      title: 'Mistrz kolekcji: Wełna'
+      description: 'Osiągnij aktualnie najwyższy poziom kolekcji Wełna. Nagroda: +1 Growth Point miasta.'
+      icon: WHITE_WOOL
+      frame: challenge
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-max-level
+        collection: animals.wool
+      growth-points: 1
+    collection_level_farming_beetroot_1:
+      path: collections/levels/farming_beetroot/1
+      parent: collections/first_level
+      title: Burak I
+      description: Osiągnij poziom I kolekcji Burak.
+      icon: BEETROOT
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: farming.beetroot
+        min-level: 1
+    collection_level_farming_beetroot_2:
+      path: collections/levels/farming_beetroot/2
+      parent: collections/levels/farming_beetroot/1
+      title: Burak II
+      description: Osiągnij poziom II kolekcji Burak.
+      icon: BEETROOT
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: farming.beetroot
+        min-level: 2
+    collection_level_farming_beetroot_3:
+      path: collections/levels/farming_beetroot/3
+      parent: collections/levels/farming_beetroot/2
+      title: Burak III
+      description: Osiągnij poziom III kolekcji Burak.
+      icon: BEETROOT
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: farming.beetroot
+        min-level: 3
+    collection_level_farming_beetroot_4:
+      path: collections/levels/farming_beetroot/4
+      parent: collections/levels/farming_beetroot/3
+      title: Burak IV
+      description: Osiągnij poziom IV kolekcji Burak.
+      icon: BEETROOT
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: farming.beetroot
+        min-level: 4
+    collection_level_farming_beetroot_5:
+      path: collections/levels/farming_beetroot/5
+      parent: collections/levels/farming_beetroot/4
+      title: Burak V
+      description: Osiągnij poziom V kolekcji Burak.
+      icon: BEETROOT
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: farming.beetroot
+        min-level: 5
+    collection_level_farming_beetroot_6:
+      path: collections/levels/farming_beetroot/6
+      parent: collections/levels/farming_beetroot/5
+      title: Burak VI
+      description: Osiągnij poziom VI kolekcji Burak.
+      icon: BEETROOT
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: farming.beetroot
+        min-level: 6
+    collection_level_farming_beetroot_7:
+      path: collections/levels/farming_beetroot/7
+      parent: collections/levels/farming_beetroot/6
+      title: Burak VII
+      description: Osiągnij poziom VII kolekcji Burak.
+      icon: BEETROOT
+      frame: goal
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: farming.beetroot
+        min-level: 7
+    collection_complete_farming_beetroot:
+      path: collections/complete/farming_beetroot
+      parent: collections/levels/farming_beetroot/7
+      title: 'Mistrz kolekcji: Burak'
+      description: 'Osiągnij aktualnie najwyższy poziom kolekcji Burak. Nagroda: +1 Growth Point miasta.'
+      icon: BEETROOT
+      frame: challenge
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-max-level
+        collection: farming.beetroot
+      growth-points: 1
+    collection_level_farming_cactus_1:
+      path: collections/levels/farming_cactus/1
+      parent: collections/first_level
+      title: Kaktus I
+      description: Osiągnij poziom I kolekcji Kaktus.
+      icon: CACTUS
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: farming.cactus
+        min-level: 1
+    collection_level_farming_cactus_2:
+      path: collections/levels/farming_cactus/2
+      parent: collections/levels/farming_cactus/1
+      title: Kaktus II
+      description: Osiągnij poziom II kolekcji Kaktus.
+      icon: CACTUS
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: farming.cactus
+        min-level: 2
+    collection_level_farming_cactus_3:
+      path: collections/levels/farming_cactus/3
+      parent: collections/levels/farming_cactus/2
+      title: Kaktus III
+      description: Osiągnij poziom III kolekcji Kaktus.
+      icon: CACTUS
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: farming.cactus
+        min-level: 3
+    collection_level_farming_cactus_4:
+      path: collections/levels/farming_cactus/4
+      parent: collections/levels/farming_cactus/3
+      title: Kaktus IV
+      description: Osiągnij poziom IV kolekcji Kaktus.
+      icon: CACTUS
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: farming.cactus
+        min-level: 4
+    collection_level_farming_cactus_5:
+      path: collections/levels/farming_cactus/5
+      parent: collections/levels/farming_cactus/4
+      title: Kaktus V
+      description: Osiągnij poziom V kolekcji Kaktus.
+      icon: CACTUS
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: farming.cactus
+        min-level: 5
+    collection_level_farming_cactus_6:
+      path: collections/levels/farming_cactus/6
+      parent: collections/levels/farming_cactus/5
+      title: Kaktus VI
+      description: Osiągnij poziom VI kolekcji Kaktus.
+      icon: CACTUS
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: farming.cactus
+        min-level: 6
+    collection_level_farming_cactus_7:
+      path: collections/levels/farming_cactus/7
+      parent: collections/levels/farming_cactus/6
+      title: Kaktus VII
+      description: Osiągnij poziom VII kolekcji Kaktus.
+      icon: CACTUS
+      frame: goal
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: farming.cactus
+        min-level: 7
+    collection_complete_farming_cactus:
+      path: collections/complete/farming_cactus
+      parent: collections/levels/farming_cactus/7
+      title: 'Mistrz kolekcji: Kaktus'
+      description: 'Osiągnij aktualnie najwyższy poziom kolekcji Kaktus. Nagroda: +1 Growth Point miasta.'
+      icon: CACTUS
+      frame: challenge
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-max-level
+        collection: farming.cactus
+      growth-points: 1
+    collection_level_farming_sugar_cane_1:
+      path: collections/levels/farming_sugar_cane/1
+      parent: collections/first_level
+      title: Trzcina cukrowa I
+      description: Osiągnij poziom I kolekcji Trzcina cukrowa.
+      icon: SUGAR_CANE
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: farming.sugar_cane
+        min-level: 1
+    collection_level_farming_sugar_cane_2:
+      path: collections/levels/farming_sugar_cane/2
+      parent: collections/levels/farming_sugar_cane/1
+      title: Trzcina cukrowa II
+      description: Osiągnij poziom II kolekcji Trzcina cukrowa.
+      icon: SUGAR_CANE
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: farming.sugar_cane
+        min-level: 2
+    collection_level_farming_sugar_cane_3:
+      path: collections/levels/farming_sugar_cane/3
+      parent: collections/levels/farming_sugar_cane/2
+      title: Trzcina cukrowa III
+      description: Osiągnij poziom III kolekcji Trzcina cukrowa.
+      icon: SUGAR_CANE
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: farming.sugar_cane
+        min-level: 3
+    collection_level_farming_sugar_cane_4:
+      path: collections/levels/farming_sugar_cane/4
+      parent: collections/levels/farming_sugar_cane/3
+      title: Trzcina cukrowa IV
+      description: Osiągnij poziom IV kolekcji Trzcina cukrowa.
+      icon: SUGAR_CANE
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: farming.sugar_cane
+        min-level: 4
+    collection_level_farming_sugar_cane_5:
+      path: collections/levels/farming_sugar_cane/5
+      parent: collections/levels/farming_sugar_cane/4
+      title: Trzcina cukrowa V
+      description: Osiągnij poziom V kolekcji Trzcina cukrowa.
+      icon: SUGAR_CANE
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: farming.sugar_cane
+        min-level: 5
+    collection_level_farming_sugar_cane_6:
+      path: collections/levels/farming_sugar_cane/6
+      parent: collections/levels/farming_sugar_cane/5
+      title: Trzcina cukrowa VI
+      description: Osiągnij poziom VI kolekcji Trzcina cukrowa.
+      icon: SUGAR_CANE
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: farming.sugar_cane
+        min-level: 6
+    collection_level_farming_sugar_cane_7:
+      path: collections/levels/farming_sugar_cane/7
+      parent: collections/levels/farming_sugar_cane/6
+      title: Trzcina cukrowa VII
+      description: Osiągnij poziom VII kolekcji Trzcina cukrowa.
+      icon: SUGAR_CANE
+      frame: goal
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: farming.sugar_cane
+        min-level: 7
+    collection_complete_farming_sugar_cane:
+      path: collections/complete/farming_sugar_cane
+      parent: collections/levels/farming_sugar_cane/7
+      title: 'Mistrz kolekcji: Trzcina cukrowa'
+      description: 'Osiągnij aktualnie najwyższy poziom kolekcji Trzcina cukrowa. Nagroda: +1 Growth Point miasta.'
+      icon: SUGAR_CANE
+      frame: challenge
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-max-level
+        collection: farming.sugar_cane
+      growth-points: 1
+    collection_level_farming_wheat_1:
+      path: collections/levels/farming_wheat/1
+      parent: collections/first_level
+      title: Pszenica I
+      description: Osiągnij poziom I kolekcji Pszenica.
+      icon: WHEAT
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: farming.wheat
+        min-level: 1
+    collection_level_farming_wheat_2:
+      path: collections/levels/farming_wheat/2
+      parent: collections/levels/farming_wheat/1
+      title: Pszenica II
+      description: Osiągnij poziom II kolekcji Pszenica.
+      icon: WHEAT
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: farming.wheat
+        min-level: 2
+    collection_level_farming_wheat_3:
+      path: collections/levels/farming_wheat/3
+      parent: collections/levels/farming_wheat/2
+      title: Pszenica III
+      description: Osiągnij poziom III kolekcji Pszenica.
+      icon: WHEAT
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: farming.wheat
+        min-level: 3
+    collection_level_farming_wheat_4:
+      path: collections/levels/farming_wheat/4
+      parent: collections/levels/farming_wheat/3
+      title: Pszenica IV
+      description: Osiągnij poziom IV kolekcji Pszenica.
+      icon: WHEAT
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: farming.wheat
+        min-level: 4
+    collection_level_farming_wheat_5:
+      path: collections/levels/farming_wheat/5
+      parent: collections/levels/farming_wheat/4
+      title: Pszenica V
+      description: Osiągnij poziom V kolekcji Pszenica.
+      icon: WHEAT
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: farming.wheat
+        min-level: 5
+    collection_level_farming_wheat_6:
+      path: collections/levels/farming_wheat/6
+      parent: collections/levels/farming_wheat/5
+      title: Pszenica VI
+      description: Osiągnij poziom VI kolekcji Pszenica.
+      icon: WHEAT
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: farming.wheat
+        min-level: 6
+    collection_level_farming_wheat_7:
+      path: collections/levels/farming_wheat/7
+      parent: collections/levels/farming_wheat/6
+      title: Pszenica VII
+      description: Osiągnij poziom VII kolekcji Pszenica.
+      icon: WHEAT
+      frame: goal
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: farming.wheat
+        min-level: 7
+    collection_complete_farming_wheat:
+      path: collections/complete/farming_wheat
+      parent: collections/levels/farming_wheat/7
+      title: 'Mistrz kolekcji: Pszenica'
+      description: 'Osiągnij aktualnie najwyższy poziom kolekcji Pszenica. Nagroda: +1 Growth Point miasta.'
+      icon: WHEAT
+      frame: challenge
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-max-level
+        collection: farming.wheat
+      growth-points: 1
+    collection_level_foraging_oak_wood_1:
+      path: collections/levels/foraging_oak_wood/1
+      parent: collections/first_level
+      title: Drewno dębowe I
+      description: Osiągnij poziom I kolekcji Drewno dębowe.
+      icon: OAK_LOG
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: foraging.oak_wood
+        min-level: 1
+    collection_level_foraging_oak_wood_2:
+      path: collections/levels/foraging_oak_wood/2
+      parent: collections/levels/foraging_oak_wood/1
+      title: Drewno dębowe II
+      description: Osiągnij poziom II kolekcji Drewno dębowe.
+      icon: OAK_LOG
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: foraging.oak_wood
+        min-level: 2
+    collection_level_foraging_oak_wood_3:
+      path: collections/levels/foraging_oak_wood/3
+      parent: collections/levels/foraging_oak_wood/2
+      title: Drewno dębowe III
+      description: Osiągnij poziom III kolekcji Drewno dębowe.
+      icon: OAK_LOG
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: foraging.oak_wood
+        min-level: 3
+    collection_level_foraging_oak_wood_4:
+      path: collections/levels/foraging_oak_wood/4
+      parent: collections/levels/foraging_oak_wood/3
+      title: Drewno dębowe IV
+      description: Osiągnij poziom IV kolekcji Drewno dębowe.
+      icon: OAK_LOG
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: foraging.oak_wood
+        min-level: 4
+    collection_level_foraging_oak_wood_5:
+      path: collections/levels/foraging_oak_wood/5
+      parent: collections/levels/foraging_oak_wood/4
+      title: Drewno dębowe V
+      description: Osiągnij poziom V kolekcji Drewno dębowe.
+      icon: OAK_LOG
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: foraging.oak_wood
+        min-level: 5
+    collection_level_foraging_oak_wood_6:
+      path: collections/levels/foraging_oak_wood/6
+      parent: collections/levels/foraging_oak_wood/5
+      title: Drewno dębowe VI
+      description: Osiągnij poziom VI kolekcji Drewno dębowe.
+      icon: OAK_LOG
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: foraging.oak_wood
+        min-level: 6
+    collection_level_foraging_oak_wood_7:
+      path: collections/levels/foraging_oak_wood/7
+      parent: collections/levels/foraging_oak_wood/6
+      title: Drewno dębowe VII
+      description: Osiągnij poziom VII kolekcji Drewno dębowe.
+      icon: OAK_LOG
+      frame: goal
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: foraging.oak_wood
+        min-level: 7
+    collection_complete_foraging_oak_wood:
+      path: collections/complete/foraging_oak_wood
+      parent: collections/levels/foraging_oak_wood/7
+      title: 'Mistrz kolekcji: Drewno dębowe'
+      description: 'Osiągnij aktualnie najwyższy poziom kolekcji Drewno dębowe. Nagroda: +1 Growth Point miasta.'
+      icon: OAK_LOG
+      frame: challenge
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-max-level
+        collection: foraging.oak_wood
+      growth-points: 1
+    collection_level_foraging_spruce_resin_1:
+      path: collections/levels/foraging_spruce_resin/1
+      parent: collections/first_level
+      title: Żywica I
+      description: Osiągnij poziom I kolekcji Żywica.
+      icon: HONEYCOMB
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: foraging.spruce_resin
+        min-level: 1
+    collection_level_foraging_spruce_resin_2:
+      path: collections/levels/foraging_spruce_resin/2
+      parent: collections/levels/foraging_spruce_resin/1
+      title: Żywica II
+      description: Osiągnij poziom II kolekcji Żywica.
+      icon: HONEYCOMB
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: foraging.spruce_resin
+        min-level: 2
+    collection_level_foraging_spruce_resin_3:
+      path: collections/levels/foraging_spruce_resin/3
+      parent: collections/levels/foraging_spruce_resin/2
+      title: Żywica III
+      description: Osiągnij poziom III kolekcji Żywica.
+      icon: HONEYCOMB
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: foraging.spruce_resin
+        min-level: 3
+    collection_level_foraging_spruce_resin_4:
+      path: collections/levels/foraging_spruce_resin/4
+      parent: collections/levels/foraging_spruce_resin/3
+      title: Żywica IV
+      description: Osiągnij poziom IV kolekcji Żywica.
+      icon: HONEYCOMB
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: foraging.spruce_resin
+        min-level: 4
+    collection_level_foraging_spruce_resin_5:
+      path: collections/levels/foraging_spruce_resin/5
+      parent: collections/levels/foraging_spruce_resin/4
+      title: Żywica V
+      description: Osiągnij poziom V kolekcji Żywica.
+      icon: HONEYCOMB
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: foraging.spruce_resin
+        min-level: 5
+    collection_level_foraging_spruce_resin_6:
+      path: collections/levels/foraging_spruce_resin/6
+      parent: collections/levels/foraging_spruce_resin/5
+      title: Żywica VI
+      description: Osiągnij poziom VI kolekcji Żywica.
+      icon: HONEYCOMB
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: foraging.spruce_resin
+        min-level: 6
+    collection_level_foraging_spruce_resin_7:
+      path: collections/levels/foraging_spruce_resin/7
+      parent: collections/levels/foraging_spruce_resin/6
+      title: Żywica VII
+      description: Osiągnij poziom VII kolekcji Żywica.
+      icon: HONEYCOMB
+      frame: goal
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: foraging.spruce_resin
+        min-level: 7
+    collection_complete_foraging_spruce_resin:
+      path: collections/complete/foraging_spruce_resin
+      parent: collections/levels/foraging_spruce_resin/7
+      title: 'Mistrz kolekcji: Żywica'
+      description: 'Osiągnij aktualnie najwyższy poziom kolekcji Żywica. Nagroda: +1 Growth Point miasta.'
+      icon: HONEYCOMB
+      frame: challenge
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-max-level
+        collection: foraging.spruce_resin
+      growth-points: 1
+    collection_level_foraging_spruce_wood_1:
+      path: collections/levels/foraging_spruce_wood/1
+      parent: collections/first_level
+      title: Drewno świerkowe I
+      description: Osiągnij poziom I kolekcji Drewno świerkowe.
+      icon: SPRUCE_LOG
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: foraging.spruce_wood
+        min-level: 1
+    collection_level_foraging_spruce_wood_2:
+      path: collections/levels/foraging_spruce_wood/2
+      parent: collections/levels/foraging_spruce_wood/1
+      title: Drewno świerkowe II
+      description: Osiągnij poziom II kolekcji Drewno świerkowe.
+      icon: SPRUCE_LOG
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: foraging.spruce_wood
+        min-level: 2
+    collection_level_foraging_spruce_wood_3:
+      path: collections/levels/foraging_spruce_wood/3
+      parent: collections/levels/foraging_spruce_wood/2
+      title: Drewno świerkowe III
+      description: Osiągnij poziom III kolekcji Drewno świerkowe.
+      icon: SPRUCE_LOG
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: foraging.spruce_wood
+        min-level: 3
+    collection_level_foraging_spruce_wood_4:
+      path: collections/levels/foraging_spruce_wood/4
+      parent: collections/levels/foraging_spruce_wood/3
+      title: Drewno świerkowe IV
+      description: Osiągnij poziom IV kolekcji Drewno świerkowe.
+      icon: SPRUCE_LOG
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: foraging.spruce_wood
+        min-level: 4
+    collection_level_foraging_spruce_wood_5:
+      path: collections/levels/foraging_spruce_wood/5
+      parent: collections/levels/foraging_spruce_wood/4
+      title: Drewno świerkowe V
+      description: Osiągnij poziom V kolekcji Drewno świerkowe.
+      icon: SPRUCE_LOG
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: foraging.spruce_wood
+        min-level: 5
+    collection_level_foraging_spruce_wood_6:
+      path: collections/levels/foraging_spruce_wood/6
+      parent: collections/levels/foraging_spruce_wood/5
+      title: Drewno świerkowe VI
+      description: Osiągnij poziom VI kolekcji Drewno świerkowe.
+      icon: SPRUCE_LOG
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: foraging.spruce_wood
+        min-level: 6
+    collection_level_foraging_spruce_wood_7:
+      path: collections/levels/foraging_spruce_wood/7
+      parent: collections/levels/foraging_spruce_wood/6
+      title: Drewno świerkowe VII
+      description: Osiągnij poziom VII kolekcji Drewno świerkowe.
+      icon: SPRUCE_LOG
+      frame: goal
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: foraging.spruce_wood
+        min-level: 7
+    collection_complete_foraging_spruce_wood:
+      path: collections/complete/foraging_spruce_wood
+      parent: collections/levels/foraging_spruce_wood/7
+      title: 'Mistrz kolekcji: Drewno świerkowe'
+      description: 'Osiągnij aktualnie najwyższy poziom kolekcji Drewno świerkowe. Nagroda: +1 Growth Point miasta.'
+      icon: SPRUCE_LOG
+      frame: challenge
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-max-level
+        collection: foraging.spruce_wood
+      growth-points: 1
+    collection_level_industrial_energy_1:
+      path: collections/levels/industrial_energy/1
+      parent: collections/first_level
+      title: Energia EU I
+      description: Osiągnij poziom I kolekcji Energia EU.
+      icon: REDSTONE_BLOCK
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: industrial.energy
+        min-level: 1
+    collection_level_industrial_energy_2:
+      path: collections/levels/industrial_energy/2
+      parent: collections/levels/industrial_energy/1
+      title: Energia EU II
+      description: Osiągnij poziom II kolekcji Energia EU.
+      icon: REDSTONE_BLOCK
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: industrial.energy
+        min-level: 2
+    collection_level_industrial_energy_3:
+      path: collections/levels/industrial_energy/3
+      parent: collections/levels/industrial_energy/2
+      title: Energia EU III
+      description: Osiągnij poziom III kolekcji Energia EU.
+      icon: REDSTONE_BLOCK
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: industrial.energy
+        min-level: 3
+    collection_level_industrial_energy_4:
+      path: collections/levels/industrial_energy/4
+      parent: collections/levels/industrial_energy/3
+      title: Energia EU IV
+      description: Osiągnij poziom IV kolekcji Energia EU.
+      icon: REDSTONE_BLOCK
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: industrial.energy
+        min-level: 4
+    collection_level_industrial_energy_5:
+      path: collections/levels/industrial_energy/5
+      parent: collections/levels/industrial_energy/4
+      title: Energia EU V
+      description: Osiągnij poziom V kolekcji Energia EU.
+      icon: REDSTONE_BLOCK
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: industrial.energy
+        min-level: 5
+    collection_level_industrial_energy_6:
+      path: collections/levels/industrial_energy/6
+      parent: collections/levels/industrial_energy/5
+      title: Energia EU VI
+      description: Osiągnij poziom VI kolekcji Energia EU.
+      icon: REDSTONE_BLOCK
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: industrial.energy
+        min-level: 6
+    collection_level_industrial_energy_7:
+      path: collections/levels/industrial_energy/7
+      parent: collections/levels/industrial_energy/6
+      title: Energia EU VII
+      description: Osiągnij poziom VII kolekcji Energia EU.
+      icon: REDSTONE_BLOCK
+      frame: goal
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: industrial.energy
+        min-level: 7
+    collection_complete_industrial_energy:
+      path: collections/complete/industrial_energy
+      parent: collections/levels/industrial_energy/7
+      title: 'Mistrz kolekcji: Energia EU'
+      description: 'Osiągnij aktualnie najwyższy poziom kolekcji Energia EU. Nagroda: +1 Growth Point miasta.'
+      icon: REDSTONE_BLOCK
+      frame: challenge
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-max-level
+        collection: industrial.energy
+      growth-points: 1
+    collection_level_industrial_enriched_uranium_1:
+      path: collections/levels/industrial_enriched_uranium/1
+      parent: collections/first_level
+      title: Wzbogacony uran I
+      description: Osiągnij poziom I kolekcji Wzbogacony uran.
+      icon: EMERALD
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: industrial.enriched_uranium
+        min-level: 1
+    collection_level_industrial_enriched_uranium_2:
+      path: collections/levels/industrial_enriched_uranium/2
+      parent: collections/levels/industrial_enriched_uranium/1
+      title: Wzbogacony uran II
+      description: Osiągnij poziom II kolekcji Wzbogacony uran.
+      icon: EMERALD
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: industrial.enriched_uranium
+        min-level: 2
+    collection_level_industrial_enriched_uranium_3:
+      path: collections/levels/industrial_enriched_uranium/3
+      parent: collections/levels/industrial_enriched_uranium/2
+      title: Wzbogacony uran III
+      description: Osiągnij poziom III kolekcji Wzbogacony uran.
+      icon: EMERALD
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: industrial.enriched_uranium
+        min-level: 3
+    collection_level_industrial_enriched_uranium_4:
+      path: collections/levels/industrial_enriched_uranium/4
+      parent: collections/levels/industrial_enriched_uranium/3
+      title: Wzbogacony uran IV
+      description: Osiągnij poziom IV kolekcji Wzbogacony uran.
+      icon: EMERALD
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: industrial.enriched_uranium
+        min-level: 4
+    collection_level_industrial_enriched_uranium_5:
+      path: collections/levels/industrial_enriched_uranium/5
+      parent: collections/levels/industrial_enriched_uranium/4
+      title: Wzbogacony uran V
+      description: Osiągnij poziom V kolekcji Wzbogacony uran.
+      icon: EMERALD
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: industrial.enriched_uranium
+        min-level: 5
+    collection_level_industrial_enriched_uranium_6:
+      path: collections/levels/industrial_enriched_uranium/6
+      parent: collections/levels/industrial_enriched_uranium/5
+      title: Wzbogacony uran VI
+      description: Osiągnij poziom VI kolekcji Wzbogacony uran.
+      icon: EMERALD
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: industrial.enriched_uranium
+        min-level: 6
+    collection_level_industrial_enriched_uranium_7:
+      path: collections/levels/industrial_enriched_uranium/7
+      parent: collections/levels/industrial_enriched_uranium/6
+      title: Wzbogacony uran VII
+      description: Osiągnij poziom VII kolekcji Wzbogacony uran.
+      icon: EMERALD
+      frame: goal
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: industrial.enriched_uranium
+        min-level: 7
+    collection_complete_industrial_enriched_uranium:
+      path: collections/complete/industrial_enriched_uranium
+      parent: collections/levels/industrial_enriched_uranium/7
+      title: 'Mistrz kolekcji: Wzbogacony uran'
+      description: 'Osiągnij aktualnie najwyższy poziom kolekcji Wzbogacony uran. Nagroda: +1 Growth Point miasta.'
+      icon: EMERALD
+      frame: challenge
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-max-level
+        collection: industrial.enriched_uranium
+      growth-points: 1
+    collection_level_mining_coal_1:
+      path: collections/levels/mining_coal/1
+      parent: collections/first_level
+      title: Węgiel I
+      description: Osiągnij poziom I kolekcji Węgiel.
+      icon: COAL
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.coal
+        min-level: 1
+    collection_level_mining_coal_2:
+      path: collections/levels/mining_coal/2
+      parent: collections/levels/mining_coal/1
+      title: Węgiel II
+      description: Osiągnij poziom II kolekcji Węgiel.
+      icon: COAL
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.coal
+        min-level: 2
+    collection_level_mining_coal_3:
+      path: collections/levels/mining_coal/3
+      parent: collections/levels/mining_coal/2
+      title: Węgiel III
+      description: Osiągnij poziom III kolekcji Węgiel.
+      icon: COAL
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.coal
+        min-level: 3
+    collection_level_mining_coal_4:
+      path: collections/levels/mining_coal/4
+      parent: collections/levels/mining_coal/3
+      title: Węgiel IV
+      description: Osiągnij poziom IV kolekcji Węgiel.
+      icon: COAL
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.coal
+        min-level: 4
+    collection_level_mining_coal_5:
+      path: collections/levels/mining_coal/5
+      parent: collections/levels/mining_coal/4
+      title: Węgiel V
+      description: Osiągnij poziom V kolekcji Węgiel.
+      icon: COAL
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.coal
+        min-level: 5
+    collection_level_mining_coal_6:
+      path: collections/levels/mining_coal/6
+      parent: collections/levels/mining_coal/5
+      title: Węgiel VI
+      description: Osiągnij poziom VI kolekcji Węgiel.
+      icon: COAL
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.coal
+        min-level: 6
+    collection_level_mining_coal_7:
+      path: collections/levels/mining_coal/7
+      parent: collections/levels/mining_coal/6
+      title: Węgiel VII
+      description: Osiągnij poziom VII kolekcji Węgiel.
+      icon: COAL
+      frame: goal
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.coal
+        min-level: 7
+    collection_complete_mining_coal:
+      path: collections/complete/mining_coal
+      parent: collections/levels/mining_coal/7
+      title: 'Mistrz kolekcji: Węgiel'
+      description: 'Osiągnij aktualnie najwyższy poziom kolekcji Węgiel. Nagroda: +1 Growth Point miasta.'
+      icon: COAL
+      frame: challenge
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-max-level
+        collection: mining.coal
+      growth-points: 1
+    collection_level_mining_cobblestone_1:
+      path: collections/levels/mining_cobblestone/1
+      parent: collections/first_level
+      title: Bruk I
+      description: Osiągnij poziom I kolekcji Bruk.
+      icon: COBBLESTONE
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.cobblestone
+        min-level: 1
+    collection_level_mining_cobblestone_2:
+      path: collections/levels/mining_cobblestone/2
+      parent: collections/levels/mining_cobblestone/1
+      title: Bruk II
+      description: Osiągnij poziom II kolekcji Bruk.
+      icon: COBBLESTONE
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.cobblestone
+        min-level: 2
+    collection_level_mining_cobblestone_3:
+      path: collections/levels/mining_cobblestone/3
+      parent: collections/levels/mining_cobblestone/2
+      title: Bruk III
+      description: Osiągnij poziom III kolekcji Bruk.
+      icon: COBBLESTONE
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.cobblestone
+        min-level: 3
+    collection_level_mining_cobblestone_4:
+      path: collections/levels/mining_cobblestone/4
+      parent: collections/levels/mining_cobblestone/3
+      title: Bruk IV
+      description: Osiągnij poziom IV kolekcji Bruk.
+      icon: COBBLESTONE
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.cobblestone
+        min-level: 4
+    collection_level_mining_cobblestone_5:
+      path: collections/levels/mining_cobblestone/5
+      parent: collections/levels/mining_cobblestone/4
+      title: Bruk V
+      description: Osiągnij poziom V kolekcji Bruk.
+      icon: COBBLESTONE
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.cobblestone
+        min-level: 5
+    collection_level_mining_cobblestone_6:
+      path: collections/levels/mining_cobblestone/6
+      parent: collections/levels/mining_cobblestone/5
+      title: Bruk VI
+      description: Osiągnij poziom VI kolekcji Bruk.
+      icon: COBBLESTONE
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.cobblestone
+        min-level: 6
+    collection_level_mining_cobblestone_7:
+      path: collections/levels/mining_cobblestone/7
+      parent: collections/levels/mining_cobblestone/6
+      title: Bruk VII
+      description: Osiągnij poziom VII kolekcji Bruk.
+      icon: COBBLESTONE
+      frame: goal
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.cobblestone
+        min-level: 7
+    collection_complete_mining_cobblestone:
+      path: collections/complete/mining_cobblestone
+      parent: collections/levels/mining_cobblestone/7
+      title: 'Mistrz kolekcji: Bruk'
+      description: 'Osiągnij aktualnie najwyższy poziom kolekcji Bruk. Nagroda: +1 Growth Point miasta.'
+      icon: COBBLESTONE
+      frame: challenge
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-max-level
+        collection: mining.cobblestone
+      growth-points: 1
+    collection_level_mining_copper_1:
+      path: collections/levels/mining_copper/1
+      parent: collections/first_level
+      title: Miedź I
+      description: Osiągnij poziom I kolekcji Miedź.
+      icon: COPPER_INGOT
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.copper
+        min-level: 1
+    collection_level_mining_copper_2:
+      path: collections/levels/mining_copper/2
+      parent: collections/levels/mining_copper/1
+      title: Miedź II
+      description: Osiągnij poziom II kolekcji Miedź.
+      icon: COPPER_INGOT
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.copper
+        min-level: 2
+    collection_level_mining_copper_3:
+      path: collections/levels/mining_copper/3
+      parent: collections/levels/mining_copper/2
+      title: Miedź III
+      description: Osiągnij poziom III kolekcji Miedź.
+      icon: COPPER_INGOT
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.copper
+        min-level: 3
+    collection_level_mining_copper_4:
+      path: collections/levels/mining_copper/4
+      parent: collections/levels/mining_copper/3
+      title: Miedź IV
+      description: Osiągnij poziom IV kolekcji Miedź.
+      icon: COPPER_INGOT
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.copper
+        min-level: 4
+    collection_level_mining_copper_5:
+      path: collections/levels/mining_copper/5
+      parent: collections/levels/mining_copper/4
+      title: Miedź V
+      description: Osiągnij poziom V kolekcji Miedź.
+      icon: COPPER_INGOT
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.copper
+        min-level: 5
+    collection_level_mining_copper_6:
+      path: collections/levels/mining_copper/6
+      parent: collections/levels/mining_copper/5
+      title: Miedź VI
+      description: Osiągnij poziom VI kolekcji Miedź.
+      icon: COPPER_INGOT
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.copper
+        min-level: 6
+    collection_level_mining_copper_7:
+      path: collections/levels/mining_copper/7
+      parent: collections/levels/mining_copper/6
+      title: Miedź VII
+      description: Osiągnij poziom VII kolekcji Miedź.
+      icon: COPPER_INGOT
+      frame: goal
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.copper
+        min-level: 7
+    collection_complete_mining_copper:
+      path: collections/complete/mining_copper
+      parent: collections/levels/mining_copper/7
+      title: 'Mistrz kolekcji: Miedź'
+      description: 'Osiągnij aktualnie najwyższy poziom kolekcji Miedź. Nagroda: +1 Growth Point miasta.'
+      icon: COPPER_INGOT
+      frame: challenge
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-max-level
+        collection: mining.copper
+      growth-points: 1
+    collection_level_mining_diamond_1:
+      path: collections/levels/mining_diamond/1
+      parent: collections/first_level
+      title: Diament I
+      description: Osiągnij poziom I kolekcji Diament.
+      icon: DIAMOND
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.diamond
+        min-level: 1
+    collection_level_mining_diamond_2:
+      path: collections/levels/mining_diamond/2
+      parent: collections/levels/mining_diamond/1
+      title: Diament II
+      description: Osiągnij poziom II kolekcji Diament.
+      icon: DIAMOND
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.diamond
+        min-level: 2
+    collection_level_mining_diamond_3:
+      path: collections/levels/mining_diamond/3
+      parent: collections/levels/mining_diamond/2
+      title: Diament III
+      description: Osiągnij poziom III kolekcji Diament.
+      icon: DIAMOND
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.diamond
+        min-level: 3
+    collection_level_mining_diamond_4:
+      path: collections/levels/mining_diamond/4
+      parent: collections/levels/mining_diamond/3
+      title: Diament IV
+      description: Osiągnij poziom IV kolekcji Diament.
+      icon: DIAMOND
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.diamond
+        min-level: 4
+    collection_level_mining_diamond_5:
+      path: collections/levels/mining_diamond/5
+      parent: collections/levels/mining_diamond/4
+      title: Diament V
+      description: Osiągnij poziom V kolekcji Diament.
+      icon: DIAMOND
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.diamond
+        min-level: 5
+    collection_level_mining_diamond_6:
+      path: collections/levels/mining_diamond/6
+      parent: collections/levels/mining_diamond/5
+      title: Diament VI
+      description: Osiągnij poziom VI kolekcji Diament.
+      icon: DIAMOND
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.diamond
+        min-level: 6
+    collection_level_mining_diamond_7:
+      path: collections/levels/mining_diamond/7
+      parent: collections/levels/mining_diamond/6
+      title: Diament VII
+      description: Osiągnij poziom VII kolekcji Diament.
+      icon: DIAMOND
+      frame: goal
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.diamond
+        min-level: 7
+    collection_complete_mining_diamond:
+      path: collections/complete/mining_diamond
+      parent: collections/levels/mining_diamond/7
+      title: 'Mistrz kolekcji: Diament'
+      description: 'Osiągnij aktualnie najwyższy poziom kolekcji Diament. Nagroda: +1 Growth Point miasta.'
+      icon: DIAMOND
+      frame: challenge
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-max-level
+        collection: mining.diamond
+      growth-points: 1
+    collection_level_mining_dirt_1:
+      path: collections/levels/mining_dirt/1
+      parent: collections/first_level
+      title: Dirt I
+      description: Osiągnij poziom I kolekcji Dirt.
+      icon: DIRT
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.dirt
+        min-level: 1
+    collection_level_mining_dirt_2:
+      path: collections/levels/mining_dirt/2
+      parent: collections/levels/mining_dirt/1
+      title: Dirt II
+      description: Osiągnij poziom II kolekcji Dirt.
+      icon: DIRT
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.dirt
+        min-level: 2
+    collection_level_mining_dirt_3:
+      path: collections/levels/mining_dirt/3
+      parent: collections/levels/mining_dirt/2
+      title: Dirt III
+      description: Osiągnij poziom III kolekcji Dirt.
+      icon: DIRT
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.dirt
+        min-level: 3
+    collection_level_mining_dirt_4:
+      path: collections/levels/mining_dirt/4
+      parent: collections/levels/mining_dirt/3
+      title: Dirt IV
+      description: Osiągnij poziom IV kolekcji Dirt.
+      icon: DIRT
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.dirt
+        min-level: 4
+    collection_level_mining_dirt_5:
+      path: collections/levels/mining_dirt/5
+      parent: collections/levels/mining_dirt/4
+      title: Dirt V
+      description: Osiągnij poziom V kolekcji Dirt.
+      icon: DIRT
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.dirt
+        min-level: 5
+    collection_level_mining_dirt_6:
+      path: collections/levels/mining_dirt/6
+      parent: collections/levels/mining_dirt/5
+      title: Dirt VI
+      description: Osiągnij poziom VI kolekcji Dirt.
+      icon: DIRT
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.dirt
+        min-level: 6
+    collection_level_mining_dirt_7:
+      path: collections/levels/mining_dirt/7
+      parent: collections/levels/mining_dirt/6
+      title: Dirt VII
+      description: Osiągnij poziom VII kolekcji Dirt.
+      icon: DIRT
+      frame: goal
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.dirt
+        min-level: 7
+    collection_complete_mining_dirt:
+      path: collections/complete/mining_dirt
+      parent: collections/levels/mining_dirt/7
+      title: 'Mistrz kolekcji: Dirt'
+      description: 'Osiągnij aktualnie najwyższy poziom kolekcji Dirt. Nagroda: +1 Growth Point miasta.'
+      icon: DIRT
+      frame: challenge
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-max-level
+        collection: mining.dirt
+      growth-points: 1
+    collection_level_mining_emerald_1:
+      path: collections/levels/mining_emerald/1
+      parent: collections/first_level
+      title: Emerald I
+      description: Osiągnij poziom I kolekcji Emerald.
+      icon: EMERALD
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.emerald
+        min-level: 1
+    collection_level_mining_emerald_2:
+      path: collections/levels/mining_emerald/2
+      parent: collections/levels/mining_emerald/1
+      title: Emerald II
+      description: Osiągnij poziom II kolekcji Emerald.
+      icon: EMERALD
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.emerald
+        min-level: 2
+    collection_level_mining_emerald_3:
+      path: collections/levels/mining_emerald/3
+      parent: collections/levels/mining_emerald/2
+      title: Emerald III
+      description: Osiągnij poziom III kolekcji Emerald.
+      icon: EMERALD
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.emerald
+        min-level: 3
+    collection_level_mining_emerald_4:
+      path: collections/levels/mining_emerald/4
+      parent: collections/levels/mining_emerald/3
+      title: Emerald IV
+      description: Osiągnij poziom IV kolekcji Emerald.
+      icon: EMERALD
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.emerald
+        min-level: 4
+    collection_level_mining_emerald_5:
+      path: collections/levels/mining_emerald/5
+      parent: collections/levels/mining_emerald/4
+      title: Emerald V
+      description: Osiągnij poziom V kolekcji Emerald.
+      icon: EMERALD
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.emerald
+        min-level: 5
+    collection_level_mining_emerald_6:
+      path: collections/levels/mining_emerald/6
+      parent: collections/levels/mining_emerald/5
+      title: Emerald VI
+      description: Osiągnij poziom VI kolekcji Emerald.
+      icon: EMERALD
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.emerald
+        min-level: 6
+    collection_level_mining_emerald_7:
+      path: collections/levels/mining_emerald/7
+      parent: collections/levels/mining_emerald/6
+      title: Emerald VII
+      description: Osiągnij poziom VII kolekcji Emerald.
+      icon: EMERALD
+      frame: goal
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.emerald
+        min-level: 7
+    collection_complete_mining_emerald:
+      path: collections/complete/mining_emerald
+      parent: collections/levels/mining_emerald/7
+      title: 'Mistrz kolekcji: Emerald'
+      description: 'Osiągnij aktualnie najwyższy poziom kolekcji Emerald. Nagroda: +1 Growth Point miasta.'
+      icon: EMERALD
+      frame: challenge
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-max-level
+        collection: mining.emerald
+      growth-points: 1
+    collection_level_mining_gold_1:
+      path: collections/levels/mining_gold/1
+      parent: collections/first_level
+      title: Złoto I
+      description: Osiągnij poziom I kolekcji Złoto.
+      icon: GOLD_INGOT
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.gold
+        min-level: 1
+    collection_level_mining_gold_2:
+      path: collections/levels/mining_gold/2
+      parent: collections/levels/mining_gold/1
+      title: Złoto II
+      description: Osiągnij poziom II kolekcji Złoto.
+      icon: GOLD_INGOT
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.gold
+        min-level: 2
+    collection_level_mining_gold_3:
+      path: collections/levels/mining_gold/3
+      parent: collections/levels/mining_gold/2
+      title: Złoto III
+      description: Osiągnij poziom III kolekcji Złoto.
+      icon: GOLD_INGOT
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.gold
+        min-level: 3
+    collection_level_mining_gold_4:
+      path: collections/levels/mining_gold/4
+      parent: collections/levels/mining_gold/3
+      title: Złoto IV
+      description: Osiągnij poziom IV kolekcji Złoto.
+      icon: GOLD_INGOT
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.gold
+        min-level: 4
+    collection_level_mining_gold_5:
+      path: collections/levels/mining_gold/5
+      parent: collections/levels/mining_gold/4
+      title: Złoto V
+      description: Osiągnij poziom V kolekcji Złoto.
+      icon: GOLD_INGOT
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.gold
+        min-level: 5
+    collection_level_mining_gold_6:
+      path: collections/levels/mining_gold/6
+      parent: collections/levels/mining_gold/5
+      title: Złoto VI
+      description: Osiągnij poziom VI kolekcji Złoto.
+      icon: GOLD_INGOT
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.gold
+        min-level: 6
+    collection_level_mining_gold_7:
+      path: collections/levels/mining_gold/7
+      parent: collections/levels/mining_gold/6
+      title: Złoto VII
+      description: Osiągnij poziom VII kolekcji Złoto.
+      icon: GOLD_INGOT
+      frame: goal
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.gold
+        min-level: 7
+    collection_complete_mining_gold:
+      path: collections/complete/mining_gold
+      parent: collections/levels/mining_gold/7
+      title: 'Mistrz kolekcji: Złoto'
+      description: 'Osiągnij aktualnie najwyższy poziom kolekcji Złoto. Nagroda: +1 Growth Point miasta.'
+      icon: GOLD_INGOT
+      frame: challenge
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-max-level
+        collection: mining.gold
+      growth-points: 1
+    collection_level_mining_iron_1:
+      path: collections/levels/mining_iron/1
+      parent: collections/first_level
+      title: Iron I
+      description: Osiągnij poziom I kolekcji Iron.
+      icon: IRON_INGOT
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.iron
+        min-level: 1
+    collection_level_mining_iron_2:
+      path: collections/levels/mining_iron/2
+      parent: collections/levels/mining_iron/1
+      title: Iron II
+      description: Osiągnij poziom II kolekcji Iron.
+      icon: IRON_INGOT
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.iron
+        min-level: 2
+    collection_level_mining_iron_3:
+      path: collections/levels/mining_iron/3
+      parent: collections/levels/mining_iron/2
+      title: Iron III
+      description: Osiągnij poziom III kolekcji Iron.
+      icon: IRON_INGOT
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.iron
+        min-level: 3
+    collection_level_mining_iron_4:
+      path: collections/levels/mining_iron/4
+      parent: collections/levels/mining_iron/3
+      title: Iron IV
+      description: Osiągnij poziom IV kolekcji Iron.
+      icon: IRON_INGOT
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.iron
+        min-level: 4
+    collection_level_mining_iron_5:
+      path: collections/levels/mining_iron/5
+      parent: collections/levels/mining_iron/4
+      title: Iron V
+      description: Osiągnij poziom V kolekcji Iron.
+      icon: IRON_INGOT
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.iron
+        min-level: 5
+    collection_level_mining_iron_6:
+      path: collections/levels/mining_iron/6
+      parent: collections/levels/mining_iron/5
+      title: Iron VI
+      description: Osiągnij poziom VI kolekcji Iron.
+      icon: IRON_INGOT
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.iron
+        min-level: 6
+    collection_level_mining_iron_7:
+      path: collections/levels/mining_iron/7
+      parent: collections/levels/mining_iron/6
+      title: Iron VII
+      description: Osiągnij poziom VII kolekcji Iron.
+      icon: IRON_INGOT
+      frame: goal
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.iron
+        min-level: 7
+    collection_complete_mining_iron:
+      path: collections/complete/mining_iron
+      parent: collections/levels/mining_iron/7
+      title: 'Mistrz kolekcji: Iron'
+      description: 'Osiągnij aktualnie najwyższy poziom kolekcji Iron. Nagroda: +1 Growth Point miasta.'
+      icon: IRON_INGOT
+      frame: challenge
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-max-level
+        collection: mining.iron
+      growth-points: 1
+    collection_level_mining_netherite_1:
+      path: collections/levels/mining_netherite/1
+      parent: collections/first_level
+      title: Netherit I
+      description: Osiągnij poziom I kolekcji Netherit.
+      icon: NETHERITE_SCRAP
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.netherite
+        min-level: 1
+    collection_level_mining_netherite_2:
+      path: collections/levels/mining_netherite/2
+      parent: collections/levels/mining_netherite/1
+      title: Netherit II
+      description: Osiągnij poziom II kolekcji Netherit.
+      icon: NETHERITE_SCRAP
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.netherite
+        min-level: 2
+    collection_level_mining_netherite_3:
+      path: collections/levels/mining_netherite/3
+      parent: collections/levels/mining_netherite/2
+      title: Netherit III
+      description: Osiągnij poziom III kolekcji Netherit.
+      icon: NETHERITE_SCRAP
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.netherite
+        min-level: 3
+    collection_level_mining_netherite_4:
+      path: collections/levels/mining_netherite/4
+      parent: collections/levels/mining_netherite/3
+      title: Netherit IV
+      description: Osiągnij poziom IV kolekcji Netherit.
+      icon: NETHERITE_SCRAP
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.netherite
+        min-level: 4
+    collection_level_mining_netherite_5:
+      path: collections/levels/mining_netherite/5
+      parent: collections/levels/mining_netherite/4
+      title: Netherit V
+      description: Osiągnij poziom V kolekcji Netherit.
+      icon: NETHERITE_SCRAP
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.netherite
+        min-level: 5
+    collection_level_mining_netherite_6:
+      path: collections/levels/mining_netherite/6
+      parent: collections/levels/mining_netherite/5
+      title: Netherit VI
+      description: Osiągnij poziom VI kolekcji Netherit.
+      icon: NETHERITE_SCRAP
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.netherite
+        min-level: 6
+    collection_level_mining_netherite_7:
+      path: collections/levels/mining_netherite/7
+      parent: collections/levels/mining_netherite/6
+      title: Netherit VII
+      description: Osiągnij poziom VII kolekcji Netherit.
+      icon: NETHERITE_SCRAP
+      frame: goal
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.netherite
+        min-level: 7
+    collection_complete_mining_netherite:
+      path: collections/complete/mining_netherite
+      parent: collections/levels/mining_netherite/7
+      title: 'Mistrz kolekcji: Netherit'
+      description: 'Osiągnij aktualnie najwyższy poziom kolekcji Netherit. Nagroda: +1 Growth Point miasta.'
+      icon: NETHERITE_SCRAP
+      frame: challenge
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-max-level
+        collection: mining.netherite
+      growth-points: 1
+    collection_level_mining_netherrack_1:
+      path: collections/levels/mining_netherrack/1
+      parent: collections/first_level
+      title: Netherack I
+      description: Osiągnij poziom I kolekcji Netherack.
+      icon: NETHERRACK
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.netherrack
+        min-level: 1
+    collection_level_mining_netherrack_2:
+      path: collections/levels/mining_netherrack/2
+      parent: collections/levels/mining_netherrack/1
+      title: Netherack II
+      description: Osiągnij poziom II kolekcji Netherack.
+      icon: NETHERRACK
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.netherrack
+        min-level: 2
+    collection_level_mining_netherrack_3:
+      path: collections/levels/mining_netherrack/3
+      parent: collections/levels/mining_netherrack/2
+      title: Netherack III
+      description: Osiągnij poziom III kolekcji Netherack.
+      icon: NETHERRACK
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.netherrack
+        min-level: 3
+    collection_level_mining_netherrack_4:
+      path: collections/levels/mining_netherrack/4
+      parent: collections/levels/mining_netherrack/3
+      title: Netherack IV
+      description: Osiągnij poziom IV kolekcji Netherack.
+      icon: NETHERRACK
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.netherrack
+        min-level: 4
+    collection_level_mining_netherrack_5:
+      path: collections/levels/mining_netherrack/5
+      parent: collections/levels/mining_netherrack/4
+      title: Netherack V
+      description: Osiągnij poziom V kolekcji Netherack.
+      icon: NETHERRACK
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.netherrack
+        min-level: 5
+    collection_level_mining_netherrack_6:
+      path: collections/levels/mining_netherrack/6
+      parent: collections/levels/mining_netherrack/5
+      title: Netherack VI
+      description: Osiągnij poziom VI kolekcji Netherack.
+      icon: NETHERRACK
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.netherrack
+        min-level: 6
+    collection_level_mining_netherrack_7:
+      path: collections/levels/mining_netherrack/7
+      parent: collections/levels/mining_netherrack/6
+      title: Netherack VII
+      description: Osiągnij poziom VII kolekcji Netherack.
+      icon: NETHERRACK
+      frame: goal
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.netherrack
+        min-level: 7
+    collection_complete_mining_netherrack:
+      path: collections/complete/mining_netherrack
+      parent: collections/levels/mining_netherrack/7
+      title: 'Mistrz kolekcji: Netherack'
+      description: 'Osiągnij aktualnie najwyższy poziom kolekcji Netherack. Nagroda: +1 Growth Point miasta.'
+      icon: NETHERRACK
+      frame: challenge
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-max-level
+        collection: mining.netherrack
+      growth-points: 1
+    collection_level_mining_obsidian_1:
+      path: collections/levels/mining_obsidian/1
+      parent: collections/first_level
+      title: Obsydian I
+      description: Osiągnij poziom I kolekcji Obsydian.
+      icon: OBSIDIAN
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.obsidian
+        min-level: 1
+    collection_level_mining_obsidian_2:
+      path: collections/levels/mining_obsidian/2
+      parent: collections/levels/mining_obsidian/1
+      title: Obsydian II
+      description: Osiągnij poziom II kolekcji Obsydian.
+      icon: OBSIDIAN
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.obsidian
+        min-level: 2
+    collection_level_mining_obsidian_3:
+      path: collections/levels/mining_obsidian/3
+      parent: collections/levels/mining_obsidian/2
+      title: Obsydian III
+      description: Osiągnij poziom III kolekcji Obsydian.
+      icon: OBSIDIAN
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.obsidian
+        min-level: 3
+    collection_level_mining_obsidian_4:
+      path: collections/levels/mining_obsidian/4
+      parent: collections/levels/mining_obsidian/3
+      title: Obsydian IV
+      description: Osiągnij poziom IV kolekcji Obsydian.
+      icon: OBSIDIAN
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.obsidian
+        min-level: 4
+    collection_level_mining_obsidian_5:
+      path: collections/levels/mining_obsidian/5
+      parent: collections/levels/mining_obsidian/4
+      title: Obsydian V
+      description: Osiągnij poziom V kolekcji Obsydian.
+      icon: OBSIDIAN
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.obsidian
+        min-level: 5
+    collection_level_mining_obsidian_6:
+      path: collections/levels/mining_obsidian/6
+      parent: collections/levels/mining_obsidian/5
+      title: Obsydian VI
+      description: Osiągnij poziom VI kolekcji Obsydian.
+      icon: OBSIDIAN
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.obsidian
+        min-level: 6
+    collection_level_mining_obsidian_7:
+      path: collections/levels/mining_obsidian/7
+      parent: collections/levels/mining_obsidian/6
+      title: Obsydian VII
+      description: Osiągnij poziom VII kolekcji Obsydian.
+      icon: OBSIDIAN
+      frame: goal
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.obsidian
+        min-level: 7
+    collection_complete_mining_obsidian:
+      path: collections/complete/mining_obsidian
+      parent: collections/levels/mining_obsidian/7
+      title: 'Mistrz kolekcji: Obsydian'
+      description: 'Osiągnij aktualnie najwyższy poziom kolekcji Obsydian. Nagroda: +1 Growth Point miasta.'
+      icon: OBSIDIAN
+      frame: challenge
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-max-level
+        collection: mining.obsidian
+      growth-points: 1
+    collection_level_mining_rare_elements_1:
+      path: collections/levels/mining_rare_elements/1
+      parent: collections/first_level
+      title: Rzadkie pierwiastki I
+      description: Osiągnij poziom I kolekcji Rzadkie pierwiastki.
+      icon: AMETHYST_SHARD
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.rare_elements
+        min-level: 1
+    collection_level_mining_rare_elements_2:
+      path: collections/levels/mining_rare_elements/2
+      parent: collections/levels/mining_rare_elements/1
+      title: Rzadkie pierwiastki II
+      description: Osiągnij poziom II kolekcji Rzadkie pierwiastki.
+      icon: AMETHYST_SHARD
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.rare_elements
+        min-level: 2
+    collection_level_mining_rare_elements_3:
+      path: collections/levels/mining_rare_elements/3
+      parent: collections/levels/mining_rare_elements/2
+      title: Rzadkie pierwiastki III
+      description: Osiągnij poziom III kolekcji Rzadkie pierwiastki.
+      icon: AMETHYST_SHARD
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.rare_elements
+        min-level: 3
+    collection_level_mining_rare_elements_4:
+      path: collections/levels/mining_rare_elements/4
+      parent: collections/levels/mining_rare_elements/3
+      title: Rzadkie pierwiastki IV
+      description: Osiągnij poziom IV kolekcji Rzadkie pierwiastki.
+      icon: AMETHYST_SHARD
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.rare_elements
+        min-level: 4
+    collection_level_mining_rare_elements_5:
+      path: collections/levels/mining_rare_elements/5
+      parent: collections/levels/mining_rare_elements/4
+      title: Rzadkie pierwiastki V
+      description: Osiągnij poziom V kolekcji Rzadkie pierwiastki.
+      icon: AMETHYST_SHARD
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.rare_elements
+        min-level: 5
+    collection_level_mining_rare_elements_6:
+      path: collections/levels/mining_rare_elements/6
+      parent: collections/levels/mining_rare_elements/5
+      title: Rzadkie pierwiastki VI
+      description: Osiągnij poziom VI kolekcji Rzadkie pierwiastki.
+      icon: AMETHYST_SHARD
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.rare_elements
+        min-level: 6
+    collection_level_mining_rare_elements_7:
+      path: collections/levels/mining_rare_elements/7
+      parent: collections/levels/mining_rare_elements/6
+      title: Rzadkie pierwiastki VII
+      description: Osiągnij poziom VII kolekcji Rzadkie pierwiastki.
+      icon: AMETHYST_SHARD
+      frame: goal
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.rare_elements
+        min-level: 7
+    collection_complete_mining_rare_elements:
+      path: collections/complete/mining_rare_elements
+      parent: collections/levels/mining_rare_elements/7
+      title: 'Mistrz kolekcji: Rzadkie pierwiastki'
+      description: 'Osiągnij aktualnie najwyższy poziom kolekcji Rzadkie pierwiastki. Nagroda: +1 Growth Point miasta.'
+      icon: AMETHYST_SHARD
+      frame: challenge
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-max-level
+        collection: mining.rare_elements
+      growth-points: 1
+    collection_level_mining_redstone_1:
+      path: collections/levels/mining_redstone/1
+      parent: collections/first_level
+      title: Redstone I
+      description: Osiągnij poziom I kolekcji Redstone.
+      icon: REDSTONE
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.redstone
+        min-level: 1
+    collection_level_mining_redstone_2:
+      path: collections/levels/mining_redstone/2
+      parent: collections/levels/mining_redstone/1
+      title: Redstone II
+      description: Osiągnij poziom II kolekcji Redstone.
+      icon: REDSTONE
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.redstone
+        min-level: 2
+    collection_level_mining_redstone_3:
+      path: collections/levels/mining_redstone/3
+      parent: collections/levels/mining_redstone/2
+      title: Redstone III
+      description: Osiągnij poziom III kolekcji Redstone.
+      icon: REDSTONE
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.redstone
+        min-level: 3
+    collection_level_mining_redstone_4:
+      path: collections/levels/mining_redstone/4
+      parent: collections/levels/mining_redstone/3
+      title: Redstone IV
+      description: Osiągnij poziom IV kolekcji Redstone.
+      icon: REDSTONE
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.redstone
+        min-level: 4
+    collection_level_mining_redstone_5:
+      path: collections/levels/mining_redstone/5
+      parent: collections/levels/mining_redstone/4
+      title: Redstone V
+      description: Osiągnij poziom V kolekcji Redstone.
+      icon: REDSTONE
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.redstone
+        min-level: 5
+    collection_level_mining_redstone_6:
+      path: collections/levels/mining_redstone/6
+      parent: collections/levels/mining_redstone/5
+      title: Redstone VI
+      description: Osiągnij poziom VI kolekcji Redstone.
+      icon: REDSTONE
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.redstone
+        min-level: 6
+    collection_level_mining_redstone_7:
+      path: collections/levels/mining_redstone/7
+      parent: collections/levels/mining_redstone/6
+      title: Redstone VII
+      description: Osiągnij poziom VII kolekcji Redstone.
+      icon: REDSTONE
+      frame: goal
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.redstone
+        min-level: 7
+    collection_complete_mining_redstone:
+      path: collections/complete/mining_redstone
+      parent: collections/levels/mining_redstone/7
+      title: 'Mistrz kolekcji: Redstone'
+      description: 'Osiągnij aktualnie najwyższy poziom kolekcji Redstone. Nagroda: +1 Growth Point miasta.'
+      icon: REDSTONE
+      frame: challenge
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-max-level
+        collection: mining.redstone
+      growth-points: 1
+    collection_level_mining_stone_1:
+      path: collections/levels/mining_stone/1
+      parent: collections/first_level
+      title: Stone I
+      description: Osiągnij poziom I kolekcji Stone.
+      icon: STONE
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.stone
+        min-level: 1
+    collection_level_mining_stone_2:
+      path: collections/levels/mining_stone/2
+      parent: collections/levels/mining_stone/1
+      title: Stone II
+      description: Osiągnij poziom II kolekcji Stone.
+      icon: STONE
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.stone
+        min-level: 2
+    collection_level_mining_stone_3:
+      path: collections/levels/mining_stone/3
+      parent: collections/levels/mining_stone/2
+      title: Stone III
+      description: Osiągnij poziom III kolekcji Stone.
+      icon: STONE
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.stone
+        min-level: 3
+    collection_level_mining_stone_4:
+      path: collections/levels/mining_stone/4
+      parent: collections/levels/mining_stone/3
+      title: Stone IV
+      description: Osiągnij poziom IV kolekcji Stone.
+      icon: STONE
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.stone
+        min-level: 4
+    collection_level_mining_stone_5:
+      path: collections/levels/mining_stone/5
+      parent: collections/levels/mining_stone/4
+      title: Stone V
+      description: Osiągnij poziom V kolekcji Stone.
+      icon: STONE
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.stone
+        min-level: 5
+    collection_level_mining_stone_6:
+      path: collections/levels/mining_stone/6
+      parent: collections/levels/mining_stone/5
+      title: Stone VI
+      description: Osiągnij poziom VI kolekcji Stone.
+      icon: STONE
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.stone
+        min-level: 6
+    collection_level_mining_stone_7:
+      path: collections/levels/mining_stone/7
+      parent: collections/levels/mining_stone/6
+      title: Stone VII
+      description: Osiągnij poziom VII kolekcji Stone.
+      icon: STONE
+      frame: goal
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.stone
+        min-level: 7
+    collection_complete_mining_stone:
+      path: collections/complete/mining_stone
+      parent: collections/levels/mining_stone/7
+      title: 'Mistrz kolekcji: Stone'
+      description: 'Osiągnij aktualnie najwyższy poziom kolekcji Stone. Nagroda: +1 Growth Point miasta.'
+      icon: STONE
+      frame: challenge
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-max-level
+        collection: mining.stone
+      growth-points: 1
+    collection_level_mining_tin_1:
+      path: collections/levels/mining_tin/1
+      parent: collections/first_level
+      title: Cyna I
+      description: Osiągnij poziom I kolekcji Cyna.
+      icon: RAW_IRON
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.tin
+        min-level: 1
+    collection_level_mining_tin_2:
+      path: collections/levels/mining_tin/2
+      parent: collections/levels/mining_tin/1
+      title: Cyna II
+      description: Osiągnij poziom II kolekcji Cyna.
+      icon: RAW_IRON
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.tin
+        min-level: 2
+    collection_level_mining_tin_3:
+      path: collections/levels/mining_tin/3
+      parent: collections/levels/mining_tin/2
+      title: Cyna III
+      description: Osiągnij poziom III kolekcji Cyna.
+      icon: RAW_IRON
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.tin
+        min-level: 3
+    collection_level_mining_tin_4:
+      path: collections/levels/mining_tin/4
+      parent: collections/levels/mining_tin/3
+      title: Cyna IV
+      description: Osiągnij poziom IV kolekcji Cyna.
+      icon: RAW_IRON
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.tin
+        min-level: 4
+    collection_level_mining_tin_5:
+      path: collections/levels/mining_tin/5
+      parent: collections/levels/mining_tin/4
+      title: Cyna V
+      description: Osiągnij poziom V kolekcji Cyna.
+      icon: RAW_IRON
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.tin
+        min-level: 5
+    collection_level_mining_tin_6:
+      path: collections/levels/mining_tin/6
+      parent: collections/levels/mining_tin/5
+      title: Cyna VI
+      description: Osiągnij poziom VI kolekcji Cyna.
+      icon: RAW_IRON
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.tin
+        min-level: 6
+    collection_level_mining_tin_7:
+      path: collections/levels/mining_tin/7
+      parent: collections/levels/mining_tin/6
+      title: Cyna VII
+      description: Osiągnij poziom VII kolekcji Cyna.
+      icon: RAW_IRON
+      frame: goal
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.tin
+        min-level: 7
+    collection_complete_mining_tin:
+      path: collections/complete/mining_tin
+      parent: collections/levels/mining_tin/7
+      title: 'Mistrz kolekcji: Cyna'
+      description: 'Osiągnij aktualnie najwyższy poziom kolekcji Cyna. Nagroda: +1 Growth Point miasta.'
+      icon: RAW_IRON
+      frame: challenge
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-max-level
+        collection: mining.tin
+      growth-points: 1
+    collection_level_mining_uranium_1:
+      path: collections/levels/mining_uranium/1
+      parent: collections/first_level
+      title: Uran I
+      description: Osiągnij poziom I kolekcji Uran.
+      icon: EMERALD
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.uranium
+        min-level: 1
+    collection_level_mining_uranium_2:
+      path: collections/levels/mining_uranium/2
+      parent: collections/levels/mining_uranium/1
+      title: Uran II
+      description: Osiągnij poziom II kolekcji Uran.
+      icon: EMERALD
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.uranium
+        min-level: 2
+    collection_level_mining_uranium_3:
+      path: collections/levels/mining_uranium/3
+      parent: collections/levels/mining_uranium/2
+      title: Uran III
+      description: Osiągnij poziom III kolekcji Uran.
+      icon: EMERALD
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.uranium
+        min-level: 3
+    collection_level_mining_uranium_4:
+      path: collections/levels/mining_uranium/4
+      parent: collections/levels/mining_uranium/3
+      title: Uran IV
+      description: Osiągnij poziom IV kolekcji Uran.
+      icon: EMERALD
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.uranium
+        min-level: 4
+    collection_level_mining_uranium_5:
+      path: collections/levels/mining_uranium/5
+      parent: collections/levels/mining_uranium/4
+      title: Uran V
+      description: Osiągnij poziom V kolekcji Uran.
+      icon: EMERALD
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.uranium
+        min-level: 5
+    collection_level_mining_uranium_6:
+      path: collections/levels/mining_uranium/6
+      parent: collections/levels/mining_uranium/5
+      title: Uran VI
+      description: Osiągnij poziom VI kolekcji Uran.
+      icon: EMERALD
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.uranium
+        min-level: 6
+    collection_level_mining_uranium_7:
+      path: collections/levels/mining_uranium/7
+      parent: collections/levels/mining_uranium/6
+      title: Uran VII
+      description: Osiągnij poziom VII kolekcji Uran.
+      icon: EMERALD
+      frame: goal
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mining.uranium
+        min-level: 7
+    collection_complete_mining_uranium:
+      path: collections/complete/mining_uranium
+      parent: collections/levels/mining_uranium/7
+      title: 'Mistrz kolekcji: Uran'
+      description: 'Osiągnij aktualnie najwyższy poziom kolekcji Uran. Nagroda: +1 Growth Point miasta.'
+      icon: EMERALD
+      frame: challenge
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-max-level
+        collection: mining.uranium
+      growth-points: 1
+    collection_level_mobs_silverfish_1:
+      path: collections/levels/mobs_silverfish/1
+      parent: collections/first_level
+      title: Zabite silverfishe I
+      description: Osiągnij poziom I kolekcji Zabite silverfishe.
+      icon: INFESTED_STONE
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mobs.silverfish
+        min-level: 1
+    collection_level_mobs_silverfish_2:
+      path: collections/levels/mobs_silverfish/2
+      parent: collections/levels/mobs_silverfish/1
+      title: Zabite silverfishe II
+      description: Osiągnij poziom II kolekcji Zabite silverfishe.
+      icon: INFESTED_STONE
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mobs.silverfish
+        min-level: 2
+    collection_level_mobs_silverfish_3:
+      path: collections/levels/mobs_silverfish/3
+      parent: collections/levels/mobs_silverfish/2
+      title: Zabite silverfishe III
+      description: Osiągnij poziom III kolekcji Zabite silverfishe.
+      icon: INFESTED_STONE
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mobs.silverfish
+        min-level: 3
+    collection_level_mobs_silverfish_4:
+      path: collections/levels/mobs_silverfish/4
+      parent: collections/levels/mobs_silverfish/3
+      title: Zabite silverfishe IV
+      description: Osiągnij poziom IV kolekcji Zabite silverfishe.
+      icon: INFESTED_STONE
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mobs.silverfish
+        min-level: 4
+    collection_level_mobs_silverfish_5:
+      path: collections/levels/mobs_silverfish/5
+      parent: collections/levels/mobs_silverfish/4
+      title: Zabite silverfishe V
+      description: Osiągnij poziom V kolekcji Zabite silverfishe.
+      icon: INFESTED_STONE
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mobs.silverfish
+        min-level: 5
+    collection_level_mobs_silverfish_6:
+      path: collections/levels/mobs_silverfish/6
+      parent: collections/levels/mobs_silverfish/5
+      title: Zabite silverfishe VI
+      description: Osiągnij poziom VI kolekcji Zabite silverfishe.
+      icon: INFESTED_STONE
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mobs.silverfish
+        min-level: 6
+    collection_level_mobs_silverfish_7:
+      path: collections/levels/mobs_silverfish/7
+      parent: collections/levels/mobs_silverfish/6
+      title: Zabite silverfishe VII
+      description: Osiągnij poziom VII kolekcji Zabite silverfishe.
+      icon: INFESTED_STONE
+      frame: goal
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mobs.silverfish
+        min-level: 7
+    collection_complete_mobs_silverfish:
+      path: collections/complete/mobs_silverfish
+      parent: collections/levels/mobs_silverfish/7
+      title: 'Mistrz kolekcji: Zabite silverfishe'
+      description: 'Osiągnij aktualnie najwyższy poziom kolekcji Zabite silverfishe. Nagroda: +1 Growth Point miasta.'
+      icon: INFESTED_STONE
+      frame: challenge
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-max-level
+        collection: mobs.silverfish
+      growth-points: 1
+    collection_level_mobs_skeleton_1:
+      path: collections/levels/mobs_skeleton/1
+      parent: collections/first_level
+      title: Zabite szkielety I
+      description: Osiągnij poziom I kolekcji Zabite szkielety.
+      icon: SKELETON_SKULL
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mobs.skeleton
+        min-level: 1
+    collection_level_mobs_skeleton_2:
+      path: collections/levels/mobs_skeleton/2
+      parent: collections/levels/mobs_skeleton/1
+      title: Zabite szkielety II
+      description: Osiągnij poziom II kolekcji Zabite szkielety.
+      icon: SKELETON_SKULL
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mobs.skeleton
+        min-level: 2
+    collection_level_mobs_skeleton_3:
+      path: collections/levels/mobs_skeleton/3
+      parent: collections/levels/mobs_skeleton/2
+      title: Zabite szkielety III
+      description: Osiągnij poziom III kolekcji Zabite szkielety.
+      icon: SKELETON_SKULL
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mobs.skeleton
+        min-level: 3
+    collection_level_mobs_skeleton_4:
+      path: collections/levels/mobs_skeleton/4
+      parent: collections/levels/mobs_skeleton/3
+      title: Zabite szkielety IV
+      description: Osiągnij poziom IV kolekcji Zabite szkielety.
+      icon: SKELETON_SKULL
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mobs.skeleton
+        min-level: 4
+    collection_level_mobs_skeleton_5:
+      path: collections/levels/mobs_skeleton/5
+      parent: collections/levels/mobs_skeleton/4
+      title: Zabite szkielety V
+      description: Osiągnij poziom V kolekcji Zabite szkielety.
+      icon: SKELETON_SKULL
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mobs.skeleton
+        min-level: 5
+    collection_level_mobs_skeleton_6:
+      path: collections/levels/mobs_skeleton/6
+      parent: collections/levels/mobs_skeleton/5
+      title: Zabite szkielety VI
+      description: Osiągnij poziom VI kolekcji Zabite szkielety.
+      icon: SKELETON_SKULL
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mobs.skeleton
+        min-level: 6
+    collection_level_mobs_skeleton_7:
+      path: collections/levels/mobs_skeleton/7
+      parent: collections/levels/mobs_skeleton/6
+      title: Zabite szkielety VII
+      description: Osiągnij poziom VII kolekcji Zabite szkielety.
+      icon: SKELETON_SKULL
+      frame: goal
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mobs.skeleton
+        min-level: 7
+    collection_complete_mobs_skeleton:
+      path: collections/complete/mobs_skeleton
+      parent: collections/levels/mobs_skeleton/7
+      title: 'Mistrz kolekcji: Zabite szkielety'
+      description: 'Osiągnij aktualnie najwyższy poziom kolekcji Zabite szkielety. Nagroda: +1 Growth Point miasta.'
+      icon: SKELETON_SKULL
+      frame: challenge
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-max-level
+        collection: mobs.skeleton
+      growth-points: 1
+    collection_level_mobs_spider_1:
+      path: collections/levels/mobs_spider/1
+      parent: collections/first_level
+      title: Zabite pająki I
+      description: Osiągnij poziom I kolekcji Zabite pająki.
+      icon: SPIDER_EYE
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mobs.spider
+        min-level: 1
+    collection_level_mobs_spider_2:
+      path: collections/levels/mobs_spider/2
+      parent: collections/levels/mobs_spider/1
+      title: Zabite pająki II
+      description: Osiągnij poziom II kolekcji Zabite pająki.
+      icon: SPIDER_EYE
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mobs.spider
+        min-level: 2
+    collection_level_mobs_spider_3:
+      path: collections/levels/mobs_spider/3
+      parent: collections/levels/mobs_spider/2
+      title: Zabite pająki III
+      description: Osiągnij poziom III kolekcji Zabite pająki.
+      icon: SPIDER_EYE
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mobs.spider
+        min-level: 3
+    collection_level_mobs_spider_4:
+      path: collections/levels/mobs_spider/4
+      parent: collections/levels/mobs_spider/3
+      title: Zabite pająki IV
+      description: Osiągnij poziom IV kolekcji Zabite pająki.
+      icon: SPIDER_EYE
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mobs.spider
+        min-level: 4
+    collection_level_mobs_spider_5:
+      path: collections/levels/mobs_spider/5
+      parent: collections/levels/mobs_spider/4
+      title: Zabite pająki V
+      description: Osiągnij poziom V kolekcji Zabite pająki.
+      icon: SPIDER_EYE
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mobs.spider
+        min-level: 5
+    collection_level_mobs_spider_6:
+      path: collections/levels/mobs_spider/6
+      parent: collections/levels/mobs_spider/5
+      title: Zabite pająki VI
+      description: Osiągnij poziom VI kolekcji Zabite pająki.
+      icon: SPIDER_EYE
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mobs.spider
+        min-level: 6
+    collection_level_mobs_spider_7:
+      path: collections/levels/mobs_spider/7
+      parent: collections/levels/mobs_spider/6
+      title: Zabite pająki VII
+      description: Osiągnij poziom VII kolekcji Zabite pająki.
+      icon: SPIDER_EYE
+      frame: goal
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mobs.spider
+        min-level: 7
+    collection_complete_mobs_spider:
+      path: collections/complete/mobs_spider
+      parent: collections/levels/mobs_spider/7
+      title: 'Mistrz kolekcji: Zabite pająki'
+      description: 'Osiągnij aktualnie najwyższy poziom kolekcji Zabite pająki. Nagroda: +1 Growth Point miasta.'
+      icon: SPIDER_EYE
+      frame: challenge
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-max-level
+        collection: mobs.spider
+      growth-points: 1
+    collection_level_mobs_zombie_1:
+      path: collections/levels/mobs_zombie/1
+      parent: collections/first_level
+      title: Zabite zombie I
+      description: Osiągnij poziom I kolekcji Zabite zombie.
+      icon: ZOMBIE_HEAD
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mobs.zombie
+        min-level: 1
+    collection_level_mobs_zombie_2:
+      path: collections/levels/mobs_zombie/2
+      parent: collections/levels/mobs_zombie/1
+      title: Zabite zombie II
+      description: Osiągnij poziom II kolekcji Zabite zombie.
+      icon: ZOMBIE_HEAD
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mobs.zombie
+        min-level: 2
+    collection_level_mobs_zombie_3:
+      path: collections/levels/mobs_zombie/3
+      parent: collections/levels/mobs_zombie/2
+      title: Zabite zombie III
+      description: Osiągnij poziom III kolekcji Zabite zombie.
+      icon: ZOMBIE_HEAD
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mobs.zombie
+        min-level: 3
+    collection_level_mobs_zombie_4:
+      path: collections/levels/mobs_zombie/4
+      parent: collections/levels/mobs_zombie/3
+      title: Zabite zombie IV
+      description: Osiągnij poziom IV kolekcji Zabite zombie.
+      icon: ZOMBIE_HEAD
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mobs.zombie
+        min-level: 4
+    collection_level_mobs_zombie_5:
+      path: collections/levels/mobs_zombie/5
+      parent: collections/levels/mobs_zombie/4
+      title: Zabite zombie V
+      description: Osiągnij poziom V kolekcji Zabite zombie.
+      icon: ZOMBIE_HEAD
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mobs.zombie
+        min-level: 5
+    collection_level_mobs_zombie_6:
+      path: collections/levels/mobs_zombie/6
+      parent: collections/levels/mobs_zombie/5
+      title: Zabite zombie VI
+      description: Osiągnij poziom VI kolekcji Zabite zombie.
+      icon: ZOMBIE_HEAD
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mobs.zombie
+        min-level: 6
+    collection_level_mobs_zombie_7:
+      path: collections/levels/mobs_zombie/7
+      parent: collections/levels/mobs_zombie/6
+      title: Zabite zombie VII
+      description: Osiągnij poziom VII kolekcji Zabite zombie.
+      icon: ZOMBIE_HEAD
+      frame: goal
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-level
+        collection: mobs.zombie
+        min-level: 7
+    collection_complete_mobs_zombie:
+      path: collections/complete/mobs_zombie
+      parent: collections/levels/mobs_zombie/7
+      title: 'Mistrz kolekcji: Zabite zombie'
+      description: 'Osiągnij aktualnie najwyższy poziom kolekcji Zabite zombie. Nagroda: +1 Growth Point miasta.'
+      icon: ZOMBIE_HEAD
+      frame: challenge
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: collection-max-level
+        collection: mobs.zombie
+      growth-points: 1
     collection_req_animals_beef_25_cow_1:
       path: collections/animals_beef/cow_1_25
       parent: collections/first_level
@@ -360,7 +4280,8 @@ advancements:
       path: collections/animals_chicken_meat/chicken_5_1000
       parent: collections/animals_chicken_meat/chicken_4_500
       title: Minion kurczaka Tier 5
-      description: 'Zdobądź 1000 punktów w kolekcji animals.chicken_meat, aby spełnić wymaganie dla: Minion kurczaka Tier 5.'
+      description: 'Zdobądź 1000 punktów w kolekcji animals.chicken_meat, aby spełnić wymaganie dla: Minion kurczaka Tier
+        5.'
       icon: CHICKEN
       frame: task
       show-toast: false
@@ -374,7 +4295,8 @@ advancements:
       path: collections/animals_chicken_meat/chicken_6_2500
       parent: collections/animals_chicken_meat/chicken_5_1000
       title: Minion kurczaka Tier 6
-      description: 'Zdobądź 2500 punktów w kolekcji animals.chicken_meat, aby spełnić wymaganie dla: Minion kurczaka Tier 6.'
+      description: 'Zdobądź 2500 punktów w kolekcji animals.chicken_meat, aby spełnić wymaganie dla: Minion kurczaka Tier
+        6.'
       icon: CHICKEN
       frame: goal
       show-toast: false
@@ -388,7 +4310,8 @@ advancements:
       path: collections/animals_chicken_meat/chicken_7_5000
       parent: collections/animals_chicken_meat/chicken_6_2500
       title: Minion kurczaka Tier 7
-      description: 'Zdobądź 5000 punktów w kolekcji animals.chicken_meat, aby spełnić wymaganie dla: Minion kurczaka Tier 7.'
+      description: 'Zdobądź 5000 punktów w kolekcji animals.chicken_meat, aby spełnić wymaganie dla: Minion kurczaka Tier
+        7.'
       icon: CHICKEN
       frame: goal
       show-toast: false
@@ -598,7 +4521,8 @@ advancements:
       path: collections/foraging_oak_wood/oak_plank_1_80
       parent: collections/first_level
       title: Minion drewna dębowego Tier 1
-      description: 'Zdobądź 80 punktów w kolekcji foraging.oak_wood, aby spełnić wymaganie dla: Minion drewna dębowego Tier 1.'
+      description: 'Zdobądź 80 punktów w kolekcji foraging.oak_wood, aby spełnić wymaganie dla: Minion drewna dębowego Tier
+        1.'
       icon: OAK_LOG
       frame: task
       show-toast: false
@@ -612,7 +4536,8 @@ advancements:
       path: collections/foraging_oak_wood/oak_plank_2_160
       parent: collections/foraging_oak_wood/oak_plank_1_80
       title: Minion drewna dębowego Tier 2
-      description: 'Zdobądź 160 punktów w kolekcji foraging.oak_wood, aby spełnić wymaganie dla: Minion drewna dębowego Tier 2.'
+      description: 'Zdobądź 160 punktów w kolekcji foraging.oak_wood, aby spełnić wymaganie dla: Minion drewna dębowego Tier
+        2.'
       icon: OAK_LOG
       frame: task
       show-toast: false
@@ -626,7 +4551,8 @@ advancements:
       path: collections/foraging_oak_wood/oak_plank_3_320
       parent: collections/foraging_oak_wood/oak_plank_2_160
       title: Minion drewna dębowego Tier 3
-      description: 'Zdobądź 320 punktów w kolekcji foraging.oak_wood, aby spełnić wymaganie dla: Minion drewna dębowego Tier 3.'
+      description: 'Zdobądź 320 punktów w kolekcji foraging.oak_wood, aby spełnić wymaganie dla: Minion drewna dębowego Tier
+        3.'
       icon: OAK_LOG
       frame: task
       show-toast: false
@@ -640,7 +4566,8 @@ advancements:
       path: collections/foraging_oak_wood/oak_plank_4_640
       parent: collections/foraging_oak_wood/oak_plank_3_320
       title: Minion drewna dębowego Tier 4
-      description: 'Zdobądź 640 punktów w kolekcji foraging.oak_wood, aby spełnić wymaganie dla: Minion drewna dębowego Tier 4.'
+      description: 'Zdobądź 640 punktów w kolekcji foraging.oak_wood, aby spełnić wymaganie dla: Minion drewna dębowego Tier
+        4.'
       icon: OAK_LOG
       frame: task
       show-toast: false
@@ -654,7 +4581,8 @@ advancements:
       path: collections/foraging_oak_wood/oak_plank_5_1280
       parent: collections/foraging_oak_wood/oak_plank_4_640
       title: Minion drewna dębowego Tier 5
-      description: 'Zdobądź 1280 punktów w kolekcji foraging.oak_wood, aby spełnić wymaganie dla: Minion drewna dębowego Tier 5.'
+      description: 'Zdobądź 1280 punktów w kolekcji foraging.oak_wood, aby spełnić wymaganie dla: Minion drewna dębowego Tier
+        5.'
       icon: OAK_LOG
       frame: task
       show-toast: false
@@ -668,7 +4596,8 @@ advancements:
       path: collections/foraging_spruce_wood/spruce_wood_1_80
       parent: collections/first_level
       title: Minion drewna świerkowego Tier 1
-      description: 'Zdobądź 80 punktów w kolekcji foraging.spruce_wood, aby spełnić wymaganie dla: Minion drewna świerkowego Tier 1.'
+      description: 'Zdobądź 80 punktów w kolekcji foraging.spruce_wood, aby spełnić wymaganie dla: Minion drewna świerkowego
+        Tier 1.'
       icon: SPRUCE_LOG
       frame: task
       show-toast: false
@@ -682,7 +4611,8 @@ advancements:
       path: collections/foraging_spruce_wood/spruce_wood_2_160
       parent: collections/foraging_spruce_wood/spruce_wood_1_80
       title: Minion drewna świerkowego Tier 2
-      description: 'Zdobądź 160 punktów w kolekcji foraging.spruce_wood, aby spełnić wymaganie dla: Minion drewna świerkowego Tier 2.'
+      description: 'Zdobądź 160 punktów w kolekcji foraging.spruce_wood, aby spełnić wymaganie dla: Minion drewna świerkowego
+        Tier 2.'
       icon: SPRUCE_LOG
       frame: task
       show-toast: false
@@ -696,7 +4626,8 @@ advancements:
       path: collections/foraging_spruce_wood/spruce_wood_3_320
       parent: collections/foraging_spruce_wood/spruce_wood_2_160
       title: Minion drewna świerkowego Tier 3
-      description: 'Zdobądź 320 punktów w kolekcji foraging.spruce_wood, aby spełnić wymaganie dla: Minion drewna świerkowego Tier 3.'
+      description: 'Zdobądź 320 punktów w kolekcji foraging.spruce_wood, aby spełnić wymaganie dla: Minion drewna świerkowego
+        Tier 3.'
       icon: SPRUCE_LOG
       frame: task
       show-toast: false
@@ -710,7 +4641,8 @@ advancements:
       path: collections/foraging_spruce_wood/spruce_wood_4_640
       parent: collections/foraging_spruce_wood/spruce_wood_3_320
       title: Minion drewna świerkowego Tier 4
-      description: 'Zdobądź 640 punktów w kolekcji foraging.spruce_wood, aby spełnić wymaganie dla: Minion drewna świerkowego Tier 4.'
+      description: 'Zdobądź 640 punktów w kolekcji foraging.spruce_wood, aby spełnić wymaganie dla: Minion drewna świerkowego
+        Tier 4.'
       icon: SPRUCE_LOG
       frame: task
       show-toast: false
@@ -724,7 +4656,8 @@ advancements:
       path: collections/foraging_spruce_wood/spruce_wood_5_1280
       parent: collections/foraging_spruce_wood/spruce_wood_4_640
       title: Minion drewna świerkowego Tier 5
-      description: 'Zdobądź 1280 punktów w kolekcji foraging.spruce_wood, aby spełnić wymaganie dla: Minion drewna świerkowego Tier 5.'
+      description: 'Zdobądź 1280 punktów w kolekcji foraging.spruce_wood, aby spełnić wymaganie dla: Minion drewna świerkowego
+        Tier 5.'
       icon: SPRUCE_LOG
       frame: task
       show-toast: false
@@ -1690,7 +5623,8 @@ advancements:
       path: collections/mobs_silverfish/silverfish_1_25
       parent: collections/first_level
       title: Minion rybika cukrowego Tier 1
-      description: 'Zdobądź 25 punktów w kolekcji mobs.silverfish, aby spełnić wymaganie dla: Minion rybika cukrowego Tier 1.'
+      description: 'Zdobądź 25 punktów w kolekcji mobs.silverfish, aby spełnić wymaganie dla: Minion rybika cukrowego Tier
+        1.'
       icon: STONE
       frame: task
       show-toast: false
@@ -1704,7 +5638,8 @@ advancements:
       path: collections/mobs_silverfish/silverfish_2_100
       parent: collections/mobs_silverfish/silverfish_1_25
       title: Minion rybika cukrowego Tier 2
-      description: 'Zdobądź 100 punktów w kolekcji mobs.silverfish, aby spełnić wymaganie dla: Minion rybika cukrowego Tier 2.'
+      description: 'Zdobądź 100 punktów w kolekcji mobs.silverfish, aby spełnić wymaganie dla: Minion rybika cukrowego Tier
+        2.'
       icon: STONE
       frame: task
       show-toast: false
@@ -1718,7 +5653,8 @@ advancements:
       path: collections/mobs_silverfish/silverfish_3_250
       parent: collections/mobs_silverfish/silverfish_2_100
       title: Minion rybika cukrowego Tier 3
-      description: 'Zdobądź 250 punktów w kolekcji mobs.silverfish, aby spełnić wymaganie dla: Minion rybika cukrowego Tier 3.'
+      description: 'Zdobądź 250 punktów w kolekcji mobs.silverfish, aby spełnić wymaganie dla: Minion rybika cukrowego Tier
+        3.'
       icon: STONE
       frame: task
       show-toast: false
@@ -1732,7 +5668,8 @@ advancements:
       path: collections/mobs_silverfish/silverfish_4_500
       parent: collections/mobs_silverfish/silverfish_3_250
       title: Minion rybika cukrowego Tier 4
-      description: 'Zdobądź 500 punktów w kolekcji mobs.silverfish, aby spełnić wymaganie dla: Minion rybika cukrowego Tier 4.'
+      description: 'Zdobądź 500 punktów w kolekcji mobs.silverfish, aby spełnić wymaganie dla: Minion rybika cukrowego Tier
+        4.'
       icon: STONE
       frame: task
       show-toast: false
@@ -1746,7 +5683,8 @@ advancements:
       path: collections/mobs_silverfish/silverfish_5_1000
       parent: collections/mobs_silverfish/silverfish_4_500
       title: Minion rybika cukrowego Tier 5
-      description: 'Zdobądź 1000 punktów w kolekcji mobs.silverfish, aby spełnić wymaganie dla: Minion rybika cukrowego Tier 5.'
+      description: 'Zdobądź 1000 punktów w kolekcji mobs.silverfish, aby spełnić wymaganie dla: Minion rybika cukrowego Tier
+        5.'
       icon: STONE
       frame: task
       show-toast: false
@@ -2173,3 +6111,199 @@ advancements:
         type: minion-type
         minion-type: netherite
         min-tier: 7
+    industrial_minion_growth_3:
+      path: industrialization/minion_growth/3_types
+      parent: industrialization/root
+      title: Ekspansja minionów 1
+      description: 'Postaw 3 różne typy minionów w mieście. Nagroda: +1 Growth Point do claimowania chunków.'
+      icon: GRASS_BLOCK
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: distinct-minion-types
+        min-count: 3
+      growth-points: 1
+    industrial_minion_growth_6:
+      path: industrialization/minion_growth/6_types
+      parent: industrialization/minion_growth/3_types
+      title: Ekspansja minionów 2
+      description: 'Postaw 6 różnych typów minionów w mieście. Nagroda: +1 Growth Point do claimowania chunków.'
+      icon: GRASS_BLOCK
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: distinct-minion-types
+        min-count: 6
+      growth-points: 1
+    industrial_minion_growth_9:
+      path: industrialization/minion_growth/9_types
+      parent: industrialization/minion_growth/6_types
+      title: Ekspansja minionów 3
+      description: 'Postaw 9 różnych typów minionów w mieście. Nagroda: +1 Growth Point do claimowania chunków.'
+      icon: GRASS_BLOCK
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: distinct-minion-types
+        min-count: 9
+      growth-points: 1
+    industrial_minion_growth_12:
+      path: industrialization/minion_growth/12_types
+      parent: industrialization/minion_growth/9_types
+      title: Ekspansja minionów 4
+      description: 'Postaw 12 różnych typów minionów w mieście. Nagroda: +1 Growth Point do claimowania chunków.'
+      icon: GRASS_BLOCK
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: distinct-minion-types
+        min-count: 12
+      growth-points: 1
+    industrial_minion_growth_15:
+      path: industrialization/minion_growth/15_types
+      parent: industrialization/minion_growth/12_types
+      title: Ekspansja minionów 5
+      description: 'Postaw 15 różnych typów minionów w mieście. Nagroda: +1 Growth Point do claimowania chunków.'
+      icon: GRASS_BLOCK
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: distinct-minion-types
+        min-count: 15
+      growth-points: 1
+    industrial_minion_growth_18:
+      path: industrialization/minion_growth/18_types
+      parent: industrialization/minion_growth/15_types
+      title: Ekspansja minionów 6
+      description: 'Postaw 18 różnych typów minionów w mieście. Nagroda: +1 Growth Point do claimowania chunków.'
+      icon: GRASS_BLOCK
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: distinct-minion-types
+        min-count: 18
+      growth-points: 1
+    industrial_minion_growth_21:
+      path: industrialization/minion_growth/21_types
+      parent: industrialization/minion_growth/18_types
+      title: Ekspansja minionów 7
+      description: 'Postaw 21 różnych typów minionów w mieście. Nagroda: +1 Growth Point do claimowania chunków.'
+      icon: GRASS_BLOCK
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: distinct-minion-types
+        min-count: 21
+      growth-points: 1
+    industrial_minion_growth_24:
+      path: industrialization/minion_growth/24_types
+      parent: industrialization/minion_growth/21_types
+      title: Ekspansja minionów 8
+      description: 'Postaw 24 różnych typów minionów w mieście. Nagroda: +1 Growth Point do claimowania chunków.'
+      icon: GRASS_BLOCK
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: distinct-minion-types
+        min-count: 24
+      growth-points: 1
+    industrial_minion_growth_27:
+      path: industrialization/minion_growth/27_types
+      parent: industrialization/minion_growth/24_types
+      title: Ekspansja minionów 9
+      description: 'Postaw 27 różnych typów minionów w mieście. Nagroda: +1 Growth Point do claimowania chunków.'
+      icon: GRASS_BLOCK
+      frame: task
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: distinct-minion-types
+        min-count: 27
+      growth-points: 1
+    industrial_minion_limit_5:
+      path: industrialization/minion_limit/5_types
+      parent: industrialization/root
+      title: Nowy slot miniona 1
+      description: 'Postaw 5 różnych typów minionów w mieście. Nagroda: +1 do limitu minionów miasta.'
+      icon: CHEST
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: distinct-minion-types
+        min-count: 5
+      minion-limit-bonus: 1
+    industrial_minion_limit_10:
+      path: industrialization/minion_limit/10_types
+      parent: industrialization/minion_limit/5_types
+      title: Nowy slot miniona 2
+      description: 'Postaw 10 różnych typów minionów w mieście. Nagroda: +1 do limitu minionów miasta.'
+      icon: CHEST
+      frame: task
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: distinct-minion-types
+        min-count: 10
+      minion-limit-bonus: 1
+    industrial_minion_limit_15:
+      path: industrialization/minion_limit/15_types
+      parent: industrialization/minion_limit/10_types
+      title: Nowy slot miniona 3
+      description: 'Postaw 15 różnych typów minionów w mieście. Nagroda: +1 do limitu minionów miasta.'
+      icon: CHEST
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: distinct-minion-types
+        min-count: 15
+      minion-limit-bonus: 1
+    industrial_minion_limit_20:
+      path: industrialization/minion_limit/20_types
+      parent: industrialization/minion_limit/15_types
+      title: Nowy slot miniona 4
+      description: 'Postaw 20 różnych typów minionów w mieście. Nagroda: +1 do limitu minionów miasta.'
+      icon: CHEST
+      frame: goal
+      show-toast: true
+      announce-to-chat: false
+      hidden: false
+      requirement:
+        type: distinct-minion-types
+        min-count: 20
+      minion-limit-bonus: 1
+    industrial_minion_limit_25:
+      path: industrialization/minion_limit/25_types
+      parent: industrialization/minion_limit/20_types
+      title: Nowy slot miniona 5
+      description: 'Postaw 25 różnych typów minionów w mieście. Nagroda: +1 do limitu minionów miasta.'
+      icon: CHEST
+      frame: goal
+      show-toast: true
+      announce-to-chat: true
+      hidden: false
+      requirement:
+        type: distinct-minion-types
+        min-count: 25
+      minion-limit-bonus: 1

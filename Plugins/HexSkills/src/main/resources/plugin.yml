@@ -1,5 +1,5 @@
 name: HexSkills
-version: '1.0.0'
+version: '1.0.1'
 main: hex.skills.HexSkillsPlugin
 api-version: "1.21"
 description: Config-driven skill engine for Hex SMP

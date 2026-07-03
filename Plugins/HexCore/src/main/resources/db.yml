@@ -1,4 +1,7 @@
 enabled: true
+# false = HexCore wystartuje z Noop DB, ale pluginy zależne od DB
+#         (np. HexTowns/HexMinions/HexEconomy) wyłączą się do czasu naprawy połączenia.
+required: false
 
 type: "mysql"   # mysql | mariadb | sqlite
 host: "127.0.0.1"

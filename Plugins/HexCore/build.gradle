@@ -14,11 +14,16 @@ dependencies {
     compileOnly "org.purpurmc.purpur:purpur-api:1.21.11-R0.1-SNAPSHOT"
     compileOnly "me.clip:placeholderapi:2.11.6"
     implementation "com.zaxxer:HikariCP:5.1.0"
+    runtimeOnly "com.mysql:mysql-connector-j:9.1.0"
+    runtimeOnly "org.mariadb.jdbc:mariadb-java-client:3.5.1"
+    runtimeOnly "org.xerial:sqlite-jdbc:3.47.2.0"
 }
 
 tasks.shadowJar {
+    archiveBaseName.set("HexCore")
+    archiveVersion.set("")
     archiveClassifier.set("")
-    //relocate("com.zaxxer.hikari", "hex.core.libs.hikari")
+    mergeServiceFiles()
 
     // unikaj problemów z duplikatami META-INF
     exclude("META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA")
@@ -26,5 +31,14 @@ tasks.shadowJar {
 }
 
 tasks.jar {
-    archiveBaseName = 'HexCore'
+    archiveBaseName.set('HexCore')
+    archiveClassifier.set('plain')
+}
+
+tasks.assemble {
+    dependsOn tasks.shadowJar
+}
+
+tasks.build {
+    dependsOn tasks.shadowJar
 }

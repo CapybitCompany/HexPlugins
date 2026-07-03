@@ -1,0 +1,76 @@
+id: mining.emerald
+aliases:
+- mining_emerald
+- emerald
+- emeraldy
+enabled: true
+display:
+  name: '&aEmerald'
+  category: mining
+  menu_slot: 0
+  icon:
+    material: EMERALD
+tracked_items:
+  base:
+    material: EMERALD
+    amount_value: 1
+valid_sources:
+- NATURAL_BLOCK_BREAK
+- MINION_COLLECT
+- CUSTOM_PLUGIN_GRANTED
+sources:
+- trigger: minions.resource.generated
+  amount-from: amount
+  filters:
+    collectionId: mining.emerald
+    resourceId: emerald
+- trigger: minions.resource.claimed
+  amount-from: amount
+  filters:
+    collectionId: mining.emerald
+    resourceId: emerald
+source_rules:
+  NATURAL_BLOCK_BREAK:
+    allowed_materials:
+    - EMERALD_ORE
+    allowed_worlds:
+    - world
+    - resource_world
+    - mining_world
+    blocked_worlds:
+    - spawn
+    allow_in_town_claims: false
+    deny_player_placed_blocks: true
+    deny_recently_broken_blocks: true
+  MINION_COLLECT:
+    allow_in_town_claims: true
+  CUSTOM_PLUGIN_GRANTED:
+    allow_in_town_claims: true
+levels:
+  1:
+    required: 50
+    display_name: '&aEmerald I'
+  2:
+    required: 500
+    display_name: '&aEmerald II'
+  3:
+    required: 2500
+    display_name: '&aEmerald III'
+  4:
+    required: 10000
+    display_name: '&aEmerald IV'
+  5:
+    required: 50000
+    display_name: '&aEmerald V'
+  6:
+    required: 100000
+    display_name: '&aEmerald VI'
+  7:
+    required: 250000
+    display_name: '&aEmerald VII'
+reward_claim_mode: AUTO
+placeholder:
+  progress_bar:
+    length: 20
+    filled_char: ■
+    empty_char: □

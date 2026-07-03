@@ -35,26 +35,26 @@ source_rules:
     allow_in_town_claims: true
 levels:
   1:
-    required: 100
+    required: 500
     display_name: '&cRedstone I'
   2:
-    required: 500
+    required: 10000
     display_name: '&cRedstone II'
   3:
-    required: 1500
+    required: 25000
     display_name: '&cRedstone III'
-    rewards:
-    - type: MINION_RECIPE_UNLOCK
-      id: compressed_redstone
   4:
-    required: 3000
+    required: 250000
     display_name: '&cRedstone IV'
   5:
-    required: 7500
+    required: 500000
     display_name: '&cRedstone V'
-    rewards:
-    - type: MINION_RECIPE_UNLOCK
-      id: advanced_redstone
+  6:
+    required: 1000000
+    display_name: '&cRedstone VI'
+  7:
+    required: 5000000
+    display_name: '&cRedstone VII'
 reward_claim_mode: AUTO
 sources:
 - trigger: minions.resource.claimed

@@ -30,10 +30,10 @@ public final class VisualCheckService implements Listener {
 
     private final Plugin plugin;
     private final TownsService service;
-    private final TownsConfig config;
+    private volatile TownsConfig config;
     private final Map<UUID, VisualSession> active = new ConcurrentHashMap<>();
-    private final BlockData visualData;
-    private final BukkitTask refreshTask;
+    private volatile BlockData visualData;
+    private volatile BukkitTask refreshTask;
     private long ticksElapsed;
 
     public VisualCheckService(Plugin plugin, TownsService service, TownsConfig config) {
@@ -41,6 +41,14 @@ public final class VisualCheckService implements Listener {
         this.service = service;
         this.config = config;
         this.visualData = config.visualBlock().createBlockData();
+        this.refreshTask = Bukkit.getScheduler().runTaskTimer(plugin, this::refreshAll, config.visualRefreshTicks(), config.visualRefreshTicks());
+    }
+
+    public void reloadConfig(TownsConfig config) {
+        shutdown();
+        this.config = config;
+        this.visualData = config.visualBlock().createBlockData();
+        this.ticksElapsed = 0L;
         this.refreshTask = Bukkit.getScheduler().runTaskTimer(plugin, this::refreshAll, config.visualRefreshTicks(), config.visualRefreshTicks());
     }
 
@@ -67,7 +75,11 @@ public final class VisualCheckService implements Listener {
                 }
             }
         }
-        refreshTask.cancel();
+        BukkitTask task = refreshTask;
+        if (task != null) {
+            task.cancel();
+            refreshTask = null;
+        }
     }
 
     @EventHandler
@@ -170,6 +182,7 @@ public final class VisualCheckService implements Listener {
             addVerticalEdgeDisplays(player, displays, minX, minZ, maxX, maxZ, topY, bottomY, budget);
         }
         addTopFrameDisplays(player, displays, minX, minZ, maxX, maxZ, topY, budget);
+        addBottomFrameDisplays(player, displays, minX, minZ, maxX, maxZ, bottomY, budget);
         addCenterSpark(player, chunkX, chunkZ, topY);
     }
 
@@ -195,31 +208,54 @@ public final class VisualCheckService implements Listener {
         float thickness = config.visualEdgeThickness();
         float height = Math.max(1.0f, topY - baseY + thickness);
 
-        // Wczesniej byly to cztery dlugie BlockDisplay o skali 16xH, czyli w praktyce pelne sciany.
-        // /town check ma pokazywac granice jako waskie slupki 0.1x0.1 rozmieszczone na krawedziach chunka.
-        for (int x = minX + 1; x < maxX; x++) {
+        // Rysujemy pionowe słupki co kilka bloków, zamiast tworzyć ogromną liczbę displayów.
+        // Dzięki temu kolumny od góry do dołu faktycznie pojawiają się przy większym radiusie /town check.
+        int step = Math.max(1, config.visualEdgeStep());
+        addThinEdgePost(player, displays, minX, minZ, baseY, height, width, budget);
+        addThinEdgePost(player, displays, minX, maxZ, baseY, height, width, budget);
+        addThinEdgePost(player, displays, maxX, minZ, baseY, height, width, budget);
+        addThinEdgePost(player, displays, maxX, maxZ, baseY, height, width, budget);
+        for (int x = minX + step; x < maxX; x += step) {
             addThinEdgePost(player, displays, x, minZ, baseY, height, width, budget);
             addThinEdgePost(player, displays, x, maxZ, baseY, height, width, budget);
         }
-        for (int z = minZ + 1; z < maxZ; z++) {
+        for (int z = minZ + step; z < maxZ; z += step) {
             addThinEdgePost(player, displays, minX, z, baseY, height, width, budget);
             addThinEdgePost(player, displays, maxX, z, baseY, height, width, budget);
         }
     }
 
     private void addThinEdgePost(Player player, Set<UUID> displays, int x, int z, int baseY, float height, float width, RenderBudget budget) {
-        if (!budget.hasRemaining()) {
-            return;
+        if (!budget.hasRemaining()) return;
+        // Bardzo wysokie BlockDisplay zaczynające się przy minY potrafią zostać wycięte z renderu,
+        // bo origin encji jest daleko pod graczem. Dzielimy słupek na odcinki, dzięki czemu pionowe
+        // krawędzie chunków są widoczne zarówno na powierzchni, jak i pod ziemią.
+        float remaining = height;
+        float y = baseY;
+        final float segmentHeight = 24.0f;
+        while (remaining > 0.01f && budget.hasRemaining()) {
+            float part = Math.min(segmentHeight, remaining);
+            Location location = new Location(player.getWorld(), x + 0.5 - width / 2.0, y, z + 0.5 - width / 2.0);
+            spawnDisplay(player, displays, location, new Vector3f(width, part, width), budget);
+            y += part;
+            remaining -= part;
         }
-        Location location = new Location(player.getWorld(), x + 0.5 - width / 2.0, baseY, z + 0.5 - width / 2.0);
-        spawnDisplay(player, displays, location, new Vector3f(width, height, width), budget);
     }
 
     private void addTopFrameDisplays(Player player, Set<UUID> displays, int minX, int minZ, int maxX, int maxZ, int topY, RenderBudget budget) {
+        addHorizontalFrameDisplays(player, displays, minX, minZ, maxX, maxZ, topY + 0.5, budget);
+    }
+
+    private void addBottomFrameDisplays(Player player, Set<UUID> displays, int minX, int minZ, int maxX, int maxZ, int bottomY, RenderBudget budget) {
+        if (!config.visualExtendToWorldMin()) return;
+        addHorizontalFrameDisplays(player, displays, minX, minZ, maxX, maxZ, bottomY + 0.5, budget);
+    }
+
+    private void addHorizontalFrameDisplays(Player player, Set<UUID> displays, int minX, int minZ, int maxX, int maxZ, double centerY, RenderBudget budget) {
         float width = config.visualDisplayWidth();
         float thickness = config.visualEdgeThickness();
         float length = 16.0f;
-        double y = topY + 0.5 - thickness / 2.0;
+        double y = centerY - thickness / 2.0;
 
         spawnDisplay(player, displays, new Location(player.getWorld(), minX + 0.5, y, minZ + 0.5 - width / 2.0), new Vector3f(length, thickness, width), budget);
         spawnDisplay(player, displays, new Location(player.getWorld(), minX + 0.5, y, maxZ + 0.5 - width / 2.0), new Vector3f(length, thickness, width), budget);

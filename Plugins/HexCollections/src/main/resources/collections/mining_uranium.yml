@@ -23,35 +23,26 @@ source_rules:
     allow_in_town_claims: true
 levels:
   1:
-    required: 16
+    required: 5
     display_name: '&aUran I'
   2:
-    required: 32
+    required: 75
     display_name: '&aUran II'
-    rewards:
-    - type: MINION_RECIPE_UNLOCK
-      id: uranium_block
   3:
-    required: 64
+    required: 250
     display_name: '&aUran III'
-    rewards:
-    - type: MINION_RECIPE_UNLOCK
-      id: compressed_uranium
   4:
-    required: 128
+    required: 2500
     display_name: '&aUran IV'
   5:
-    required: 256
+    required: 5000
     display_name: '&aUran V'
-    rewards:
-    - type: MINION_RECIPE_UNLOCK
-      id: uranium_enricher
   6:
-    required: 512
+    required: 25000
     display_name: '&aUran VI'
-    rewards:
-    - type: MINION_RECIPE_UNLOCK
-      id: super_compressed_uranium
+  7:
+    required: 50000
+    display_name: '&aUran VII'
 reward_claim_mode: AUTO
 sources:
 - trigger: minions.resource.claimed

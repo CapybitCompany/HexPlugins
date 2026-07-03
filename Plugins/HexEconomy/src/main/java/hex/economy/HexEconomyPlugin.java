@@ -31,6 +31,10 @@ public final class HexEconomyPlugin extends JavaPlugin {
         }
         this.hexApi = registration.getProvider();
 
+        if (!ensureDatabaseAvailable()) {
+            return;
+        }
+
         EconomyConfig config = EconomyConfig.load(getConfig());
         EconomyRepository repository = new EconomyRepository(hexApi.db().db());
         this.economyService = new EconomyService(repository, config);
@@ -43,12 +47,62 @@ public final class HexEconomyPlugin extends JavaPlugin {
             return null;
         }).thenRun(() -> getLogger().info("HexEconomy database ready: smp_economy"))
                 .exceptionally(ex -> {
-                    getLogger().severe("HexEconomy DB init failed: " + rootMessage(ex));
+                    getLogger().severe("HexEconomy database startup failed: " + rootMessage(ex));
                     Bukkit.getScheduler().runTask(this, () -> getServer().getPluginManager().disablePlugin(this));
                     return null;
                 });
 
         getLogger().info("HexEconomy enabled");
+    }
+
+    private boolean ensureDatabaseAvailable() {
+        DatabaseAvailability availability = detectDatabaseAvailability();
+        if (availability.available()) {
+            return true;
+        }
+
+        String reason = availability.reason();
+        getLogger().severe("HexEconomy requires HexCore database, but it is unavailable: " + reason);
+        getServer().getPluginManager().disablePlugin(this);
+        return false;
+    }
+
+    private DatabaseAvailability detectDatabaseAvailability() {
+        Object dbService = hexApi.db();
+        try {
+            Object available = dbService.getClass().getMethod("isAvailable").invoke(dbService);
+            if (available instanceof Boolean value && !value) {
+                String reason = "unknown reason";
+                try {
+                    Object reflectedReason = dbService.getClass().getMethod("unavailableReason").invoke(dbService);
+                    if (reflectedReason instanceof String text && !text.isBlank()) {
+                        reason = text;
+                    }
+                } catch (ReflectiveOperationException ignored) {
+                    // Older HexCore builds do not expose unavailableReason().
+                }
+                return new DatabaseAvailability(false, reason);
+            }
+        } catch (NoSuchMethodException ignored) {
+            // Older HexCore build: fall back to an actual lightweight query.
+        } catch (ReflectiveOperationException | LinkageError ex) {
+            return new DatabaseAvailability(false, rootMessage(ex));
+        }
+
+        try {
+            hexApi.db().db().queryOne("SELECT 1", rs -> 1);
+            return new DatabaseAvailability(true, "");
+        } catch (RuntimeException | LinkageError ex) {
+            return new DatabaseAvailability(false, rootMessage(ex));
+        }
+    }
+
+    private record DatabaseAvailability(boolean available, String reason) {
+        private DatabaseAvailability {
+            if (reason == null || reason.isBlank()) {
+                reason = "unknown reason";
+            }
+        }
     }
 
     @Override

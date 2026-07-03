@@ -1,51 +1,66 @@
-id: "animals.pork"
-aliases: ["animals_pork", "pork", "porkchop", "wieprzowina", "mięso_świni", "mieso_swini"]
+id: animals.pork
+aliases:
+- animals_pork
+- pork
+- porkchop
+- wieprzowina
+- mięso_świni
+- mieso_swini
 enabled: true
-
 display:
-  name: "&dMięso świni"
-  category: "animals"
+  name: '&dMięso świni'
+  category: animals
   menu_slot: 56
   icon:
     material: PORKCHOP
-
 tracked_items:
   base:
     material: PORKCHOP
     amount_value: 1
-
-valid_sources: [MINION_COLLECT, CUSTOM_PLUGIN_GRANTED]
-
+valid_sources:
+- MINION_COLLECT
+- CUSTOM_PLUGIN_GRANTED
 sources:
-  - trigger: minions.resource.generated
-    amount-from: amount
-    filters:
-      collectionId: animals.pork
-      resourceId: porkchop
-  - trigger: minions.resource.claimed
-    amount-from: amount
-    filters:
-      collectionId: animals.pork
-      resourceId: porkchop
-
+- trigger: minions.resource.generated
+  amount-from: amount
+  filters:
+    collectionId: animals.pork
+    resourceId: porkchop
+- trigger: minions.resource.claimed
+  amount-from: amount
+  filters:
+    collectionId: animals.pork
+    resourceId: porkchop
 source_rules:
   MINION_COLLECT:
     allow_in_town_claims: true
   CUSTOM_PLUGIN_GRANTED:
     allow_in_town_claims: true
-
 levels:
-  1: {required: 50, display_name: "&dMięso świni I"}
-  2: {required: 250, display_name: "&dMięso świni II"}
-  3: {required: 1000, display_name: "&dMięso świni III"}
-  4: {required: 2500, display_name: "&dMięso świni IV"}
-  5: {required: 7500, display_name: "&dMięso świni V"}
-  6: {required: 15000, display_name: "&dMięso świni VI"}
-  7: {required: 30000, display_name: "&dMięso świni VII"}
-
+  1:
+    required: 75
+    display_name: '&dMięso świni I'
+  2:
+    required: 1000
+    display_name: '&dMięso świni II'
+  3:
+    required: 5000
+    display_name: '&dMięso świni III'
+  4:
+    required: 25000
+    display_name: '&dMięso świni IV'
+  5:
+    required: 50000
+    display_name: '&dMięso świni V'
+  6:
+    required: 250000
+    display_name: '&dMięso świni VI'
+  7:
+    required: 500000
+    display_name: '&dMięso świni VII'
 reward_claim_mode: AUTO
 placeholder:
   progress_bar:
     length: 20
-    filled_char: "■"
-    empty_char: "□"
+    filled_char: ■
+    empty_char: □

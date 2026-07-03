@@ -1,4 +1,14 @@
 special-items:
+  spruce_resin:
+    enabled: true
+    material: HONEYCOMB
+    custom-model-data: 14010
+    amount: 1
+    display-name: <aqua>Żywica</aqua>
+    lore:
+    - <gray>Specjalna żywica z miniona drewna świerkowego.</gray>
+    enchant-glint: true
+    placeable: false
   compressed_cobblestone:
     enabled: true
     material: COBBLESTONE
@@ -6,8 +16,8 @@ special-items:
     amount: 1
     display-name: <#40E0D0>Skompresowany blok bruku</#40E0D0>
     lore:
-    - '<gray>Wartość: <white>128</white> szt. surowca.</gray>'
-    - '<gray>Crafting: 4 sloty po 32 bruku.</gray>'
+    - '<gray>Wartość: <white>160</white> szt. surowca.</gray>'
+    - '<gray>Crafting: 5 slotów po 32 bruku.</gray>'
     - <dark_gray>Wymaga Miniona bruku lvl 5.</dark_gray>
     enchant-glint: true
   storage_expander:
@@ -33,7 +43,7 @@ special-items:
     - <gray>Specjalny booster prędkości miniona.</gray>
     - <gray>Daje <green>+10%</green> szybkości produkcji przez <white>30 sekund</white>.</gray>
     - <gray>Można stackować w slocie boostera miniona.</gray>
-    - '<dark_gray>Crafting: 8x skompresowane drewno x16 + skompresowany węgiel x16.</dark_gray>'
+    - '<dark_gray>Crafting: 8x skompresowane drewno x1 + skompresowany węgiel x1.</dark_gray>'
     enchant-glint: true
   enchanted_crafting_table:
     enabled: true
@@ -347,7 +357,6 @@ special-items:
     - <gray>Zaawansowany materiał przemysłowy z kompresora.</gray>
     enchant-glint: true
     placeable: false
-
   tin_ingot:
     enabled: true
     material: IRON_INGOT
@@ -663,7 +672,7 @@ crafting-stations:
     display-name: <blue>Enchanted Crafting Table</blue>
   URANIUM_ENRICHER:
     enabled: true
-    block: IRON_BLOCK
+    block: DISPENSER
     special-item: uranium_enricher
     display-name: <#32CD32>Maszyna do wzbogacania uranu</#32CD32>
   SMELTING_FURNACE:
@@ -678,7 +687,7 @@ crafting-stations:
     display-name: <dark_gray>Generator węglowy</dark_gray>
   MACERATOR:
     enabled: true
-    block: STONECUTTER
+    block: DISPENSER
     special-item: macerator
     display-name: <gray>Macerator</gray>
   COMPRESSOR:
@@ -790,11 +799,11 @@ recipes:
     ingredients:
       W:
         material: OAK_PLANKS
-        amount: 16
+        amount: 1
         special-item: compressed_oak_plank
       C:
         material: COAL_BLOCK
-        amount: 16
+        amount: 1
         special-item: compressed_coal
     output:
       special-item: minion_booster_tier_1
@@ -1889,6 +1898,354 @@ recipes:
     unlock:
       town-minion-levels:
         wheat: 5
+  pig_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - MMM
+    - WSW
+    - CCC
+    ingredients:
+      M:
+        material: PORKCHOP
+        amount: 8
+      W:
+        special-item: compressed_oak_plank
+        material: OAK_LOG
+        amount: 1
+      S:
+        material: IRON_SWORD
+        amount: 1
+      C:
+        special-item: compressed_stone
+        material: STONE
+        amount: 1
+    output:
+      minion-type: pig
+      minion-tier: 1
+      amount: 1
+    unlock: {}
+  sheep_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - MMM
+    - WSW
+    - CCC
+    ingredients:
+      M:
+        materials:
+        - WHITE_WOOL
+        - ORANGE_WOOL
+        - MAGENTA_WOOL
+        - LIGHT_BLUE_WOOL
+        - YELLOW_WOOL
+        - LIME_WOOL
+        - PINK_WOOL
+        - GRAY_WOOL
+        - LIGHT_GRAY_WOOL
+        - CYAN_WOOL
+        - PURPLE_WOOL
+        - BLUE_WOOL
+        - BROWN_WOOL
+        - GREEN_WOOL
+        - RED_WOOL
+        - BLACK_WOOL
+        amount: 16
+      W:
+        special-item: compressed_oak_plank
+        material: OAK_LOG
+        amount: 1
+      S:
+        material: SHEARS
+        amount: 1
+      C:
+        special-item: compressed_stone
+        material: STONE
+        amount: 1
+    output:
+      minion-type: sheep
+      minion-tier: 1
+      amount: 1
+    unlock: {}
+  cow_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - MMM
+    - WSW
+    - CCC
+    ingredients:
+      M:
+        material: BEEF
+        amount: 8
+      W:
+        special-item: compressed_oak_plank
+        material: OAK_LOG
+        amount: 1
+      S:
+        material: BUCKET
+        amount: 1
+      C:
+        special-item: compressed_stone
+        material: STONE
+        amount: 1
+    output:
+      minion-type: cow
+      minion-tier: 1
+      amount: 1
+    unlock: {}
+  chicken_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - MMM
+    - WSW
+    - CCC
+    ingredients:
+      M:
+        material: BEEF
+        amount: 8
+      W:
+        special-item: compressed_oak_plank
+        material: OAK_LOG
+        amount: 1
+      S:
+        material: IRON_SWORD
+        amount: 1
+      C:
+        special-item: compressed_stone
+        material: STONE
+        amount: 1
+    output:
+      minion-type: chicken
+      minion-tier: 1
+      amount: 1
+    unlock: {}
+  zombie_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - MMM
+    - WSW
+    - CCC
+    ingredients:
+      M:
+        material: ROTTEN_FLESH
+        amount: 32
+      W:
+        special-item: compressed_spruce_wood
+        material: SPRUCE_LOG
+        amount: 1
+      S:
+        material: IRON_SWORD
+        amount: 1
+      C:
+        special-item: compressed_stone
+        material: STONE
+        amount: 1
+    output:
+      minion-type: zombie
+      minion-tier: 1
+      amount: 1
+    unlock: {}
+  skeleton_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - MMM
+    - WSW
+    - CCC
+    ingredients:
+      M:
+        material: BONE
+        amount: 16
+      W:
+        special-item: compressed_spruce_wood
+        material: SPRUCE_LOG
+        amount: 1
+      S:
+        material: BOW
+        amount: 1
+      C:
+        special-item: compressed_stone
+        material: STONE
+        amount: 1
+    output:
+      minion-type: skeleton
+      minion-tier: 1
+      amount: 1
+    unlock: {}
+  spider_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - MMM
+    - WSW
+    - CCC
+    ingredients:
+      M:
+        material: SPIDER_EYE
+        amount: 8
+      W:
+        special-item: compressed_spruce_wood
+        material: SPRUCE_LOG
+        amount: 1
+      S:
+        material: DIAMOND_SWORD
+        amount: 1
+      C:
+        special-item: compressed_stone
+        material: STONE
+        amount: 1
+    output:
+      minion-type: spider
+      minion-tier: 1
+      amount: 1
+    unlock: {}
+  silverfish_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - MMM
+    - WSW
+    - CCC
+    ingredients:
+      M:
+        special-item: compressed_cobblestone
+        material: COBBLESTONE
+        amount: 16
+      W:
+        special-item: compressed_spruce_wood
+        material: SPRUCE_LOG
+        amount: 1
+      S:
+        material: DIAMOND_PICKAXE
+        amount: 1
+      C:
+        special-item: super_compressed_stone
+        material: STONE
+        amount: 1
+    output:
+      minion-type: silverfish
+      minion-tier: 1
+      amount: 1
+    unlock: {}
+  wheat_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - MMM
+    - WSW
+    - CCC
+    ingredients:
+      M:
+        material: WHEAT
+        amount: 32
+      W:
+        special-item: wooden_frame
+        material: ITEM_FRAME
+        amount: 4
+      S:
+        material: IRON_HOE
+        amount: 1
+      C:
+        material: COBBLESTONE
+        amount: 64
+    output:
+      minion-type: wheat
+      minion-tier: 1
+      amount: 1
+    unlock:
+      collection-levels:
+        farming.wheat: 1
+  cactus_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - MMM
+    - WSW
+    - CCC
+    ingredients:
+      M:
+        material: CACTUS
+        amount: 32
+      W:
+        special-item: wooden_frame
+        material: ITEM_FRAME
+        amount: 4
+      S:
+        material: WATER_BUCKET
+        amount: 1
+      C:
+        special-item: compressed_cobblestone
+        material: COBBLESTONE
+        amount: 8
+    output:
+      minion-type: cactus
+      minion-tier: 1
+      amount: 1
+    unlock:
+      collection-levels:
+        farming.cactus: 1
+  sugar_cane_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - MMM
+    - WSW
+    - CCC
+    ingredients:
+      M:
+        material: SUGAR_CANE
+        amount: 64
+      W:
+        special-item: wooden_frame
+        material: ITEM_FRAME
+        amount: 4
+      S:
+        material: WATER_BUCKET
+        amount: 1
+      C:
+        special-item: compressed_cobblestone
+        material: COBBLESTONE
+        amount: 8
+    output:
+      minion-type: sugar_cane
+      minion-tier: 1
+      amount: 1
+    unlock:
+      collection-levels:
+        farming.sugar_cane: 1
+  beetroot_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - MMM
+    - WSW
+    - CCC
+    ingredients:
+      M:
+        material: BEETROOT
+        amount: 32
+      W:
+        special-item: wooden_frame
+        material: ITEM_FRAME
+        amount: 4
+      S:
+        material: WATER_BUCKET
+        amount: 1
+      C:
+        special-item: compressed_cobblestone
+        material: COBBLESTONE
+        amount: 8
+    output:
+      minion-type: beetroot
+      minion-tier: 1
+      amount: 1
+    unlock:
+      collection-levels:
+        farming.beetroot: 1
 boosters:
   tiers:
     1:
@@ -1909,7 +2266,7 @@ compression:
     placeable: false
     custom-model-data-base: 11000
     compressed:
-      value: 128
+      value: 160
       shape:
       - ' C '
       - CCC
@@ -1917,7 +2274,7 @@ compression:
       ingredient-amount: 32
       display-name: <#40E0D0>Skompresowany blok — <resource></#40E0D0>
     super:
-      value: 20480
+      value: 25600
       shape:
       - ' C '
       - CCC

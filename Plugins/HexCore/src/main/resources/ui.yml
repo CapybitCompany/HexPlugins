@@ -3,6 +3,10 @@ prefix: "<gray>[</gray><gold><bold>HEX</bold></gold><gray>]</gray> "
 # Optional per-namespace chat prefixes, e.g. elimination/drawn/iceberg.
 prefixes:
   towns: "<gray>[</gray><green><bold>TOWNS</bold></green><gray>]</gray> "
+  minions: "<gray>[</gray><gold><bold>MINIONY</bold></gold><gray>]</gray> "
+  collections: "<gray>[</gray><aqua><bold>KOLEKCJE</bold></aqua><gray>]</gray> "
+  skills: "<gray>[</gray><light_purple><bold>SKILLE</bold></light_purple><gray>]</gray> "
+  economy: "<gray>[</gray><yellow><bold>EKONOMIA</bold></yellow><gray>]</gray> "
 
 # Admin overrides that win over runtime plugin defaults.
 overrides: {}
@@ -105,6 +109,117 @@ templates:
   towns.admin.growth-sync: "<green>Zsynchronizowano punkty rozwoju.</green> <gray>Sprawdzono:</gray> <white><scanned></white><gray>, zmieniono:</gray> <white><changed></white>"
   towns.admin.growth-sync.skipped: "<yellow>Synchronizacja punktów rozwoju jest już w toku.</yellow>"
 
+  towns.rename.invalid: "<red>Nieprawidłowa nazwa miasta. Użyj 3-<max> znaków bez kolorów.</red>"
+  towns.rename.success: "<green>Zmieniono nazwę miasta na <yellow><town></yellow>.</green>"
+  towns.rename.cooldown: "<red>Nazwę miasta można zmienić raz na 48h. Spróbuj ponownie za około <hours>h.</red>"
+  towns.reject.success: "<yellow>Odrzucono prośbę gracza <aqua><player></aqua>.</yellow>"
+  towns.kick.success: "<green>Usunięto <aqua><player></aqua> z COOP i zgłoszono pełny reset gracza.</green>"
+  towns.kick.not-member: "<red>Ten gracz nie należy do twojego miasta.</red>"
+  towns.kick.owner: "<red>Nie możesz usunąć właściciela miasta z COOP.</red>"
+  towns.heart.already-has-town: "<red>Masz już miasto. Na produkcji nie można postawić drugiego serca.</red>"
+  towns.heart.already-placed: "<red>To miasto ma już postawione serce.</red>"
+  towns.heart.item-missing: "<red>Nie masz już w ręce Serca Miasta.</red>"
+  towns.heart.placed: "<green>Postawiono Serce Miasta dla <yellow><town></yellow>.</green>"
+  towns.heart.indestructible: "<red>Serce miasta jest niezniszczalne.</red>"
+  towns.heart.protected-zone: "<red>W centralnym chunku nad sercem można budować tylko poniżej poziomu ochrony.</red>"
+
+  # HexTowns - brakujące komunikaty administracyjne, serce miasta i mapa
+  towns.admin.addgrowth.usage: "<red>Użycie: <white>/town admin addgrowth <uuid-miasta|nazwa-miasta> <punkty> [źródło]</white></red>"
+  towns.admin.addgrowth.town-not-found: "<red>Nie znaleziono miasta: <white><town></white></red>"
+  towns.admin.addgrowth.invalid-number: "<red>Liczba punktów musi być poprawną liczbą całkowitą.</red>"
+  towns.admin.addgrowth.zero: "<red>Liczba punktów nie może wynosić 0.</red>"
+  towns.admin.addgrowth.success: "<green>Dodano <white><amount></white> punktów wzrostu do miasta <yellow><town></yellow>. Źródło: <gray><source></gray>.</green>"
+  towns.admin.giveheart.usage: "<red>Użycie: <white>/town admin giveheart <gracz> [ilość]</white></red>"
+  towns.admin.giveheart.player-offline: "<red>Gracz musi być online: <white><player></white></red>"
+  towns.admin.giveheart.invalid-number: "<red>Ilość musi być liczbą całkowitą.</red>"
+  towns.admin.giveheart.success: "<green>Dodano <white><amount>x</white> Serce Miasta dla <yellow><player></yellow>.</green>"
+  towns.heart.craft.no-shift: "<red>Serce miasta craftuj pojedynczym kliknięciem, bez shift-clicka.</red>"
+  towns.map.cooldown: "<red>Mapę miasta możesz odświeżyć ponownie za <white><seconds>s</white>.</red>"
+  towns.map.refreshed: "<green>Odświeżono istniejącą mapę miast w ekwipunku.</green>"
+  towns.map.no-space: "<red>Nie masz miejsca w ekwipunku na mapę miasta.</red>"
+  towns.map.created: "<green>Dodano mapę miast do ekwipunku. <gray>Weź ją do ręki, aby zobaczyć granice i nazwy miast.</gray></green>"
+
+  # HexMinions - komendy, storage, kable, maszyny i promieniowanie
+  minions.help: "<gray>/minion give, list, wiki, pickup, move, select-index, action, reload</gray>"
+  minions.error.player-only: "<red>Ta komenda jest tylko dla gracza.</red>"
+  minions.error.no-permission: "<red>Brak uprawnień.</red>"
+  minions.error.player-not-found: "<red>Nie znaleziono gracza <white><player></white>.</red>"
+  minions.error.no-town: "<red>Nie należysz do miasta.</red>"
+  minions.error.not-member: "<red>Nie jesteś członkiem miasta tego miniona.</red>"
+  minions.error.not-found: "<red>Nie znaleziono miniona.</red>"
+  minions.error.bad-id: "<red>Niepoprawne UUID miniona.</red>"
+  minions.error.unknown-type: "<red>Nieznany typ miniona.</red>"
+  minions.error.not-in-own-town: "<red>Miniona można postawić tylko w swoim mieście.</red>"
+  minions.error.limit-reached: "<red>Miasto osiągnęło limit minionów: <white><limit></white>.</red>"
+  minions.error.db: "<red>Błąd bazy danych: <white><error></white></red>"
+  minions.error.storage-empty: "<gray>Storage miniona jest pusty.</gray>"
+  minions.error.invalid-menu-item: "<red>Tego itemu nie można włożyć w ten slot miniona.</red>"
+  minions.pickup.error.addons-not-empty: "<red>Najpierw wyjmij specjalne dodatki z miniona.</red>"
+  minions.storage-chest.error.no-space-left: "<red>Po lewej stronie miniona nie ma miejsca na skrzynkę storage.</red>"
+  minions.storage-chest.error.break-linked: "<red>Tej skrzynki nie można zniszczyć ręcznie. Najpierw obsłuż ją z menu miniona.</red>"
+  minions.storage-chest.place.success: "<green>Podłączono skrzynkę storage do miniona.</green>"
+  minions.storage-chest.install.success: "<green>Utworzono i podłączono skrzynkę storage po lewej stronie miniona.</green>"
+  minions.storage-chest.uninstall.success: "<green>Odłączono skrzynkę storage. Jej zawartość wypadła obok miniona.</green>"
+  minions.storage-chest.error.not-found: "<gray>Ten minion nie ma podłączonej skrzynki storage.</gray>"
+  minions.storage-chest.error.special-required: "<red>Obok miniona można postawić tylko skonfigurowany Minion Storage.</red>"
+  minions.storage-chest.error.already-has: "<red>Ten minion ma już skrzynkę storage.</red>"
+  minions.storage-chest.error.next-to-chest: "<red>Nie możesz postawić Minion Storage obok innej skrzynki.</red>"
+  minions.special-crafting.error.no-town: "<red>Ten crafting wymaga miasta.</red>"
+  minions.special-crafting.error.locked: "<red>Nie spełniasz wymagań tej receptury.</red>"
+  minions.special-crafting.error.no-match: "<red>Nie wykryto poprawnej receptury.</red>"
+  minions.special-crafting.error.place-town: "<red>Ten blok możesz postawić tylko na terenie swojego miasta.</red>"
+  minions.special-crafting.error.not-placeable: "<red>Tego specjalnego itemu nie można położyć jako zwykłego bloku.</red>"
+  minions.place.success: "<green>Postawiono miniona <white><id></white>.</green>"
+  minions.pickup.success: "<green>Podniesiono miniona <white><id></white>.</green>"
+  minions.collect.success: "<green>Odebrano surowce z miniona.</green>"
+  minions.upgrade.success: "<green>Ulepszono miniona do tieru <white><tier></white>.</green>"
+  minions.upgrade.missing-requirements: "<red>Nie spełniasz wymagań ulepszenia.</red>"
+  minions.move.success: "<green>Przeniesiono miniona <white><id></white>.</green>"
+  minions.move.error.disabled: "<red>Przenoszenie minionów jest wyłączone.</red>"
+  minions.move.error.not-same-town: "<red>Miniona można przenieść tylko w obrębie tego samego miasta.</red>"
+  minions.move.error.location-invalid: "<red>Ta lokalizacja nie nadaje się dla miniona.</red>"
+  minions.move.error.location-occupied: "<red>Ta lokalizacja jest zajęta albo zbyt blisko innego miniona.</red>"
+  minions.give.success: "<green>Dano <white><amount>x</white> miniona <yellow><type></yellow> graczowi <aqua><player></aqua>.</green>"
+  minions.list.header: "<gold>Miniony miasta:</gold> <white><count>/<limit></white>"
+  minions.list.line: "<gray>- <white><id></white> <yellow><name></yellow> T<tier> @ <location></gray>"
+  minions.wiki.open: "<green>Otwieram wiki minionów.</green>"
+  minions.wiki.test-copy.success: "<green>Skopiowano item z wiki do ekwipunku testowego.</green>"
+  minions.reload.success: "<green>Przeładowano HexMinions.</green>"
+  minions.ok: "<green>OK</green>"
+  minions.usage.give: "<yellow>Użycie: <white>/minion give <gracz> <typ> [tier] [ilość]</white></yellow>"
+  minions.usage.player-action: "<yellow>Użycie: <white>/minion <action> <id></white></yellow>"
+  minions.usage.action: "<yellow>Użycie: <white>/minion action <collect|upgrade|pickup|move|open> <id></white></yellow>"
+  minions.usage.select: "<yellow>Użycie: <white>/minion select <id></white></yellow>"
+  minions.admin.usage: "<yellow>Komendy admina: <white>/minion admin addlimit <uuid-miasta|nazwa-miasta> <bonus> [źródło]</white>, <white>/minion admin metrics</white></yellow>"
+  minions.admin.addlimit.usage: "<red>Użycie: <white>/minion admin addlimit <uuid-miasta|nazwa-miasta> <bonus> [źródło]</white></red>"
+  minions.admin.addlimit.town-not-found: "<red>Nie znaleziono miasta: <white><town></white></red>"
+  minions.admin.addlimit.zero: "<red>Bonus musi być liczbą różną od 0.</red>"
+  minions.admin.addlimit.success: "<green>Dodano bonus limitu minionów <white><delta></white> dla miasta <yellow><town></yellow>. Aktualny limit: <white><max></white>. Źródło: <gray><source></gray>.</green>"
+  minions.admin.metrics: "<green>HexMinions metrics: podstawowy MVP działa.</green>"
+  minions.cable.loading: "<red>System kabli jeszcze się ładuje. Spróbuj ponownie za chwilę.</red>"
+  minions.cable.invalid-shape: "<red>Kabel musi być prostym odcinkiem i dotykać portu maszyny albo istniejącego kabla.</red>"
+  minions.cable.validation-error: "<red><error></red>"
+  minions.cable.place.not-town: "<red>Kable możesz stawiać tylko w swoim mieście.</red>"
+  minions.cable.place.success: "<green>Położono <white><cable></white> <gray>(<length>m)</gray>. <dark_gray>Kabel jest pasywnym segmentem sieci EU.</dark_gray></green>"
+  minions.cable.remove.not-town: "<red>Możesz usuwać kable tylko w swoim mieście.</red>"
+  minions.cable.info: "<gray>Kabel:</gray> <white><cable></white> <dark_gray>|</dark_gray> <gray>długość:</gray> <white><length>m</white> <dark_gray>|</dark_gray> <gray>limit:</gray> <white><limit> EU/s</white> <dark_gray>|</dark_gray> <gray>strata:</gray> <white><loss> EU/m</white>"
+  minions.cable.remove.success: "<yellow>Usunięto cały segment kabla, nie pojedynczy metr.</yellow>"
+  minions.machine.error.not-town: "<red>Możesz obsługiwać tę maszynę tylko w swoim mieście.</red>"
+  minions.machine.accumulator.input-face-required: "<red>Kliknij konkretny bok akumulatora, który ma zostać wejściem EU.</red>"
+  minions.machine.accumulator.input-face-same: "<yellow>Ten bok jest już wejściem EU akumulatora.</yellow>"
+  minions.machine.accumulator.input-face-changed: "<green>Przeniesiono wejście EU akumulatora na bok: <white><face></white>. Poprzedni bok stał się wyjściem.</green>"
+  minions.machine.dismantle.success: "<yellow>Rozkręcono maszynę. Item maszyny i zawartość wypadły obok.</yellow>"
+  minions.radiation.actionbar: "<green>☢</green> <red>Promieniowanie:</red> <white><amount>x wzbogacony uran</white> <gray>(ochrona <protection>%)</gray>"
+  minions.radiation.chest-warning: "<red>W skrzyni znajduje się wzbogacony uran. Ochrona kombinezonu: <white><protection>%</white>.</red>"
+  minions.radiation.chest-blocked: "<red>Wzbogaconego uranu nie można wkładać do zwykłej skrzyni.</red>"
+
+  # Pozostałe pluginy SMP
+  collections.reload.success: "<green>Przeładowano HexCollections.</green> <gray>Kolekcje:</gray> <white><count></white>"
+  collections.info: "<gold>HexCollections</gold> <gray>| kolekcje:</gray> <white><count></white> <gray>| triggery:</gray> <white><triggers></white>"
+  skills.level-up: "<green>Awans skillu!</green> <yellow><skill></yellow> <gray>z poziomu</gray> <white><from></white> <gray>na</gray> <white><to></white><gray>.</gray>"
+  skills.reload.success: "<green>Przeładowano HexSkills.</green> <gray>Skille:</gray> <white><count></white>"
+  skills.info: "<gold>HexSkills</gold> <gray>| skille:</gray> <white><count></white> <gray>| triggery:</gray> <white><triggers></white>"
+
 templateArgs:
   lobby.actionbar.waiting: ["game", "current", "max", "min"]
   lobby.actionbar.countdown: ["game", "seconds", "current", "max"]
@@ -140,3 +255,40 @@ templateArgs:
   towns.growth: ["growth"]
   towns.admin.metrics: ["towns"]
   towns.admin.growth-sync: ["scanned", "changed"]
+
+  towns.admin.addgrowth.town-not-found: ["town"]
+  towns.admin.addgrowth.success: ["amount", "town", "source"]
+  towns.admin.giveheart.player-offline: ["player"]
+  towns.admin.giveheart.success: ["amount", "player"]
+  towns.map.cooldown: ["seconds"]
+  minions.error.player-not-found: ["player"]
+  minions.error.limit-reached: ["limit"]
+  minions.error.db: ["error"]
+  minions.place.success: ["id"]
+  minions.pickup.success: ["id"]
+  minions.upgrade.success: ["tier"]
+  minions.move.success: ["id"]
+  minions.give.success: ["amount", "type", "player"]
+  minions.list.header: ["count", "limit"]
+  minions.list.line: ["id", "name", "tier", "location"]
+  minions.usage.player-action: ["action"]
+  minions.admin.addlimit.town-not-found: ["town"]
+  minions.admin.addlimit.success: ["delta", "town", "max", "source"]
+  minions.cable.validation-error: ["error"]
+  minions.cable.place.success: ["cable", "length"]
+  minions.cable.info: ["cable", "length", "limit", "loss"]
+  minions.machine.accumulator.input-face-changed: ["face"]
+  minions.radiation.actionbar: ["amount", "protection"]
+  minions.radiation.chest-warning: ["protection"]
+  collections.reload.success: ["count"]
+  collections.info: ["count", "triggers"]
+  skills.level-up: ["skill", "from", "to"]
+  skills.reload.success: ["count"]
+  skills.info: ["count", "triggers"]
+
+  towns.rename.invalid: ["max"]
+  towns.rename.success: ["town"]
+  towns.rename.cooldown: ["hours"]
+  towns.reject.success: ["player"]
+  towns.kick.success: ["player"]
+  towns.heart.placed: ["town"]

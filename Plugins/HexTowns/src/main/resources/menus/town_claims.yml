@@ -46,17 +46,6 @@ items:
       - '[player] town claim'
       - '[openguimenu] town_claims'
 
-  here:
-    material: OAK_SIGN
-    slot: 22
-    display_name: '&eCzyj to teren?'
-    lore:
-      - '&7Pokazuje informację o chunku w czacie.'
-      - ''
-      - '&eKliknij: /town here'
-    left_click_commands:
-      - '[player] town here'
-
   map:
     material: MAP
     slot: 24

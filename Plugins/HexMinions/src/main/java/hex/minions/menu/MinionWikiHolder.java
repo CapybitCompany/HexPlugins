@@ -5,6 +5,8 @@ import org.bukkit.inventory.InventoryHolder;
 import org.jetbrains.annotations.NotNull;
 
 public final class MinionWikiHolder implements InventoryHolder {
+    public static final String ELECTRONICS_RETURN_ID = "__electronics__";
+
     private final String typeId;
     private final String machineId;
     private final String machineRecipeId;
@@ -41,6 +43,18 @@ public final class MinionWikiHolder implements InventoryHolder {
         return new MinionWikiHolder(returnTypeId, machineId, recipeId);
     }
 
+    public static MinionWikiHolder electronicsIndex() {
+        return machineIndex(ELECTRONICS_RETURN_ID);
+    }
+
+    public static MinionWikiHolder electronicsMachine(String machineId) {
+        return machine(ELECTRONICS_RETURN_ID, machineId);
+    }
+
+    public static MinionWikiHolder electronicsMachineRecipe(String machineId, String recipeId) {
+        return machineRecipe(ELECTRONICS_RETURN_ID, machineId, recipeId);
+    }
+
     public boolean index() {
         return typeId.isBlank() && machineId.isBlank() && machineRecipeId.isBlank();
     }
@@ -59,6 +73,10 @@ public final class MinionWikiHolder implements InventoryHolder {
 
     public boolean machineRecipe() {
         return !machineId.isBlank() && !machineRecipeId.isBlank();
+    }
+
+    public boolean electronicsReturn() {
+        return ELECTRONICS_RETURN_ID.equals(typeId);
     }
 
     public String typeId() {

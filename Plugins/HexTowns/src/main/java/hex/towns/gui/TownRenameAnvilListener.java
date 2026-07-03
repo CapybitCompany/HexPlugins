@@ -33,13 +33,17 @@ public final class TownRenameAnvilListener implements Listener {
     private final Plugin plugin;
     private final HexApi api;
     private final TownsService service;
-    private final TownsConfig config;
+    private volatile TownsConfig config;
     private final Map<UUID, Inventory> active = new ConcurrentHashMap<>();
 
     public TownRenameAnvilListener(Plugin plugin, HexApi api, TownsService service, TownsConfig config) {
         this.plugin = plugin;
         this.api = api;
         this.service = service;
+        this.config = config;
+    }
+
+    public void reloadConfig(TownsConfig config) {
         this.config = config;
     }
 

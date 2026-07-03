@@ -10,6 +10,7 @@ import hex.towns.listener.TownProtectionListener;
 import hex.towns.map.TownMapService;
 import hex.towns.gui.TownRenameAnvilListener;
 import hex.towns.gui.TownCoopDecisionMenu;
+import hex.towns.gui.NativeTownMenu;
 import hex.towns.heart.TownHeartItem;
 import hex.towns.heart.TownHeartListener;
 import hex.towns.heart.TownHeartRenderer;
@@ -38,6 +39,9 @@ public final class HexTownsPlugin extends JavaPlugin {
     private TownHeartRenderer townHeartRenderer;
     private TownHeartService townHeartService;
     private TownHeartListener townHeartListener;
+    private NativeTownMenu nativeTownMenu;
+    private TownCommand townCommand;
+    private TownsConfig config;
     private TownsPlaceholderExpansion placeholderExpansion;
 
     @Override
@@ -53,27 +57,33 @@ public final class HexTownsPlugin extends JavaPlugin {
         }
         this.hexApi = reg.getProvider();
 
-        TownsConfig config = TownsConfig.load(getConfig());
+        if (!ensureDatabaseAvailable()) {
+            return;
+        }
+
+        this.config = TownsConfig.load(getConfig());
         registerUiDefaults();
 
         TownRepository repository = new TownRepository(hexApi.db().db());
         TownDataRegistry dataRegistry = new TownDataRegistry(hexApi, repository);
-        this.townsService = new TownsService(this, hexApi, repository, dataRegistry, config);
+        this.townsService = new TownsService(this, hexApi, repository, dataRegistry, this.config);
         this.townsApi = new TownsApiImpl(townsService, dataRegistry);
-        this.visualCheckService = new VisualCheckService(this, townsService, config);
-        this.renameAnvilListener = new TownRenameAnvilListener(this, hexApi, townsService, config);
+        this.visualCheckService = new VisualCheckService(this, townsService, this.config);
+        this.renameAnvilListener = new TownRenameAnvilListener(this, hexApi, townsService, this.config);
         this.coopDecisionMenu = new TownCoopDecisionMenu(this, hexApi, townsService);
-        this.townMapService = new TownMapService(this, townsService, config);
+        this.townMapService = new TownMapService(this, hexApi, townsService, this.config);
+        this.nativeTownMenu = new NativeTownMenu(this, hexApi, townsService, visualCheckService, this.config, renameAnvilListener, townMapService, coopDecisionMenu);
         TownHeartItem townHeartItem = new TownHeartItem(this);
         townHeartItem.registerRecipe();
         this.townHeartRenderer = new TownHeartRenderer(this);
         this.townHeartService = new TownHeartService(this, repository, townsService, townHeartRenderer);
-        this.townHeartListener = new TownHeartListener(this, hexApi, townsService, config, townHeartItem, townHeartService);
+        this.townHeartListener = new TownHeartListener(this, hexApi, townsService, this.config, townHeartItem, townHeartService, nativeTownMenu);
 
         Bukkit.getServicesManager().register(TownsApi.class, townsApi, this, ServicePriority.Normal);
-        registerPlaceholderExpansion(config);
+        registerPlaceholderExpansion(this.config);
 
-        TownCommand townCommand = new TownCommand(this, hexApi, townsService, visualCheckService, config, renameAnvilListener, townMapService, coopDecisionMenu, townHeartListener);
+        this.townCommand = new TownCommand(this, hexApi, townsService, visualCheckService, this.config, renameAnvilListener, townMapService, coopDecisionMenu, townHeartListener, nativeTownMenu);
+        TownCommand townCommand = this.townCommand;
         PluginCommand townPluginCommand = getCommand("town");
         if (townPluginCommand != null) {
             townPluginCommand.setExecutor(townCommand);
@@ -81,11 +91,13 @@ public final class HexTownsPlugin extends JavaPlugin {
         } else {
             getLogger().severe("Command 'town' is missing from plugin.yml; HexTowns commands will not work.");
         }
+        registerNativeMenuCommands();
 
         getServer().getPluginManager().registerEvents(new TownProtectionListener(hexApi, townsService), this);
         getServer().getPluginManager().registerEvents(visualCheckService, this);
         getServer().getPluginManager().registerEvents(renameAnvilListener, this);
         getServer().getPluginManager().registerEvents(coopDecisionMenu, this);
+        getServer().getPluginManager().registerEvents(nativeTownMenu, this);
         getServer().getPluginManager().registerEvents(townHeartListener, this);
         townHeartRenderer.startPulse();
 
@@ -100,12 +112,120 @@ public final class HexTownsPlugin extends JavaPlugin {
             townsService.startGrowthSync();
             getLogger().info("HexTowns loaded towns=" + state.towns().size() + ", chunks=" + state.chunks().size());
         })).exceptionally(ex -> {
-            getLogger().severe("HexTowns DB init failed: " + ex.getMessage());
+            getLogger().severe("HexTowns database startup failed: " + rootMessage(ex));
             Bukkit.getScheduler().runTask(this, () -> getServer().getPluginManager().disablePlugin(this));
             return null;
         });
 
         getLogger().info("HexTowns enabled");
+    }
+
+    private boolean ensureDatabaseAvailable() {
+        DatabaseAvailability availability = detectDatabaseAvailability();
+        if (availability.available()) {
+            return true;
+        }
+
+        String reason = availability.reason();
+        getLogger().severe("HexTowns requires HexCore database, but it is unavailable: " + reason);
+        getServer().getPluginManager().disablePlugin(this);
+        return false;
+    }
+
+    private DatabaseAvailability detectDatabaseAvailability() {
+        Object dbService = hexApi.db();
+        try {
+            Object available = dbService.getClass().getMethod("isAvailable").invoke(dbService);
+            if (available instanceof Boolean value && !value) {
+                String reason = "unknown reason";
+                try {
+                    Object reflectedReason = dbService.getClass().getMethod("unavailableReason").invoke(dbService);
+                    if (reflectedReason instanceof String text && !text.isBlank()) {
+                        reason = text;
+                    }
+                } catch (ReflectiveOperationException ignored) {
+                    // Older HexCore builds do not expose unavailableReason().
+                }
+                return new DatabaseAvailability(false, reason);
+            }
+        } catch (NoSuchMethodException ignored) {
+            // Older HexCore build: fall back to an actual lightweight query.
+        } catch (ReflectiveOperationException | LinkageError ex) {
+            return new DatabaseAvailability(false, rootMessage(ex));
+        }
+
+        try {
+            hexApi.db().db().queryOne("SELECT 1", rs -> 1);
+            return new DatabaseAvailability(true, "");
+        } catch (RuntimeException | LinkageError ex) {
+            return new DatabaseAvailability(false, rootMessage(ex));
+        }
+    }
+
+    private record DatabaseAvailability(boolean available, String reason) {
+        private DatabaseAvailability {
+            if (reason == null || reason.isBlank()) {
+                reason = "unknown reason";
+            }
+        }
+    }
+
+    private String rootMessage(Throwable throwable) {
+        Throwable current = throwable;
+        while (current.getCause() != null) {
+            current = current.getCause();
+        }
+        return current.getMessage() == null ? current.getClass().getSimpleName() : current.getMessage();
+    }
+
+
+    private void registerNativeMenuCommands() {
+        String[] commands = {
+                "townmenu", "townmanage", "townclaims", "claimy", "towncoop",
+                "towncollections", "towncollectionsresources", "towncollectionsfarming",
+                "towncollectionsanimals", "towncollectionsmobs", "townminions", "towndanger"
+        };
+        for (String commandName : commands) {
+            PluginCommand command = getCommand(commandName);
+            if (command == null) {
+                getLogger().warning("Command '" + commandName + "' is missing from plugin.yml; native HexTowns menu alias will not work.");
+                continue;
+            }
+            command.setExecutor(nativeTownMenu);
+            command.setTabCompleter(nativeTownMenu);
+        }
+    }
+
+
+    public void reloadTownsConfig() {
+        reloadConfig();
+        this.config = TownsConfig.load(getConfig());
+        registerUiDefaults();
+        if (townsService != null) {
+            townsService.reloadConfig(this.config);
+        }
+        if (visualCheckService != null) {
+            visualCheckService.reloadConfig(this.config);
+        }
+        if (renameAnvilListener != null) {
+            renameAnvilListener.reloadConfig(this.config);
+        }
+        if (townMapService != null) {
+            townMapService.reloadConfig(this.config);
+        }
+        if (nativeTownMenu != null) {
+            nativeTownMenu.reloadConfig(this.config);
+        }
+        if (townHeartListener != null) {
+            townHeartListener.reloadConfig(this.config);
+        }
+        if (townCommand != null) {
+            townCommand.reloadConfig(this.config);
+        }
+        if (placeholderExpansion != null) {
+            placeholderExpansion.reloadConfig(this.config);
+        }
+        getLogger().info("HexTowns config reloaded.");
     }
 
     @Override
@@ -150,7 +270,7 @@ public final class HexTownsPlugin extends JavaPlugin {
 
     private void registerUiDefaults() {
         registerUiDefaultsCompat(Map.ofEntries(
-                Map.entry("help", "<gray>/town create, claim, coop, accept, endcoop, destroy, rename, check, info, here, map, growth</gray>"),
+                Map.entry("help", "<gray>/town create, claim, coop, accept, endcoop, destroy, rename, check, info, here, map, growth, reload, admin reload</gray>"),
                 Map.entry("error.player-only", "<red>Ta komenda jest tylko dla gracza.</red>"),
                 Map.entry("error.no-town", "<red>Nie nalezysz do zadnego miasta.</red>"),
                 Map.entry("error.not-owner", "<red>Tylko wlasciciel miasta moze to zrobic.</red>"),
@@ -162,6 +282,7 @@ public final class HexTownsPlugin extends JavaPlugin {
                 Map.entry("rename.usage", "<gray>Uzycie: <white>/town rename <nazwa></white> albo <white>/town rename</white>, aby otworzyc kowadlo. Maks. <max> znakow.</gray>"),
                 Map.entry("rename.invalid", "<red>Nieprawidlowa nazwa miasta. Uzyj 3-<max> znakow bez kolorow.</red>"),
                 Map.entry("rename.success", "<green>Zmieniono nazwe miasta na <yellow><town></yellow>.</green>"),
+                Map.entry("rename.cooldown", "<red>Nazwe miasta mozna zmienic raz na 48h. Sprobuj ponownie za okolo <hours>h.</red>"),
                 Map.entry("create.too-close", "<red>Za blisko innego miasta. Minimalna odleglosc: <white><distance></white> chunkow.</red>"),
                 Map.entry("create.already-member", "<red>Jestes juz w miescie lub COOP-ie. Nie mozesz zalozyc kolejnego.</red>"),
                 Map.entry("create.confirm", "<gold>Zalozenie miasta <yellow><town></yellow> oznacza, ze odejscie lub zniszczenie miasta zresetuje statystyki. </gold><click:run_command:'/town create confirm'><green>[POTWIERDZ]</green></click> <gray>albo wpisz: <white>/town create confirm</white></gray>"),
@@ -199,8 +320,24 @@ public final class HexTownsPlugin extends JavaPlugin {
                 Map.entry("map.line", "<gray><line></gray>"),
                 Map.entry("growth", "<gray>Punkty rosnienia miasta:</gray> <white><growth></white>"),
                 Map.entry("admin.metrics", "<gray>Miasta:</gray> <white><towns></white>"),
+                Map.entry("admin.reload.success", "<green>Przeladowano konfiguracje HexTowns.</green>"),
+                Map.entry("admin.reload.error", "<red>Nie udalo sie przeladowac konfiguracji HexTowns: <white><error></white></red>"),
                 Map.entry("admin.growth-sync", "<green>Zsynchronizowano punkty rozwoju.</green> <gray>Sprawdzono:</gray> <white><scanned></white><gray>, zmieniono:</gray> <white><changed></white>"),
                 Map.entry("admin.growth-sync.skipped", "<yellow>Synchronizacja punktow rozwoju jest juz w toku.</yellow>"),
+                Map.entry("admin.addgrowth.usage", "<red>Uzycie: <white>/town admin addgrowth <uuid-miasta|nazwa-miasta> <punkty> [zrodlo]</white></red>"),
+                Map.entry("admin.addgrowth.town-not-found", "<red>Nie znaleziono miasta: <white><town></white></red>"),
+                Map.entry("admin.addgrowth.invalid-number", "<red>Liczba punktow musi byc poprawna liczba calkowita.</red>"),
+                Map.entry("admin.addgrowth.zero", "<red>Liczba punktow nie moze wynosic 0.</red>"),
+                Map.entry("admin.addgrowth.success", "<green>Dodano <white><amount></white> punktow wzrostu do miasta <yellow><town></yellow>. Zrodlo: <gray><source></gray>.</green>"),
+                Map.entry("admin.giveheart.usage", "<red>Uzycie: <white>/town admin giveheart <gracz> [ilosc]</white></red>"),
+                Map.entry("admin.giveheart.player-offline", "<red>Gracz musi byc online: <white><player></white></red>"),
+                Map.entry("admin.giveheart.invalid-number", "<red>Ilosc musi byc liczba calkowita.</red>"),
+                Map.entry("admin.giveheart.success", "<green>Dodano <white><amount>x</white> Serce Miasta dla <yellow><player></yellow>.</green>"),
+                Map.entry("heart.craft.no-shift", "<red>Serce miasta craftuj pojedynczym kliknieciem, bez shift-clicka.</red>"),
+                Map.entry("map.cooldown", "<red>Mape miasta mozesz odswiezyc ponownie za <white><seconds>s</white>.</red>"),
+                Map.entry("map.refreshed", "<green>Odswiezono istniejaca mape miast w ekwipunku.</green>"),
+                Map.entry("map.no-space", "<red>Nie masz miejsca w ekwipunku na mape miasta.</red>"),
+                Map.entry("map.created", "<green>Dodano mape miast do ekwipunku. <gray>Wez ja do reki, aby zobaczyc granice i nazwy miast.</gray></green>"),
                 Map.entry("heart.already-has-town", "<red>Masz juz miasto. Na produkcji nie mozna postawic drugiego serca.</red>"),
                 Map.entry("heart.already-placed", "<red>To miasto ma juz postawione serce.</red>"),
                 Map.entry("heart.item-missing", "<red>Nie masz juz w rece Serca Miasta.</red>"),

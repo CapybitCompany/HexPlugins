@@ -1,40 +1,61 @@
-id: "mobs.skeleton"
-aliases: ["mob_skeleton", "skeleton", "skeleton_kills", "szkielet", "minecraft:skeleton"]
+id: mobs.skeleton
+aliases:
+- mob_skeleton
+- skeleton
+- skeleton_kills
+- szkielet
+- minecraft:skeleton
 enabled: true
-
 display:
-  name: "&7Zabite szkielety"
-  category: "mobs"
+  name: '&7Zabite szkielety'
+  category: mobs
   menu_slot: 41
   icon:
     material: SKELETON_SKULL
-
-valid_sources: [NATURAL_MOB_DROP, CUSTOM_PLUGIN_GRANTED]
-
+valid_sources:
+- NATURAL_MOB_DROP
+- CUSTOM_PLUGIN_GRANTED
 sources:
-  - trigger: minions.mob.killed
-    amount-from: amount
-    filters:
-      mobType: skeleton
-
+- trigger: minions.mob.killed
+  amount-from: amount
+  filters:
+    mobType: skeleton
 source_rules:
   NATURAL_MOB_DROP:
-    allowed_worlds: [world, resource_world, mining_world]
-    blocked_worlds: [spawn]
+    allowed_worlds:
+    - world
+    - resource_world
+    - mining_world
+    blocked_worlds:
+    - spawn
     allow_in_town_claims: true
   CUSTOM_PLUGIN_GRANTED:
     allow_in_town_claims: true
-
 levels:
-  1: {required: 25, display_name: "&7Szkielet I"}
-  2: {required: 100, display_name: "&7Szkielet II"}
-  3: {required: 250, display_name: "&7Szkielet III"}
-  4: {required: 500, display_name: "&7Szkielet IV"}
-  5: {required: 1000, display_name: "&7Szkielet V"}
-
+  1:
+    required: 75
+    display_name: '&7Zabite szkielety I'
+  2:
+    required: 2500
+    display_name: '&7Zabite szkielety II'
+  3:
+    required: 5000
+    display_name: '&7Zabite szkielety III'
+  4:
+    required: 50000
+    display_name: '&7Zabite szkielety IV'
+  5:
+    required: 100000
+    display_name: '&7Zabite szkielety V'
+  6:
+    required: 250000
+    display_name: '&7Zabite szkielety VI'
+  7:
+    required: 1000000
+    display_name: '&7Zabite szkielety VII'
 reward_claim_mode: AUTO
 placeholder:
   progress_bar:
     length: 20
-    filled_char: "■"
-    empty_char: "□"
+    filled_char: ■
+    empty_char: □

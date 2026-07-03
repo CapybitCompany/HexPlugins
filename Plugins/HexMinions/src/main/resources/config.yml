@@ -59,6 +59,28 @@ minions:
 
 
   machines:
+    visual-lighting:
+      # Poprawia przyciemnione kolory złożonych BlockDisplayów maszyn/kabli bez robienia pełnego fullbright.
+      # -1 = użyj światła z okolicy maszyny/kabla. To omija problem, gdy Display stoi wewnątrz
+      # bazowego bloku albo nachodzi na inny Display i Minecraft zwraca prawie zerowe światło.
+      # Możesz ustawić np. block-light: 0 i sky-light: 15, jeśli celowo chcesz mocniejsze rozjaśnienie.
+      override-enabled: true
+      block-light: -1
+      sky-light: -1
+      sample-nearby-blocks: true
+      sample-radius-blocks: 1
+      # Minimalne światło wszystkich wizuali. 7 daje czytelność w cieniu, ale nie robi pełnego fullbright.
+      min-block-light: 7
+      min-sky-light: 0
+      highlighted-materials:
+        # Porty EU i niebieskie/pomarańczowe paski mają być czytelne nawet w nocy/jaskini.
+        enabled: true
+        block-light: 15
+        sky-light: 15
+        materials:
+          - BLUE_CONCRETE
+          - ORANGE_CONCRETE
+          - LIGHT_BLUE_CONCRETE
     persistence:
       # Runtime maszyn zapisuje się teraz do DB w batchach, nie do jednego dużego YAML-a.
       # Przy dużej liczbie maszyn zapisujemy tylko zmienione rekordy.
@@ -106,7 +128,7 @@ energy:
   cables:
     copper:
       display_name: "Miedziany Kabel"
-      max_segment_length: 3
+      max_segment_length: 2
       loss_eu_per_meter: 0.25
       max_eu_per_second: 32
       display_material: BROWN_CONCRETE
@@ -114,7 +136,7 @@ energy:
       view_range: 32
     gold:
       display_name: "Złoty Kabel"
-      max_segment_length: 10
+      max_segment_length: 5
       loss_eu_per_meter: 0.15
       max_eu_per_second: 96
       display_material: YELLOW_CONCRETE
@@ -122,7 +144,7 @@ energy:
       view_range: 32
     glass:
       display_name: "Szklany Kabel"
-      max_segment_length: 25
+      max_segment_length: 10
       loss_eu_per_meter: 0.05
       max_eu_per_second: 256
       display_material: GLASS

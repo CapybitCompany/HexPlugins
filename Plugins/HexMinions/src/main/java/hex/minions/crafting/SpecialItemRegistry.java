@@ -16,6 +16,7 @@ import org.bukkit.block.TileState;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -28,6 +29,7 @@ import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 public final class SpecialItemRegistry {
     public static final String SPECIAL_ITEM_KIND = "special_item";
@@ -37,6 +39,7 @@ public final class SpecialItemRegistry {
     private final NamespacedKey kindKey;
     private final NamespacedKey specialItemIdKey;
     private final NamespacedKey specialBlockIdKey;
+    private final NamespacedKey nonStackNonceKey;
     private final Map<String, SpecialItemDefinition> items;
     private final Map<String, SpecialRecipeDefinition> recipes;
     private final Map<String, CraftingStationDefinition> stations;
@@ -51,6 +54,7 @@ public final class SpecialItemRegistry {
         this.kindKey = new NamespacedKey(plugin, "item_kind");
         this.specialItemIdKey = new NamespacedKey(plugin, "special_item_id");
         this.specialBlockIdKey = new NamespacedKey(plugin, "special_block_id");
+        this.nonStackNonceKey = new NamespacedKey(plugin, "non_stack_nonce");
         this.items = Map.copyOf(items);
         this.recipes = Map.copyOf(recipes);
         this.stations = Map.copyOf(stations);
@@ -93,7 +97,7 @@ public final class SpecialItemRegistry {
             if (station.enabled()) stations.put(station.id(), station);
         }
         Map<Integer, BoosterDefinition> boosters = loadBoosters(yaml);
-        int compressedUnitValue = Math.max(1, yaml.getInt("compression.defaults.compressed.value", 128));
+        int compressedUnitValue = Math.max(1, yaml.getInt("compression.defaults.compressed.value", 160));
         int superCompressedUnitValue = Math.max(compressedUnitValue, yaml.getInt("compression.defaults.super.value", compressedUnitValue * 32 * 5));
         return new SpecialItemRegistry(plugin, items, recipes, stations, boosters, compressedUnitValue, superCompressedUnitValue);
     }
@@ -136,7 +140,7 @@ public final class SpecialItemRegistry {
         if (root == null) return;
 
         String station = specialYaml.getString("compression.defaults.station", "ENCHANTED_CRAFTING_TABLE");
-        int compressedValue = Math.max(1, specialYaml.getInt("compression.defaults.compressed.value", 128));
+        int compressedValue = Math.max(1, specialYaml.getInt("compression.defaults.compressed.value", 160));
         int superValue = Math.max(compressedValue, specialYaml.getInt("compression.defaults.super.value", compressedValue * 32 * 5));
         List<String> compressedShape = specialYaml.getStringList("compression.defaults.compressed.shape");
         if (compressedShape.isEmpty()) compressedShape = List.of(" C ", "CCC", " C ");
@@ -222,15 +226,26 @@ public final class SpecialItemRegistry {
         SpecialItemDefinition def = item(id).orElse(null);
         if (def == null) return new ItemStack(Material.AIR);
         ItemStack item = def.icon(miniMessage);
-        item.setAmount(Math.max(1, amount));
+        boolean nonStackableUpdate = isNonStackableUpdate(def.id());
+        item.setAmount(nonStackableUpdate ? 1 : Math.max(1, amount));
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             PersistentDataContainer pdc = meta.getPersistentDataContainer();
             pdc.set(kindKey, PersistentDataType.STRING, SPECIAL_ITEM_KIND);
             pdc.set(specialItemIdKey, PersistentDataType.STRING, def.id());
+            if (nonStackableUpdate) {
+                pdc.set(nonStackNonceKey, PersistentDataType.STRING, UUID.randomUUID().toString());
+            }
             item.setItemMeta(meta);
         }
         return item;
+    }
+
+    private boolean isNonStackableUpdate(String id) {
+        if (id == null) return false;
+        String lower = id.toLowerCase(java.util.Locale.ROOT);
+        if (lower.contains("booster")) return false;
+        return lower.contains("update") || lower.equals("auto_smelter");
     }
 
     public Optional<String> readSpecialItemId(ItemStack item) {
@@ -289,7 +304,12 @@ public final class SpecialItemRegistry {
                 ShapedRecipe shaped = new ShapedRecipe(key, output(recipe, itemFactory, definitions));
                 shaped.shape(recipe.shape().toArray(String[]::new));
                 for (Map.Entry<Character, SpecialIngredient> entry : recipe.ingredients().entrySet()) {
-                    if (entry.getValue().material() != Material.AIR) shaped.setIngredient(entry.getKey(), entry.getValue().material());
+                    SpecialIngredient ingredient = entry.getValue();
+                    if (ingredient.hasMaterialChoices()) {
+                        shaped.setIngredient(entry.getKey(), new RecipeChoice.MaterialChoice(ingredient.materialChoices()));
+                    } else if (ingredient.material() != Material.AIR) {
+                        shaped.setIngredient(entry.getKey(), ingredient.material());
+                    }
                 }
                 Bukkit.addRecipe(shaped);
             } catch (Throwable throwable) {

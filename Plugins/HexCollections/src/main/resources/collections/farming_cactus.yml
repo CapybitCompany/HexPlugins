@@ -1,0 +1,63 @@
+id: farming.cactus
+aliases:
+- farming_cactus
+- cactus
+- kaktus
+enabled: true
+display:
+  name: '&2Kaktus'
+  category: farming
+  menu_slot: 0
+  icon:
+    material: CACTUS
+tracked_items:
+  base:
+    material: CACTUS
+    amount_value: 1
+valid_sources:
+- MINION_COLLECT
+- CUSTOM_PLUGIN_GRANTED
+sources:
+- trigger: minions.resource.generated
+  amount-from: amount
+  filters:
+    collectionId: farming.cactus
+    resourceId: cactus
+- trigger: minions.resource.claimed
+  amount-from: amount
+  filters:
+    collectionId: farming.cactus
+    resourceId: cactus
+source_rules:
+  MINION_COLLECT:
+    allow_in_town_claims: true
+  CUSTOM_PLUGIN_GRANTED:
+    allow_in_town_claims: true
+levels:
+  1:
+    required: 75
+    display_name: '&2Kaktus I'
+  2:
+    required: 1000
+    display_name: '&2Kaktus II'
+  3:
+    required: 5000
+    display_name: '&2Kaktus III'
+  4:
+    required: 25000
+    display_name: '&2Kaktus IV'
+  5:
+    required: 50000
+    display_name: '&2Kaktus V'
+  6:
+    required: 250000
+    display_name: '&2Kaktus VI'
+  7:
+    required: 500000
+    display_name: '&2Kaktus VII'
+reward_claim_mode: AUTO
+placeholder:
+  progress_bar:
+    length: 20
+    filled_char: ■
+    empty_char: □

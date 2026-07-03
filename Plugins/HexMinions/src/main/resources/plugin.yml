@@ -1,5 +1,5 @@
 name: HexMinions
-version: 1.0.0
+version: 1.0.1
 main: hex.minions.HexMinionsPlugin
 api-version: "1.21"
 

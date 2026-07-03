@@ -35,6 +35,10 @@ public interface MinionsApi {
 
     Optional<MinionMenuData> menuDataByIndex(Player viewer, int index);
 
+    Optional<ItemStack> menuIcon(Player viewer, UUID minionId);
+
+    Optional<ItemStack> menuIconByIndex(Player viewer, int index);
+
     Optional<MinionMenuData> selectedMenuData(Player viewer);
 
     void registerListener(MinionsListener listener);

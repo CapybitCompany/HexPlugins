@@ -57,18 +57,11 @@ public final class TownHeartItem {
             // Paper/Bukkit versions differ slightly; duplicate registration is harmlessly guarded below.
         }
         ShapedRecipe recipe = new ShapedRecipe(recipeKey, create(1));
-        recipe.shape("IZI", "MDM", "CCC");
-        recipe.setIngredient('I', Material.IRON_INGOT);
-        recipe.setIngredient('Z', Material.GOLD_INGOT);
-        recipe.setIngredient('D', Material.DIAMOND);
-        recipe.setIngredient('C', Material.COBBLESTONE);
-        recipe.setIngredient('M', new RecipeChoice.MaterialChoice(
-                Material.BEEF, Material.COOKED_BEEF,
-                Material.PORKCHOP, Material.COOKED_PORKCHOP,
-                Material.CHICKEN, Material.COOKED_CHICKEN,
-                Material.MUTTON, Material.COOKED_MUTTON,
-                Material.RABBIT, Material.COOKED_RABBIT
-        ));
+        recipe.shape("RCR", "CCC", "RCR");
+        recipe.setIngredient('R', Material.RED_DYE);
+        // Bukkitowe shaped recipe nie obsługuje realnego pobierania 32 sztuk z pojedynczej kratki
+        // bez własnego listenera craftingu, ale ExactChoice dokumentuje wymaganą intencję receptury.
+        recipe.setIngredient('C', new RecipeChoice.ExactChoice(new ItemStack(Material.COBBLESTONE, 32)));
         plugin.getServer().addRecipe(recipe);
     }
 }

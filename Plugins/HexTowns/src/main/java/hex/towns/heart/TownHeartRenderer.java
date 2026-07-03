@@ -41,7 +41,6 @@ public final class TownHeartRenderer {
     private final NamespacedKey townIdKey;
     private final NamespacedKey partKey;
     private BukkitTask pulseTask;
-    private boolean pulse;
 
     public TownHeartRenderer(Plugin plugin) {
         this.plugin = plugin;
@@ -51,25 +50,55 @@ public final class TownHeartRenderer {
 
     public void startPulse() {
         stopPulse();
+        final int[] phase = {0};
         pulseTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            pulse = !pulse;
-            float factor = pulse ? 1.085f : 0.965f;
-            float veinFactor = pulse ? 1.12f : 0.94f;
-            for (World world : Bukkit.getWorlds()) {
-                for (Entity entity : world.getEntities()) {
-                    if (!(entity instanceof BlockDisplay display)) continue;
-                    if (!display.getPersistentDataContainer().has(townIdKey, PersistentDataType.STRING)) continue;
-                    String partId = display.getPersistentDataContainer().get(partKey, PersistentDataType.STRING);
-                    Vector3f base = baseScale(partId);
-                    if (base == null) continue;
-                    float localFactor = isVeinPart(partId) ? veinFactor : factor;
-                    display.setInterpolationDelay(0);
-                    display.setInterpolationDuration(14);
-                    display.setTransformation(new Transformation(new Vector3f(0, 0, 0), NO_ROTATION,
-                            new Vector3f(base.x * localFactor, base.y * localFactor, base.z * localFactor), NO_ROTATION));
+            switch (phase[0]) {
+                // Pierwsze uderzenie: lewa górna komora mocno, lewa dolna subtelniej.
+                case 0 -> {
+                    applyBeat(BeatGroup.UPPER_LEFT, 0.70f, 4);
+                    applyBeat(BeatGroup.LOWER_LEFT, 0.85f, 4);
+                }
+                case 4 -> {
+                    applyBeat(BeatGroup.UPPER_LEFT, 1.00f, 4);
+                    applyBeat(BeatGroup.LOWER_LEFT, 1.00f, 4);
+                }
+                // 0.1 s przerwy, potem drugie uderzenie: prawa dolna mocno, prawa górna subtelniej.
+                case 10 -> {
+                    applyBeat(BeatGroup.LOWER_RIGHT, 0.70f, 4);
+                    applyBeat(BeatGroup.UPPER_RIGHT, 0.85f, 4);
+                }
+                case 14 -> {
+                    applyBeat(BeatGroup.LOWER_RIGHT, 1.00f, 4);
+                    applyBeat(BeatGroup.UPPER_RIGHT, 1.00f, 4);
+                }
+                default -> {
+                    // Reszta cyklu to pauza imitująca chwilę spoczynku serca.
+                    // Nie robimy dodatkowego globalnego resetu, bo wyglądał jak trzecie, jednoczesne uderzenie.
                 }
             }
-        }, 20L, 14L);
+            phase[0] = (phase[0] + 1) % 38;
+        }, 20L, 1L);
+    }
+
+    private void applyBeat(BeatGroup group, float factor, int durationTicks) {
+        for (World world : Bukkit.getWorlds()) {
+            for (Entity entity : world.getEntities()) {
+                if (!(entity instanceof BlockDisplay display)) continue;
+                if (!display.getPersistentDataContainer().has(townIdKey, PersistentDataType.STRING)) continue;
+                String partId = display.getPersistentDataContainer().get(partKey, PersistentDataType.STRING);
+                if (beatGroup(partId) != group) continue;
+                applyScale(display, partId, factor, durationTicks);
+            }
+        }
+    }
+
+    private void applyScale(BlockDisplay display, String partId, float factor, int durationTicks) {
+        Vector3f base = baseScale(partId);
+        if (base == null) return;
+        display.setInterpolationDelay(0);
+        display.setInterpolationDuration(Math.max(1, durationTicks));
+        display.setTransformation(new Transformation(new Vector3f(0, 0, 0), NO_ROTATION,
+                new Vector3f(base.x * factor, base.y * factor, base.z * factor), NO_ROTATION));
     }
 
     public void stopPulse() {
@@ -162,8 +191,17 @@ public final class TownHeartRenderer {
         return null;
     }
 
-    private boolean isVeinPart(String id) {
-        return id != null && id.startsWith("vein_");
+    private BeatGroup beatGroup(String id) {
+        if (id == null) return BeatGroup.NONE;
+        for (Piece piece : pieces()) {
+            if (!piece.id().equals(id)) continue;
+            if (piece.dx() < 0.0D && piece.dy() >= 0.0D) return BeatGroup.UPPER_LEFT;
+            if (piece.dx() < 0.0D && piece.dy() < 0.0D) return BeatGroup.LOWER_LEFT;
+            if (piece.dx() >= 0.0D && piece.dy() <= 0.05D) return BeatGroup.LOWER_RIGHT;
+            if (piece.dx() >= 0.0D && piece.dy() > 0.05D) return BeatGroup.UPPER_RIGHT;
+            return BeatGroup.NONE;
+        }
+        return BeatGroup.NONE;
     }
 
     private static List<Piece> pieces() {
@@ -206,6 +244,8 @@ public final class TownHeartRenderer {
                 new Piece("vein_lower", "vein", veinDark, 0.02, -0.48, -0.31, 0.08f, 0.28f, 0.08f)
         );
     }
+
+    private enum BeatGroup { UPPER_LEFT, LOWER_LEFT, LOWER_RIGHT, UPPER_RIGHT, NONE }
 
     private record Piece(String id, String part, BlockData data, double dx, double dy, double dz, float sx, float sy, float sz) {}
 }

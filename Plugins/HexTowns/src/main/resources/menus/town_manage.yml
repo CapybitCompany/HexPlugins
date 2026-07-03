@@ -98,7 +98,7 @@ items:
     lore:
       - '&7Bruk: &f%hexcollections_level_mining_cobblestone%&7/7'
       - '&7Iron: &f%hexcollections_level_mining_iron%&7/7'
-      - '&7Dirt: &f%hexcollections_level_mining_dirt%&7/3'
+      - '&7Dirt: &f%hexcollections_level_mining_dirt%&7/7'
       - ''
       - '&eKliknij, aby otworzyć.'
     left_click_commands:
@@ -116,21 +116,21 @@ items:
     left_click_commands:
       - '[openguimenu] town_minions'
 
-  growth:
-    material: EXPERIENCE_BOTTLE
+  visual_check:
+    material: LIME_STAINED_GLASS
     slot: 25
-    display_name: '&aPunkty rozwoju'
+    display_name: '&aPodgląd granic'
     lore:
-      - '&7Aktualnie: &a%hextowns_growth% GP'
-      - '&7Claim nowego chunka kosztuje: &f%hextowns_claim_cost_growth% GP'
+      - '&7Przełącza wizualizację granic miasta.'
+      - '&7Ułatwia sprawdzenie zajętego terenu.'
       - ''
-      - '&eKliknij: /town growth'
+      - '&eKliknij: /town check'
     left_click_commands:
-      - '[player] town growth'
+      - '[player] town check'
 
   danger_owner:
     material: TNT
-    slot: 31
+    slot: 53
     priority: 2
     display_name: '&cStrefa ryzyka'
     lore:
@@ -149,7 +149,7 @@ items:
 
   danger_coop:
     material: RED_BED
-    slot: 31
+    slot: 53
     priority: 1
     display_name: '&cOpuść COOP'
     lore:

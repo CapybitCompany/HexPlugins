@@ -19,6 +19,7 @@ public record MinionAdvancementDefinition(
         boolean announceToChat,
         boolean hidden,
         int growthPoints,
+        int minionLimitBonus,
         MinionAdvancementRequirement requirement
 ) {
     public static MinionAdvancementDefinition fromConfig(String id, ConfigurationSection section) {
@@ -40,6 +41,7 @@ public record MinionAdvancementDefinition(
                 section.getBoolean("announce-to-chat", false),
                 section.getBoolean("hidden", false),
                 Math.max(0, section.getInt("growth-points", section.getInt("growth-reward", 0))),
+                Math.max(0, section.getInt("minion-limit-bonus", section.getInt("limit-bonus", section.getInt("minion-slots", 0)))),
                 MinionAdvancementRequirement.fromConfig(section.getConfigurationSection("requirement"))
         );
     }

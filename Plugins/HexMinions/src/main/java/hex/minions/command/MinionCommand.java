@@ -68,7 +68,7 @@ public final class MinionCommand implements CommandExecutor, TabCompleter {
 
     private void give(CommandSender sender, String[] args) {
         if (!sender.hasPermission("hexminions.admin")) { hex.ui().send(sender, "minions.error.no-permission"); return; }
-        if (args.length < 3) { sender.sendMessage("/minion give <player> <type> [tier] [amount]"); return; }
+        if (args.length < 3) { hex.ui().send(sender, "minions.usage.give"); return; }
         Player target = Bukkit.getPlayer(args[1]);
         if (target == null) { hex.ui().send(sender, "minions.error.player-not-found", UiTokens.of("player", args[1])); return; }
         MinionTypeDefinition type = service.definitions().minionTypes().get(args[2]);
@@ -85,13 +85,13 @@ public final class MinionCommand implements CommandExecutor, TabCompleter {
         TownMinionMenuData data = service.townData(player);
         hex.ui().send(player, "minions.list.header", UiTokens.of("count", String.valueOf(data.minionCount())).put("limit", String.valueOf(data.minionLimit())));
         for (MinionMenuData minion : data.minions()) {
-            hex.ui().send(player, "minions.list.line", UiTokens.of("id", minion.shortId()).put("name", minion.displayName()).put("tier", String.valueOf(minion.tier())).put("location", minion.world() + " " + minion.x() + "," + minion.y() + "," + minion.z()));
+            hex.ui().send(player, "minions.list.line", UiTokens.of("id", minion.shortId()).put("name", readableName(minion.displayName())).put("tier", String.valueOf(minion.tier())).put("location", minion.world() + " " + minion.x() + "," + minion.y() + "," + minion.z()));
         }
     }
 
     private void playerAction(CommandSender sender, String[] args, String action) {
         if (!(sender instanceof Player player)) { hex.ui().send(sender, "minions.error.player-only"); return; }
-        if (args.length < 2) { sender.sendMessage("/minion " + action + " <id>"); return; }
+        if (args.length < 2) { hex.ui().send(sender, "minions.usage.player-action", UiTokens.of("action", action)); return; }
         UUID id = parseUuid(args[1]);
         if (id == null) { hex.ui().send(sender, "minions.error.bad-id"); return; }
         CompletableFuture<OperationResult> future = action.equals("move") ? service.move(player, id, player.getLocation()) : service.pickup(player, id);
@@ -100,7 +100,7 @@ public final class MinionCommand implements CommandExecutor, TabCompleter {
 
     private void action(CommandSender sender, String[] args) {
         if (!(sender instanceof Player player)) { hex.ui().send(sender, "minions.error.player-only"); return; }
-        if (args.length < 3) { sender.sendMessage("/minion action <collect|upgrade|pickup|move|open> <id>"); return; }
+        if (args.length < 3) { hex.ui().send(sender, "minions.usage.action"); return; }
         UUID id = parseUuid(args[2]);
         if (id == null) { hex.ui().send(sender, "minions.error.bad-id"); return; }
         CompletableFuture<OperationResult> future = switch (args[1].toLowerCase()) {
@@ -116,7 +116,7 @@ public final class MinionCommand implements CommandExecutor, TabCompleter {
 
     private void select(CommandSender sender, String[] args) {
         if (!(sender instanceof Player player)) { hex.ui().send(sender, "minions.error.player-only"); return; }
-        if (args.length < 2) { sender.sendMessage("/minion select <id>"); return; }
+        if (args.length < 2) { hex.ui().send(sender, "minions.usage.select"); return; }
         UUID id = parseUuid(args[1]);
         if (id == null) { hex.ui().send(sender, "minions.error.bad-id"); return; }
         menu.open(player, id);
@@ -148,27 +148,31 @@ public final class MinionCommand implements CommandExecutor, TabCompleter {
     private void admin(CommandSender sender, String[] args) {
         if (!sender.hasPermission("hexminions.admin")) { hex.ui().send(sender, "minions.error.no-permission"); return; }
         if (args.length >= 2 && args[1].equalsIgnoreCase("metrics")) {
-            sender.sendMessage("§aHexMinions metrics: basic MVP online.");
+            hex.ui().send(sender, "minions.admin.metrics");
             return;
         }
         if (args.length >= 2 && (args[1].equalsIgnoreCase("addlimit") || args[1].equalsIgnoreCase("addminionlimit") || args[1].equalsIgnoreCase("addslots"))) {
             adminAddLimit(sender, args);
             return;
         }
-        sender.sendMessage("/minion admin addlimit <uuid-miasta|nazwa-miasta> <bonus> [źródło]");
-        sender.sendMessage("/minion admin metrics");
+        hex.ui().send(sender, "minions.admin.usage");
     }
 
     private void adminAddLimit(CommandSender sender, String[] args) {
-        if (args.length < 4) { sender.sendMessage("§cUżycie: /minion admin addlimit <uuid-miasta|nazwa-miasta> <bonus> [źródło]"); return; }
+        if (args.length < 4) { hex.ui().send(sender, "minions.admin.addlimit.usage"); return; }
         UUID townId = resolveTownId(args[2]);
-        if (townId == null) { sender.sendMessage("§cNie znaleziono miasta: §f" + args[2]); return; }
+        if (townId == null) { hex.ui().send(sender, "minions.admin.addlimit.town-not-found", UiTokens.of("town", args[2])); return; }
         int delta = parseInt(args[3], 0);
-        if (delta == 0) { sender.sendMessage("§cBonus musi być liczbą różną od 0."); return; }
+        if (delta == 0) { hex.ui().send(sender, "minions.admin.addlimit.zero"); return; }
         String source = args.length >= 5 ? args[4] : "console";
         service.addMinionLimitBonus(townId, delta, source);
         int max = service.maxMinions(townId);
-        sender.sendMessage("§aDodano bonus limitu minionów §f" + delta + "§a dla miasta §e" + townId + "§a. Aktualny limit: §f" + max + "§a. Źródło: §7" + source + "§a.");
+        hex.ui().send(sender, "minions.admin.addlimit.success", UiTokens.of("delta", String.valueOf(delta)).put("town", townId.toString()).put("max", String.valueOf(max)).put("source", source));
+    }
+
+    private String readableName(String raw) {
+        if (raw == null || raw.isBlank()) return "";
+        return raw.replaceAll("<[^>]+>", "");
     }
 
     private UUID resolveTownId(String raw) {

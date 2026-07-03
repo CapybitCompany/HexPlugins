@@ -135,7 +135,7 @@ public final class DefinitionLoader {
                     resource.compressedMaterial(),
                     0,
                     resource.collectionId(),
-                    resource.worth() * 128.0D,
+                    resource.worth() * 160.0D,
                     64,
                     List.of("compressed", "special"),
                     false,
@@ -191,11 +191,11 @@ public final class DefinitionLoader {
                     ConfigurationSection ts = tiersSection.getConfigurationSection(key);
                     if (ts == null) continue;
                     UpgradeRequirements requirements = loadUpgradeRequirements(ts);
-                    tiers.put(tier, new TierDefinition(tier, ts.getInt("action-time-seconds", 15), ts.getInt("storage", 64), Math.max(1, Math.min(9, ts.getInt("storage-slots", Math.min(9, tier)))), requirements));
+                    tiers.put(tier, new TierDefinition(tier, ts.getDouble("action-time-seconds", 15.0D), ts.getInt("storage", 64), Math.max(1, Math.min(9, ts.getInt("storage-slots", Math.min(9, tier)))), requirements));
                 }
             }
             if (!tiers.containsKey(1)) {
-                tiers.put(1, new TierDefinition(1, 15, 64, 1, UpgradeRequirements.empty()));
+                tiers.put(1, new TierDefinition(1, 15.0D, 64, 1, UpgradeRequirements.empty()));
             }
             List<String> wikiSpecialItems = new ArrayList<>(s.getStringList("wiki.special-items"));
             if (s.getBoolean("wiki.auto-compressed-resources", true)) {

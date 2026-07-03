@@ -1,51 +1,65 @@
-id: "animals.mutton"
-aliases: ["animals_mutton", "mutton", "baranina", "mięso_owcy", "mieso_owcy"]
+id: animals.mutton
+aliases:
+- animals_mutton
+- mutton
+- baranina
+- mięso_owcy
+- mieso_owcy
 enabled: true
-
 display:
-  name: "&fMięso owcy"
-  category: "animals"
+  name: '&fMięso owcy'
+  category: animals
   menu_slot: 58
   icon:
     material: MUTTON
-
 tracked_items:
   base:
     material: MUTTON
     amount_value: 1
-
-valid_sources: [MINION_COLLECT, CUSTOM_PLUGIN_GRANTED]
-
+valid_sources:
+- MINION_COLLECT
+- CUSTOM_PLUGIN_GRANTED
 sources:
-  - trigger: minions.resource.generated
-    amount-from: amount
-    filters:
-      collectionId: animals.mutton
-      resourceId: mutton
-  - trigger: minions.resource.claimed
-    amount-from: amount
-    filters:
-      collectionId: animals.mutton
-      resourceId: mutton
-
+- trigger: minions.resource.generated
+  amount-from: amount
+  filters:
+    collectionId: animals.mutton
+    resourceId: mutton
+- trigger: minions.resource.claimed
+  amount-from: amount
+  filters:
+    collectionId: animals.mutton
+    resourceId: mutton
 source_rules:
   MINION_COLLECT:
     allow_in_town_claims: true
   CUSTOM_PLUGIN_GRANTED:
     allow_in_town_claims: true
-
 levels:
-  1: {required: 50, display_name: "&fMięso owcy I"}
-  2: {required: 250, display_name: "&fMięso owcy II"}
-  3: {required: 1000, display_name: "&fMięso owcy III"}
-  4: {required: 2500, display_name: "&fMięso owcy IV"}
-  5: {required: 7500, display_name: "&fMięso owcy V"}
-  6: {required: 15000, display_name: "&fMięso owcy VI"}
-  7: {required: 30000, display_name: "&fMięso owcy VII"}
-
+  1:
+    required: 3
+    display_name: '&fMięso owcy I'
+  2:
+    required: 50
+    display_name: '&fMięso owcy II'
+  3:
+    required: 200
+    display_name: '&fMięso owcy III'
+  4:
+    required: 1000
+    display_name: '&fMięso owcy IV'
+  5:
+    required: 2500
+    display_name: '&fMięso owcy V'
+  6:
+    required: 10000
+    display_name: '&fMięso owcy VI'
+  7:
+    required: 25000
+    display_name: '&fMięso owcy VII'
 reward_claim_mode: AUTO
 placeholder:
   progress_bar:
     length: 20
-    filled_char: "■"
-    empty_char: "□"
+    filled_char: ■
+    empty_char: □

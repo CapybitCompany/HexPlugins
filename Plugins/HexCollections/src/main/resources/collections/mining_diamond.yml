@@ -49,25 +49,25 @@ source_rules:
     allow_in_town_claims: true
 levels:
   1:
-    required: 100
+    required: 25
     display_name: '&bDiament I'
   2:
     required: 500
     display_name: '&bDiament II'
   3:
-    required: 1500
+    required: 2500
     display_name: '&bDiament III'
   4:
-    required: 3000
+    required: 10000
     display_name: '&bDiament IV'
   5:
-    required: 7500
+    required: 25000
     display_name: '&bDiament V'
   6:
-    required: 15000
+    required: 100000
     display_name: '&bDiament VI'
   7:
-    required: 30000
+    required: 250000
     display_name: '&bDiament VII'
 reward_claim_mode: AUTO
 placeholder:

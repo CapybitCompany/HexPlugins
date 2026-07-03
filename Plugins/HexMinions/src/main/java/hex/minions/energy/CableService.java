@@ -1,6 +1,7 @@
 package hex.minions.energy;
 
 import hex.core.api.HexApi;
+import hex.core.api.ui.UiTokens;
 import hex.minions.machine.MachineDefinition;
 import hex.minions.machine.MachineRuntime;
 import hex.minions.machine.MachineService;
@@ -8,7 +9,6 @@ import hex.minions.service.MinionService;
 import hex.towns.api.TownsApi;
 import org.bukkit.Axis;
 import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -27,11 +27,17 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockFormEvent;
+import org.bukkit.event.block.BlockGrowEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.block.BlockSpreadEvent;
+import org.bukkit.event.block.EntityBlockFormEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
+import org.bukkit.event.world.StructureGrowEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.block.BlockState;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.util.Transformation;
@@ -41,6 +47,7 @@ import org.joml.Vector3f;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -96,6 +103,12 @@ public final class CableService implements Listener {
         routeCacheByProducer.clear();
     }
 
+    public void refreshVisuals() {
+        routeCacheByProducer.clear();
+        if (!dbReady) return;
+        refreshLoadedDisplays();
+    }
+
 
     public void shutdown() {
         writeQueue.flushAsync();
@@ -103,9 +116,9 @@ public final class CableService implements Listener {
     }
 
     private void loadConfig() {
-        configs.put(CableType.COPPER, new CableTypeConfig("Miedziany Kabel", 3, 0.25, 32, Material.COPPER_BLOCK, 0.12, 32f));
-        configs.put(CableType.GOLD, new CableTypeConfig("Złoty Kabel", 10, 0.15, 96, Material.GOLD_BLOCK, 0.12, 32f));
-        configs.put(CableType.GLASS, new CableTypeConfig("Szklany Kabel", 25, 0.05, 256, Material.LIGHT_BLUE_STAINED_GLASS, 0.10, 48f));
+        configs.put(CableType.COPPER, new CableTypeConfig("Miedziany Kabel", 2, 0.25, 32, Material.COPPER_BLOCK, 0.12, 32f));
+        configs.put(CableType.GOLD, new CableTypeConfig("Złoty Kabel", 5, 0.15, 96, Material.GOLD_BLOCK, 0.12, 32f));
+        configs.put(CableType.GLASS, new CableTypeConfig("Szklany Kabel", 10, 0.05, 256, Material.LIGHT_BLUE_STAINED_GLASS, 0.10, 48f));
         ConfigurationSection root = cablesSection();
         if (root == null) return;
         for (CableType type : CableType.values()) {
@@ -180,33 +193,33 @@ public final class CableService implements Listener {
         if (type == null) return;
         event.setCancelled(true);
         if (!dbReady) {
-            event.getPlayer().sendMessage("§cSystem kabli jeszcze się ładuje. Spróbuj ponownie za chwilę.");
+            hex.ui().send(event.getPlayer(), "minions.cable.loading");
             return;
         }
         Player player = event.getPlayer();
         Block startBlock = event.getBlockPlaced();
         Placement placement = resolvePlacement(player, startBlock, type);
         if (placement == null) {
-            player.sendMessage("§cKabel musi być prostym odcinkiem i dotykać portu maszyny albo końca kabla.");
+            hex.ui().send(player, "minions.cable.invalid-shape");
             return;
         }
-        String error = validateSegment(placement.start(), placement.end(), type);
+        String error = validateSegment(placement.start(), placement.end(), type, event.getBlockPlaced(), event.getBlockReplacedState().getType());
         if (error != null) {
-            player.sendMessage("§c" + error);
+            hex.ui().send(player, "minions.cable.validation-error", UiTokens.of("error", error));
             return;
         }
         if (towns.townAt(startBlock.getLocation()).filter(t -> towns.isMember(player.getUniqueId(), t.id())).isEmpty()) {
-            player.sendMessage("§cKable możesz stawiać tylko w swoim mieście.");
+            hex.ui().send(player, "minions.cable.place.not-town");
             return;
         }
-        CableSegment segment = createSegment(placement.start(), placement.end(), type);
+        CableSegment segment = createSegment(placement.start(), placement.end(), placement.axis(), type);
         addSegmentToMemory(segment);
         consumeOne(player, event.getItemInHand());
         routeCacheByProducer.clear();
-        spawnDisplayIfLoaded(segment);
+        refreshLoadedDisplays();
         writeQueue.enqueueInsertCable(segment);
         writeQueue.flushAsync();
-        player.sendMessage("§aPołożono " + configs.get(type).displayName() + " §7(" + segment.length() + "m). §8Kabel jest pasywnym segmentem sieci EU.");
+        hex.ui().send(player, "minions.cable.place.success", UiTokens.of("cable", configs.get(type).displayName()).put("length", String.valueOf(segment.length())));
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -214,23 +227,89 @@ public final class CableService implements Listener {
         BlockPos pos = BlockPos.of(event.getBlock());
         UUID id = occupancyByBlock.get(pos);
         if (id == null) return;
+        CableSegment segment = segmentsById.get(id);
+        if (segment == null) return;
         event.setCancelled(true);
+        if (!canModifyCable(event.getPlayer(), segment)) {
+            hex.ui().send(event.getPlayer(), "minions.cable.remove.not-town");
+            return;
+        }
         removeCable(id, true, event.getPlayer());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
     public void onUseCable(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.LEFT_CLICK_AIR) return;
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK
+                && event.getAction() != Action.RIGHT_CLICK_AIR
+                && event.getAction() != Action.LEFT_CLICK_BLOCK
+                && event.getAction() != Action.LEFT_CLICK_AIR) return;
         UUID id = null;
         if (event.getClickedBlock() != null) id = occupancyByBlock.get(BlockPos.of(event.getClickedBlock()));
-        if (id == null) id = findCableInSight(event.getPlayer(), 6.0);
+        if (id == null) id = findCableInSight(event.getPlayer(), 7.0);
         if (id == null) return;
         event.setCancelled(true);
         CableSegment segment = segmentsById.get(id);
         if (segment == null) return;
+
+        boolean leftClick = event.getAction() == Action.LEFT_CLICK_BLOCK || event.getAction() == Action.LEFT_CLICK_AIR;
+        if (leftClick) {
+            if (!canModifyCable(event.getPlayer(), segment)) {
+                hex.ui().send(event.getPlayer(), "minions.cable.remove.not-town");
+                return;
+            }
+            removeCable(segment.id(), true, event.getPlayer());
+            return;
+        }
+
         CableTypeConfig cfg = configs.get(segment.type());
-        event.getPlayer().sendMessage("§7Kabel: §f" + cfg.displayName() + " §8| §7długość: §f" + segment.length() + "m §8| §7limit: §f" + cfg.maxEuPerSecond() + " EU/s §8| §7strata: §f" + cfg.lossEuPerMeter() + " EU/m");
-        if (event.getPlayer().isSneaking()) removeCable(segment.id(), true, event.getPlayer());
+        hex.ui().send(event.getPlayer(), "minions.cable.info", UiTokens.of("cable", cfg.displayName()).put("length", String.valueOf(segment.length())).put("limit", String.valueOf(cfg.maxEuPerSecond())).put("loss", String.valueOf(cfg.lossEuPerMeter())));
+        if (event.getPlayer().isSneaking()) {
+            if (!canModifyCable(event.getPlayer(), segment)) {
+                hex.ui().send(event.getPlayer(), "minions.cable.remove.not-town");
+                return;
+            }
+            removeCable(segment.id(), true, event.getPlayer());
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onBlockPlacedThroughCable(BlockPlaceEvent event) {
+        if (event == null || event.getBlockPlaced() == null) return;
+        removeCablesObstructedBy(List.of(event.getBlockPlaced()));
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onBlockGrowThroughCable(BlockGrowEvent event) {
+        if (event == null || event.getBlock() == null) return;
+        removeCablesObstructedBy(List.of(event.getBlock()));
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onBlockSpreadThroughCable(BlockSpreadEvent event) {
+        if (event == null || event.getBlock() == null) return;
+        removeCablesObstructedBy(List.of(event.getBlock()));
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onBlockFormThroughCable(BlockFormEvent event) {
+        if (event == null || event.getBlock() == null) return;
+        removeCablesObstructedBy(List.of(event.getBlock()));
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onEntityBlockFormThroughCable(EntityBlockFormEvent event) {
+        if (event == null || event.getBlock() == null) return;
+        removeCablesObstructedBy(List.of(event.getBlock()));
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onStructureGrowThroughCable(StructureGrowEvent event) {
+        if (event == null || event.getBlocks().isEmpty()) return;
+        List<Block> blocks = new ArrayList<>();
+        for (BlockState state : event.getBlocks()) {
+            if (state != null && state.getBlock() != null) blocks.add(state.getBlock());
+        }
+        removeCablesObstructedBy(blocks);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -240,10 +319,7 @@ public final class CableService implements Listener {
             long chunkKey = CableSegment.chunkKey(event.getChunk().getX(), event.getChunk().getZ());
             Set<UUID> ids = segmentsByChunk.get(chunkKey);
             if (ids == null || ids.isEmpty()) return;
-            for (UUID id : ids) {
-                CableSegment segment = segmentsById.get(id);
-                if (segment != null) spawnDisplayIfLoaded(segment);
-            }
+            refreshLoadedDisplays();
         });
     }
 
@@ -256,11 +332,21 @@ public final class CableService implements Listener {
         for (UUID id : ids) cleanupDisplay(id);
     }
 
+
+    private boolean canModifyCable(Player player, CableSegment segment) {
+        if (player == null || segment == null) return false;
+        if (player.isOp() || player.hasPermission("hexminions.cables.admin")) return true;
+        World world = Bukkit.getWorld(segment.world());
+        if (world == null) return false;
+        Location start = segment.start().block(world).getLocation();
+        return towns.townAt(start).filter(town -> towns.isMember(player.getUniqueId(), town.id())).isPresent();
+    }
+
     private UUID findCableInSight(Player player, double maxDistance) {
         if (player == null || player.getWorld() == null) return null;
         Location eye = player.getEyeLocation();
         org.bukkit.util.Vector dir = eye.getDirection().normalize();
-        for (double d = 0.0; d <= maxDistance; d += 0.20) {
+        for (double d = 0.0; d <= maxDistance; d += 0.10) {
             Location point = eye.clone().add(dir.clone().multiply(d));
             UUID id = occupancyByBlock.get(BlockPos.of(point));
             if (id != null) return id;
@@ -269,19 +355,90 @@ public final class CableService implements Listener {
     }
 
     private Placement resolvePlacement(Player player, Block firstBlock, CableType type) {
-        BlockFace face = player.getFacing();
-        if (face == BlockFace.UP || face == BlockFace.DOWN) face = BlockFace.NORTH;
         CableTypeConfig cfg = configs.get(type);
-        BlockPos start = BlockPos.of(firstBlock);
-        BlockPos end = start;
-        for (int i = 1; i < cfg.maxSegmentLength(); i++) {
+        if (cfg == null || firstBlock == null) return null;
+        Placement fallback = null;
+        EnumSet<Axis> triedAxes = EnumSet.noneOf(Axis.class);
+        for (BlockFace face : placementDirections(player)) {
+            if (face == null || face == BlockFace.SELF) continue;
+            Axis axis = axis(face);
+            if (axis == null || !triedAxes.add(axis)) continue;
+            Placement placement = buildPlacement(firstBlock, face, cfg, axis);
+            if (placement == null) continue;
+            if (fallback == null) fallback = placement;
+            if (placementTouchesEndpoint(placement)) return placement;
+        }
+        return fallback;
+    }
+
+    private Placement buildPlacement(Block firstBlock, BlockFace preferredFace, CableTypeConfig cfg, Axis axis) {
+        BlockPos center = BlockPos.of(firstBlock);
+        int maxAdditional = Math.max(0, cfg.maxSegmentLength() - 1);
+        BlockPos forward = extendCable(firstBlock, preferredFace, center, maxAdditional);
+        int usedForward = distance(center, forward);
+        BlockPos backward = extendCable(firstBlock, preferredFace.getOppositeFace(), center, Math.max(0, maxAdditional - usedForward));
+        return new Placement(backward, forward, axis);
+    }
+
+    private BlockPos extendCable(Block firstBlock, BlockFace face, BlockPos center, int maxAdditional) {
+        BlockPos end = center;
+        for (int i = 1; i <= maxAdditional; i++) {
             Block next = firstBlock.getRelative(face, i);
             BlockPos np = BlockPos.of(next);
-            if (occupancyByBlock.containsKey(np) || machines.machineAt(next) != null) break;
+            if (occupancyByBlock.containsKey(np) || (machines != null && machines.machineAt(next) != null)) break;
+            if (!isClearCableRouteBlock(next, null, null)) break;
             end = np;
-            if (touchesEndpoint(end, previousOnLine(start, end))) break;
+            if (touchesAnyConnection(end, new HashSet<>(line(center, end)))) break;
         }
-        return new Placement(start, end);
+        return end;
+    }
+
+    private boolean placementTouchesEndpoint(Placement placement) {
+        if (placement == null) return false;
+        return lineTouchesConnection(placement.start(), placement.end());
+    }
+
+    private List<BlockFace> placementDirections(Player player) {
+        List<BlockFace> ordered = new ArrayList<>();
+        if (player != null) {
+            org.bukkit.util.Vector dir = player.getEyeLocation().getDirection();
+            double ax = Math.abs(dir.getX());
+            double ay = Math.abs(dir.getY());
+            double az = Math.abs(dir.getZ());
+            BlockFace horizontalPrimary;
+            BlockFace horizontalSecondary;
+            if (ax >= az) {
+                horizontalPrimary = dir.getX() >= 0 ? BlockFace.EAST : BlockFace.WEST;
+                horizontalSecondary = dir.getZ() >= 0 ? BlockFace.SOUTH : BlockFace.NORTH;
+            } else {
+                horizontalPrimary = dir.getZ() >= 0 ? BlockFace.SOUTH : BlockFace.NORTH;
+                horizontalSecondary = dir.getX() >= 0 ? BlockFace.EAST : BlockFace.WEST;
+            }
+            BlockFace verticalPrimary = dir.getY() >= 0 ? BlockFace.UP : BlockFace.DOWN;
+            if (ay > Math.max(ax, az) * 1.25) addDirection(ordered, verticalPrimary);
+            addDirection(ordered, horizontalPrimary);
+            addDirection(ordered, horizontalPrimary.getOppositeFace());
+            addDirection(ordered, horizontalSecondary);
+            addDirection(ordered, horizontalSecondary.getOppositeFace());
+            addDirection(ordered, verticalPrimary);
+            addDirection(ordered, verticalPrimary.getOppositeFace());
+            addDirection(ordered, player.getFacing());
+        }
+        for (BlockFace face : faces()) addDirection(ordered, face);
+        return ordered;
+    }
+
+    private void addDirection(List<BlockFace> ordered, BlockFace face) {
+        if (face == null || face == BlockFace.SELF || ordered.contains(face)) return;
+        ordered.add(face);
+    }
+
+    private Axis axis(BlockFace face) {
+        if (face == null) return null;
+        if (face == BlockFace.EAST || face == BlockFace.WEST) return Axis.X;
+        if (face == BlockFace.UP || face == BlockFace.DOWN) return Axis.Y;
+        if (face == BlockFace.NORTH || face == BlockFace.SOUTH) return Axis.Z;
+        return null;
     }
 
     private BlockPos previousOnLine(BlockPos start, BlockPos end) {
@@ -292,12 +449,24 @@ public final class CableService implements Listener {
         return new BlockPos(end.world(), end.x() - dx, end.y() - dy, end.z() - dz);
     }
 
-    private boolean touchesEndpoint(BlockPos pos, BlockPos ignoreNeighbor) {
+    private boolean lineTouchesConnection(BlockPos start, BlockPos end) {
+        return lineTouchesConnection(line(start, end));
+    }
+
+    private boolean lineTouchesConnection(List<BlockPos> proposedLine) {
+        Set<BlockPos> proposed = new HashSet<>(proposedLine);
+        for (BlockPos pos : proposedLine) {
+            if (touchesAnyConnection(pos, proposed)) return true;
+        }
+        return false;
+    }
+
+    private boolean touchesAnyConnection(BlockPos pos, Set<BlockPos> proposedLine) {
         World world = Bukkit.getWorld(pos.world());
         if (world == null || machines == null) return false;
         for (BlockFace face : faces()) {
             BlockPos n = pos.relative(face);
-            if (n.equals(ignoreNeighbor)) continue;
+            if (proposedLine != null && proposedLine.contains(n)) continue;
             if (occupancyByBlock.containsKey(n)) return true;
             Block block = n.block(world);
             MachineDefinition machine = machines.machineAt(block);
@@ -309,7 +478,7 @@ public final class CableService implements Listener {
         return false;
     }
 
-    private String validateSegment(BlockPos start, BlockPos end, CableType type) {
+    private String validateSegment(BlockPos start, BlockPos end, CableType type, Block placedBlock, Material replacedMaterial) {
         if (machines == null) return "System maszyn nie jest jeszcze gotowy.";
         if (!start.world().equals(end.world())) return "Kabel musi być w jednym świecie.";
         Axis axis = axis(start, end);
@@ -319,22 +488,27 @@ public final class CableService implements Listener {
         if (length > cfg.maxSegmentLength()) return "Ten kabel może mieć maksymalnie " + cfg.maxSegmentLength() + " bloki.";
         World world = Bukkit.getWorld(start.world());
         if (world == null) return "Nie znaleziono świata kabla.";
+        BlockPos placedPos = placedBlock == null ? null : BlockPos.of(placedBlock);
         List<BlockPos> proposedLine = line(start, end);
         for (BlockPos p : proposedLine) {
-            if (occupancyByBlock.containsKey(p)) return "Kable nie mogą się przecinać ani nachodzić na siebie.";
-            if (machines.machineAt(p.block(world)) != null) return "Kabel nie może przechodzić przez maszynę.";
-            if (degreeIfPlaced(p, start, end) > 2) return "Rozgałęzienie kabla wymaga Junction Box / rozdzielacza.";
+            if (occupancyByBlock.containsKey(p)) return "Kable nie mogą nachodzić na ten sam blok.";
+            Block block = p.block(world);
+            if (machines.machineAt(block) != null) return "Kabel nie może przechodzić przez maszynę.";
+            Material originalMaterial = p.equals(placedPos) ? replacedMaterial : null;
+            if (!isClearCableRouteBlock(block, placedPos, originalMaterial)) {
+                return "Na trasie kabla nie może stać żaden blok, roślina, woda ani inny obiekt.";
+            }
         }
-        BlockPos afterStart = proposedLine.size() > 1 ? proposedLine.get(1) : null;
-        BlockPos beforeEnd = proposedLine.size() > 1 ? proposedLine.get(proposedLine.size() - 2) : null;
-        if (!touchesEndpoint(start, afterStart) || !touchesEndpoint(end, beforeEnd)) {
-            return "Oba końce kabla muszą dotykać portu EU maszyny/generatora/akumulatora albo końca innego kabla.";
+        if (!lineTouchesConnection(proposedLine)) {
+            return "Kabel musi dotykać portu EU maszyny/generatora/akumulatora albo istniejącego kabla.";
         }
         return null;
     }
 
-    private CableSegment createSegment(BlockPos start, BlockPos end, CableType type) {
-        return new CableSegment(UUID.randomUUID(), start.world(), start, end, axis(start, end), type, distance(start, end) + 1);
+    private CableSegment createSegment(BlockPos start, BlockPos end, Axis placementAxis, CableType type) {
+        Axis segmentAxis = axis(start, end);
+        if (distance(start, end) == 0 && placementAxis != null) segmentAxis = placementAxis;
+        return new CableSegment(UUID.randomUUID(), start.world(), start, end, segmentAxis, type, distance(start, end) + 1);
     }
 
     private void addSegmentToMemory(CableSegment segment) {
@@ -344,29 +518,59 @@ public final class CableService implements Listener {
         routeCacheByProducer.clear();
     }
 
+    private void removeCablesObstructedBy(Iterable<Block> blocks) {
+        if (blocks == null || !dbReady) return;
+        Set<UUID> ids = new HashSet<>();
+        for (Block block : blocks) {
+            if (block == null || block.getType().isAir()) continue;
+            UUID id = occupancyByBlock.get(BlockPos.of(block));
+            if (id != null) ids.add(id);
+        }
+        if (!ids.isEmpty()) removeCables(ids, false, null);
+    }
+
+    private boolean isClearCableRouteBlock(Block block, BlockPos replacedPos, Material replacedMaterial) {
+        if (block == null) return false;
+        Material material = block.getType();
+        if (replacedPos != null && replacedPos.equals(BlockPos.of(block)) && replacedMaterial != null) material = replacedMaterial;
+        return material.isAir();
+    }
+
     private void removeCable(UUID id, boolean drop, Player player) {
-        CableSegment segment = segmentsById.remove(id);
-        if (segment == null) return;
-        for (BlockPos p : line(segment.start(), segment.end())) occupancyByBlock.remove(p);
-        for (long chunkKey : segment.chunkKeys()) {
-            Set<UUID> set = segmentsByChunk.get(chunkKey);
-            if (set != null) {
-                set.remove(segment.id());
-                if (set.isEmpty()) segmentsByChunk.remove(chunkKey);
+        if (id == null) return;
+        removeCables(Set.of(id), drop, player);
+    }
+
+    private void removeCables(Set<UUID> ids, boolean drop, Player player) {
+        if (ids == null || ids.isEmpty()) return;
+        boolean changed = false;
+        for (UUID id : new ArrayList<>(ids)) {
+            CableSegment segment = segmentsById.remove(id);
+            if (segment == null) continue;
+            changed = true;
+            for (BlockPos p : line(segment.start(), segment.end())) occupancyByBlock.remove(p);
+            for (long chunkKey : segment.chunkKeys()) {
+                Set<UUID> set = segmentsByChunk.get(chunkKey);
+                if (set != null) {
+                    set.remove(segment.id());
+                    if (set.isEmpty()) segmentsByChunk.remove(chunkKey);
+                }
+            }
+            cleanupDisplay(segment.id());
+            writeQueue.enqueueDeleteCable(segment.id());
+            if (drop) {
+                World world = Bukkit.getWorld(segment.world());
+                if (world != null) {
+                    ItemStack item = minions.specialItems().createItem(specialItemId(segment.type()), 1);
+                    world.dropItemNaturally(segment.start().block(world).getLocation().add(0.5, 0.5, 0.5), item);
+                }
             }
         }
-        cleanupDisplay(segment.id());
+        if (!changed) return;
         routeCacheByProducer.clear();
-        writeQueue.enqueueDeleteCable(segment.id());
+        refreshLoadedDisplays();
         writeQueue.flushAsync();
-        if (drop) {
-            World world = Bukkit.getWorld(segment.world());
-            if (world != null) {
-                ItemStack item = minions.specialItems().createItem(specialItemId(segment.type()), 1);
-                world.dropItemNaturally(segment.start().block(world).getLocation().add(0.5, 0.5, 0.5), item);
-            }
-        }
-        if (player != null) player.sendMessage("§eUsunięto cały segment kabla, nie pojedynczy metr.");
+        if (player != null) hex.ui().send(player, "minions.cable.remove.success");
     }
 
     public int transferFromGenerator(Block generatorBlock, MachineDefinition generator, MachineRuntime generatorRuntime) {
@@ -469,8 +673,11 @@ public final class CableService implements Listener {
 
     private List<BlockFace> inputFaces(Block block, MachineDefinition machine) {
         if ("ACCUMULATOR".equalsIgnoreCase(machine.type())) return List.of(machines.accumulatorInputFace(block));
-        if ("ELECTRIC_MILL".equalsIgnoreCase(machine.type())) return List.of(machines.facing(block).getOppositeFace(), BlockFace.DOWN);
-        return List.of(machines.facing(block).getOppositeFace());
+        if ("MACERATOR".equalsIgnoreCase(machine.type())) {
+            return List.of(BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST, BlockFace.DOWN);
+        }
+        // Domyślne urządzenia pobierające EU przyjmują prąd z tyłu, lewej, prawej i od dołu.
+        return List.of(machines.facing(block).getOppositeFace(), machines.leftOf(block), machines.rightOf(block), BlockFace.DOWN);
     }
 
     private int degreeIfPlaced(BlockPos p, BlockPos start, BlockPos end) {
@@ -515,6 +722,11 @@ public final class CableService implements Listener {
         displayedSegments.add(segment.id());
     }
 
+    private void refreshLoadedDisplays() {
+        cleanupAllDisplays();
+        respawnLoadedDisplays();
+    }
+
     private void respawnLoadedDisplays() {
         for (CableSegment segment : segmentsById.values()) spawnDisplayIfLoaded(segment);
     }
@@ -527,6 +739,9 @@ public final class CableService implements Listener {
             case GOLD -> spawnWrappedMetalCable(segment, Material.YELLOW_CONCRETE, cfg.viewRange());
             case GLASS -> spawnCablePart(segment, Material.GLASS, 0.30f, 0.30f, 0.0f, 0.0f, cfg.viewRange());
         }
+        spawnCableConnectors(segment, cfg);
+        spawnCableConnectionArms(segment, cfg);
+        spawnCablePortArms(segment, cfg);
     }
 
     private void spawnWrappedMetalCable(CableSegment segment, Material coreMaterial, float viewRange) {
@@ -542,7 +757,10 @@ public final class CableService implements Listener {
     private void spawnCablePart(CableSegment segment, Material material, float crossA, float crossB, float offsetA, float offsetB, float viewRange) {
         World world = Bukkit.getWorld(segment.world());
         if (world == null || material == null) return;
-        Location base = segment.start().block(world).getLocation().add(0.5, 0.5, 0.5);
+        int minX = Math.min(segment.start().x(), segment.end().x());
+        int minY = Math.min(segment.start().y(), segment.end().y());
+        int minZ = Math.min(segment.start().z(), segment.end().z());
+        Location base = new Location(world, minX, minY, minZ);
         float a = Math.max(0.03f, crossA);
         float b = Math.max(0.03f, crossB);
         Vector3f scale = switch (segment.axis()) {
@@ -551,17 +769,208 @@ public final class CableService implements Listener {
             case Z -> new Vector3f(a, b, segment.length());
         };
         Vector3f translation = switch (segment.axis()) {
-            case X -> new Vector3f((segment.end().x() - segment.start().x()) / 2.0f, offsetA - a / 2f, offsetB - b / 2f);
-            case Y -> new Vector3f(offsetA - a / 2f, (segment.end().y() - segment.start().y()) / 2.0f, offsetB - b / 2f);
-            case Z -> new Vector3f(offsetA - a / 2f, offsetB - b / 2f, (segment.end().z() - segment.start().z()) / 2.0f);
+            case X -> new Vector3f(0.0f, 0.5f + offsetA - a / 2f, 0.5f + offsetB - b / 2f);
+            case Y -> new Vector3f(0.5f + offsetA - a / 2f, 0.0f, 0.5f + offsetB - b / 2f);
+            case Z -> new Vector3f(0.5f + offsetA - a / 2f, 0.5f + offsetB - b / 2f, 0.0f);
         };
         BlockDisplay display = (BlockDisplay) world.spawnEntity(base, EntityType.BLOCK_DISPLAY);
         display.setBlock(material.createBlockData());
         display.setTransformation(new Transformation(translation, new AxisAngle4f(), scale, new AxisAngle4f()));
         display.setBillboard(Display.Billboard.FIXED);
+        applyConfiguredVisualBrightness(display, base, material);
         display.setViewRange(viewRange);
         display.setPersistent(false);
         display.getPersistentDataContainer().set(cableVisualKey, PersistentDataType.STRING, segment.id().toString());
+    }
+
+    private void spawnCableConnectors(CableSegment segment, CableTypeConfig cfg) {
+        World world = Bukkit.getWorld(segment.world());
+        if (world == null || cfg == null) return;
+        Material material = switch (segment.type()) {
+            case COPPER, GOLD -> Material.BLACK_CONCRETE;
+            case GLASS -> Material.GLASS;
+        };
+        for (BlockPos pos : line(segment.start(), segment.end())) {
+            int degree = cableDegree(pos);
+            if (degree <= 2 && !touchesMachinePort(pos)) continue;
+            Location base = pos.block(world).getLocation();
+            BlockDisplay display = (BlockDisplay) world.spawnEntity(base, EntityType.BLOCK_DISPLAY);
+            display.setBlock(material.createBlockData());
+            display.setTransformation(new Transformation(new Vector3f(0.30f, 0.30f, 0.30f), new AxisAngle4f(), new Vector3f(0.40f, 0.40f, 0.40f), new AxisAngle4f()));
+            display.setBillboard(Display.Billboard.FIXED);
+            applyConfiguredVisualBrightness(display, base, material);
+            display.setViewRange(cfg.viewRange());
+            display.setPersistent(false);
+            display.getPersistentDataContainer().set(cableVisualKey, PersistentDataType.STRING, segment.id().toString());
+        }
+    }
+
+    private void spawnCableConnectionArms(CableSegment segment, CableTypeConfig cfg) {
+        World world = Bukkit.getWorld(segment.world());
+        if (world == null || cfg == null) return;
+        Material material = switch (segment.type()) {
+            case COPPER -> Material.BROWN_CONCRETE;
+            case GOLD -> Material.YELLOW_CONCRETE;
+            case GLASS -> Material.GLASS;
+        };
+        float thickness = segment.type() == CableType.GLASS ? 0.16f : 0.18f;
+        Set<BlockPos> cableLine = new HashSet<>(line(segment.start(), segment.end()));
+        for (BlockPos pos : cableLine) {
+            for (BlockFace face : faces()) {
+                BlockPos neighbor = pos.relative(face);
+                UUID neighborId = occupancyByBlock.get(neighbor);
+                if (neighborId == null) continue;
+                if (segment.id().equals(neighborId) && cableLine.contains(neighbor)) continue;
+                if (axis(face) == segment.axis()) continue;
+                // Gdy sąsiadem jest inny kabel, każdy segment dorysowuje krótki odcinek do granicy bloku.
+                // Dzięki temu kable stawiane obok siebie łączą się wizualnie tak samo jak kabel z portem maszyny.
+                spawnCableArm(segment, pos, face, material, thickness, cfg.viewRange());
+            }
+        }
+    }
+
+    private void spawnCablePortArms(CableSegment segment, CableTypeConfig cfg) {
+        World world = Bukkit.getWorld(segment.world());
+        if (world == null || cfg == null) return;
+        Material material = switch (segment.type()) {
+            case COPPER -> Material.BROWN_CONCRETE;
+            case GOLD -> Material.YELLOW_CONCRETE;
+            case GLASS -> Material.GLASS;
+        };
+        float thickness = segment.type() == CableType.GLASS ? 0.16f : 0.18f;
+        Set<BlockPos> cableLine = new HashSet<>(line(segment.start(), segment.end()));
+        for (BlockPos pos : cableLine) {
+            for (BlockFace face : faces()) {
+                if (axis(face) == segment.axis() && cableLine.contains(pos.relative(face))) continue;
+                if (!touchesMachinePortOnFace(pos, face)) continue;
+                // Zagięcie do portu maszyny: główna rura zostaje na swojej osi, a krótki odcinek 90°
+                // fizycznie dochodzi do wejścia/wyjścia urządzenia. Daje to kształt L/T/+ bez dodatkowego tickowania.
+                spawnCableArm(segment, pos, face, material, thickness, cfg.viewRange());
+            }
+        }
+    }
+
+    private void spawnCableArm(CableSegment segment, BlockPos pos, BlockFace face, Material material, float thickness, float viewRange) {
+        World world = Bukkit.getWorld(pos.world());
+        if (world == null || material == null || face == null) return;
+        float t = Math.max(0.05f, thickness);
+        Vector3f scale = switch (axis(face)) {
+            case X -> new Vector3f(0.50f, t, t);
+            case Y -> new Vector3f(t, 0.50f, t);
+            case Z -> new Vector3f(t, t, 0.50f);
+        };
+        Vector3f translation = switch (face) {
+            case EAST -> new Vector3f(0.50f, 0.50f - t / 2f, 0.50f - t / 2f);
+            case WEST -> new Vector3f(0.00f, 0.50f - t / 2f, 0.50f - t / 2f);
+            case UP -> new Vector3f(0.50f - t / 2f, 0.50f, 0.50f - t / 2f);
+            case DOWN -> new Vector3f(0.50f - t / 2f, 0.00f, 0.50f - t / 2f);
+            case SOUTH -> new Vector3f(0.50f - t / 2f, 0.50f - t / 2f, 0.50f);
+            case NORTH -> new Vector3f(0.50f - t / 2f, 0.50f - t / 2f, 0.00f);
+            default -> new Vector3f(0.50f - t / 2f, 0.50f - t / 2f, 0.50f - t / 2f);
+        };
+        Location base = pos.block(world).getLocation();
+        BlockDisplay display = (BlockDisplay) world.spawnEntity(base, EntityType.BLOCK_DISPLAY);
+        display.setBlock(material.createBlockData());
+        display.setTransformation(new Transformation(translation, new AxisAngle4f(), scale, new AxisAngle4f()));
+        display.setBillboard(Display.Billboard.FIXED);
+        applyConfiguredVisualBrightness(display, base, material);
+        display.setViewRange(viewRange);
+        display.setPersistent(false);
+        display.getPersistentDataContainer().set(cableVisualKey, PersistentDataType.STRING, segment.id().toString());
+    }
+
+    private boolean touchesMachinePortOnFace(BlockPos pos, BlockFace face) {
+        if (pos == null || face == null || machines == null) return false;
+        World world = Bukkit.getWorld(pos.world());
+        if (world == null) return false;
+        Block block = pos.relative(face).block(world);
+        MachineDefinition machine = machines.machineAt(block);
+        if (machine == null) return false;
+        BlockFace cableSideOnMachine = face.getOppositeFace();
+        return isValidPort(machine, block, cableSideOnMachine, true) || isValidPort(machine, block, cableSideOnMachine, false);
+    }
+
+    private void applyConfiguredVisualBrightness(BlockDisplay display, Location sampleLocation, Material material) {
+        if (display == null) return;
+        if (!plugin.getConfig().getBoolean("minions.machines.visual-lighting.override-enabled", true)) return;
+        if (isHighlightedLightingMaterial(material)) {
+            int blockLight = clampLight(plugin.getConfig().getInt("minions.machines.visual-lighting.highlighted-materials.block-light", 15));
+            int skyLight = clampLight(plugin.getConfig().getInt("minions.machines.visual-lighting.highlighted-materials.sky-light", 15));
+            display.setBrightness(new Display.Brightness(blockLight, skyLight));
+            return;
+        }
+        int configuredBlockLight = plugin.getConfig().getInt("minions.machines.visual-lighting.block-light", -1);
+        int configuredSkyLight = plugin.getConfig().getInt("minions.machines.visual-lighting.sky-light", -1);
+        Location effectiveSample = sampleLocation == null ? display.getLocation() : sampleLocation;
+        int blockLight = configuredBlockLight >= 0
+                ? clampLight(configuredBlockLight)
+                : sampledLight(effectiveSample, true);
+        int skyLight = configuredSkyLight >= 0
+                ? clampLight(configuredSkyLight)
+                : sampledLight(effectiveSample, false);
+        blockLight = Math.max(blockLight, clampLight(plugin.getConfig().getInt("minions.machines.visual-lighting.min-block-light", 0)));
+        skyLight = Math.max(skyLight, clampLight(plugin.getConfig().getInt("minions.machines.visual-lighting.min-sky-light", 0)));
+        display.setBrightness(new Display.Brightness(clampLight(blockLight), clampLight(skyLight)));
+    }
+
+    private boolean isHighlightedLightingMaterial(Material material) {
+        if (material == null) return false;
+        if (!plugin.getConfig().getBoolean("minions.machines.visual-lighting.highlighted-materials.enabled", true)) return false;
+        List<String> names = plugin.getConfig().getStringList("minions.machines.visual-lighting.highlighted-materials.materials");
+        if (names.isEmpty()) {
+            return material == Material.BLUE_CONCRETE || material == Material.ORANGE_CONCRETE || material == Material.LIGHT_BLUE_CONCRETE;
+        }
+        String current = material.name();
+        for (String name : names) {
+            if (current.equalsIgnoreCase(name)) return true;
+        }
+        return false;
+    }
+
+    private int sampledLight(Location location, boolean blockLight) {
+        if (location == null || location.getWorld() == null) return 0;
+        if (!plugin.getConfig().getBoolean("minions.machines.visual-lighting.sample-nearby-blocks", true)) {
+            Block block = location.getBlock();
+            return blockLight ? block.getLightFromBlocks() : block.getLightFromSky();
+        }
+        int radius = Math.max(0, Math.min(3, plugin.getConfig().getInt("minions.machines.visual-lighting.sample-radius-blocks", 1)));
+        int best = 0;
+        int baseX = location.getBlockX();
+        int baseY = location.getBlockY();
+        int baseZ = location.getBlockZ();
+        for (int dx = -radius; dx <= radius; dx++) {
+            for (int dy = -radius; dy <= radius; dy++) {
+                for (int dz = -radius; dz <= radius; dz++) {
+                    Block block = location.getWorld().getBlockAt(baseX + dx, baseY + dy, baseZ + dz);
+                    int value = blockLight ? block.getLightFromBlocks() : block.getLightFromSky();
+                    if (value > best) best = value;
+                    if (best >= 15) return 15;
+                }
+            }
+        }
+        return best;
+    }
+
+    private int clampLight(int value) {
+        return Math.max(0, Math.min(15, value));
+    }
+
+    private int cableDegree(BlockPos pos) {
+        int degree = 0;
+        for (BlockFace face : faces()) if (occupancyByBlock.containsKey(pos.relative(face))) degree++;
+        return degree;
+    }
+
+    private boolean touchesMachinePort(BlockPos pos) {
+        if (machines == null) return false;
+        World world = Bukkit.getWorld(pos.world());
+        if (world == null) return false;
+        for (BlockFace face : faces()) {
+            Block block = pos.relative(face).block(world);
+            MachineDefinition machine = machines.machineAt(block);
+            if (machine != null && (isValidPort(machine, block, face.getOppositeFace(), true) || isValidPort(machine, block, face.getOppositeFace(), false))) return true;
+        }
+        return false;
     }
 
     private void cleanupDisplay(UUID segmentId) {
@@ -624,6 +1033,6 @@ public final class CableService implements Listener {
         return t.getMessage() == null ? t.getClass().getSimpleName() : t.getMessage();
     }
 
-    private record Placement(BlockPos start, BlockPos end) {}
+    private record Placement(BlockPos start, BlockPos end, Axis axis) {}
     private record PathNode(BlockPos pos, List<BlockPos> path, double loss, int bottleneck) {}
 }

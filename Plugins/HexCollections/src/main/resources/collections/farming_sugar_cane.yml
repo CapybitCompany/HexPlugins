@@ -1,0 +1,64 @@
+id: farming.sugar_cane
+aliases:
+- farming_sugar_cane
+- sugar_cane
+- trzcina
+- trzcina_cukrowa
+enabled: true
+display:
+  name: '&aTrzcina cukrowa'
+  category: farming
+  menu_slot: 0
+  icon:
+    material: SUGAR_CANE
+tracked_items:
+  base:
+    material: SUGAR_CANE
+    amount_value: 1
+valid_sources:
+- MINION_COLLECT
+- CUSTOM_PLUGIN_GRANTED
+sources:
+- trigger: minions.resource.generated
+  amount-from: amount
+  filters:
+    collectionId: farming.sugar_cane
+    resourceId: sugar_cane
+- trigger: minions.resource.claimed
+  amount-from: amount
+  filters:
+    collectionId: farming.sugar_cane
+    resourceId: sugar_cane
+source_rules:
+  MINION_COLLECT:
+    allow_in_town_claims: true
+  CUSTOM_PLUGIN_GRANTED:
+    allow_in_town_claims: true
+levels:
+  1:
+    required: 200
+    display_name: '&aTrzcina cukrowa I'
+  2:
+    required: 2500
+    display_name: '&aTrzcina cukrowa II'
+  3:
+    required: 10000
+    display_name: '&aTrzcina cukrowa III'
+  4:
+    required: 50000
+    display_name: '&aTrzcina cukrowa IV'
+  5:
+    required: 100000
+    display_name: '&aTrzcina cukrowa V'
+  6:
+    required: 500000
+    display_name: '&aTrzcina cukrowa VI'
+  7:
+    required: 1000000
+    display_name: '&aTrzcina cukrowa VII'
+reward_claim_mode: AUTO
+placeholder:
+  progress_bar:
+    length: 20
+    filled_char: ■
+    empty_char: □

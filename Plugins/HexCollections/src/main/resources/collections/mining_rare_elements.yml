@@ -41,16 +41,16 @@ levels:
     required: 1
     display_name: '&dRzadkie pierwiastki I'
   2:
-    required: 4
+    required: 2
     display_name: '&dRzadkie pierwiastki II'
   3:
-    required: 10
+    required: 4
     display_name: '&dRzadkie pierwiastki III'
   4:
-    required: 25
+    required: 15
     display_name: '&dRzadkie pierwiastki IV'
   5:
-    required: 50
+    required: 35
     display_name: '&dRzadkie pierwiastki V'
   6:
     required: 100

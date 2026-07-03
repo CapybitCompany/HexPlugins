@@ -1,0 +1,63 @@
+id: farming.wheat
+aliases:
+- farming_wheat
+- wheat
+- pszenica
+enabled: true
+display:
+  name: '&ePszenica'
+  category: farming
+  menu_slot: 0
+  icon:
+    material: WHEAT
+tracked_items:
+  base:
+    material: WHEAT
+    amount_value: 1
+valid_sources:
+- MINION_COLLECT
+- CUSTOM_PLUGIN_GRANTED
+sources:
+- trigger: minions.resource.generated
+  amount-from: amount
+  filters:
+    collectionId: farming.wheat
+    resourceId: wheat
+- trigger: minions.resource.claimed
+  amount-from: amount
+  filters:
+    collectionId: farming.wheat
+    resourceId: wheat
+source_rules:
+  MINION_COLLECT:
+    allow_in_town_claims: true
+  CUSTOM_PLUGIN_GRANTED:
+    allow_in_town_claims: true
+levels:
+  1:
+    required: 125
+    display_name: '&ePszenica I'
+  2:
+    required: 2500
+    display_name: '&ePszenica II'
+  3:
+    required: 10000
+    display_name: '&ePszenica III'
+  4:
+    required: 50000
+    display_name: '&ePszenica IV'
+  5:
+    required: 100000
+    display_name: '&ePszenica V'
+  6:
+    required: 500000
+    display_name: '&ePszenica VI'
+  7:
+    required: 1000000
+    display_name: '&ePszenica VII'
+reward_claim_mode: AUTO
+placeholder:
+  progress_bar:
+    length: 20
+    filled_char: ■
+    empty_char: □

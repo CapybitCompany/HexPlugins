@@ -12,7 +12,9 @@ Ten folder zawiera gotowy pakiet konfiguracji GUI dla `DeluxeMenus`, zaprojektow
 - `town_create_confirm.yml` — GUI potwierdzenia `/town create confirm`.
 - `town_destroy_confirm.yml` — GUI potwierdzenia `/town destroy confirm`.
 - `town_leave_confirm.yml` — GUI potwierdzenia `/town endcoop confirm`.
-- `town_collections.yml` — podgląd kolekcji miasta/COOP przez `HexCollections`.
+- `town_collections.yml` — podgląd kolekcji surowców miasta/COOP przez `HexCollections`.
+- `town_collections_farming.yml` — osobna karta kolekcji farmerskich.
+- `town_collections_animals.yml` — osobna karta kolekcji zwierzęcych.
 - `town_minions.yml` — podgląd i akcje minionów miasta przez `HexMinions`.
 
 ## Wymagane pluginy
@@ -47,6 +49,8 @@ town_create_confirm
 town_destroy_confirm
 town_leave_confirm
 town_collections
+town_collections_farming
+town_collections_animals
 town_minions
 ```
 
@@ -196,4 +200,4 @@ Przykłady:
 
 - GUI potwierdzeń działa razem z tokenami pamięciowymi HexTowns: pierwsze kliknięcie wywołuje `/town destroy` albo `/town endcoop`, a ekran potwierdzenia wywołuje komendę `confirm`.
 - `/town accept <nick>` nie da się w pełni obsłużyć statycznym YAML-em bez wpisania nicku; dlatego menu pokazuje instrukcję, a właściciel nadal dostaje klikalną wiadomość z chatu od HexTowns.
-- `town_minions.yml` jest przygotowany pod domyślny limit 5 minionów. Przy limitach 10/15 można skopiować sekcje `minion_#`, zmienić indeks placeholderów i slot.
+- `town_minions.yml` ma przygotowane sloty pod maksymalnie 21 pozycji GUI. Natywne menu pokazuje dokładnie tyle pozycji, ile wynosi limit miasta; w DeluxeMenus pozycje poza limitem są wygaszane placeholderami.

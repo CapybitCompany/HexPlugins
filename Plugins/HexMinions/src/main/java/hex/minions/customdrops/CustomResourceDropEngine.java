@@ -244,6 +244,9 @@ public final class CustomResourceDropEngine implements Listener {
             if (resource.displayName() != null && !resource.displayName().isBlank()) {
                 meta.displayName(miniMessage.deserialize(resource.displayName()));
             }
+            if ("spruce_resin".equalsIgnoreCase(resource.id())) {
+                meta.setEnchantmentGlintOverride(true);
+            }
             stack.setItemMeta(meta);
         }
         return stack;

@@ -8,6 +8,7 @@ import hex.collections.event.CollectionLevelUpEvent;
 import hex.collections.event.CollectionProgressAddEvent;
 import hex.collections.event.TownCollectionResetEvent;
 import hex.collections.model.CollectionDefinition;
+import hex.collections.model.CollectionLevel;
 import hex.collections.model.SourceRule;
 import hex.core.api.HexApi;
 import org.bukkit.Bukkit;
@@ -33,6 +34,12 @@ public final class CollectionProgressService implements HexCollectionsApi {
     @Override public long getAmount(UUID townId, String collectionId) { return progress(townId, collectionId).amount(); }
     @Override public int getLevel(UUID townId, String collectionId) { return progress(townId, collectionId).level(); }
     @Override public boolean hasUnlocked(UUID townId, String collectionId, int level) { return getLevel(townId, collectionId) >= level; }
+    @Override public int getMaxLevel(String collectionId) {
+        CollectionDefinition def = registry.find(collectionId).orElse(null);
+        if (def == null || def.levels().isEmpty()) return 0;
+        return def.levels().stream().mapToInt(CollectionLevel::level).max().orElse(0);
+    }
+
     @Override public double getProgressPercent(UUID townId, String collectionId) {
         CollectionDefinition def = registry.find(collectionId).orElse(null); if (def == null) return 0D;
         CollectionProgress p = progress(townId, def.id()); long req = def.nextRequired(p.level());

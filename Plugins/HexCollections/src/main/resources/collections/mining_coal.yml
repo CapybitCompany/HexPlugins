@@ -35,29 +35,26 @@ source_rules:
     allow_in_town_claims: true
 levels:
   1:
-    required: 50
+    required: 500
     display_name: '&8Węgiel I'
   2:
-    required: 250
+    required: 5000
     display_name: '&8Węgiel II'
   3:
-    required: 1000
+    required: 25000
     display_name: '&8Węgiel III'
   4:
-    required: 2500
+    required: 100000
     display_name: '&8Węgiel IV'
   5:
-    required: 7500
+    required: 500000
     display_name: '&8Węgiel V'
   6:
-    required: 15000
+    required: 1000000
     display_name: '&8Węgiel VI'
   7:
-    required: 30000
+    required: 2500000
     display_name: '&8Węgiel VII'
-    rewards:
-    - type: MINION_RECIPE_UNLOCK
-      id: combustion_fuel
 reward_claim_mode: AUTO
 sources:
 - trigger: minions.resource.claimed

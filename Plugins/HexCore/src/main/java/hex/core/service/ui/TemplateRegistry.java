@@ -52,12 +52,12 @@ final class TemplateRegistry {
             }
         }
 
-        String runtime = defaults.get(templateKey);
-        if (runtime != null) {
-            return runtime;
+        String fromFile = cfg.getTemplates().get(templateKey);
+        if (fromFile != null) {
+            return fromFile;
         }
 
-        return cfg.getTemplates().get(templateKey);
+        return defaults.get(templateKey);
     }
 
     List<String> resolveArgs(UiConfig cfg, String templateKey) {
@@ -95,12 +95,10 @@ final class TemplateRegistry {
         if (key == null || key.isBlank()) {
             return null;
         }
-        if (key.contains(".")) {
-            return key;
-        }
         if (namespace == null || namespace.isBlank()) {
             return key;
         }
-        return namespace + "." + key;
+        String prefix = namespace.endsWith(".") ? namespace : namespace + ".";
+        return key.startsWith(prefix) ? key : prefix + key;
     }
 }

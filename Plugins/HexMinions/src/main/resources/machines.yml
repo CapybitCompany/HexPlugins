@@ -3,7 +3,7 @@ machines:
     enabled: true
     type: URANIUM_ENRICHER
     display-name: <dark_green>Wzbogacacz uranu</dark_green>
-    base-block: FURNACE
+    base-block: DISPENSER
     special-item: uranium_enricher
     station-id: URANIUM_ENRICHER
     menu:
@@ -58,7 +58,8 @@ machines:
     menu:
       input-slot: 20
       secondary-slot: 21
-      fuel-slot: 22
+      fuel-slot: 29
+      arrow-slot: 23
       output-slot: 24
       upgrade-slots:
       - 38
@@ -323,7 +324,7 @@ machines:
     enabled: true
     type: MACERATOR
     display-name: <gray>Macerator</gray>
-    base-block: FURNACE
+    base-block: DISPENSER
     special-item: macerator
     station-id: MACERATOR
     menu:

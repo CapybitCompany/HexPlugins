@@ -4,6 +4,7 @@ import hex.core.api.HexApi;
 import hex.collections.api.CollectionProgressContext;
 import hex.collections.api.CollectionSource;
 import hex.minions.service.MinionService;
+import hex.minions.config.ResourceDefinition;
 import hex.minions.energy.CableService;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
@@ -12,12 +13,14 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.Chest;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Directional;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.plugin.Plugin;
 import hex.towns.model.ChunkPos;
 
@@ -77,6 +80,10 @@ public final class MachineService {
     public Collection<MachineRuntime> runtimes() { return List.copyOf(runtimes.values()); }
     public boolean dbReady() { return dbReady; }
     public void attachCableService(CableService cableService) { this.cableService = cableService; }
+
+    public void refreshCableVisuals() {
+        if (cableService != null) cableService.refreshVisuals();
+    }
 
     public void start() {
         if (taskId != -1) return;
@@ -260,14 +267,28 @@ public final class MachineService {
             return minions.specialItems().createItem(recipe.outputSpecialItem(), recipe.outputAmount());
         }
         ItemStack item = new ItemStack(recipe.outputMaterial() == Material.AIR ? Material.PAPER : recipe.outputMaterial(), recipe.outputAmount());
-        if (recipe.outputCustomModelData() > 0) {
-            ItemMeta meta = item.getItemMeta();
-            if (meta != null) {
-                meta.setCustomModelData(recipe.outputCustomModelData());
-                item.setItemMeta(meta);
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            if (recipe.outputCustomModelData() > 0) meta.setCustomModelData(recipe.outputCustomModelData());
+            ResourceDefinition resource = resourceByMaterial(recipe.outputMaterial(), recipe.outputCustomModelData());
+            if (resource != null) {
+                meta.displayName(MiniMessage.miniMessage().deserialize(resource.displayName()));
+                if ("spruce_resin".equalsIgnoreCase(resource.id())) meta.setEnchantmentGlintOverride(true);
             }
+            item.setItemMeta(meta);
         }
         return item;
+    }
+
+    private ResourceDefinition resourceByMaterial(Material material, int customModelData) {
+        if (material == null || material == Material.AIR) return null;
+        for (ResourceDefinition resource : minions.definitions().resources().values()) {
+            if (resource.material() != material) continue;
+            if (customModelData > 0 && resource.customModelData() != customModelData) continue;
+            if (customModelData == 0 && resource.customModelData() > 0) continue;
+            return resource;
+        }
+        return null;
     }
 
     public boolean collectOutput(MachineRuntime runtime, org.bukkit.entity.Player player) {
@@ -379,6 +400,7 @@ public final class MachineService {
             if (generated > 0) markDirty(runtime);
             return generated;
         }
+        if ("COAL_GENERATOR".equalsIgnoreCase(machine.type())) pullFuelFromTopStorage(block, machine, runtime);
         int before = runtime.energy();
         tickFuel(machine, runtime, true);
         return Math.max(0, runtime.energy() - before);
@@ -423,6 +445,66 @@ public final class MachineService {
                     .reason("machine.energy.generated")));
         } catch (Throwable ignored) {
         }
+    }
+
+    private void pullFuelFromTopStorage(Block block, MachineDefinition machine, MachineRuntime runtime) {
+        if (block == null || machine == null || runtime == null || !"COAL_GENERATOR".equalsIgnoreCase(machine.type())) return;
+        int slots = generatorStorageSlots(runtime);
+        if (slots <= 0) return;
+        Block top = block.getRelative(BlockFace.UP);
+        if (top.getType() == Material.AIR) top.setType(Material.CHEST, false);
+        if (!(top.getState() instanceof Chest chest)) return;
+        ItemStack current = runtime.fuel();
+        if (current != null && !current.getType().isAir() && current.getAmount() >= current.getMaxStackSize()) return;
+        Inventory inventory = chest.getBlockInventory();
+        int limit = Math.min(slots, inventory.getSize());
+        for (int i = 0; i < limit; i++) {
+            ItemStack candidate = inventory.getItem(i);
+            if (candidate == null || candidate.getType().isAir()) continue;
+            if (fuelValue(machine, candidate, true).eu() <= 0) continue;
+            if (current != null && !current.getType().isAir() && !current.isSimilar(candidate)) continue;
+            ItemStack fuel = current == null || current.getType().isAir() ? candidate.clone() : current.clone();
+            int move = Math.min(candidate.getAmount(), fuel.getMaxStackSize() - fuel.getAmount());
+            if (current == null || current.getType().isAir()) {
+                move = Math.min(candidate.getAmount(), fuel.getMaxStackSize());
+                fuel.setAmount(move);
+            } else {
+                fuel.setAmount(fuel.getAmount() + move);
+            }
+            candidate.setAmount(candidate.getAmount() - move);
+            if (candidate.getAmount() <= 0) inventory.setItem(i, null);
+            runtime.fuel(fuel);
+            markDirty(runtime);
+            return;
+        }
+    }
+
+    public void removeGeneratorTopStorage(Block block, Location dropLocation) {
+        if (block == null) return;
+        MachineDefinition machine = machineAt(block);
+        if (machine == null || !"COAL_GENERATOR".equalsIgnoreCase(machine.type())) return;
+        Block top = block.getRelative(BlockFace.UP);
+        if (!(top.getState() instanceof Chest chest)) return;
+        Location drop = dropLocation == null ? top.getLocation().add(0.5, 0.5, 0.5) : dropLocation;
+        for (ItemStack item : chest.getBlockInventory().getContents()) {
+            if (item != null && !item.getType().isAir()) drop.getWorld().dropItemNaturally(drop, item);
+        }
+        top.setType(Material.AIR, false);
+    }
+
+    private int generatorStorageSlots(MachineRuntime runtime) {
+        if (runtime == null) return 0;
+        int best = 0;
+        for (int i = 0; i < 3; i++) {
+            String id = minions.specialItems().readSpecialItemId(runtime.upgrade(i)).orElse("").toLowerCase(java.util.Locale.ROOT);
+            best = Math.max(best, switch (id) {
+                case "storage_expander" -> 3;
+                case "medium_minion_storage" -> 5;
+                case "large_minion_storage" -> 15;
+                default -> 0;
+            });
+        }
+        return best;
     }
 
     private void tickFuel(MachineDefinition machine, MachineRuntime runtime, boolean generatorFuel) {
@@ -472,8 +554,35 @@ public final class MachineService {
         runtime.consumeInputAt(inputIndex, recipe.inputAmount());
         if (!recipe.secondarySpecialItem().isBlank() || recipe.secondaryMaterial() != Material.AIR) runtime.consumeSecondary(recipe.secondaryAmount());
         if (!recipe.fuelSpecialItem().isBlank() || recipe.fuelMaterial() != Material.AIR) runtime.consumeRecipeFuel(recipe.fuelAmount());
-        if (ThreadLocalRandom.current().nextDouble() <= recipe.successChance()) addOutput(machine, runtime, output(recipe));
+        if (ThreadLocalRandom.current().nextDouble() <= recipe.successChance()) {
+            addOutput(machine, runtime, output(recipe));
+            recordMachineOutput(runtime, recipe);
+        }
         runtime.resetProcess();
+    }
+
+
+    private void recordMachineOutput(MachineRuntime runtime, MachineRecipe recipe) {
+        if (runtime == null || recipe == null || minions.collections() == null) return;
+        String specialItem = recipe.outputSpecialItem() == null ? "" : recipe.outputSpecialItem().toLowerCase(java.util.Locale.ROOT);
+        String collectionId = switch (specialItem) {
+            case "enriched_uranium" -> "industrial.enriched_uranium";
+            default -> "";
+        };
+        if (collectionId.isBlank()) return;
+        Block block = blockFromKey(runtime.blockKey());
+        if (block == null) return;
+        Location location = block.getLocation();
+        try {
+            minions.towns().townAt(location).ifPresent(town -> minions.collections().addProgress(new CollectionProgressContext()
+                    .townId(town.id())
+                    .collectionId(collectionId)
+                    .amount(Math.max(1, recipe.outputAmount()))
+                    .source(CollectionSource.CUSTOM_PLUGIN_GRANTED)
+                    .location(location)
+                    .reason("machine.output." + specialItem)));
+        } catch (Throwable ignored) {
+        }
     }
 
     private void addOutput(MachineDefinition machine, MachineRuntime runtime, ItemStack output) {

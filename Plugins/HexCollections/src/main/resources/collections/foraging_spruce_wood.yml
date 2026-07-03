@@ -1,59 +1,83 @@
-id: "foraging.spruce_wood"
-aliases: ["foraging_spruce_wood", "spruce_wood", "spruce_log", "swierk", "świerk", "minecraft:spruce_log"]
+id: foraging.spruce_wood
+aliases:
+- foraging_spruce_wood
+- spruce_wood
+- spruce_log
+- swierk
+- świerk
+- minecraft:spruce_log
 enabled: true
-
 display:
-  name: "&2Drewno świerkowe"
-  category: "foraging"
+  name: '&2Drewno świerkowe'
+  category: foraging
   menu_slot: 31
   icon:
     material: SPRUCE_LOG
-
 tracked_items:
   base:
     material: SPRUCE_LOG
     amount_value: 1
-
-valid_sources: [NATURAL_BLOCK_BREAK, MINION_COLLECT, CUSTOM_PLUGIN_GRANTED]
-
+valid_sources:
+- NATURAL_BLOCK_BREAK
+- MINION_COLLECT
+- CUSTOM_PLUGIN_GRANTED
 sources:
-  - trigger: minions.resource.claimed
-    amount-from: amount
-    filters:
-      collectionId: foraging.spruce_wood
-      resourceId: spruce_wood
-  - trigger: minions.resource.generated
-    amount-from: amount
-    filters:
-      collectionId: foraging.spruce_wood
-      resourceId: spruce_wood
-
+- trigger: minions.resource.claimed
+  amount-from: amount
+  filters:
+    collectionId: foraging.spruce_wood
+    resourceId: spruce_wood
+- trigger: minions.resource.generated
+  amount-from: amount
+  filters:
+    collectionId: foraging.spruce_wood
+    resourceId: spruce_wood
 source_rules:
   NATURAL_BLOCK_BREAK:
-    allowed_materials: [SPRUCE_LOG, SPRUCE_WOOD]
-    allowed_worlds: [world, resource_world, mining_world]
-    blocked_worlds: [spawn]
+    allowed_materials:
+    - SPRUCE_LOG
+    - SPRUCE_WOOD
+    allowed_worlds:
+    - world
+    - resource_world
+    - mining_world
+    blocked_worlds:
+    - spawn
     allow_in_town_claims: false
     deny_player_placed_blocks: true
     deny_recently_broken_blocks: true
   MINION_COLLECT:
-    allowed_minion_types: [SPRUCE_WOOD_MINION, spruce_wood]
+    allowed_minion_types:
+    - SPRUCE_WOOD_MINION
+    - spruce_wood
     allow_in_town_claims: true
   CUSTOM_PLUGIN_GRANTED:
     allow_in_town_claims: true
-
 levels:
-  1: {required: 50, display_name: "&2Drewno świerkowe I"}
-  2: {required: 250, display_name: "&2Drewno świerkowe II"}
-  3: {required: 1000, display_name: "&2Drewno świerkowe III"}
-  4: {required: 2500, display_name: "&2Drewno świerkowe IV"}
-  5: {required: 7500, display_name: "&2Drewno świerkowe V"}
-  6: {required: 15000, display_name: "&2Drewno świerkowe VI"}
-  7: {required: 30000, display_name: "&2Drewno świerkowe VII"}
-
+  1:
+    required: 500
+    display_name: '&2Drewno świerkowe I'
+  2:
+    required: 10000
+    display_name: '&2Drewno świerkowe II'
+  3:
+    required: 25000
+    display_name: '&2Drewno świerkowe III'
+  4:
+    required: 250000
+    display_name: '&2Drewno świerkowe IV'
+  5:
+    required: 500000
+    display_name: '&2Drewno świerkowe V'
+  6:
+    required: 2500000
+    display_name: '&2Drewno świerkowe VI'
+  7:
+    required: 5000000
+    display_name: '&2Drewno świerkowe VII'
 reward_claim_mode: AUTO
 placeholder:
   progress_bar:
     length: 20
-    filled_char: "■"
-    empty_char: "□"
+    filled_char: ■
+    empty_char: □

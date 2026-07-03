@@ -1,5 +1,7 @@
 package hex.towns.map;
 
+import hex.core.api.HexApi;
+import hex.core.api.ui.UiTokens;
 import hex.towns.config.TownsConfig;
 import hex.towns.model.Town;
 import hex.towns.service.TownsService;
@@ -23,16 +25,22 @@ import java.util.UUID;
 
 public final class TownMapService {
     private final Plugin plugin;
+    private final HexApi hex;
     private final TownsService service;
-    private final TownsConfig config;
+    private volatile TownsConfig config;
     private final NamespacedKey townMapKey;
     private final Map<UUID, Long> cooldowns = new HashMap<>();
 
-    public TownMapService(Plugin plugin, TownsService service, TownsConfig config) {
+    public TownMapService(Plugin plugin, HexApi hex, TownsService service, TownsConfig config) {
         this.plugin = plugin;
+        this.hex = hex;
         this.service = service;
         this.config = config;
         this.townMapKey = new NamespacedKey(plugin, "town_map");
+    }
+
+    public void reloadConfig(TownsConfig config) {
+        this.config = config;
     }
 
     public void openMap(Player player) {
@@ -40,7 +48,7 @@ public final class TownMapService {
         long availableAt = cooldowns.getOrDefault(player.getUniqueId(), 0L);
         if (availableAt > now) {
             long seconds = Math.max(1L, (availableAt - now + 999L) / 1000L);
-            player.sendMessage("§cMapę miasta możesz odświeżyć ponownie za " + seconds + "s.");
+            hex.ui().send(player, "towns.map.cooldown", UiTokens.of("seconds", String.valueOf(seconds)));
             return;
         }
         cooldowns.put(player.getUniqueId(), now + config.mapCooldownSeconds() * 1000L);
@@ -67,18 +75,18 @@ public final class TownMapService {
         if (config.mapPreventDuplicates() && existingSlot >= 0) {
             player.getInventory().setItem(existingSlot, map);
             player.sendMap(view);
-            player.sendMessage("§aOdświeżono istniejącą mapę miast w ekwipunku.");
+            hex.ui().send(player, "towns.map.refreshed");
             plugin.getLogger().fine("Refreshed HexTowns map for " + player.getName() + " near " + centerX + "," + centerZ);
             return;
         }
 
         Map<Integer, ItemStack> leftover = player.getInventory().addItem(map);
         if (!leftover.isEmpty()) {
-            player.sendMessage("§cNie masz miejsca w ekwipunku na mapę miasta.");
+            hex.ui().send(player, "towns.map.no-space");
             return;
         }
         player.sendMap(view);
-        player.sendMessage("§aDodano mapę miast do ekwipunku. Weź ją do ręki, aby zobaczyć granice i nazwy miast.");
+        hex.ui().send(player, "towns.map.created");
         plugin.getLogger().fine("Generated HexTowns map for " + player.getName() + " near " + centerX + "," + centerZ);
     }
 

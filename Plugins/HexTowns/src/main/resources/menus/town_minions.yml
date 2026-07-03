@@ -161,6 +161,406 @@ items:
     shift_right_click_commands: ['[player] minion action upgrade %hexminions_index_5_id%']
     middle_click_commands: ['[player] minion action move %hexminions_index_5_id%']
 
+  minion_6:
+    material: '%hexminions_index_6_head_material%'
+    slot: 15
+    display_name: '&b#6 &f%hexminions_index_6_name%'
+    lore:
+      - '&7Istnieje: &f%hexminions_index_6_exists%'
+      - '&7ID: &f%hexminions_index_6_short_id%'
+      - '&7Typ: &f%hexminions_index_6_type%'
+      - '&7Tier: &f%hexminions_index_6_tier%&7/&f%hexminions_index_6_max_tier%'
+      - '&7Storage: &f%hexminions_index_6_storage_used%&7/&f%hexminions_index_6_storage_limit% &8(%hexminions_index_6_storage_percent%%%)'
+      - '&a%hexminions_index_6_storage_bar%'
+      - '&7Status: &f%hexminions_index_6_state%'
+      - '&7Lokacja: &f%hexminions_index_6_location%'
+      - ''
+      - '&eLPM: odbierz storage'
+      - '&ePPM: otwórz menu miniona'
+      - '&eSHIFT+LPM: podnieś miniona'
+      - '&eSHIFT+PPM: ulepsz'
+      - '&eŚPM: przenieś na aktualne miejsce'
+    left_click_commands: ['[player] minion action collect %hexminions_index_6_id%']
+    right_click_commands: ['[player] minion action open %hexminions_index_6_id%']
+    shift_left_click_commands: ['[player] minion action pickup %hexminions_index_6_id%']
+    shift_right_click_commands: ['[player] minion action upgrade %hexminions_index_6_id%']
+    middle_click_commands: ['[player] minion action move %hexminions_index_6_id%']
+
+  minion_7:
+    material: '%hexminions_index_7_head_material%'
+    slot: 16
+    display_name: '&b#7 &f%hexminions_index_7_name%'
+    lore:
+      - '&7Istnieje: &f%hexminions_index_7_exists%'
+      - '&7ID: &f%hexminions_index_7_short_id%'
+      - '&7Typ: &f%hexminions_index_7_type%'
+      - '&7Tier: &f%hexminions_index_7_tier%&7/&f%hexminions_index_7_max_tier%'
+      - '&7Storage: &f%hexminions_index_7_storage_used%&7/&f%hexminions_index_7_storage_limit% &8(%hexminions_index_7_storage_percent%%%)'
+      - '&a%hexminions_index_7_storage_bar%'
+      - '&7Status: &f%hexminions_index_7_state%'
+      - '&7Lokacja: &f%hexminions_index_7_location%'
+      - ''
+      - '&eLPM: odbierz storage'
+      - '&ePPM: otwórz menu miniona'
+      - '&eSHIFT+LPM: podnieś miniona'
+      - '&eSHIFT+PPM: ulepsz'
+      - '&eŚPM: przenieś na aktualne miejsce'
+    left_click_commands: ['[player] minion action collect %hexminions_index_7_id%']
+    right_click_commands: ['[player] minion action open %hexminions_index_7_id%']
+    shift_left_click_commands: ['[player] minion action pickup %hexminions_index_7_id%']
+    shift_right_click_commands: ['[player] minion action upgrade %hexminions_index_7_id%']
+    middle_click_commands: ['[player] minion action move %hexminions_index_7_id%']
+
+  minion_8:
+    material: '%hexminions_index_8_head_material%'
+    slot: 19
+    display_name: '&b#8 &f%hexminions_index_8_name%'
+    lore:
+      - '&7Istnieje: &f%hexminions_index_8_exists%'
+      - '&7ID: &f%hexminions_index_8_short_id%'
+      - '&7Typ: &f%hexminions_index_8_type%'
+      - '&7Tier: &f%hexminions_index_8_tier%&7/&f%hexminions_index_8_max_tier%'
+      - '&7Storage: &f%hexminions_index_8_storage_used%&7/&f%hexminions_index_8_storage_limit% &8(%hexminions_index_8_storage_percent%%%)'
+      - '&a%hexminions_index_8_storage_bar%'
+      - '&7Status: &f%hexminions_index_8_state%'
+      - '&7Lokacja: &f%hexminions_index_8_location%'
+      - ''
+      - '&eLPM: odbierz storage'
+      - '&ePPM: otwórz menu miniona'
+      - '&eSHIFT+LPM: podnieś miniona'
+      - '&eSHIFT+PPM: ulepsz'
+      - '&eŚPM: przenieś na aktualne miejsce'
+    left_click_commands: ['[player] minion action collect %hexminions_index_8_id%']
+    right_click_commands: ['[player] minion action open %hexminions_index_8_id%']
+    shift_left_click_commands: ['[player] minion action pickup %hexminions_index_8_id%']
+    shift_right_click_commands: ['[player] minion action upgrade %hexminions_index_8_id%']
+    middle_click_commands: ['[player] minion action move %hexminions_index_8_id%']
+
+  minion_9:
+    material: '%hexminions_index_9_head_material%'
+    slot: 20
+    display_name: '&b#9 &f%hexminions_index_9_name%'
+    lore:
+      - '&7Istnieje: &f%hexminions_index_9_exists%'
+      - '&7ID: &f%hexminions_index_9_short_id%'
+      - '&7Typ: &f%hexminions_index_9_type%'
+      - '&7Tier: &f%hexminions_index_9_tier%&7/&f%hexminions_index_9_max_tier%'
+      - '&7Storage: &f%hexminions_index_9_storage_used%&7/&f%hexminions_index_9_storage_limit% &8(%hexminions_index_9_storage_percent%%%)'
+      - '&a%hexminions_index_9_storage_bar%'
+      - '&7Status: &f%hexminions_index_9_state%'
+      - '&7Lokacja: &f%hexminions_index_9_location%'
+      - ''
+      - '&eLPM: odbierz storage'
+      - '&ePPM: otwórz menu miniona'
+      - '&eSHIFT+LPM: podnieś miniona'
+      - '&eSHIFT+PPM: ulepsz'
+      - '&eŚPM: przenieś na aktualne miejsce'
+    left_click_commands: ['[player] minion action collect %hexminions_index_9_id%']
+    right_click_commands: ['[player] minion action open %hexminions_index_9_id%']
+    shift_left_click_commands: ['[player] minion action pickup %hexminions_index_9_id%']
+    shift_right_click_commands: ['[player] minion action upgrade %hexminions_index_9_id%']
+    middle_click_commands: ['[player] minion action move %hexminions_index_9_id%']
+
+  minion_10:
+    material: '%hexminions_index_10_head_material%'
+    slot: 21
+    display_name: '&b#10 &f%hexminions_index_10_name%'
+    lore:
+      - '&7Istnieje: &f%hexminions_index_10_exists%'
+      - '&7ID: &f%hexminions_index_10_short_id%'
+      - '&7Typ: &f%hexminions_index_10_type%'
+      - '&7Tier: &f%hexminions_index_10_tier%&7/&f%hexminions_index_10_max_tier%'
+      - '&7Storage: &f%hexminions_index_10_storage_used%&7/&f%hexminions_index_10_storage_limit% &8(%hexminions_index_10_storage_percent%%%)'
+      - '&a%hexminions_index_10_storage_bar%'
+      - '&7Status: &f%hexminions_index_10_state%'
+      - '&7Lokacja: &f%hexminions_index_10_location%'
+      - ''
+      - '&eLPM: odbierz storage'
+      - '&ePPM: otwórz menu miniona'
+      - '&eSHIFT+LPM: podnieś miniona'
+      - '&eSHIFT+PPM: ulepsz'
+      - '&eŚPM: przenieś na aktualne miejsce'
+    left_click_commands: ['[player] minion action collect %hexminions_index_10_id%']
+    right_click_commands: ['[player] minion action open %hexminions_index_10_id%']
+    shift_left_click_commands: ['[player] minion action pickup %hexminions_index_10_id%']
+    shift_right_click_commands: ['[player] minion action upgrade %hexminions_index_10_id%']
+    middle_click_commands: ['[player] minion action move %hexminions_index_10_id%']
+
+  minion_11:
+    material: '%hexminions_index_11_head_material%'
+    slot: 22
+    display_name: '&b#11 &f%hexminions_index_11_name%'
+    lore:
+      - '&7Istnieje: &f%hexminions_index_11_exists%'
+      - '&7ID: &f%hexminions_index_11_short_id%'
+      - '&7Typ: &f%hexminions_index_11_type%'
+      - '&7Tier: &f%hexminions_index_11_tier%&7/&f%hexminions_index_11_max_tier%'
+      - '&7Storage: &f%hexminions_index_11_storage_used%&7/&f%hexminions_index_11_storage_limit% &8(%hexminions_index_11_storage_percent%%%)'
+      - '&a%hexminions_index_11_storage_bar%'
+      - '&7Status: &f%hexminions_index_11_state%'
+      - '&7Lokacja: &f%hexminions_index_11_location%'
+      - ''
+      - '&eLPM: odbierz storage'
+      - '&ePPM: otwórz menu miniona'
+      - '&eSHIFT+LPM: podnieś miniona'
+      - '&eSHIFT+PPM: ulepsz'
+      - '&eŚPM: przenieś na aktualne miejsce'
+    left_click_commands: ['[player] minion action collect %hexminions_index_11_id%']
+    right_click_commands: ['[player] minion action open %hexminions_index_11_id%']
+    shift_left_click_commands: ['[player] minion action pickup %hexminions_index_11_id%']
+    shift_right_click_commands: ['[player] minion action upgrade %hexminions_index_11_id%']
+    middle_click_commands: ['[player] minion action move %hexminions_index_11_id%']
+
+  minion_12:
+    material: '%hexminions_index_12_head_material%'
+    slot: 23
+    display_name: '&b#12 &f%hexminions_index_12_name%'
+    lore:
+      - '&7Istnieje: &f%hexminions_index_12_exists%'
+      - '&7ID: &f%hexminions_index_12_short_id%'
+      - '&7Typ: &f%hexminions_index_12_type%'
+      - '&7Tier: &f%hexminions_index_12_tier%&7/&f%hexminions_index_12_max_tier%'
+      - '&7Storage: &f%hexminions_index_12_storage_used%&7/&f%hexminions_index_12_storage_limit% &8(%hexminions_index_12_storage_percent%%%)'
+      - '&a%hexminions_index_12_storage_bar%'
+      - '&7Status: &f%hexminions_index_12_state%'
+      - '&7Lokacja: &f%hexminions_index_12_location%'
+      - ''
+      - '&eLPM: odbierz storage'
+      - '&ePPM: otwórz menu miniona'
+      - '&eSHIFT+LPM: podnieś miniona'
+      - '&eSHIFT+PPM: ulepsz'
+      - '&eŚPM: przenieś na aktualne miejsce'
+    left_click_commands: ['[player] minion action collect %hexminions_index_12_id%']
+    right_click_commands: ['[player] minion action open %hexminions_index_12_id%']
+    shift_left_click_commands: ['[player] minion action pickup %hexminions_index_12_id%']
+    shift_right_click_commands: ['[player] minion action upgrade %hexminions_index_12_id%']
+    middle_click_commands: ['[player] minion action move %hexminions_index_12_id%']
+
+  minion_13:
+    material: '%hexminions_index_13_head_material%'
+    slot: 24
+    display_name: '&b#13 &f%hexminions_index_13_name%'
+    lore:
+      - '&7Istnieje: &f%hexminions_index_13_exists%'
+      - '&7ID: &f%hexminions_index_13_short_id%'
+      - '&7Typ: &f%hexminions_index_13_type%'
+      - '&7Tier: &f%hexminions_index_13_tier%&7/&f%hexminions_index_13_max_tier%'
+      - '&7Storage: &f%hexminions_index_13_storage_used%&7/&f%hexminions_index_13_storage_limit% &8(%hexminions_index_13_storage_percent%%%)'
+      - '&a%hexminions_index_13_storage_bar%'
+      - '&7Status: &f%hexminions_index_13_state%'
+      - '&7Lokacja: &f%hexminions_index_13_location%'
+      - ''
+      - '&eLPM: odbierz storage'
+      - '&ePPM: otwórz menu miniona'
+      - '&eSHIFT+LPM: podnieś miniona'
+      - '&eSHIFT+PPM: ulepsz'
+      - '&eŚPM: przenieś na aktualne miejsce'
+    left_click_commands: ['[player] minion action collect %hexminions_index_13_id%']
+    right_click_commands: ['[player] minion action open %hexminions_index_13_id%']
+    shift_left_click_commands: ['[player] minion action pickup %hexminions_index_13_id%']
+    shift_right_click_commands: ['[player] minion action upgrade %hexminions_index_13_id%']
+    middle_click_commands: ['[player] minion action move %hexminions_index_13_id%']
+
+  minion_14:
+    material: '%hexminions_index_14_head_material%'
+    slot: 25
+    display_name: '&b#14 &f%hexminions_index_14_name%'
+    lore:
+      - '&7Istnieje: &f%hexminions_index_14_exists%'
+      - '&7ID: &f%hexminions_index_14_short_id%'
+      - '&7Typ: &f%hexminions_index_14_type%'
+      - '&7Tier: &f%hexminions_index_14_tier%&7/&f%hexminions_index_14_max_tier%'
+      - '&7Storage: &f%hexminions_index_14_storage_used%&7/&f%hexminions_index_14_storage_limit% &8(%hexminions_index_14_storage_percent%%%)'
+      - '&a%hexminions_index_14_storage_bar%'
+      - '&7Status: &f%hexminions_index_14_state%'
+      - '&7Lokacja: &f%hexminions_index_14_location%'
+      - ''
+      - '&eLPM: odbierz storage'
+      - '&ePPM: otwórz menu miniona'
+      - '&eSHIFT+LPM: podnieś miniona'
+      - '&eSHIFT+PPM: ulepsz'
+      - '&eŚPM: przenieś na aktualne miejsce'
+    left_click_commands: ['[player] minion action collect %hexminions_index_14_id%']
+    right_click_commands: ['[player] minion action open %hexminions_index_14_id%']
+    shift_left_click_commands: ['[player] minion action pickup %hexminions_index_14_id%']
+    shift_right_click_commands: ['[player] minion action upgrade %hexminions_index_14_id%']
+    middle_click_commands: ['[player] minion action move %hexminions_index_14_id%']
+
+  minion_15:
+    material: '%hexminions_index_15_head_material%'
+    slot: 28
+    display_name: '&b#15 &f%hexminions_index_15_name%'
+    lore:
+      - '&7Istnieje: &f%hexminions_index_15_exists%'
+      - '&7ID: &f%hexminions_index_15_short_id%'
+      - '&7Typ: &f%hexminions_index_15_type%'
+      - '&7Tier: &f%hexminions_index_15_tier%&7/&f%hexminions_index_15_max_tier%'
+      - '&7Storage: &f%hexminions_index_15_storage_used%&7/&f%hexminions_index_15_storage_limit% &8(%hexminions_index_15_storage_percent%%%)'
+      - '&a%hexminions_index_15_storage_bar%'
+      - '&7Status: &f%hexminions_index_15_state%'
+      - '&7Lokacja: &f%hexminions_index_15_location%'
+      - ''
+      - '&eLPM: odbierz storage'
+      - '&ePPM: otwórz menu miniona'
+      - '&eSHIFT+LPM: podnieś miniona'
+      - '&eSHIFT+PPM: ulepsz'
+      - '&eŚPM: przenieś na aktualne miejsce'
+    left_click_commands: ['[player] minion action collect %hexminions_index_15_id%']
+    right_click_commands: ['[player] minion action open %hexminions_index_15_id%']
+    shift_left_click_commands: ['[player] minion action pickup %hexminions_index_15_id%']
+    shift_right_click_commands: ['[player] minion action upgrade %hexminions_index_15_id%']
+    middle_click_commands: ['[player] minion action move %hexminions_index_15_id%']
+
+  minion_16:
+    material: '%hexminions_index_16_head_material%'
+    slot: 29
+    display_name: '&b#16 &f%hexminions_index_16_name%'
+    lore:
+      - '&7Istnieje: &f%hexminions_index_16_exists%'
+      - '&7ID: &f%hexminions_index_16_short_id%'
+      - '&7Typ: &f%hexminions_index_16_type%'
+      - '&7Tier: &f%hexminions_index_16_tier%&7/&f%hexminions_index_16_max_tier%'
+      - '&7Storage: &f%hexminions_index_16_storage_used%&7/&f%hexminions_index_16_storage_limit% &8(%hexminions_index_16_storage_percent%%%)'
+      - '&a%hexminions_index_16_storage_bar%'
+      - '&7Status: &f%hexminions_index_16_state%'
+      - '&7Lokacja: &f%hexminions_index_16_location%'
+      - ''
+      - '&eLPM: odbierz storage'
+      - '&ePPM: otwórz menu miniona'
+      - '&eSHIFT+LPM: podnieś miniona'
+      - '&eSHIFT+PPM: ulepsz'
+      - '&eŚPM: przenieś na aktualne miejsce'
+    left_click_commands: ['[player] minion action collect %hexminions_index_16_id%']
+    right_click_commands: ['[player] minion action open %hexminions_index_16_id%']
+    shift_left_click_commands: ['[player] minion action pickup %hexminions_index_16_id%']
+    shift_right_click_commands: ['[player] minion action upgrade %hexminions_index_16_id%']
+    middle_click_commands: ['[player] minion action move %hexminions_index_16_id%']
+
+  minion_17:
+    material: '%hexminions_index_17_head_material%'
+    slot: 30
+    display_name: '&b#17 &f%hexminions_index_17_name%'
+    lore:
+      - '&7Istnieje: &f%hexminions_index_17_exists%'
+      - '&7ID: &f%hexminions_index_17_short_id%'
+      - '&7Typ: &f%hexminions_index_17_type%'
+      - '&7Tier: &f%hexminions_index_17_tier%&7/&f%hexminions_index_17_max_tier%'
+      - '&7Storage: &f%hexminions_index_17_storage_used%&7/&f%hexminions_index_17_storage_limit% &8(%hexminions_index_17_storage_percent%%%)'
+      - '&a%hexminions_index_17_storage_bar%'
+      - '&7Status: &f%hexminions_index_17_state%'
+      - '&7Lokacja: &f%hexminions_index_17_location%'
+      - ''
+      - '&eLPM: odbierz storage'
+      - '&ePPM: otwórz menu miniona'
+      - '&eSHIFT+LPM: podnieś miniona'
+      - '&eSHIFT+PPM: ulepsz'
+      - '&eŚPM: przenieś na aktualne miejsce'
+    left_click_commands: ['[player] minion action collect %hexminions_index_17_id%']
+    right_click_commands: ['[player] minion action open %hexminions_index_17_id%']
+    shift_left_click_commands: ['[player] minion action pickup %hexminions_index_17_id%']
+    shift_right_click_commands: ['[player] minion action upgrade %hexminions_index_17_id%']
+    middle_click_commands: ['[player] minion action move %hexminions_index_17_id%']
+
+  minion_18:
+    material: '%hexminions_index_18_head_material%'
+    slot: 31
+    display_name: '&b#18 &f%hexminions_index_18_name%'
+    lore:
+      - '&7Istnieje: &f%hexminions_index_18_exists%'
+      - '&7ID: &f%hexminions_index_18_short_id%'
+      - '&7Typ: &f%hexminions_index_18_type%'
+      - '&7Tier: &f%hexminions_index_18_tier%&7/&f%hexminions_index_18_max_tier%'
+      - '&7Storage: &f%hexminions_index_18_storage_used%&7/&f%hexminions_index_18_storage_limit% &8(%hexminions_index_18_storage_percent%%%)'
+      - '&a%hexminions_index_18_storage_bar%'
+      - '&7Status: &f%hexminions_index_18_state%'
+      - '&7Lokacja: &f%hexminions_index_18_location%'
+      - ''
+      - '&eLPM: odbierz storage'
+      - '&ePPM: otwórz menu miniona'
+      - '&eSHIFT+LPM: podnieś miniona'
+      - '&eSHIFT+PPM: ulepsz'
+      - '&eŚPM: przenieś na aktualne miejsce'
+    left_click_commands: ['[player] minion action collect %hexminions_index_18_id%']
+    right_click_commands: ['[player] minion action open %hexminions_index_18_id%']
+    shift_left_click_commands: ['[player] minion action pickup %hexminions_index_18_id%']
+    shift_right_click_commands: ['[player] minion action upgrade %hexminions_index_18_id%']
+    middle_click_commands: ['[player] minion action move %hexminions_index_18_id%']
+
+  minion_19:
+    material: '%hexminions_index_19_head_material%'
+    slot: 32
+    display_name: '&b#19 &f%hexminions_index_19_name%'
+    lore:
+      - '&7Istnieje: &f%hexminions_index_19_exists%'
+      - '&7ID: &f%hexminions_index_19_short_id%'
+      - '&7Typ: &f%hexminions_index_19_type%'
+      - '&7Tier: &f%hexminions_index_19_tier%&7/&f%hexminions_index_19_max_tier%'
+      - '&7Storage: &f%hexminions_index_19_storage_used%&7/&f%hexminions_index_19_storage_limit% &8(%hexminions_index_19_storage_percent%%%)'
+      - '&a%hexminions_index_19_storage_bar%'
+      - '&7Status: &f%hexminions_index_19_state%'
+      - '&7Lokacja: &f%hexminions_index_19_location%'
+      - ''
+      - '&eLPM: odbierz storage'
+      - '&ePPM: otwórz menu miniona'
+      - '&eSHIFT+LPM: podnieś miniona'
+      - '&eSHIFT+PPM: ulepsz'
+      - '&eŚPM: przenieś na aktualne miejsce'
+    left_click_commands: ['[player] minion action collect %hexminions_index_19_id%']
+    right_click_commands: ['[player] minion action open %hexminions_index_19_id%']
+    shift_left_click_commands: ['[player] minion action pickup %hexminions_index_19_id%']
+    shift_right_click_commands: ['[player] minion action upgrade %hexminions_index_19_id%']
+    middle_click_commands: ['[player] minion action move %hexminions_index_19_id%']
+
+  minion_20:
+    material: '%hexminions_index_20_head_material%'
+    slot: 33
+    display_name: '&b#20 &f%hexminions_index_20_name%'
+    lore:
+      - '&7Istnieje: &f%hexminions_index_20_exists%'
+      - '&7ID: &f%hexminions_index_20_short_id%'
+      - '&7Typ: &f%hexminions_index_20_type%'
+      - '&7Tier: &f%hexminions_index_20_tier%&7/&f%hexminions_index_20_max_tier%'
+      - '&7Storage: &f%hexminions_index_20_storage_used%&7/&f%hexminions_index_20_storage_limit% &8(%hexminions_index_20_storage_percent%%%)'
+      - '&a%hexminions_index_20_storage_bar%'
+      - '&7Status: &f%hexminions_index_20_state%'
+      - '&7Lokacja: &f%hexminions_index_20_location%'
+      - ''
+      - '&eLPM: odbierz storage'
+      - '&ePPM: otwórz menu miniona'
+      - '&eSHIFT+LPM: podnieś miniona'
+      - '&eSHIFT+PPM: ulepsz'
+      - '&eŚPM: przenieś na aktualne miejsce'
+    left_click_commands: ['[player] minion action collect %hexminions_index_20_id%']
+    right_click_commands: ['[player] minion action open %hexminions_index_20_id%']
+    shift_left_click_commands: ['[player] minion action pickup %hexminions_index_20_id%']
+    shift_right_click_commands: ['[player] minion action upgrade %hexminions_index_20_id%']
+    middle_click_commands: ['[player] minion action move %hexminions_index_20_id%']
+
+  minion_21:
+    material: '%hexminions_index_21_head_material%'
+    slot: 34
+    display_name: '&b#21 &f%hexminions_index_21_name%'
+    lore:
+      - '&7Istnieje: &f%hexminions_index_21_exists%'
+      - '&7ID: &f%hexminions_index_21_short_id%'
+      - '&7Typ: &f%hexminions_index_21_type%'
+      - '&7Tier: &f%hexminions_index_21_tier%&7/&f%hexminions_index_21_max_tier%'
+      - '&7Storage: &f%hexminions_index_21_storage_used%&7/&f%hexminions_index_21_storage_limit% &8(%hexminions_index_21_storage_percent%%%)'
+      - '&a%hexminions_index_21_storage_bar%'
+      - '&7Status: &f%hexminions_index_21_state%'
+      - '&7Lokacja: &f%hexminions_index_21_location%'
+      - ''
+      - '&eLPM: odbierz storage'
+      - '&ePPM: otwórz menu miniona'
+      - '&eSHIFT+LPM: podnieś miniona'
+      - '&eSHIFT+PPM: ulepsz'
+      - '&eŚPM: przenieś na aktualne miejsce'
+    left_click_commands: ['[player] minion action collect %hexminions_index_21_id%']
+    right_click_commands: ['[player] minion action open %hexminions_index_21_id%']
+    shift_left_click_commands: ['[player] minion action pickup %hexminions_index_21_id%']
+    shift_right_click_commands: ['[player] minion action upgrade %hexminions_index_21_id%']
+    middle_click_commands: ['[player] minion action move %hexminions_index_21_id%']
+
 
   wiki:
     material: BOOK
@@ -173,13 +573,3 @@ items:
       - '&eKliknij, aby otworzyć wiki.'
     left_click_commands:
       - '[player] minion wiki'
-
-  note:
-    material: PAPER
-    slot: 49
-    display_name: '&eUwaga'
-    lore:
-      - '&7Każdy minion ma tylko jedną ikonę-główkę.'
-      - '&7Zapełnienie widzisz w lore jako pasek:'
-      - '&a■■■■□□□□□□'
-      - '&7Rozszerz menu, kopiując sekcje minion_#.'

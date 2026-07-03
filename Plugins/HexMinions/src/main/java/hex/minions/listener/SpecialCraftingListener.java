@@ -48,6 +48,11 @@ public final class SpecialCraftingListener implements Listener {
         this.plugin = plugin; this.hex = hex; this.towns = towns; this.service = service; this.menu = menu;
     }
 
+    private org.bukkit.block.BlockFace defaultFacingFor(String blockKind, Player player) {
+        if ("MACERATOR".equalsIgnoreCase(blockKind)) return org.bukkit.block.BlockFace.UP;
+        return player == null ? org.bukkit.block.BlockFace.NORTH : player.getFacing().getOppositeFace();
+    }
+
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlaceSpecialBlock(BlockPlaceEvent event) {
         SpecialItemRegistry registry = service.specialItems();
@@ -68,10 +73,10 @@ public final class SpecialCraftingListener implements Listener {
         String blockKind = def.blockKind().isBlank() ? specialId.get() : def.blockKind();
         Material placedMaterial = registry.station(blockKind).map(station -> station.block()).orElse(def.material());
         event.getBlockPlaced().setType(placedMaterial);
-        if (event.getBlockPlaced().getBlockData() instanceof Directional directional) {
+        if (event.getBlockPlaced().getBlockData() instanceof Directional) {
             BlockData data = event.getBlockPlaced().getBlockData();
             if (data instanceof Directional oriented) {
-                oriented.setFacing(event.getPlayer().getFacing().getOppositeFace());
+                oriented.setFacing(defaultFacingFor(blockKind, event.getPlayer()));
                 event.getBlockPlaced().setBlockData(oriented, false);
             }
         }
@@ -265,11 +270,15 @@ public final class SpecialCraftingListener implements Listener {
                 if (ch == ' ' || ingredient == null) {
                     if (item != null && !item.getType().isAir()) return false;
                 } else {
-                    Material expected = ingredient.material();
-                    if (expected == Material.AIR && ingredient.specialItemId() != null && !ingredient.specialItemId().isBlank()) {
-                        expected = service.specialItems().item(ingredient.specialItemId()).map(SpecialItemDefinition::material).orElse(Material.AIR);
+                    if (ingredient.specialItemId() != null && !ingredient.specialItemId().isBlank()) {
+                        Material expected = ingredient.material();
+                        if (expected == Material.AIR) {
+                            expected = service.specialItems().item(ingredient.specialItemId()).map(SpecialItemDefinition::material).orElse(Material.AIR);
+                        }
+                        if (expected == Material.AIR || item == null || item.getType() != expected) return false;
+                    } else if (ingredient.material() == Material.AIR || item == null || !ingredient.matchesMaterial(item.getType())) {
+                        return false;
                     }
-                    if (expected == Material.AIR || item == null || item.getType() != expected) return false;
                 }
             }
         }

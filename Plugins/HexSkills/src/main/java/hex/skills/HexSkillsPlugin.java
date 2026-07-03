@@ -3,6 +3,7 @@ package hex.skills;
 import hex.core.api.compat.MinecraftCompatibility;
 import hex.core.api.compat.SoundCompatibility;
 import hex.core.api.HexApi;
+import hex.core.api.ui.UiTokens;
 import hex.skills.config.SkillRegistry;
 import hex.skills.database.SkillRepository;
 import hex.skills.model.SkillDefinition;
@@ -57,6 +58,10 @@ public final class HexSkillsPlugin extends JavaPlugin implements TabExecutor, Li
         saveResourceIfMissing("skills.yml");
         saveResourceIfMissing("deluxemenus/hexskills.yml");
 
+        if (!isHexTownsEnabled()) {
+            return;
+        }
+
         var hexReg = Bukkit.getServicesManager().getRegistration(HexApi.class);
         var townsReg = Bukkit.getServicesManager().getRegistration(TownsApi.class);
         if (hexReg == null || townsReg == null) {
@@ -65,6 +70,7 @@ public final class HexSkillsPlugin extends JavaPlugin implements TabExecutor, Li
             return;
         }
         this.hex = hexReg.getProvider();
+        registerUiDefaults();
         this.towns = townsReg.getProvider();
         this.triggers = findTriggerService();
         this.repository = new SkillRepository(hex.db().db());
@@ -81,6 +87,16 @@ public final class HexSkillsPlugin extends JavaPlugin implements TabExecutor, Li
         }
         getServer().getPluginManager().registerEvents(this, this);
         getLogger().info("HexSkills enabled");
+    }
+
+    private boolean isHexTownsEnabled() {
+        if (Bukkit.getPluginManager().isPluginEnabled("HexTowns")) {
+            return true;
+        }
+
+        getLogger().severe("HexTowns is not enabled; disabling HexSkills.");
+        getServer().getPluginManager().disablePlugin(this);
+        return false;
     }
 
     @Override
@@ -226,7 +242,7 @@ public final class HexSkillsPlugin extends JavaPlugin implements TabExecutor, Li
                                     var player = Bukkit.getPlayer(finalPlayerUuid);
                                     if (player != null) {
                                         SoundCompatibility.play(player, player.getLocation(), "ENTITY_PLAYER_LEVELUP", 1.0f, 1.2f);
-                                        player.sendMessage(miniMessage.deserialize("<green>Awans skillu!</green> <yellow>" + skill.displayName() + "</yellow> <gray>z poziomu</gray> <white>" + change.before().level() + "</white> <gray>na</gray> <white>" + change.after().level() + "</white><gray>.</gray>"));
+                                        hex.ui().send(player, "skills.level-up", UiTokens.of("skill", readableName(skill.displayName())).put("from", String.valueOf(change.before().level())).put("to", String.valueOf(change.after().level())));
                                     }
                                 }
                             }));
@@ -398,7 +414,7 @@ public final class HexSkillsPlugin extends JavaPlugin implements TabExecutor, Li
                         var player = Bukkit.getPlayer(playerId);
                         if (player != null) {
                             SoundCompatibility.play(player, player.getLocation(), "ENTITY_PLAYER_LEVELUP", 1.0f, 1.2f);
-                            player.sendMessage(miniMessage.deserialize("<green>Awans skillu!</green> <yellow>" + skill.get().displayName() + "</yellow> <gray>z poziomu</gray> <white>" + change.before().level() + "</white> <gray>na</gray> <white>" + change.after().level() + "</white><gray>.</gray>"));
+                            hex.ui().send(player, "skills.level-up", UiTokens.of("skill", readableName(skill.get().displayName())).put("from", String.valueOf(change.before().level())).put("to", String.valueOf(change.after().level())));
                         }
                     }
                 }));
@@ -415,11 +431,29 @@ public final class HexSkillsPlugin extends JavaPlugin implements TabExecutor, Li
             if (towns != null) {
                 registerPlaceholderExpansion(towns);
             }
-            sender.sendMessage("HexSkills reloaded. skills=" + registry.all().size());
+            hex.ui().send(sender, "skills.reload.success", UiTokens.of("count", String.valueOf(registry.all().size())));
             return true;
         }
-        sender.sendMessage("HexSkills: skills=" + registry.all().size() + ", triggers=" + subscriptions.size());
+        hex.ui().send(sender, "skills.info", UiTokens.of("count", String.valueOf(registry.all().size())).put("triggers", String.valueOf(subscriptions.size())));
         return true;
+    }
+
+
+    private String readableName(String raw) {
+        if (raw == null || raw.isBlank()) return "";
+        return raw.replaceAll("<[^>]+>", "");
+    }
+
+    private void registerUiDefaults() {
+        try {
+            hex.ui().registerDefaults("skills", Map.of(
+                    "level-up", "<green>Awans skillu!</green> <yellow><skill></yellow> <gray>z poziomu</gray> <white><from></white> <gray>na</gray> <white><to></white><gray>.</gray>",
+                    "reload.success", "<green>Przeladowano HexSkills.</green> <gray>Skille:</gray> <white><count></white>",
+                    "info", "<gold>HexSkills</gold> <gray>| skille:</gray> <white><count></white> <gray>| triggery:</gray> <white><triggers></white>"
+            ));
+        } catch (Throwable t) {
+            getLogger().warning("Could not register UI defaults: " + t.getMessage());
+        }
     }
 
     @Override

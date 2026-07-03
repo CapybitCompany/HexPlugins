@@ -2,7 +2,6 @@ package hex.core.service.db;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import hex.core.api.db.DatabaseService;
 import hex.core.api.db.Db;
 import hex.core.api.db.RowMapper;
 import hex.core.api.db.SqlException;
@@ -14,7 +13,7 @@ import java.util.concurrent.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public final class HikariDatabaseService implements DatabaseService {
+public final class HikariDatabaseService implements DataSourceBackedDatabaseService {
 
     private final Plugin plugin;
     private final HikariDataSource ds;
@@ -32,11 +31,13 @@ public final class HikariDatabaseService implements DatabaseService {
         hc.setMaxLifetime(cfg.pool.lifetimeMs);
 
         if (isSqlite(cfg)) {
+            hc.setDriverClassName("org.sqlite.JDBC");
             String path = new java.io.File(plugin.getDataFolder(), cfg.sqliteFile).getAbsolutePath();
             hc.setJdbcUrl("jdbc:sqlite:" + path);
         } else {
             // mysql/mariadb
             String driver = cfg.type.equalsIgnoreCase("mariadb") ? "mariadb" : "mysql";
+            hc.setDriverClassName(cfg.type.equalsIgnoreCase("mariadb") ? "org.mariadb.jdbc.Driver" : "com.mysql.cj.jdbc.Driver");
             String jdbc = "jdbc:" + driver + "://" + cfg.host + ":" + cfg.port + "/" + cfg.database
                     + "?useSSL=" + cfg.options.useSSL
                     + "&serverTimezone=" + cfg.options.serverTimezone

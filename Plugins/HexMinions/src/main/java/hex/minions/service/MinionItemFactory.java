@@ -132,7 +132,7 @@ public final class MinionItemFactory {
         return raw.replace("<tier>", String.valueOf(tier))
                 .replace("<max_tier>", String.valueOf(type.maxTier()))
                 .replace("<name>", type.displayName())
-                .replace("<action_time>", String.valueOf(tierDefinition.actionTimeSeconds()))
+                .replace("<action_time>", tierDefinition.actionTimeText())
                 .replace("<storage_limit>", String.valueOf(tierDefinition.storage()));
     }
 

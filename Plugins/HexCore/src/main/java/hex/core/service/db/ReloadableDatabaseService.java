@@ -37,7 +37,7 @@ public final class ReloadableDatabaseService implements DatabaseService {
     }
 
     public boolean isActiveHikari() {
-        return current() instanceof HikariDatabaseService;
+        return current() instanceof DataSourceBackedDatabaseService;
     }
 
     public void swap(DatabaseService newDelegate) {
@@ -59,6 +59,16 @@ public final class ReloadableDatabaseService implements DatabaseService {
     @Override
     public Db db() {
         return dbProxy;
+    }
+
+    @Override
+    public boolean isAvailable() {
+        return current().isAvailable();
+    }
+
+    @Override
+    public String unavailableReason() {
+        return current().unavailableReason();
     }
 
     @Override

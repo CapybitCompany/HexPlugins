@@ -156,7 +156,7 @@ items:
       - ''
       - '&7Bruk: &f%hexcollections_level_mining_cobblestone%&7/7'
       - '&7Iron: &f%hexcollections_level_mining_iron%&7/7'
-      - '&7Dirt: &f%hexcollections_level_mining_dirt%&7/3'
+      - '&7Dirt: &f%hexcollections_level_mining_dirt%&7/7'
       - ''
       - '&eKliknij, aby otworzyć.'
     view_requirement:

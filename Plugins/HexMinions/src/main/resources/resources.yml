@@ -487,14 +487,14 @@ resources:
       compressed-material: SPRUCE_LOG
       unlock-minion-level: 5
   copper:
-    display-name: <color:#b87333>Miedź</color>
-    material: COPPER_INGOT
+    display-name: <color:#b87333>Ruda miedzi</color>
+    material: COPPER_ORE
     collection-id: mining.copper
     worth: 2.0
     stack-size: 64
     tags:
     - mining
-    - ingot
+    - ore
     compression:
       enabled: true
       block-convertible: true
@@ -606,9 +606,9 @@ resources:
       enabled: false
       block-convertible: false
   leather:
-    display-name: <gold>Skóra krowy</gold>
+    display-name: <gold>Skóra</gold>
     material: LEATHER
-    collection-id: ''
+    collection-id: animals.leather
     worth: 1.0
     stack-size: 64
     tags:
@@ -673,10 +673,10 @@ resources:
       compressed-material: IRON_BLOCK
       unlock-minion-level: 5
   spruce_resin:
-    display-name: <gold>Żywica świerkowa</gold>
+    display-name: <aqua>Żywica</aqua>
     material: HONEYCOMB
     custom-model-data: 14010
-    collection-id: foraging.spruce_wood
+    collection-id: foraging.spruce_resin
     worth: 3.0
     stack-size: 16
     tags:
@@ -685,4 +685,95 @@ resources:
     compression:
       enabled: false
       block-convertible: false
-
+  wheat:
+    display-name: <yellow>Pszenica</yellow>
+    material: WHEAT
+    collection-id: farming.wheat
+    worth: 1.0
+    stack-size: 64
+    tags:
+    - farming
+    - crop
+    - wheat
+    compression:
+      enabled: false
+      block-convertible: false
+  sugar_cane:
+    display-name: <green>Trzcina cukrowa</green>
+    material: SUGAR_CANE
+    collection-id: farming.sugar_cane
+    worth: 1.0
+    stack-size: 64
+    tags:
+    - farming
+    - crop
+    - sugar_cane
+    compression:
+      enabled: false
+      block-convertible: false
+  beetroot:
+    display-name: <dark_red>Burak</dark_red>
+    material: BEETROOT
+    collection-id: farming.beetroot
+    worth: 1.0
+    stack-size: 64
+    tags:
+    - farming
+    - crop
+    - beetroot
+    compression:
+      enabled: false
+      block-convertible: false
+  cactus:
+    display-name: <dark_green>Kaktus</dark_green>
+    material: CACTUS
+    collection-id: farming.cactus
+    worth: 1.0
+    stack-size: 64
+    tags:
+    - farming
+    - crop
+    - cactus
+    compression:
+      enabled: false
+      block-convertible: false
+  emerald:
+    display-name: <green>Emerald</green>
+    material: EMERALD
+    collection-id: mining.emerald
+    worth: 12.0
+    stack-size: 64
+    tags:
+    - mining
+    - gem
+    compression:
+      enabled: false
+      block-convertible: false
+  netherrack:
+    display-name: <dark_red>Netherack</dark_red>
+    material: NETHERRACK
+    collection-id: mining.netherrack
+    worth: 1.0
+    stack-size: 64
+    tags:
+    - mining
+    - nether
+    - block
+    compression:
+      enabled: false
+      block-convertible: false
+  enriched_uranium:
+    material: EMERALD
+    custom-model-data: 12003
+    collection-id: industrial.enriched_uranium
+    display-name: <green>☢ Wzbogacony uran</green>
+    worth: 0.0
+    stack-size: 16
+    tags:
+    - industrial
+    - radioactive
+    - special
+    compression:
+      enabled: false
+      block-convertible: false
+      compressed-material: EMERALD

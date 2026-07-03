@@ -19,25 +19,25 @@ source_rules:
 levels:
   1:
     required: 1000000
-    display_name: '&eEnergia I'
+    display_name: '&eEnergia EU I'
   2:
-    required: 10000000
-    display_name: '&eEnergia II'
+    required: 25000000
+    display_name: '&eEnergia EU II'
   3:
-    required: 250000000
-    display_name: '&eEnergia III'
+    required: 500000000
+    display_name: '&eEnergia EU III'
   4:
-    required: 1000000000
-    display_name: '&eEnergia IV'
+    required: 5000000000
+    display_name: '&eEnergia EU IV'
   5:
-    required: 10000000000
-    display_name: '&eEnergia V'
-  6:
-    required: 25000000000
-    display_name: '&eEnergia VI'
-  7:
     required: 50000000000
-    display_name: '&eEnergia VII'
+    display_name: '&eEnergia EU V'
+  6:
+    required: 250000000000
+    display_name: '&eEnergia EU VI'
+  7:
+    required: 500000000000
+    display_name: '&eEnergia EU VII'
 reward_claim_mode: AUTO
 placeholder:
   progress_bar:

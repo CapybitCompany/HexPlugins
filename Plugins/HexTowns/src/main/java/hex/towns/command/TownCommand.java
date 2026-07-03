@@ -8,6 +8,7 @@ import hex.towns.model.Town;
 import hex.towns.service.OperationResult;
 import hex.towns.gui.TownRenameAnvilListener;
 import hex.towns.gui.TownCoopDecisionMenu;
+import hex.towns.gui.NativeTownMenu;
 import hex.towns.map.TownMapService;
 import hex.towns.heart.TownHeartListener;
 import hex.towns.service.TownsService;
@@ -37,16 +38,17 @@ public final class TownCommand implements CommandExecutor, TabCompleter {
     private final HexApi api;
     private final TownsService service;
     private final VisualCheckService visualCheckService;
-    private final TownsConfig config;
+    private volatile TownsConfig config;
     private final TownRenameAnvilListener renameGui;
     private final TownMapService mapService;
     private final TownCoopDecisionMenu coopDecisionMenu;
     private final TownHeartListener townHeartListener;
+    private final NativeTownMenu nativeTownMenu;
     private final Map<UUID, PendingCreate> createConfirmations = new ConcurrentHashMap<>();
     private final Map<UUID, PendingToken> destroyConfirmations = new ConcurrentHashMap<>();
     private final Map<UUID, PendingToken> endCoopConfirmations = new ConcurrentHashMap<>();
 
-    public TownCommand(Plugin plugin, HexApi api, TownsService service, VisualCheckService visualCheckService, TownsConfig config, TownRenameAnvilListener renameGui, TownMapService mapService, TownCoopDecisionMenu coopDecisionMenu, TownHeartListener townHeartListener) {
+    public TownCommand(Plugin plugin, HexApi api, TownsService service, VisualCheckService visualCheckService, TownsConfig config, TownRenameAnvilListener renameGui, TownMapService mapService, TownCoopDecisionMenu coopDecisionMenu, TownHeartListener townHeartListener, NativeTownMenu nativeTownMenu) {
         this.plugin = plugin;
         this.api = api;
         this.service = service;
@@ -56,16 +58,29 @@ public final class TownCommand implements CommandExecutor, TabCompleter {
         this.mapService = mapService;
         this.coopDecisionMenu = coopDecisionMenu;
         this.townHeartListener = townHeartListener;
+        this.nativeTownMenu = nativeTownMenu;
+    }
+
+    public void reloadConfig(TownsConfig config) {
+        this.config = config;
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 0) {
-            api.ui().send(sender, "towns.help");
+            if (sender instanceof Player player) {
+                nativeTownMenu.openMain(player);
+            } else {
+                api.ui().send(sender, "towns.help");
+            }
             return true;
         }
 
         String sub = args[0].toLowerCase(Locale.ROOT);
+        if (sub.equals("reload")) {
+            handleAdminReload(sender);
+            return true;
+        }
         if (sub.equals("admin")) {
             handleAdmin(sender, args);
             return true;
@@ -77,6 +92,12 @@ public final class TownCommand implements CommandExecutor, TabCompleter {
         }
 
         switch (sub) {
+            case "menu" -> nativeTownMenu.openMain(player);
+            case "manage" -> nativeTownMenu.openManage(player);
+            case "claims" -> nativeTownMenu.openClaims(player);
+            case "collections" -> nativeTownMenu.openCollections(player, hex.towns.gui.NativeTownMenuHolder.Page.COLLECTIONS_RESOURCES);
+            case "minions" -> nativeTownMenu.openMinions(player);
+            case "danger" -> nativeTownMenu.openDanger(player);
             case "create" -> handleCreate(player, args);
             case "claim" -> handleAsync(player, service.claim(player));
             case "coop" -> handleAsync(player, service.requestCoop(player));
@@ -310,6 +331,10 @@ public final class TownCommand implements CommandExecutor, TabCompleter {
             api.db().async(() -> service.listPage(cursor, 50)).thenAccept(page -> Bukkit.getScheduler().runTask(plugin, () -> sendAdminPage(sender, page)));
             return;
         }
+        if (args.length >= 2 && args[1].equalsIgnoreCase("reload")) {
+            handleAdminReload(sender);
+            return;
+        }
         if (args.length >= 2 && (args[1].equalsIgnoreCase("addgrowth") || args[1].equalsIgnoreCase("growthadd"))) {
             handleAdminAddGrowth(sender, args);
             return;
@@ -339,40 +364,60 @@ public final class TownCommand implements CommandExecutor, TabCompleter {
         api.ui().send(sender, "towns.help");
     }
 
+
+    private void handleAdminReload(CommandSender sender) {
+        if (!sender.hasPermission("hextowns.admin")) {
+            api.ui().send(sender, "towns.error.not-owner");
+            return;
+        }
+        try {
+            if (plugin instanceof hex.towns.HexTownsPlugin townsPlugin) {
+                townsPlugin.reloadTownsConfig();
+            } else {
+                plugin.reloadConfig();
+            }
+            api.ui().send(sender, "towns.admin.reload.success");
+        } catch (Exception ex) {
+            plugin.getLogger().log(Level.SEVERE, "HexTowns config reload failed", ex);
+            String message = ex.getMessage() == null ? ex.getClass().getSimpleName() : ex.getMessage();
+            api.ui().send(sender, "towns.admin.reload.error", UiTokens.of("error", message));
+        }
+    }
+
     private void handleAdminAddGrowth(CommandSender sender, String[] args) {
         if (args.length < 4) {
-            sender.sendMessage("§cUżycie: /town admin addgrowth <uuid-miasta|nazwa-miasta> <punkty> [źródło]");
+            api.ui().send(sender, "towns.admin.addgrowth.usage");
             return;
         }
         Town town = resolveTown(args[2]);
         if (town == null) {
-            sender.sendMessage("§cNie znaleziono miasta: §f" + args[2]);
+            api.ui().send(sender, "towns.admin.addgrowth.town-not-found", UiTokens.of("town", args[2]));
             return;
         }
         int amount;
         try {
             amount = Integer.parseInt(args[3]);
         } catch (NumberFormatException ex) {
-            sender.sendMessage("§cLiczba punktów musi być poprawną liczbą całkowitą.");
+            api.ui().send(sender, "towns.admin.addgrowth.invalid-number");
             return;
         }
         if (amount == 0) {
-            sender.sendMessage("§cLiczba punktów nie może wynosić 0.");
+            api.ui().send(sender, "towns.admin.addgrowth.zero");
             return;
         }
         String source = args.length >= 5 ? args[4] : "console";
         service.addGrowthPoints(town.id(), amount, source);
-        sender.sendMessage("§aDodano §f" + amount + "§a punktów wzrostu do miasta §e" + town.name() + "§a. Źródło: §7" + source + "§a.");
+        api.ui().send(sender, "towns.admin.addgrowth.success", UiTokens.of("amount", String.valueOf(amount)).put("town", town.name()).put("source", source));
     }
 
     private void handleAdminGiveHeart(CommandSender sender, String[] args) {
         if (args.length < 3) {
-            sender.sendMessage("§cUżycie: /town admin giveheart <gracz> [ilość]");
+            api.ui().send(sender, "towns.admin.giveheart.usage");
             return;
         }
         Player target = Bukkit.getPlayerExact(args[2]);
         if (target == null) {
-            sender.sendMessage("§cGracz musi być online: §f" + args[2]);
+            api.ui().send(sender, "towns.admin.giveheart.player-offline", UiTokens.of("player", args[2]));
             return;
         }
         int amount = 1;
@@ -380,12 +425,12 @@ public final class TownCommand implements CommandExecutor, TabCompleter {
             try {
                 amount = Math.max(1, Integer.parseInt(args[3]));
             } catch (NumberFormatException ex) {
-                sender.sendMessage("§cIlość musi być liczbą całkowitą.");
+                api.ui().send(sender, "towns.admin.giveheart.invalid-number");
                 return;
             }
         }
         townHeartListener.giveHeart(target, amount);
-        sender.sendMessage("§aDodano §f" + amount + "§a x Serce Miasta dla §e" + target.getName() + "§a.");
+        api.ui().send(sender, "towns.admin.giveheart.success", UiTokens.of("amount", String.valueOf(amount)).put("player", target.getName()));
     }
 
     private Town resolveTown(String raw) {
@@ -459,10 +504,10 @@ public final class TownCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
-            return filter(List.of("create", "claim", "coop", "accept", "coopaccept", "coopreject", "coopkick", "coopdecide", "coopmember", "endcoop", "destroy", "rename", "check", "info", "here", "map", "growth", "admin"), args[0]);
+            return filter(List.of("menu", "manage", "claims", "collections", "minions", "danger", "reload", "create", "claim", "coop", "accept", "coopaccept", "coopreject", "coopkick", "coopdecide", "coopmember", "endcoop", "destroy", "rename", "check", "info", "here", "map", "growth", "admin"), args[0]);
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("admin")) {
-            return filter(List.of("metrics", "list", "addgrowth", "growthadd", "giveheart", "syncgrowth", "growthsync"), args[1]);
+            return filter(List.of("metrics", "list", "reload", "addgrowth", "growthadd", "giveheart", "syncgrowth", "growthsync"), args[1]);
         }
         return List.of();
     }

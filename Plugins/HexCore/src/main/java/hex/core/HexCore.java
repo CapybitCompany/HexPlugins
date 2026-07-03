@@ -32,6 +32,8 @@ import hex.core.service.ranking.RankingPositionService;
 import hex.core.service.config.ConfigServiceImpl;
 import hex.core.service.db.DbConfig;
 import hex.core.service.db.DbConfigLoader;
+import hex.core.service.db.DataSourceBackedDatabaseService;
+import hex.core.service.db.DriverManagerDatabaseService;
 import hex.core.service.db.HikariDatabaseService;
 import hex.core.service.db.NoopDatabaseService;
 import hex.core.service.db.ReloadableDatabaseService;
@@ -89,14 +91,14 @@ public final class HexCore extends JavaPlugin {
         try {
             databaseDelegate = createDatabaseDelegate(dbCfg);
         } catch (Exception ex) {
-            getLogger().severe("[DB] Failed to initialize: " + ex.getMessage());
-
             if (dbCfg.required) {
+                getLogger().severe("[DB] Failed to initialize: " + ex.getMessage());
                 getLogger().severe("[DB] required=true -> disabling plugin");
                 getServer().getPluginManager().disablePlugin(this);
                 return;
             }
 
+            getLogger().warning("[DB] Failed to initialize; required=false -> using noop database service: " + ex.getMessage());
             databaseDelegate = new NoopDatabaseService("DB init failed (required=false): " + ex.getMessage());
         }
         this.reloadableDatabase = new ReloadableDatabaseService(this, databaseDelegate);
@@ -309,21 +311,39 @@ public final class HexCore extends JavaPlugin {
 
     private DatabaseService createDatabaseDelegate(DbConfig dbCfg) {
         if (dbCfg.enabled) {
-            DatabaseService service = new HikariDatabaseService(this, dbCfg);
-            getLogger().info("[DB] Enabled ✅");
-            return service;
+            try {
+                DatabaseService service = new HikariDatabaseService(this, dbCfg);
+                validateDatabaseConnection(service);
+                getLogger().info("[DB] Enabled with HikariCP ✅");
+                return service;
+            } catch (NoClassDefFoundError | ExceptionInInitializerError error) {
+                getLogger().warning("[DB] HikariCP is not available in HexCore classloader; using DriverManager fallback. Cause: " + error.getMessage());
+                DatabaseService service = new DriverManagerDatabaseService(this, dbCfg);
+                validateDatabaseConnection(service);
+                getLogger().info("[DB] Enabled with DriverManager fallback ✅");
+                return service;
+            }
         }
 
         getLogger().warning("[DB] Disabled in db.yml");
         return new NoopDatabaseService("DB disabled in db.yml");
     }
 
+    private void validateDatabaseConnection(DatabaseService service) {
+        try {
+            service.db().queryOne("SELECT 1", rs -> 1);
+        } catch (RuntimeException ex) {
+            service.shutdown();
+            throw ex;
+        }
+    }
+
     private DatabaseBackedServices createDatabaseBackedServices(DbConfig dbCfg, DatabaseService activeDatabase) {
         RankingPointsRepository rankingPointsRepository = null;
         CoinsRepository coinsRepository = null;
-        if (activeDatabase instanceof HikariDatabaseService hikariDb) {
-            rankingPointsRepository = new RankingPointsRepository(hikariDb.dataSource(), dbCfg.tablePrefix);
-            coinsRepository = new CoinsRepository(hikariDb.dataSource(), "");
+        if (activeDatabase instanceof DataSourceBackedDatabaseService dataSourceDb) {
+            rankingPointsRepository = new RankingPointsRepository(dataSourceDb.dataSource(), dbCfg.tablePrefix);
+            coinsRepository = new CoinsRepository(dataSourceDb.dataSource(), "");
         }
 
         RankingPointsService rankingPointsService = new RankingPointsService(rankingPointsRepository, activeDatabase);

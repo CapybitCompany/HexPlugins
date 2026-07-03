@@ -1,5 +1,7 @@
 package hex.minions.listener;
 
+import hex.core.api.HexApi;
+import hex.core.api.ui.UiTokens;
 import hex.minions.service.MinionService;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -19,10 +21,12 @@ import java.util.Map;
 
 public final class RadiationListener implements Listener {
     private final Plugin plugin;
+    private final HexApi hex;
     private final MinionService service;
 
-    public RadiationListener(Plugin plugin, MinionService service) {
+    public RadiationListener(Plugin plugin, HexApi hex, MinionService service) {
         this.plugin = plugin;
+        this.hex = hex;
         this.service = service;
         Bukkit.getScheduler().runTaskTimer(plugin, this::damagePlayers, 20L, 20L);
     }
@@ -36,7 +40,7 @@ public final class RadiationListener implements Listener {
             double reduction = radiationReduction(player);
             double damage = (2.0D * enriched) * Math.max(0.0D, 1.0D - reduction);
             if (damage > 0.0D) player.damage(damage);
-            player.sendActionBar(net.kyori.adventure.text.Component.text("§a☢ §cPromieniowanie: §f" + enriched + "x wzbogacony uran §7(ochrona " + Math.round(reduction * 100.0D) + "%)"));
+            hex.ui().sendActionBar(player, "minions.radiation.actionbar", UiTokens.of("amount", String.valueOf(enriched)).put("protection", String.valueOf(Math.round(reduction * 100.0D))));
         }
     }
 
@@ -49,7 +53,7 @@ public final class RadiationListener implements Listener {
             double reduction = radiationReduction(player);
             double damage = (2.0D * enriched) * Math.max(0.0D, 1.0D - reduction);
             if (damage > 0.0D) player.damage(damage);
-            player.sendMessage("§cW skrzyni znajduje się wzbogacony uran. Ochrona kombinezonu: " + Math.round(reduction * 100.0D) + "%.");
+            hex.ui().send(player, "minions.radiation.chest-warning", UiTokens.of("protection", String.valueOf(Math.round(reduction * 100.0D))));
         }
     }
 
@@ -62,7 +66,7 @@ public final class RadiationListener implements Listener {
         ItemStack current = event.getCurrentItem();
         if ((isEnriched(cursor) || isEnriched(current)) && event.getClickedInventory() != null && event.getClickedInventory().equals(top)) {
             event.setCancelled(true);
-            player.sendMessage("§cWzbogaconego uranu nie można wkładać do zwykłej skrzyni.");
+            hex.ui().send(player, "minions.radiation.chest-blocked");
         }
     }
 
@@ -76,7 +80,7 @@ public final class RadiationListener implements Listener {
         for (ItemStack item : event.getNewItems().values()) {
             if (isEnriched(item)) {
                 event.setCancelled(true);
-                player.sendMessage("§cWzbogaconego uranu nie można wkładać do zwykłej skrzyni.");
+                hex.ui().send(player, "minions.radiation.chest-blocked");
                 return;
             }
         }

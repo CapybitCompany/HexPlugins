@@ -271,6 +271,10 @@ public final class MinionRepository {
         return db.queryOne("SELECT max_tier FROM " + db.t("town_minion_stats") + " WHERE town_id=? AND type_id=?", rs -> rs.getInt("max_tier"), townId, typeId).orElse(0);
     }
 
+    public int countKnownTownMinionTypes(long townId) {
+        return db.queryOne("SELECT COUNT(*) AS count FROM " + db.t("town_minion_stats") + " WHERE town_id=? AND placed_count>0", rs -> rs.getInt("count"), townId).orElse(0);
+    }
+
     public void deleteMinion(UUID minionId) {
         db.tx(tx -> {
             tx.update("DELETE FROM " + tx.t("minion_storage") + " WHERE minion_id=?", UuidBytes.toBytes(minionId));

@@ -29,7 +29,7 @@ items:
 
   destroy:
     material: TNT
-    slot: 20
+    slot: 22
     display_name: '&4Zniszcz miasto'
     lore:
       - '&7Dostępne tylko dla właściciela.'
@@ -49,7 +49,7 @@ items:
 
   leave:
     material: RED_BED
-    slot: 24
+    slot: 22
     display_name: '&cOpuść COOP'
     lore:
       - '&7Dostępne tylko dla gracza COOP.'

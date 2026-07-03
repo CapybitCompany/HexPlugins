@@ -26,9 +26,11 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 public final class MinionMenu {
@@ -36,17 +38,23 @@ public final class MinionMenu {
     public static final int ADDON_SLOT_1 = 24;
     public static final int ADDON_SLOT_2 = 25;
     public static final int STORAGE_CHEST_SLOT = 43;
+    public static final int MINION_WIKI_SLOT = 47;
+    public static final int ELECTRONICS_WIKI_SLOT = 46;
     private static final int[] WIKI_INDEX_SLOTS = {10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33, 34};
-    private static final int[] WIKI_TIER_SLOTS = {19, 20, 21, 22, 23, 24, 25};
-    private static final int[] WIKI_SPECIAL_SLOTS = {28, 29, 30, 31, 32, 33, 34};
+    private static final int[] WIKI_TIER_SLOTS = {10, 11, 12, 13, 14, 15, 16};
+    private static final int[] WIKI_SPECIAL_SLOTS = {19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33, 34};
     private static final int[] RECIPE_GRID_SLOTS = {10, 11, 12, 19, 20, 21, 28, 29, 30};
     private static final int[] WIKI_MACHINE_SLOTS = {10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25};
     private static final int[] WIKI_MACHINE_RECIPE_SLOTS = {10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33, 34};
+    private static final String ELECTRONICS_RETURN_ID = MinionWikiHolder.ELECTRONICS_RETURN_ID;
 
     private final HexApi hex;
     private final MinionService service;
     private final MinionItemFactory itemFactory;
     private final MiniMessage miniMessage = MiniMessage.miniMessage();
+    private final Set<UUID> wikiShowAll = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+    private record ElectronicsWikiEntry(String id, boolean machine, String category, int order) { }
 
     public MinionMenu(HexApi hex, MinionService service, MinionItemFactory itemFactory) {
         this.hex = hex;
@@ -65,15 +73,21 @@ public final class MinionMenu {
         Inventory inv = Bukkit.createInventory(new MinionMenuHolder(minionId), 54, miniMessage.deserialize("<dark_gray>Minion: " + d.displayName()));
         fill(inv);
         renderStaticMinionMenuItems(inv, d);
-        inv.setItem(ADDON_SLOT_1, boosterSlotItem(d));
-        inv.setItem(ADDON_SLOT_2, addonItem(d, "addon_2", Material.CHEST, "<green>Slot update / rozszerzenia</green>"));
+        renderDynamicAddonSlots(inv, d);
         player.openInventory(inv);
     }
 
     public void refreshMinionInventory(Player player, UUID minionId, Inventory inv) {
         Optional<MinionMenuData> data = service.minionData(player, minionId);
         if (data.isEmpty()) return;
-        renderStaticMinionMenuItems(inv, data.get());
+        MinionMenuData d = data.get();
+        renderStaticMinionMenuItems(inv, d);
+        renderDynamicAddonSlots(inv, d);
+    }
+
+    private void renderDynamicAddonSlots(Inventory inv, MinionMenuData d) {
+        inv.setItem(ADDON_SLOT_1, boosterSlotItem(d));
+        inv.setItem(ADDON_SLOT_2, addonItem(d, "addon_2", Material.CHEST, "<green>Slot update / rozszerzenia</green>"));
     }
 
     private void renderStaticMinionMenuItems(Inventory inv, MinionMenuData d) {
@@ -97,70 +111,139 @@ public final class MinionMenu {
         renderStorage(inv, d);
         inv.setItem(STORAGE_CHEST_SLOT, storageChestStatus(d));
         inv.setItem(45, item(Material.ENDER_PEARL, "<aqua>Przenieś tutaj</aqua>", List.of("<gray>Przenieś do pozycji, w której stoisz.</gray>")));
-        inv.setItem(47, item(Material.BOOK, "<aqua>Wiki minionów</aqua>", List.of("<gray>Zobacz wszystkie skonfigurowane typy minionów.</gray>")));
+        inv.setItem(ELECTRONICS_WIKI_SLOT, item(Material.REDSTONE, "<aqua>Wiki elektroniki</aqua>", List.of(
+                "<gray>Generatory, urządzenia, kable i akumulatory EU.</gray>",
+                "<gray>Bez mieszania ich z wiki pojedynczych minionów.</gray>",
+                "<yellow>Kliknij, aby zobaczyć receptury i procesy maszyn.</yellow>"
+        )));
+        inv.setItem(MINION_WIKI_SLOT, item(Material.BOOK, "<aqua>Wiki minionów</aqua>", List.of("<gray>Zobacz wszystkie skonfigurowane typy minionów.</gray>")));
         inv.setItem(48, item(Material.CHEST, "<green>Odbierz wszystko</green>", List.of(
                 "<gray>Przenosi całe storage do ekwipunku jako zwykłe itemy.</gray>",
                 "<yellow>Kliknij pojedynczy surowiec w storage, aby odebrać tylko ten stack.</yellow>"
         )));
-        inv.setItem(50, item(Material.ANVIL, "<gold>Ulepsz</gold>", List.of("<gray>Wymagania: <white>" + d.nextUpgradeRequirementsText())));
+        inv.setItem(50, item(Material.ANVIL, "<gold>Ulepsz</gold>", upgradeButtonLore(d, type)));
         inv.setItem(53, item(Material.BARRIER, "<red>Podnieś miniona</red>", List.of("<gray>Zwraca item miniona.</gray>")));
+    }
+
+    private List<String> upgradeButtonLore(MinionMenuData data, MinionTypeDefinition type) {
+        List<String> lore = new ArrayList<>();
+        if (type == null || !data.canUpgrade() || data.tier() >= data.maxTier()) {
+            lore.add("<gray>Minion jest już na maksymalnym poziomie.</gray>");
+            return lore;
+        }
+        int nextTier = data.tier() + 1;
+        TierDefinition current = type.tier(data.tier());
+        TierDefinition next = type.tier(nextTier);
+        lore.add("<yellow>Koszt / wymagania:</yellow>");
+        lore.add("<gray>" + data.nextUpgradeRequirementsText() + "</gray>");
+        lore.add("");
+        lore.add("<yellow>Co da upgrade:</yellow>");
+        lore.add("<gray>Tier: <white>" + data.tier() + "</white> → <green>" + nextTier + "</green></gray>");
+        if (current != null && next != null) {
+            lore.add("<gray>Czas akcji: <white>" + current.actionTimeText() + "s</white> → <green>" + next.actionTimeText() + "s</green></gray>");
+            lore.add("<gray>Limit storage: <white>" + current.storage() + "</white> → <green>" + next.storage() + "</green></gray>");
+            lore.add("<gray>Sloty storage: <white>" + current.storageSlots() + "</white> → <green>" + next.storageSlots() + "</green></gray>");
+        }
+        lore.add("");
+        lore.add("<yellow>Kliknij, aby ulepszyć.</yellow>");
+        return trimLore(lore, 12);
     }
 
     public void openWiki(Player player) {
         openWikiPage(player, 0);
     }
 
-    public void openWikiPage(Player player, int page) {
-        List<MinionTypeDefinition> types = sortedWikiTypes();
-        int totalPages = Math.max(1, (int) Math.ceil(types.size() / (double) WIKI_INDEX_SLOTS.length));
-        int safePage = Math.max(0, Math.min(page, totalPages - 1));
-        Inventory inv = Bukkit.createInventory(new MinionWikiHolder("", safePage), 54, miniMessage.deserialize("<dark_gray>Wiki minionów " + (safePage + 1) + "/" + totalPages));
+    public void openElectronicsWiki(Player player) {
+        List<ElectronicsWikiEntry> entries = electronicsEntries(player);
+        Inventory inv = Bukkit.createInventory(MinionWikiHolder.electronicsIndex(), 54, miniMessage.deserialize("<dark_gray>Wiki elektroniki"));
         fill(inv);
-        inv.setItem(4, item(Material.BOOK, "<aqua>Wiki minionów</aqua>", List.of(
-                "<gray>Lista jest generowana automatycznie z pliku</gray>",
-                "<white>minion-types.yml</white><gray>.</gray>",
-                "<gray>Strona: <white>" + (safePage + 1) + "/" + totalPages + "</white></gray>",
+        inv.setItem(4, item(Material.REDSTONE, "<aqua>Wiki elektroniki</aqua>", List.of(
+                "<gray>Lista jest wspólna dla całej elektroniki EU.</gray>",
+                "<gray>Pokazuje: <white>generatory, urządzenia, kable i akumulatory</white>.</gray>",
+                "<gray>Nie pokazuje materiałów pomocniczych typu ramy, cewki, pyły itd.</gray>",
+                "",
+                "<yellow>Kliknij wpis, aby zobaczyć recepturę albo procesy maszyny.</yellow>"
+        )));
+        for (int i = 0; i < Math.min(entries.size(), WIKI_INDEX_SLOTS.length); i++) {
+            ElectronicsWikiEntry entry = entries.get(i);
+            inv.setItem(WIKI_INDEX_SLOTS[i], electronicsEntryIcon(entry));
+        }
+        if (entries.isEmpty()) {
+            inv.setItem(22, item(Material.BARRIER, "<red>Brak odblokowanej elektroniki</red>", List.of(
+                    "<gray>Przełącz widok na wszystko albo odblokuj pierwsze receptury EU.</gray>"
+            )));
+        }
+        inv.setItem(45, item(Material.ARROW, "<yellow>Zamknij</yellow>", List.of("<gray>Wróć do poprzedniego menu.</gray>")));
+        inv.setItem(53, wikiViewToggleItem(player));
+        player.openInventory(inv);
+    }
+
+    public boolean openElectronicsEntryAtSlot(Player player, int slot) {
+        List<ElectronicsWikiEntry> entries = electronicsEntries(player);
+        for (int i = 0; i < Math.min(entries.size(), WIKI_INDEX_SLOTS.length); i++) {
+            if (WIKI_INDEX_SLOTS[i] != slot) continue;
+            ElectronicsWikiEntry entry = entries.get(i);
+            if (entry.machine()) {
+                openWikiMachine(player, ELECTRONICS_RETURN_ID, entry.id());
+            } else {
+                Optional<String> recipeId = recipeIdForSpecialOutput(entry.id());
+                if (recipeId.isPresent()) openRecipe(player, recipeId.get(), ELECTRONICS_RETURN_ID);
+                else openElectronicsWiki(player);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    public void openWikiPage(Player player, int page) {
+        int totalPages = wikiCategoryPageCount();
+        int safePage = Math.max(0, Math.min(page, totalPages - 1));
+        List<MinionTypeDefinition> types = sortedWikiTypes(player, safePage);
+        Inventory inv = Bukkit.createInventory(new MinionWikiHolder("", safePage), 54, miniMessage.deserialize("<dark_gray>Wiki minionów: " + wikiCategoryName(safePage)));
+        fill(inv);
+        inv.setItem(4, item(Material.BOOK, "<aqua>Wiki minionów — " + wikiCategoryName(safePage) + "</aqua>", List.of(
+                "<gray>Miniony są podzielone na karty: surowce, farming i zwierzęta.</gray>",
+                "<gray>Karta: <white>" + (safePage + 1) + "/" + totalPages + "</white></gray>",
                 "",
                 "<yellow>Kliknij główkę, aby zobaczyć poziomy, dropy i wymagania.</yellow>"
         )));
-        int offset = safePage * WIKI_INDEX_SLOTS.length;
-        for (int i = 0; i < WIKI_INDEX_SLOTS.length && offset + i < types.size(); i++) {
-            MinionTypeDefinition type = types.get(offset + i);
+        for (int i = 0; i < WIKI_INDEX_SLOTS.length && i < types.size(); i++) {
+            MinionTypeDefinition type = types.get(i);
             inv.setItem(WIKI_INDEX_SLOTS[i], minionHead(type, 1, type.displayName(), wikiIndexLore(type)));
         }
         if (safePage > 0) {
-            inv.setItem(48, item(Material.ARROW, "<yellow>Poprzednia strona</yellow>", List.of("<gray>Przejdź do strony <white>" + safePage + "</white>.</gray>")));
+            inv.setItem(48, item(Material.ARROW, "<yellow>Poprzednia karta</yellow>", List.of("<gray>Przejdź do: <white>" + wikiCategoryName(safePage - 1) + "</white>.</gray>")));
         }
         if (safePage + 1 < totalPages) {
-            inv.setItem(50, item(Material.ARROW, "<yellow>Następna strona</yellow>", List.of("<gray>Przejdź do strony <white>" + (safePage + 2) + "</white>.</gray>")));
+            inv.setItem(50, item(Material.ARROW, "<yellow>Następna karta</yellow>", List.of("<gray>Przejdź do: <white>" + wikiCategoryName(safePage + 1) + "</white>.</gray>")));
         }
         inv.setItem(45, item(Material.ARROW, "<yellow>Powrót</yellow>", List.of("<gray>Zamknij i wróć do menu miasta.</gray>")));
+        inv.setItem(53, wikiViewToggleItem(player));
         player.openInventory(inv);
     }
 
     public void openWikiType(Player player, String typeId) {
+        openWikiTypePage(player, typeId, 0);
+    }
+
+    public void openWikiTypePage(Player player, String typeId, int page) {
         MinionTypeDefinition type = service.definitions().minionTypes().get(typeId);
         if (type == null || !type.enabled()) {
             hex.ui().send(player, "minions.error.unknown-type");
             return;
         }
-        Inventory inv = Bukkit.createInventory(new MinionWikiHolder(type.id()), 54, miniMessage.deserialize("<dark_gray>Wiki: " + type.displayName()));
+        int totalPages = wikiSpecialPageCount(player, type);
+        int safePage = Math.max(0, Math.min(page, totalPages - 1));
+        Inventory inv = Bukkit.createInventory(new MinionWikiHolder(type.id(), safePage), 54, miniMessage.deserialize("<dark_gray>Wiki: " + type.displayName()));
         fill(inv);
         inv.setItem(4, minionHead(type, 1, type.displayName(), wikiHeaderLore(type)));
         for (int tier = 1; tier <= WIKI_TIER_SLOTS.length; tier++) {
             inv.setItem(WIKI_TIER_SLOTS[tier - 1], tierGlass(type, tier));
         }
-        renderWikiSpecialItems(inv, type);
+        renderWikiSpecialItems(inv, player, type, safePage);
         inv.setItem(37, item(Material.CHEST, "<green>Dropy miniona</green>", dropsLore(type)));
         inv.setItem(39, item(Material.CLOCK, "<aqua>Efekty poziomów</aqua>", tierSummaryLore(type)));
-        inv.setItem(41, item(Material.WRITABLE_BOOK, "<yellow>Konfiguracja</yellow>", List.of(
-                "<gray>Wszystkie dane tej strony są pobierane z:</gray>",
-                "<white>minion-types.yml</white>",
-                "",
-                "<gray>Dodanie nowego typu miniona do konfiguracji</gray>",
-                "<gray>automatycznie doda go do wiki.</gray>"
-        )));
-        List<MachineDefinition> machines = wikiMachinesFor(type);
+        List<MachineDefinition> machines = wikiMachinesFor(player, type);
         if (!machines.isEmpty()) {
             inv.setItem(43, item(Material.REDSTONE, "<aqua>Urządzenia i maszyny</aqua>", List.of(
                     "<gray>Ten minion odblokowuje albo opisuje maszyny.</gray>",
@@ -170,13 +253,24 @@ public final class MinionMenu {
             )));
         }
         inv.setItem(45, item(Material.ARROW, "<yellow>Powrót do listy</yellow>", List.of("<gray>Kliknij, aby wrócić do wiki minionów.</gray>")));
+        if (safePage > 0) {
+            inv.setItem(48, item(Material.ARROW, "<yellow>Poprzednia strona itemów</yellow>", List.of("<gray>Przejdź do strony <white>" + safePage + "</white>.</gray>")));
+        }
+        if (safePage + 1 < totalPages) {
+            inv.setItem(50, item(Material.ARROW, "<yellow>Następna strona itemów</yellow>", List.of("<gray>Przejdź do strony <white>" + (safePage + 2) + "/" + totalPages + "</white>.</gray>")));
+        }
+        inv.setItem(53, wikiViewToggleItem(player));
         player.openInventory(inv);
     }
 
 
     public void openRecipe(Player player, String recipeId, String returnTypeId) {
         SpecialRecipeDefinition recipe = service.specialItems().recipe(recipeId).orElse(null);
-        if (recipe == null) { openWikiType(player, returnTypeId); return; }
+        if (recipe == null) {
+            if (isElectronicsReturn(returnTypeId)) openElectronicsWiki(player);
+            else openWikiType(player, returnTypeId);
+            return;
+        }
         Inventory inv = Bukkit.createInventory(new SpecialRecipeMenuHolder(recipe.id(), returnTypeId == null ? "" : returnTypeId), 54, miniMessage.deserialize("<dark_gray>Receptura: " + recipe.id()));
         fill(inv);
         for (int row = 0; row < 3; row++) {
@@ -191,6 +285,7 @@ public final class MinionMenu {
         inv.setItem(25, service.recipeOutput(recipe));
         inv.setItem(43, stationIcon(recipe));
         inv.setItem(45, item(Material.ARROW, "<yellow>Powrót</yellow>", List.of("<gray>Wróć do wiki miniona.</gray>")));
+        inv.setItem(53, wikiViewToggleItem(player));
         player.openInventory(inv);
     }
 
@@ -200,7 +295,7 @@ public final class MinionMenu {
             openWiki(player);
             return;
         }
-        List<MachineDefinition> machines = wikiMachinesFor(type);
+        List<MachineDefinition> machines = wikiMachinesFor(player, type);
         Inventory inv = Bukkit.createInventory(MinionWikiHolder.machineIndex(type.id()), 54, miniMessage.deserialize("<dark_gray>Wiki maszyn: " + type.displayName()));
         fill(inv);
         inv.setItem(4, item(Material.REDSTONE, "<aqua>Urządzenia powiązane z minionem</aqua>", List.of(
@@ -226,13 +321,15 @@ public final class MinionMenu {
             )));
         }
         inv.setItem(45, item(Material.ARROW, "<yellow>Powrót do miniona</yellow>", List.of("<gray>Wróć do wiki tego miniona.</gray>")));
+        inv.setItem(53, wikiViewToggleItem(player));
         player.openInventory(inv);
     }
 
     public void openWikiMachine(Player player, String returnTypeId, String machineId) {
         MachineDefinition machine = service.machines().machines().get(machineId == null ? "" : machineId.toLowerCase(java.util.Locale.ROOT));
         if (machine == null) {
-            openWikiMachines(player, returnTypeId);
+            if (isElectronicsReturn(returnTypeId)) openElectronicsWiki(player);
+            else openWikiMachines(player, returnTypeId);
             return;
         }
         Inventory inv = Bukkit.createInventory(MinionWikiHolder.machine(returnTypeId, machine.id()), 54, miniMessage.deserialize("<dark_gray>Wiki: " + stripMini(machine.displayName())));
@@ -251,13 +348,15 @@ public final class MinionMenu {
         }
         inv.setItem(40, machineCraftingRecipeIcon(machine));
         inv.setItem(45, item(Material.ARROW, "<yellow>Powrót do urządzeń</yellow>", List.of("<gray>Wróć do listy maszyn tego miniona.</gray>")));
+        inv.setItem(53, wikiViewToggleItem(player));
         player.openInventory(inv);
     }
 
     public void openWikiMachineRecipe(Player player, String returnTypeId, String machineId, String recipeId) {
         MachineDefinition machine = service.machines().machines().get(machineId == null ? "" : machineId.toLowerCase(java.util.Locale.ROOT));
         if (machine == null) {
-            openWikiMachines(player, returnTypeId);
+            if (isElectronicsReturn(returnTypeId)) openElectronicsWiki(player);
+            else openWikiMachines(player, returnTypeId);
             return;
         }
         Inventory inv = Bukkit.createInventory(MinionWikiHolder.machineRecipe(returnTypeId, machine.id(), recipeId), 54, miniMessage.deserialize("<dark_gray>Proces: " + stripMini(machine.displayName())));
@@ -274,6 +373,7 @@ public final class MinionMenu {
             renderMachineRecipe(inv, machine, recipe);
         }
         inv.setItem(45, item(Material.ARROW, "<yellow>Powrót do maszyny</yellow>", List.of("<gray>Wróć do listy procesów tej maszyny.</gray>")));
+        inv.setItem(53, wikiViewToggleItem(player));
         player.openInventory(inv);
     }
 
@@ -294,56 +394,65 @@ public final class MinionMenu {
     }
 
     public String wikiTypeAtSlot(int slot) {
-        return wikiTypeAtSlot(slot, 0);
+        return wikiTypeAtSlot(null, slot, 0);
     }
 
-    public String wikiTypeAtSlot(int slot, int page) {
-        List<MinionTypeDefinition> types = sortedWikiTypes();
-        int offset = Math.max(0, page) * WIKI_INDEX_SLOTS.length;
-        for (int i = 0; i < WIKI_INDEX_SLOTS.length && offset + i < types.size(); i++) {
-            if (WIKI_INDEX_SLOTS[i] == slot) return types.get(offset + i).id();
+    public String wikiTypeAtSlot(Player player, int slot, int page) {
+        List<MinionTypeDefinition> types = sortedWikiTypes(player, Math.max(0, page));
+        for (int i = 0; i < WIKI_INDEX_SLOTS.length && i < types.size(); i++) {
+            if (WIKI_INDEX_SLOTS[i] == slot) return types.get(i).id();
         }
         return "";
     }
 
     public boolean wikiHasPage(int page) {
-        return page >= 0 && page * WIKI_INDEX_SLOTS.length < sortedWikiTypes().size();
+        return page >= 0 && page < wikiCategoryPageCount();
     }
 
-    private List<MinionTypeDefinition> sortedWikiTypes() {
-        Map<String, Integer> preferredOrder = Map.ofEntries(
-                Map.entry("cobblestone", 10),
-                Map.entry("dirt", 20),
-                Map.entry("stone", 30),
-                Map.entry("oak_plank", 40),
-                Map.entry("oak_wood", 40),
-                Map.entry("spruce_wood", 50),
-                Map.entry("coal", 60),
-                Map.entry("iron", 70),
-                Map.entry("copper", 80),
-                Map.entry("redstone", 90),
-                Map.entry("zombie", 900),
-                Map.entry("spider", 910),
-                Map.entry("skeleton", 920),
-                Map.entry("silverfish", 930),
-                Map.entry("sheep", 940),
-                Map.entry("pig", 950),
-                Map.entry("cow", 960),
-                Map.entry("chicken", 970)
-        );
+    private int wikiCategoryPageCount() {
+        return 4;
+    }
+
+    private String wikiCategoryName(int page) {
+        if (page == 1) return "Farming";
+        if (page == 2) return "Zwierzęta";
+        if (page == 3) return "Moby";
+        return "Surowce";
+    }
+
+    private List<MinionTypeDefinition> sortedWikiTypes(Player player, int page) {
+        List<String> order = page == 1 ? List.of("wheat", "sugar_cane", "beetroot", "cactus")
+                : page == 2 ? List.of("chicken", "cow", "pig", "sheep")
+                : page == 3 ? List.of("zombie", "skeleton", "spider", "silverfish")
+                : List.of("cobblestone", "dirt", "stone", "oak_plank", "spruce_wood", "iron", "copper", "coal", "redstone", "gold", "diamond", "emerald", "uranium", "obsidian", "netherrack", "netherite", "tin");
+        Map<String, Integer> preferredOrder = new java.util.HashMap<>();
+        for (int i = 0; i < order.size(); i++) preferredOrder.put(order.get(i), i);
         return service.definitions().minionTypes().values().stream()
                 .filter(MinionTypeDefinition::enabled)
+                .filter(type -> wikiCategory(type, page))
+                .filter(type -> wikiShowAll(player) || isMinionUnlockedFor(player, type))
                 .sorted(Comparator
-                        .comparingInt((MinionTypeDefinition type) -> preferredOrder.getOrDefault(type.id(), 500))
-                        .thenComparing(MinionTypeDefinition::category)
+                        .comparingInt((MinionTypeDefinition type) -> preferredOrder.getOrDefault(type.id(), 1000))
                         .thenComparing(MinionTypeDefinition::id))
                 .toList();
     }
 
+    private boolean wikiCategory(MinionTypeDefinition type, int page) {
+        String id = type.id().toLowerCase(java.util.Locale.ROOT);
+        if (page == 1) return id.equals("wheat") || id.equals("sugar_cane") || id.equals("beetroot") || id.equals("cactus");
+        if (page == 2) return "animals".equalsIgnoreCase(type.category()) || id.equals("sheep") || id.equals("pig") || id.equals("cow") || id.equals("chicken");
+        if (page == 3) return id.equals("zombie") || id.equals("skeleton") || id.equals("spider") || id.equals("silverfish") || "mobs".equalsIgnoreCase(type.category());
+        return !wikiCategory(type, 1) && !wikiCategory(type, 2) && !wikiCategory(type, 3);
+    }
+
     public String wikiMachineAtSlot(String returnTypeId, int slot) {
+        return wikiMachineAtSlot(null, returnTypeId, slot);
+    }
+
+    public String wikiMachineAtSlot(Player player, String returnTypeId, int slot) {
         MinionTypeDefinition type = service.definitions().minionTypes().get(returnTypeId);
         if (type == null) return "";
-        List<MachineDefinition> machines = wikiMachinesFor(type);
+        List<MachineDefinition> machines = wikiMachinesFor(player, type);
         for (int i = 0; i < Math.min(machines.size(), WIKI_MACHINE_SLOTS.length); i++) {
             if (WIKI_MACHINE_SLOTS[i] == slot) return machines.get(i).id();
         }
@@ -360,7 +469,43 @@ public final class MinionMenu {
         return "";
     }
 
-    private List<MachineDefinition> wikiMachinesFor(MinionTypeDefinition type) {
+    /**
+     * Finds a HexMinions custom crafting recipe for an item shown anywhere in wiki.
+     * Used by wiki/recepture screens so clicking a custom item always replaces the
+     * current detail view with that item's recipe instead of creating a deep back-stack.
+     */
+    public String wikiRecipeForItem(ItemStack item) {
+        if (item == null || item.getType().isAir()) return "";
+        Optional<String> specialId = service.specialItems().readSpecialItemId(item);
+        if (specialId.isPresent()) {
+            return recipeIdForSpecialOutput(specialId.get()).orElse("");
+        }
+        Optional<MinionItemFactory.MinionItemData> minion = itemFactory.read(item);
+        if (minion.isPresent()) {
+            String typeId = minion.get().typeId();
+            int tier = minion.get().tier();
+            return service.specialItems().recipes().values().stream()
+                    .filter(recipe -> typeId.equalsIgnoreCase(recipe.outputMinionType()) && tier == recipe.outputMinionTier())
+                    .map(SpecialRecipeDefinition::id)
+                    .findFirst()
+                    .orElse("");
+        }
+        int customModelData = 0;
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null && meta.hasCustomModelData()) customModelData = meta.getCustomModelData();
+        int finalCustomModelData = customModelData;
+        if (finalCustomModelData > 0) {
+            return service.specialItems().recipes().values().stream()
+                    .filter(recipe -> recipe.outputSpecialItem() == null || recipe.outputSpecialItem().isBlank())
+                    .filter(recipe -> recipe.outputMaterial() == item.getType() && recipe.outputCustomModelData() == finalCustomModelData)
+                    .map(SpecialRecipeDefinition::id)
+                    .findFirst()
+                    .orElse("");
+        }
+        return "";
+    }
+
+    private List<MachineDefinition> wikiMachinesFor(Player player, MinionTypeDefinition type) {
         if (type == null) return List.of();
         ArrayList<MachineDefinition> result = new ArrayList<>();
         for (MachineDefinition machine : service.machines().machines().values()) {
@@ -374,10 +519,118 @@ public final class MinionMenu {
                     related = type.wikiSpecialItems().stream().anyMatch(id -> id.equalsIgnoreCase(machine.specialItemId()) || id.equalsIgnoreCase(machine.id()));
                 }
             }
-            if (related) result.add(machine);
+            if (related && (wikiShowAll(player) || isMachineUnlockedFor(player, machine, type))) result.add(machine);
         }
         result.sort(Comparator.comparing(MachineDefinition::displayName));
         return result;
+    }
+
+    private List<ElectronicsWikiEntry> electronicsEntries(Player player) {
+        ArrayList<ElectronicsWikiEntry> entries = new ArrayList<>();
+        service.machines().machines().values().stream()
+                .filter(MachineDefinition::enabled)
+                .filter(machine -> machine.energy().enabled())
+                .filter(machine -> wikiShowAll(player) || isMachineUnlockedFor(player, machine, null))
+                .forEach(machine -> entries.add(new ElectronicsWikiEntry(machine.id(), true, electronicsMachineCategory(machine), electronicsMachineOrder(machine))));
+
+        service.specialItems().items().keySet().stream()
+                .filter(this::isElectronicsStandaloneSpecialItem)
+                .filter(id -> wikiShowAll(player) || isRecipeOrItemUnlockedFor(player, id))
+                .forEach(id -> entries.add(new ElectronicsWikiEntry(id, false, electronicsItemCategory(id), electronicsItemOrder(id))));
+
+        entries.sort(Comparator
+                .comparingInt(ElectronicsWikiEntry::order)
+                .thenComparing(entry -> stripMini(electronicsEntryDisplayName(entry))));
+        return entries;
+    }
+
+    private ItemStack electronicsEntryIcon(ElectronicsWikiEntry entry) {
+        if (entry.machine()) {
+            MachineDefinition machine = service.machines().machines().get(entry.id());
+            if (machine == null) return item(Material.BARRIER, "<red>Brak maszyny</red>", List.of("<gray>Nie znaleziono konfiguracji.</gray>"));
+            return machineIcon(machine, List.of(
+                    "<gray>Kategoria: <white>" + entry.category() + "</white></gray>",
+                    "<gray>Typ: <white>" + machine.type() + "</white></gray>",
+                    "<gray>Procesy: <white>" + machineProcessCount(machine) + "</white></gray>",
+                    energySummaryLine(machine),
+                    "<gray>Odblokowanie: <yellow>" + machineUnlockText(machine) + "</yellow></gray>",
+                    "",
+                    "<yellow>Kliknij, aby zobaczyć procesy i recepturę maszyny.</yellow>"
+            ));
+        }
+        ItemStack icon = service.specialItems().createItem(entry.id(), 1);
+        if (icon.getType().isAir()) icon = item(Material.PAPER, "<white>" + prettyId(entry.id()) + "</white>", List.of());
+        ItemMeta meta = icon.getItemMeta();
+        if (meta != null) {
+            SpecialRecipeDefinition recipe = recipeIdForSpecialOutput(entry.id()).flatMap(id -> service.specialItems().recipe(id)).orElse(null);
+            meta.displayName(component(electronicsEntryDisplayName(entry)));
+            applyLore(meta, List.of(
+                    "<gray>Kategoria: <white>" + entry.category() + "</white></gray>",
+                    recipe == null ? "<dark_gray>Brak receptury w special-items.yml.</dark_gray>" : "<gray>Receptura: <white>" + recipe.id() + "</white></gray>",
+                    recipe == null ? "<dark_gray>Odblokowanie: brak danych.</dark_gray>" : "<gray>Odblokowanie: <yellow>" + service.recipeUnlockText(recipe) + "</yellow></gray>",
+                    "",
+                    recipe == null ? "<dark_gray>Ten wpis jest tylko informacyjny.</dark_gray>" : "<yellow>Kliknij, aby zobaczyć recepturę.</yellow>"
+            ));
+            hideAttributes(meta);
+            icon.setItemMeta(meta);
+        }
+        return icon;
+    }
+
+    private String electronicsEntryDisplayName(ElectronicsWikiEntry entry) {
+        if (entry.machine()) {
+            MachineDefinition machine = service.machines().machines().get(entry.id());
+            return machine == null ? "<white>" + prettyId(entry.id()) + "</white>" : machine.displayName();
+        }
+        return service.specialItems().item(entry.id()).map(SpecialItemDefinition::displayName).orElse("<white>" + prettyId(entry.id()) + "</white>");
+    }
+
+    private String electronicsMachineCategory(MachineDefinition machine) {
+        if (machine.energy().generator()) return "Generatory";
+        if ("ACCUMULATOR".equalsIgnoreCase(machine.type())) return "Akumulatory";
+        return "Urządzenia";
+    }
+
+    private int electronicsMachineOrder(MachineDefinition machine) {
+        if (machine.energy().generator()) return 10;
+        if ("ACCUMULATOR".equalsIgnoreCase(machine.type())) return 40;
+        return 20;
+    }
+
+    private String electronicsItemCategory(String id) {
+        if (isCableSpecialItem(id)) return "Kable";
+        if (isBatterySpecialItem(id)) return "Akumulatory";
+        return "Elektronika";
+    }
+
+    private int electronicsItemOrder(String id) {
+        if (isCableSpecialItem(id)) return 30;
+        if (isBatterySpecialItem(id)) return 41;
+        return 90;
+    }
+
+    private String machineUnlockText(MachineDefinition machine) {
+        if (machine == null || machine.specialItemId() == null || machine.specialItemId().isBlank()) return "brak danych";
+        return recipeIdForSpecialOutput(machine.specialItemId())
+                .flatMap(id -> service.specialItems().recipe(id))
+                .map(service::recipeUnlockText)
+                .orElse("brak wymagań albo brak receptury");
+    }
+
+    private boolean isMachineUnlockedFor(Player player, MachineDefinition machine, MinionTypeDefinition type) {
+        if (machine == null) return false;
+        if (player == null) return true;
+        String specialItem = machine.specialItemId() == null ? "" : machine.specialItemId();
+        Optional<SpecialRecipeDefinition> recipe = service.specialItems().recipes().values().stream()
+                .filter(r -> !specialItem.isBlank() && specialItem.equalsIgnoreCase(r.outputSpecialItem()))
+                .findFirst();
+        if (recipe.isEmpty() && type != null) {
+            recipe = service.specialItems().recipes().values().stream()
+                    .filter(r -> r.unlock().townMinionLevels().containsKey(type.id().toLowerCase(java.util.Locale.ROOT)))
+                    .filter(r -> !specialItem.isBlank() && specialItem.equalsIgnoreCase(r.outputSpecialItem()))
+                    .findFirst();
+        }
+        return recipe.map(r -> isRecipeUnlockedFor(player, r)).orElse(true);
     }
 
     private List<String> wikiMachineProcessIds(MachineDefinition machine) {
@@ -456,7 +709,7 @@ public final class MinionMenu {
         ItemStack icon = machineRecipeOutputIcon(recipe);
         ItemMeta meta = icon.getItemMeta();
         if (meta != null) {
-            meta.displayName(component("<aqua>" + prettyId(recipe.id()) + "</aqua>"));
+            meta.displayName(component("<aqua>" + itemLabel(recipe.outputSpecialItem(), recipe.outputMaterial(), recipe.outputCustomModelData()) + "</aqua>"));
             applyLore(meta, List.of(
                     "<gray>Wynik: <white>" + itemLabel(recipe.outputSpecialItem(), recipe.outputMaterial()) + " x" + recipe.outputAmount() + "</white></gray>",
                     "<gray>Czas: <white>" + recipe.timeSeconds() + "s</white></gray>",
@@ -541,7 +794,7 @@ public final class MinionMenu {
             applyLore(meta, List.of(
                     "<gray>Kliknij item maszyny w sekcji specjalnej wiki</gray>",
                     "<gray>albo użyj receptury: <white>" + recipe.id() + "</white></gray>",
-                    "<gray>Crafting w: <white>" + recipe.station() + "</white></gray>",
+                    "<gray>Crafting w: <white>" + stationDisplayName(recipe.station()) + "</white></gray>",
                     "<gray>Wymagania: <yellow>" + service.recipeUnlockText(recipe) + "</yellow></gray>"
             ));
             hideAttributes(meta);
@@ -575,12 +828,30 @@ public final class MinionMenu {
 
     private ItemStack machineIngredientIcon(String specialItemId, Material material, int customModelData, int amount, String role) {
         ItemStack icon;
-        if (specialItemId != null && !specialItemId.isBlank()) icon = service.specialItems().createItem(specialItemId, amount);
-        else icon = item(material == Material.AIR ? Material.PAPER : material, "<white>" + (material == Material.AIR ? "Item" : material.name()) + "</white>", List.of(), amount, customModelData);
+        if (specialItemId != null && !specialItemId.isBlank()) {
+            icon = service.specialItems().createItem(specialItemId, amount);
+        } else {
+            ResourceDefinition resource = resourceByMaterial(material, customModelData);
+            if (resource != null) icon = resourceIcon(resource, amount);
+            else icon = item(material == Material.AIR ? Material.PAPER : material, "<white>" + (material == Material.AIR ? "Item" : material.name()) + "</white>", List.of(), amount, customModelData);
+        }
         ItemMeta meta = icon.getItemMeta();
         if (meta != null) {
-            meta.displayName(component(role + ": <white>" + itemLabel(specialItemId, material) + " x" + amount + "</white>"));
-            applyLore(meta, List.of("<gray>Element receptury maszyny.</gray>"));
+            meta.displayName(component(role + ": <white>" + itemLabel(specialItemId, material, customModelData) + " x" + amount + "</white>"));
+            applyLore(meta, List.of("<gray>Element receptury maszyny.</gray>", "<yellow>Kliknij, jeśli ten item ma customową recepturę.</yellow>"));
+            hideAttributes(meta);
+            icon.setItemMeta(meta);
+        }
+        return icon;
+    }
+
+    private ItemStack resourceIcon(ResourceDefinition resource, int amount) {
+        ItemStack icon = new ItemStack(resource.material(), Math.max(1, Math.min(resource.stackSize(), amount)));
+        ItemMeta meta = icon.getItemMeta();
+        if (meta != null) {
+            if (resource.customModelData() > 0) meta.setCustomModelData(resource.customModelData());
+            meta.displayName(component(resource.displayName()));
+            if ("spruce_resin".equalsIgnoreCase(resource.id())) meta.setEnchantmentGlintOverride(true);
             hideAttributes(meta);
             icon.setItemMeta(meta);
         }
@@ -613,10 +884,27 @@ public final class MinionMenu {
     }
 
     private String itemLabel(String specialItemId, Material material) {
+        return itemLabel(specialItemId, material, 0);
+    }
+
+    private String itemLabel(String specialItemId, Material material, int customModelData) {
         if (specialItemId != null && !specialItemId.isBlank()) {
             return service.specialItems().item(specialItemId).map(def -> stripMini(def.displayName())).orElse(prettyId(specialItemId));
         }
+        ResourceDefinition resource = resourceByMaterial(material, customModelData);
+        if (resource != null) return stripMini(resource.displayName());
         return material == null || material == Material.AIR ? "brak" : prettyId(material.name());
+    }
+
+    private ResourceDefinition resourceByMaterial(Material material, int customModelData) {
+        if (material == null || material == Material.AIR) return null;
+        for (ResourceDefinition resource : service.definitions().resources().values()) {
+            if (resource.material() != material) continue;
+            if (customModelData > 0 && resource.customModelData() != customModelData) continue;
+            if (customModelData == 0 && resource.customModelData() > 0) continue;
+            return resource;
+        }
+        return null;
     }
 
     private static String prettyId(String raw) {
@@ -630,14 +918,25 @@ public final class MinionMenu {
         return input.replaceAll("<[^>]+>", "").trim();
     }
 
+
+    private static String stationDisplayName(String stationId) {
+        if (stationId == null || stationId.isBlank()) return "stół rzemieślniczy";
+        String normalized = stationId.toUpperCase(java.util.Locale.ROOT);
+        if (normalized.equals("VANILLA_CRAFTING") || normalized.equals("VANILLA_CRAFTING_TABLE") || normalized.equals("CRAFTING_TABLE")) {
+            return "stół rzemieślniczy";
+        }
+        if (normalized.equals("ADVANCE_CRAFTING") || normalized.equals("ADVANCED_CRAFTING") || normalized.equals("ENCHANTED_CRAFTING_TABLE")) {
+            return "zaawansowany stół rzemieślniczy";
+        }
+        return prettyId(stationId);
+    }
+
     private List<String> wikiIndexLore(MinionTypeDefinition type) {
         List<String> lore = new ArrayList<>();
         lore.add("<gray>ID: <white>" + type.id() + "</white></gray>");
         lore.add("<gray>Kategoria: <white>" + type.category() + "</white></gray>");
         lore.add("<gray>Max tier: <white>" + type.maxTier() + "</white></gray>");
         lore.addAll(craftingUnlockLore(type));
-        lore.addAll(boosterWikiLore(type));
-        lore.addAll(autoSmelterWikiLore(type));
         lore.add("");
         lore.add("<yellow>Co zdobywa:</yellow>");
         lore.addAll(dropsLore(type));
@@ -654,7 +953,7 @@ public final class MinionMenu {
         return List.of(
                 "<yellow>Crafting miniona:</yellow>",
                 "<gray>Receptura: <white>" + recipe.get().id() + "</white></gray>",
-                "<gray>Stół: <white>" + recipe.get().station() + "</white></gray>",
+                "<gray>Stół: <white>" + stationDisplayName(recipe.get().station()) + "</white></gray>",
                 "<gray>Odblokowanie: <gold>" + service.recipeUnlockText(recipe.get()) + "</gold></gray>"
         );
     }
@@ -665,8 +964,6 @@ public final class MinionMenu {
         lore.add("<gray>Kategoria: <white>" + type.category() + "</white></gray>");
         lore.add("<gray>Max tier: <white>" + type.maxTier() + "</white></gray>");
         lore.addAll(craftingUnlockLore(type));
-        lore.addAll(boosterWikiLore(type));
-        lore.addAll(autoSmelterWikiLore(type));
         lore.add("");
         lore.add("<yellow>Wymagania zdobycia / ulepszania są opisane</yellow>");
         lore.add("<yellow>na szybach poziomów poniżej.</yellow>");
@@ -687,7 +984,7 @@ public final class MinionMenu {
         lore.addAll(requirementsLore(def));
         lore.add("");
         lore.add("<yellow>Efekt poziomu:</yellow>");
-        lore.add("<gray>Czas akcji: <white>" + def.actionTimeSeconds() + "s</white></gray>");
+        lore.add("<gray>Czas akcji: <white>" + def.actionTimeText() + "s</white></gray>");
         lore.add("<gray>Limit storage: <white>" + def.storage() + "</white></gray>");
         lore.add("<gray>Sloty storage: <white>" + def.storageSlots() + "</white></gray>");
         lore.add("");
@@ -701,7 +998,7 @@ public final class MinionMenu {
         for (int tier = 1; tier <= Math.max(type.maxTier(), WIKI_TIER_SLOTS.length); tier++) {
             TierDefinition def = type.tiers().get(tier);
             if (def == null) continue;
-            lore.add("<gray>Tier <white>" + tier + "</white>: <aqua>" + def.actionTimeSeconds() + "s</aqua>, storage <green>" + def.storage() + "</green>, sloty <yellow>" + def.storageSlots() + "</yellow></gray>");
+            lore.add("<gray>Tier <white>" + tier + "</white>: <aqua>" + def.actionTimeText() + "s</aqua>, storage <green>" + def.storage() + "</green>, sloty <yellow>" + def.storageSlots() + "</yellow></gray>");
         }
         return lore.isEmpty() ? List.of("<gray>Brak skonfigurowanych poziomów.</gray>") : trimLore(lore, 18);
     }
@@ -820,23 +1117,45 @@ public final class MinionMenu {
         return service.isResourceItem(item);
     }
 
+    public boolean isAllowedInAddonSlot(UUID minionId, int slot, ItemStack item) {
+        String slotId = slot == ADDON_SLOT_1 ? "addon_1" : slot == ADDON_SLOT_2 ? "addon_2" : "";
+        return service.isAllowedAddonItem(minionId, slotId, item);
+    }
+
     public boolean isAllowedInAddonSlot(UUID minionId, ItemStack item) {
         return service.isAllowedAddonItem(minionId, item);
     }
 
 
     public String wikiRecipeAtSlot(String typeId, int slot) {
+        return wikiRecipeAtSlot(null, typeId, slot, 0);
+    }
+
+    public String wikiRecipeAtSlot(Player player, String typeId, int slot, int page) {
         MinionTypeDefinition type = service.definitions().minionTypes().get(typeId);
         if (type == null) return "";
-        List<String> recipeIds = wikiRecipeIds(type);
-        for (int i = 0; i < Math.min(recipeIds.size(), WIKI_SPECIAL_SLOTS.length); i++) if (WIKI_SPECIAL_SLOTS[i] == slot) return recipeIds.get(i);
+        List<String> recipeIds = wikiRecipeIds(player, type);
+        int offset = Math.max(0, page) * WIKI_SPECIAL_SLOTS.length;
+        for (int i = 0; i < WIKI_SPECIAL_SLOTS.length && offset + i < recipeIds.size(); i++) {
+            if (WIKI_SPECIAL_SLOTS[i] == slot) return recipeIds.get(offset + i);
+        }
         return "";
     }
 
-    private void renderWikiSpecialItems(Inventory inv, MinionTypeDefinition type) {
-        List<String> recipes = wikiRecipeIds(type);
-        for (int i = 0; i < Math.min(recipes.size(), WIKI_SPECIAL_SLOTS.length); i++) {
-            String id = recipes.get(i);
+    public boolean wikiSpecialHasPage(Player player, String typeId, int page) {
+        MinionTypeDefinition type = service.definitions().minionTypes().get(typeId);
+        return type != null && page >= 0 && page * WIKI_SPECIAL_SLOTS.length < wikiRecipeIds(player, type).size();
+    }
+
+    private int wikiSpecialPageCount(Player player, MinionTypeDefinition type) {
+        return Math.max(1, (int) Math.ceil(wikiRecipeIds(player, type).size() / (double) WIKI_SPECIAL_SLOTS.length));
+    }
+
+    private void renderWikiSpecialItems(Inventory inv, Player player, MinionTypeDefinition type, int page) {
+        List<String> recipes = wikiRecipeIds(player, type);
+        int offset = Math.max(0, page) * WIKI_SPECIAL_SLOTS.length;
+        for (int i = 0; i < WIKI_SPECIAL_SLOTS.length && offset + i < recipes.size(); i++) {
+            String id = recipes.get(offset + i);
             SpecialRecipeDefinition recipe = service.specialItems().recipe(id).orElse(null);
             ItemStack icon;
             if (recipe == null) {
@@ -858,7 +1177,7 @@ public final class MinionMenu {
             if (meta != null) {
                 meta.lore(List.of(
                         component("<gray>Kliknij, aby zobaczyć recepturę.</gray>"),
-                        component("<gray>Crafting w: <white>" + recipe.station() + "</white></gray>"),
+                        component("<gray>Crafting w: <white>" + stationDisplayName(recipe.station()) + "</white></gray>"),
                         component("<gray>Wymagania: <yellow>" + service.recipeUnlockText(recipe) + "</yellow></gray>")
                 ));
                 icon.setItemMeta(meta);
@@ -867,25 +1186,167 @@ public final class MinionMenu {
         }
     }
 
-    private List<String> wikiRecipeIds(MinionTypeDefinition type) {
-        ArrayList<String> ids = new ArrayList<>();
-        ids.addAll(type.wikiSpecialItems());
-        // Boostery są elementem opisu miniona: jeśli dany minion obsługuje Tier I/II/etc.,
-        // pokazujemy w wiki odpowiadający item i jego recepturę przed mniej ważnymi recepturami storage.
+    private List<String> wikiRecipeIds(Player player, MinionTypeDefinition type) {
+        LinkedHashSet<String> ids = new LinkedHashSet<>();
+        LinkedHashSet<String> storage = new LinkedHashSet<>();
+        LinkedHashSet<String> updates = new LinkedHashSet<>();
+        for (String id : type.wikiSpecialItems()) {
+            addWikiRecipeId(ids, storage, updates, id);
+        }
+
+        service.specialItems().recipes().values().forEach(recipe -> {
+            String lower = recipe.id().toLowerCase(java.util.Locale.ROOT);
+            if (lower.contains(type.id().toLowerCase(java.util.Locale.ROOT))) {
+                addWikiRecipeId(ids, storage, updates, recipe.id());
+            }
+        });
+
+        // Jeśli minion ma normalne storage, pokazujemy storage expandery na końcu sekcji itemów
+        // w stabilnej kolejności od lewej do prawej: mały, średni, duży.
+        if (minionSupportsStorage(type)) {
+            addStorageRecipe(storage, "storage_expander");
+            addStorageRecipe(storage, "medium_minion_storage");
+            addStorageRecipe(storage, "large_minion_storage");
+        }
+
+        // Update'y, boostery i dodatki produkcyjne idą po storage, żeby nie mieszały się
+        // z podstawowymi craftami miniona.
         service.specialItems().boosters().values().stream()
                 .filter(booster -> type.supportedBoosterTiers().contains(booster.tier()))
                 .sorted(Comparator.comparingInt(booster -> booster.tier()))
-                .forEach(booster -> recipeIdForSpecialOutput(booster.specialItemId()).ifPresent(recipeId -> {
-                    if (!ids.contains(recipeId)) ids.add(recipeId);
-                }));
-        service.specialItems().recipes().values().forEach(recipe -> {
-            String lower = recipe.id().toLowerCase(java.util.Locale.ROOT);
-            if (lower.contains(type.id().toLowerCase(java.util.Locale.ROOT)) && !ids.contains(recipe.id())) ids.add(recipe.id());
-        });
-        service.specialItems().recipes().values().forEach(recipe -> {
-            if (recipe.id().contains("storage") && !ids.contains(recipe.id())) ids.add(recipe.id());
-        });
-        return ids;
+                .forEach(booster -> recipeIdForSpecialOutput(booster.specialItemId()).ifPresent(updates::add));
+        if (type.autoSmelter() != null && type.autoSmelter().enabled()) {
+            recipeIdForSpecialOutput(type.autoSmelter().requiredSpecialItem()).ifPresent(updates::add);
+        }
+        if (typeSupportsCompression(type)) {
+            recipeIdForSpecialOutput("compressor_update").ifPresent(updates::add);
+        }
+
+        ids.addAll(storage);
+        ids.addAll(updates);
+        if (!wikiShowAll(player)) ids.removeIf(id -> !isRecipeOrItemUnlockedFor(player, id));
+        return new ArrayList<>(ids);
+    }
+
+    public boolean toggleWikiViewMode(Player player) {
+        if (player == null) return false;
+        UUID id = player.getUniqueId();
+        if (wikiShowAll.contains(id)) {
+            wikiShowAll.remove(id);
+            return false;
+        }
+        wikiShowAll.add(id);
+        return true;
+    }
+
+    public boolean wikiShowAll(Player player) {
+        return player != null && wikiShowAll.contains(player.getUniqueId());
+    }
+
+    private boolean isElectronicsReturn(String returnTypeId) {
+        return ELECTRONICS_RETURN_ID.equals(returnTypeId);
+    }
+
+    private ItemStack wikiViewToggleItem(Player player) {
+        boolean showAll = wikiShowAll(player);
+        return showAll
+                ? item(Material.GLASS, "<aqua>Pokaż tylko odblokowane</aqua>", List.of("<gray>Aktualnie widzisz wszystko.</gray>", "<yellow>Kliknij, aby ukryć zablokowane rzeczy.</yellow>"))
+                : item(Material.DIAMOND_BLOCK, "<aqua>Pokaż wszystko</aqua>", List.of("<gray>Aktualnie widzisz tylko odblokowane rzeczy.</gray>", "<yellow>Kliknij, aby pokazać też zablokowane.</yellow>"));
+    }
+
+    private boolean isRecipeOrItemUnlockedFor(Player player, String id) {
+        if (id == null || id.isBlank()) return false;
+        SpecialRecipeDefinition recipe = service.specialItems().recipe(id).orElse(null);
+        if (recipe == null) {
+            Optional<SpecialRecipeDefinition> outputRecipe = recipeIdForSpecialOutput(id).flatMap(rid -> service.specialItems().recipe(rid));
+            return outputRecipe.map(r -> isRecipeUnlockedFor(player, r)).orElse(true);
+        }
+        return isRecipeUnlockedFor(player, recipe);
+    }
+
+    private boolean isRecipeUnlockedFor(Player player, SpecialRecipeDefinition recipe) {
+        if (recipe == null) return true;
+        if (recipe.unlock().isEmpty()) return true;
+        if (player == null) return true;
+        UUID townId = service.towns().townIdOf(player.getUniqueId()).orElse(null);
+        return townId != null && service.hasRecipeUnlocks(townId, recipe);
+    }
+
+    private boolean isMinionUnlockedFor(Player player, MinionTypeDefinition type) {
+        if (type == null) return false;
+        Optional<SpecialRecipeDefinition> recipe = service.specialItems().recipes().values().stream()
+                .filter(r -> type.id().equalsIgnoreCase(r.outputMinionType()))
+                .findFirst();
+        return recipe.map(r -> isRecipeUnlockedFor(player, r)).orElse(true);
+    }
+
+    private void addWikiRecipeId(Set<String> normal, Set<String> storage, Set<String> updates, String id) {
+        if (id == null || id.isBlank()) return;
+        SpecialRecipeDefinition recipe = service.specialItems().recipe(id).orElse(null);
+        String output = recipe == null ? id : recipe.outputSpecialItem();
+        if (isElectronicsWikiOnlySpecialItem(id) || isElectronicsWikiOnlySpecialItem(output)) {
+            return;
+        }
+        if (isStorageRecipe(id, output)) storage.add(id);
+        else if (isUpdateRecipe(id, output)) updates.add(id);
+        else normal.add(id);
+    }
+
+    private boolean minionSupportsStorage(MinionTypeDefinition type) {
+        return type.tiers().values().stream().anyMatch(tier -> tier.storageSlots() > 0);
+    }
+
+    private void addStorageRecipe(Set<String> storage, String recipeId) {
+        if (service.specialItems().recipe(recipeId).isPresent()) storage.add(recipeId);
+    }
+
+    private boolean isStorageRecipe(String recipeId, String outputSpecialItem) {
+        String id = (outputSpecialItem == null || outputSpecialItem.isBlank() ? recipeId : outputSpecialItem).toLowerCase(java.util.Locale.ROOT);
+        return id.equals("storage_expander") || id.equals("medium_minion_storage") || id.equals("large_minion_storage") || id.contains("minion_storage");
+    }
+
+    private boolean isUpdateRecipe(String recipeId, String outputSpecialItem) {
+        String id = (outputSpecialItem == null || outputSpecialItem.isBlank() ? recipeId : outputSpecialItem).toLowerCase(java.util.Locale.ROOT);
+        return id.contains("update") || id.contains("booster") || id.equals("auto_smelter");
+    }
+
+    private boolean isElectricMachineSpecialItem(String id) {
+        if (id == null || id.isBlank() || service.machines() == null) return false;
+        String normalized = id.toLowerCase(java.util.Locale.ROOT);
+        return service.machines().machines().values().stream()
+                .filter(machine -> machine.enabled() && machine.energy().enabled())
+                .anyMatch(machine -> normalized.equals(machine.id().toLowerCase(java.util.Locale.ROOT))
+                        || (machine.specialItemId() != null && normalized.equals(machine.specialItemId().toLowerCase(java.util.Locale.ROOT))));
+    }
+
+    private boolean isElectronicsWikiOnlySpecialItem(String id) {
+        return isElectricMachineSpecialItem(id) || isElectronicsStandaloneSpecialItem(id);
+    }
+
+    private boolean isElectronicsStandaloneSpecialItem(String id) {
+        return isCableSpecialItem(id) || isBatterySpecialItem(id);
+    }
+
+    private boolean isCableSpecialItem(String id) {
+        if (id == null || id.isBlank()) return false;
+        String normalized = id.toLowerCase(java.util.Locale.ROOT);
+        return normalized.contains("cable") || normalized.contains("kabel");
+    }
+
+    private boolean isBatterySpecialItem(String id) {
+        if (id == null || id.isBlank()) return false;
+        String normalized = id.toLowerCase(java.util.Locale.ROOT);
+        return normalized.equals("battery") || normalized.endsWith("_battery");
+    }
+
+    private boolean typeSupportsCompression(MinionTypeDefinition type) {
+        if (type == null) return false;
+        for (ResourceDrop drop : type.resourceTable()) {
+            ResourceDefinition resource = service.definitions().resources().get(drop.resourceId());
+            if (resource == null || !resource.compressionEnabled() || !resource.blockConvertible()) continue;
+            if (service.definitions().resources().containsKey("compressed_" + resource.id().toLowerCase(java.util.Locale.ROOT))) return true;
+        }
+        return false;
     }
 
     private Optional<String> recipeIdForSpecialOutput(String specialItemId) {
@@ -898,14 +1359,26 @@ public final class MinionMenu {
 
     private ItemStack ingredientIcon(SpecialIngredient ingredient) {
         if (ingredient.specialItemId() != null && !ingredient.specialItemId().isBlank()) {
-            return service.specialItems().createItem(ingredient.specialItemId(), ingredient.amount());
+            ItemStack icon = service.specialItems().createItem(ingredient.specialItemId(), ingredient.amount());
+            ItemMeta meta = icon.getItemMeta();
+            if (meta != null) {
+                List<String> lore = new ArrayList<>();
+                lore.add("<gray>Składnik receptury.</gray>");
+                lore.add("<yellow>Kliknij, jeśli ten item ma customową recepturę.</yellow>");
+                applyLore(meta, lore);
+                hideAttributes(meta);
+                icon.setItemMeta(meta);
+            }
+            return icon;
         }
-        return item(ingredient.material(), "<white>" + ingredient.material().name() + " x" + ingredient.amount() + "</white>", List.of(), ingredient.amount(), ingredient.customModelData());
+        ResourceDefinition resource = resourceByMaterial(ingredient.material(), ingredient.customModelData());
+        if (resource != null) return resourceIcon(resource, ingredient.amount());
+        return item(ingredient.material(), "<white>" + itemLabel("", ingredient.material(), ingredient.customModelData()) + " x" + ingredient.amount() + "</white>", List.of("<gray>Składnik receptury.</gray>"), ingredient.amount(), ingredient.customModelData());
     }
 
     private ItemStack stationIcon(SpecialRecipeDefinition recipe) {
         Material material = "VANILLA_CRAFTING_TABLE".equalsIgnoreCase(recipe.station()) ? Material.CRAFTING_TABLE : Material.ENCHANTING_TABLE;
-        return item(material, "<aqua>Wykonaj w: " + recipe.station() + "</aqua>", List.of(
+        return item(material, "<aqua>Wykonaj w: " + stationDisplayName(recipe.station()) + "</aqua>", List.of(
                 "<gray>Wymagania: <yellow>" + service.recipeUnlockText(recipe) + "</yellow></gray>",
                 "<dark_gray>Konfigurowalne w special-items.yml</dark_gray>"
         ));
@@ -930,7 +1403,7 @@ public final class MinionMenu {
     private List<ItemStack> storageStacks(Map<String, Long> storage) {
         ArrayList<ItemStack> result = new ArrayList<>();
         storage.entrySet().stream()
-                .sorted(Map.Entry.comparingByKey())
+                .sorted(this::compareStorageEntries)
                 .forEach(entry -> {
                     ResourceDefinition def = service.definitions().resources().get(entry.getKey());
                     Material material = def == null ? Material.CHEST : def.material();
@@ -943,6 +1416,19 @@ public final class MinionMenu {
                     }
                 });
         return result;
+    }
+
+    private int compareStorageEntries(Map.Entry<String, Long> left, Map.Entry<String, Long> right) {
+        int priority = Integer.compare(storageEntryPriority(left.getKey()), storageEntryPriority(right.getKey()));
+        if (priority != 0) return priority;
+        return left.getKey().compareToIgnoreCase(right.getKey());
+    }
+
+    private int storageEntryPriority(String resourceId) {
+        if (resourceId == null) return 100;
+        String id = resourceId.toLowerCase(java.util.Locale.ROOT);
+        if (id.startsWith("super_compressed_") || id.startsWith("compressed_") || id.startsWith("enchanted_")) return 0;
+        return 10;
     }
 
     private ItemStack storageStack(Material material, int amount, int customModelData) {
@@ -977,7 +1463,7 @@ public final class MinionMenu {
                 lore.add("<gray>Slot boostera miniona.</gray>");
                 lore.add(boosterSummaryLine(data));
                 lore.add(boosterQueueLine(data));
-                lore.add("<yellow>PPM: wyjmij update z miniona.</yellow>");
+                lore.add("<yellow>PPM: wyjmij boostery z kolejki.</yellow>");
                 lore.add("<dark_gray>Wyjęcie zatrzymuje kolejkowanie kolejnych boosterów.</dark_gray>");
                 applyLore(meta, lore);
                 hideAttributes(meta);
@@ -989,7 +1475,7 @@ public final class MinionMenu {
                 "<gray>Włóż tutaj <white>Minion Booster Tier I</white>.</gray>",
                 "<gray>Tier I: <green>+10%</green> szybkości przez <white>30s</white>.</gray>",
                 "<gray>Boostery można stackować.</gray>",
-                "<yellow>PPM na slocie: wyjmij update z miniona.</yellow>",
+                "<yellow>PPM na slocie: wyjmij boostery z kolejki.</yellow>",
                 "<dark_gray>Obsługiwane tiery zależą od minion-types.yml.</dark_gray>"
         ));
     }
@@ -1016,7 +1502,7 @@ public final class MinionMenu {
             if (meta != null) {
                 List<String> lore = new ArrayList<>();
                 lore.add("<gray>Update aktywny w tym slocie.</gray>");
-                lore.add("<yellow>PPM: wyjmij update z miniona.</yellow>");
+                lore.add("<yellow>PPM: wyjmij boostery z kolejki.</yellow>");
                 applyLore(meta, lore);
                 hideAttributes(meta);
                 copy.setItemMeta(meta);
@@ -1026,7 +1512,7 @@ public final class MinionMenu {
         return item(placeholder, name, List.of(
                 "<gray>Włóż tutaj specjalny item update'u.</gray>",
                 "<gray>np. Auto Smelter albo inny dodatek produkcji.</gray>",
-                "<yellow>PPM na slocie: wyjmij update z miniona.</yellow>",
+                "<yellow>PPM na slocie: wyjmij boostery z kolejki.</yellow>",
                 "<dark_gray>Skrzynkę storage wkłada się w osobny slot na dole menu.</dark_gray>"
         ));
     }

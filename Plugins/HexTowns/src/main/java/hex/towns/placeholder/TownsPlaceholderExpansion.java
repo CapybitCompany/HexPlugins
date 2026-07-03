@@ -24,10 +24,14 @@ public final class TownsPlaceholderExpansion extends PlaceholderExpansion {
             .withZone(ZoneId.systemDefault());
 
     private final TownsService service;
-    private final TownsConfig config;
+    private volatile TownsConfig config;
 
     public TownsPlaceholderExpansion(TownsService service, TownsConfig config) {
         this.service = service;
+        this.config = config;
+    }
+
+    public void reloadConfig(TownsConfig config) {
         this.config = config;
     }
 

@@ -71,6 +71,10 @@ public final class HexMinionsPlugin extends JavaPlugin {
         }
         this.hex = hexReg.getProvider();
 
+        if (!ensureDatabaseAvailable()) {
+            return;
+        }
+
         var townsReg = Bukkit.getServicesManager().getRegistration(TownsApi.class);
         if (townsReg == null) {
             getLogger().severe("HexTowns API not found; disabling HexMinions.");
@@ -128,7 +132,7 @@ public final class HexMinionsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new MachineListener(this, hex, towns, machineService), this);
         getServer().getPluginManager().registerEvents(cableService, this);
         getServer().getPluginManager().registerEvents(customResourceDropEngine, this);
-        getServer().getPluginManager().registerEvents(new RadiationListener(this, service), this);
+        getServer().getPluginManager().registerEvents(new RadiationListener(this, hex, service), this);
         getServer().getPluginManager().registerEvents(new TownLifecycleListener(service, machineService), this);
         getServer().getPluginManager().registerEvents(new MinionWorldListener(this, service, machineService), this);
         getServer().getPluginManager().registerEvents(new EnderChestExpansionListener(this, towns, service), this);
@@ -148,12 +152,62 @@ public final class HexMinionsPlugin extends JavaPlugin {
             if (advancementService != null) Bukkit.getOnlinePlayers().forEach(advancementService::evaluate);
             getLogger().info("HexMinions loaded minions=" + minions.size());
         })).exceptionally(ex -> {
-            getLogger().severe("HexMinions DB init failed: " + rootMessage(ex));
+            getLogger().severe("HexMinions database startup failed: " + rootMessage(ex));
             Bukkit.getScheduler().runTask(this, () -> getServer().getPluginManager().disablePlugin(this));
             return null;
         });
 
         getLogger().info("HexMinions enabled");
+    }
+
+    private boolean ensureDatabaseAvailable() {
+        DatabaseAvailability availability = detectDatabaseAvailability();
+        if (availability.available()) {
+            return true;
+        }
+
+        String reason = availability.reason();
+        getLogger().severe("HexMinions requires HexCore database, but it is unavailable: " + reason);
+        getServer().getPluginManager().disablePlugin(this);
+        return false;
+    }
+
+    private DatabaseAvailability detectDatabaseAvailability() {
+        Object dbService = hex.db();
+        try {
+            Object available = dbService.getClass().getMethod("isAvailable").invoke(dbService);
+            if (available instanceof Boolean value && !value) {
+                String reason = "unknown reason";
+                try {
+                    Object reflectedReason = dbService.getClass().getMethod("unavailableReason").invoke(dbService);
+                    if (reflectedReason instanceof String text && !text.isBlank()) {
+                        reason = text;
+                    }
+                } catch (ReflectiveOperationException ignored) {
+                    // Older HexCore builds do not expose unavailableReason().
+                }
+                return new DatabaseAvailability(false, reason);
+            }
+        } catch (NoSuchMethodException ignored) {
+            // Older HexCore build: fall back to an actual lightweight query.
+        } catch (ReflectiveOperationException | LinkageError ex) {
+            return new DatabaseAvailability(false, rootMessage(ex));
+        }
+
+        try {
+            hex.db().db().queryOne("SELECT 1", rs -> 1);
+            return new DatabaseAvailability(true, "");
+        } catch (RuntimeException | LinkageError ex) {
+            return new DatabaseAvailability(false, rootMessage(ex));
+        }
+    }
+
+    private record DatabaseAvailability(boolean available, String reason) {
+        private DatabaseAvailability {
+            if (reason == null || reason.isBlank()) {
+                reason = "unknown reason";
+            }
+        }
     }
 
     @Override
@@ -257,6 +311,32 @@ public final class HexMinionsPlugin extends JavaPlugin {
                     Map.entry("wiki.open", "<green>Otwieram wiki minionów.</green>"),
                     Map.entry("wiki.test-copy.success", "<green>Skopiowano item z wiki do ekwipunku testowego.</green>"),
                     Map.entry("reload.success", "<green>Przeladowano HexMinions.</green>"),
+                    Map.entry("usage.give", "<yellow>Uzycie: <white>/minion give <gracz> <typ> [tier] [ilosc]</white></yellow>"),
+                    Map.entry("usage.player-action", "<yellow>Uzycie: <white>/minion <action> <id></white></yellow>"),
+                    Map.entry("usage.action", "<yellow>Uzycie: <white>/minion action <collect|upgrade|pickup|move|open> <id></white></yellow>"),
+                    Map.entry("usage.select", "<yellow>Uzycie: <white>/minion select <id></white></yellow>"),
+                    Map.entry("admin.usage", "<yellow>Komendy admina: <white>/minion admin addlimit <uuid-miasta|nazwa-miasta> <bonus> [zrodlo]</white>, <white>/minion admin metrics</white></yellow>"),
+                    Map.entry("admin.addlimit.usage", "<red>Uzycie: <white>/minion admin addlimit <uuid-miasta|nazwa-miasta> <bonus> [zrodlo]</white></red>"),
+                    Map.entry("admin.addlimit.town-not-found", "<red>Nie znaleziono miasta: <white><town></white></red>"),
+                    Map.entry("admin.addlimit.zero", "<red>Bonus musi byc liczba rozna od 0.</red>"),
+                    Map.entry("admin.addlimit.success", "<green>Dodano bonus limitu minionow <white><delta></white> dla miasta <yellow><town></yellow>. Aktualny limit: <white><max></white>. Zrodlo: <gray><source></gray>.</green>"),
+                    Map.entry("admin.metrics", "<green>HexMinions metrics: podstawowy MVP dziala.</green>"),
+                    Map.entry("cable.loading", "<red>System kabli jeszcze sie laduje. Sprobuj ponownie za chwile.</red>"),
+                    Map.entry("cable.invalid-shape", "<red>Kabel musi byc prostym odcinkiem i dotykac portu maszyny albo istniejacego kabla.</red>"),
+                    Map.entry("cable.validation-error", "<red><error></red>"),
+                    Map.entry("cable.place.not-town", "<red>Kable mozesz stawiac tylko w swoim miescie.</red>"),
+                    Map.entry("cable.place.success", "<green>Polozono <white><cable></white> <gray>(<length>m)</gray>. <dark_gray>Kabel jest pasywnym segmentem sieci EU.</dark_gray></green>"),
+                    Map.entry("cable.remove.not-town", "<red>Mozesz usuwac kable tylko w swoim miescie.</red>"),
+                    Map.entry("cable.info", "<gray>Kabel:</gray> <white><cable></white> <dark_gray>|</dark_gray> <gray>dlugosc:</gray> <white><length>m</white> <dark_gray>|</dark_gray> <gray>limit:</gray> <white><limit> EU/s</white> <dark_gray>|</dark_gray> <gray>strata:</gray> <white><loss> EU/m</white>"),
+                    Map.entry("cable.remove.success", "<yellow>Usunieto caly segment kabla, nie pojedynczy metr.</yellow>"),
+                    Map.entry("machine.error.not-town", "<red>Mozesz obslugiwac te maszyne tylko w swoim miescie.</red>"),
+                    Map.entry("machine.accumulator.input-face-required", "<red>Kliknij konkretny bok akumulatora, ktory ma zostac wejsciem EU.</red>"),
+                    Map.entry("machine.accumulator.input-face-same", "<yellow>Ten bok jest juz wejsciem EU akumulatora.</yellow>"),
+                    Map.entry("machine.accumulator.input-face-changed", "<green>Przeniesiono wejscie EU akumulatora na bok: <white><face></white>. Poprzedni bok stal sie wyjsciem.</green>"),
+                    Map.entry("machine.dismantle.success", "<yellow>Rozkrecono maszyne. Item maszyny i zawartosc wypadly obok.</yellow>"),
+                    Map.entry("radiation.actionbar", "<green>☢</green> <red>Promieniowanie:</red> <white><amount>x wzbogacony uran</white> <gray>(ochrona <protection>%)</gray>"),
+                    Map.entry("radiation.chest-warning", "<red>W skrzyni znajduje sie wzbogacony uran. Ochrona kombinezonu: <white><protection>%</white>.</red>"),
+                    Map.entry("radiation.chest-blocked", "<red>Wzbogaconego uranu nie mozna wkladac do zwyklej skrzyni.</red>"),
                     Map.entry("ok", "<green>OK</green>")
             ));
         } catch (Throwable t) {

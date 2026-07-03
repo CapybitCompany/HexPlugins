@@ -33,6 +33,8 @@ public final class MinionsApiImpl implements MinionsApi {
     @Override public TownMinionMenuData menuData(Player viewer) { return service.townData(viewer); }
     @Override public Optional<MinionMenuData> menuData(Player viewer, UUID minionId) { return service.minionData(viewer, minionId); }
     @Override public Optional<MinionMenuData> menuDataByIndex(Player viewer, int index) { return service.minionByIndex(viewer, index); }
+    @Override public Optional<ItemStack> menuIcon(Player viewer, UUID minionId) { return service.menuIcon(viewer, minionId); }
+    @Override public Optional<ItemStack> menuIconByIndex(Player viewer, int index) { return service.menuIconByIndex(viewer, index); }
     @Override public Optional<MinionMenuData> selectedMenuData(Player viewer) { return service.selectedMinion(viewer); }
     @Override public void registerListener(MinionsListener listener) { service.registerListener(listener); }
 }

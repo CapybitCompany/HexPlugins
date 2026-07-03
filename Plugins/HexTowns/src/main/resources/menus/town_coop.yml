@@ -33,7 +33,7 @@ items:
       - '&8Dolny rząd: najstarsze prośby COOP.'
 
   member_1:
-    material: '%hextowns_member_1_material%'
+    material: PLAYER_HEAD
     slot: 10
     priority: 5
     skull_owner: '%hextowns_member_1_skull_owner%'
@@ -66,7 +66,7 @@ items:
           output: 'false'
 
   member_2:
-    material: '%hextowns_member_2_material%'
+    material: PLAYER_HEAD
     slot: 11
     priority: 5
     skull_owner: '%hextowns_member_2_skull_owner%'
@@ -99,7 +99,7 @@ items:
           output: 'false'
 
   member_3:
-    material: '%hextowns_member_3_material%'
+    material: PLAYER_HEAD
     slot: 12
     priority: 5
     skull_owner: '%hextowns_member_3_skull_owner%'
@@ -132,7 +132,7 @@ items:
           output: 'false'
 
   request_1:
-    material: '%hextowns_request_1_material%'
+    material: PLAYER_HEAD
     slot: 28
     priority: 5
     skull_owner: '%hextowns_request_1_skull_owner%'
@@ -172,7 +172,7 @@ items:
           output: 'false'
 
   request_2:
-    material: '%hextowns_request_2_material%'
+    material: PLAYER_HEAD
     slot: 29
     priority: 5
     skull_owner: '%hextowns_request_2_skull_owner%'
@@ -212,7 +212,7 @@ items:
           output: 'false'
 
   request_3:
-    material: '%hextowns_request_3_material%'
+    material: PLAYER_HEAD
     slot: 30
     priority: 5
     skull_owner: '%hextowns_request_3_skull_owner%'
@@ -252,7 +252,7 @@ items:
           output: 'false'
 
   request_4:
-    material: '%hextowns_request_4_material%'
+    material: PLAYER_HEAD
     slot: 31
     priority: 5
     skull_owner: '%hextowns_request_4_skull_owner%'
@@ -292,7 +292,7 @@ items:
           output: 'false'
 
   request_5:
-    material: '%hextowns_request_5_material%'
+    material: PLAYER_HEAD
     slot: 32
     priority: 5
     skull_owner: '%hextowns_request_5_skull_owner%'
@@ -332,7 +332,7 @@ items:
           output: 'false'
 
   request_6:
-    material: '%hextowns_request_6_material%'
+    material: PLAYER_HEAD
     slot: 33
     priority: 5
     skull_owner: '%hextowns_request_6_skull_owner%'
@@ -372,7 +372,7 @@ items:
           output: 'false'
 
   request_7:
-    material: '%hextowns_request_7_material%'
+    material: PLAYER_HEAD
     slot: 34
     priority: 5
     skull_owner: '%hextowns_request_7_skull_owner%'
@@ -446,21 +446,6 @@ items:
     left_click_commands:
       - '[player] town endcoop'
       - '[openguimenu] town_leave_confirm'
-
-  danger:
-    material: TNT
-    slot: 48
-    display_name: '&cStrefa ryzyka'
-    lore:
-      - '&7Destroy miasta lub opuszczenie COOP.'
-    view_requirement:
-      requirements:
-        has_town:
-          type: string equals
-          input: '%hextowns_has_town%'
-          output: 'true'
-    left_click_commands:
-      - '[openguimenu] town_danger'
 
   back_existing:
     material: ARROW

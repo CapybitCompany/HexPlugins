@@ -44,6 +44,7 @@ public final class MinionAdvancementService implements Listener, MinionsListener
     private final MinionService minions;
     private final Set<NamespacedKey> registeredKeys = ConcurrentHashMap.newKeySet();
     private final Set<String> townGrowthRewardsGranted = ConcurrentHashMap.newKeySet();
+    private final Set<String> townMinionLimitRewardsGranted = ConcurrentHashMap.newKeySet();
 
     private volatile boolean enabled;
     private volatile boolean checkOnJoin;
@@ -144,14 +145,19 @@ public final class MinionAdvancementService implements Listener, MinionsListener
         Map<String, Integer> maxTierByType = new LinkedHashMap<>();
         Map<String, CollectionProgress> collectionProgress = Map.of();
         int highestTier = 0;
+        int minionCount = 0;
+        int distinctMinionTypes = 0;
         if (townMember) {
-            for (MinionView view : minions.viewsOfTown(townId)) {
+            List<MinionView> townMinions = minions.viewsOfTown(townId);
+            minionCount = townMinions.size();
+            for (MinionView view : townMinions) {
                 if (view == null || view.typeId() == null) continue;
                 String typeId = view.typeId().toLowerCase(Locale.ROOT);
                 int tier = Math.max(1, view.tier());
                 maxTierByType.merge(typeId, tier, Math::max);
             }
             highestTier = maxTierByType.values().stream().mapToInt(Integer::intValue).max().orElse(0);
+            distinctMinionTypes = Math.max(maxTierByType.size(), minions.countKnownMinionTypes(townId));
             try {
                 collections.loadTown(townId);
                 collectionProgress = collections.getAllCollections(townId);
@@ -159,7 +165,7 @@ public final class MinionAdvancementService implements Listener, MinionsListener
                 collectionProgress = Map.of();
             }
         }
-        return new PlayerSnapshot(townMember, townId, maxTierByType, highestTier, collectionProgress == null ? Map.of() : collectionProgress);
+        return new PlayerSnapshot(townMember, townId, maxTierByType, distinctMinionTypes, minionCount, highestTier, collectionProgress == null ? Map.of() : collectionProgress);
     }
 
     private boolean isSatisfied(MinionAdvancementRequirement requirement, PlayerSnapshot snapshot) {
@@ -187,9 +193,22 @@ public final class MinionAdvancementService implements Listener, MinionsListener
             int current = progress == null ? collections.getLevel(snapshot.townId(), requirement.collectionId()) : progress.level();
             return current >= Math.max(1, requirement.minLevel());
         }
+        if (requirement.isCollectionMaxLevel()) {
+            if (!snapshot.townMember() || requirement.collectionId().isBlank()) return false;
+            int maxLevel = Math.max(1, collections.getMaxLevel(requirement.collectionId()));
+            CollectionProgress progress = snapshot.collectionProgress().get(requirement.collectionId().toLowerCase(Locale.ROOT));
+            int current = progress == null ? collections.getLevel(snapshot.townId(), requirement.collectionId()) : progress.level();
+            return maxLevel > 0 && current >= maxLevel;
+        }
         if (requirement.isAnyCollectionLevel()) {
             return snapshot.townMember() && snapshot.collectionProgress().values().stream()
                     .anyMatch(progress -> progress != null && progress.level() >= Math.max(1, requirement.minLevel()));
+        }
+        if (requirement.isMinionTypeCount()) {
+            return snapshot.townMember() && snapshot.distinctMinionTypes() >= Math.max(1, requirement.minCount());
+        }
+        if (requirement.isMinionCount()) {
+            return snapshot.townMember() && snapshot.minionCount() >= Math.max(1, requirement.minCount());
         }
         return false;
     }
@@ -199,14 +218,19 @@ public final class MinionAdvancementService implements Listener, MinionsListener
         if (advancement == null) return;
         AdvancementProgress progress = player.getAdvancementProgress(advancement);
         if (progress.isDone()) {
-            awardGrowthRewardOnce(definition, snapshot);
+            awardRewardsOnce(definition, snapshot);
             return;
         }
         Collection<String> remaining = List.copyOf(progress.getRemainingCriteria());
         for (String criterion : remaining) {
             progress.awardCriteria(criterion);
         }
+        awardRewardsOnce(definition, snapshot);
+    }
+
+    private void awardRewardsOnce(MinionAdvancementDefinition definition, PlayerSnapshot snapshot) {
         awardGrowthRewardOnce(definition, snapshot);
+        awardMinionLimitRewardOnce(definition, snapshot);
     }
 
     private void awardGrowthRewardOnce(MinionAdvancementDefinition definition, PlayerSnapshot snapshot) {
@@ -219,6 +243,18 @@ public final class MinionAdvancementService implements Listener, MinionsListener
         }
         towns.setMeta(snapshot.townId(), metaKey, "true");
         towns.addGrowthPoints(snapshot.townId(), definition.growthPoints(), "minion_advancement." + definition.id());
+    }
+
+    private void awardMinionLimitRewardOnce(MinionAdvancementDefinition definition, PlayerSnapshot snapshot) {
+        if (definition.minionLimitBonus() <= 0 || snapshot == null || snapshot.townId() == null) return;
+        String rewardKey = snapshot.townId() + ":" + definition.id();
+        if (!townMinionLimitRewardsGranted.add(rewardKey)) return;
+        String metaKey = "minion_advancements.minion_limit." + definition.id();
+        if (Boolean.parseBoolean(towns.getMeta(snapshot.townId(), metaKey, "false"))) {
+            return;
+        }
+        towns.setMeta(snapshot.townId(), metaKey, "true");
+        minions.addMinionLimitBonus(snapshot.townId(), definition.minionLimitBonus(), "minion_advancement." + definition.id());
     }
 
     private void registerAdvancements() {
@@ -355,6 +391,6 @@ public final class MinionAdvancementService implements Listener, MinionsListener
         return escaped.toString();
     }
 
-    private record PlayerSnapshot(boolean townMember, UUID townId, Map<String, Integer> maxTierByType, int highestTier, Map<String, CollectionProgress> collectionProgress) {
+    private record PlayerSnapshot(boolean townMember, UUID townId, Map<String, Integer> maxTierByType, int distinctMinionTypes, int minionCount, int highestTier, Map<String, CollectionProgress> collectionProgress) {
     }
 }
