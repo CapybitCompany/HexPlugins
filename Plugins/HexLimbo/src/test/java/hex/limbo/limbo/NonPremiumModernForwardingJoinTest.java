@@ -27,12 +27,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * Reproduces the live regression where non-premium players disconnect right after joining
  * {@code hexlimbo-limbo}. The script walks the complete login → modern forwarding handshake →
- * configuration → play opening flow against hard-coded 1.21.4 packet ids and asserts the client
+ * configuration → play opening flow against hard-coded 1.21.11 packet ids and asserts the client
  * never receives a Login or Configuration Disconnect.
  */
 class NonPremiumModernForwardingJoinTest {
 
-    // Hard-coded 1.21.4 ids; do NOT replace with Protocol.Packets references in this file.
+    // Hard-coded 1.21.11 ids; do NOT replace with Protocol.Packets references in this file.
     private static final int LOGIN_PLUGIN_REQUEST_OUT = 0x04;
     private static final int LOGIN_SUCCESS_OUT = 0x02;
     private static final int CONFIG_FEATURE_FLAGS_OUT = 0x0C;
@@ -40,12 +40,12 @@ class NonPremiumModernForwardingJoinTest {
     private static final int CONFIG_REGISTRY_DATA_OUT = 0x07;
     private static final int CONFIG_UPDATE_TAGS_OUT = 0x0D;
     private static final int CONFIG_FINISH_OUT = 0x03;
-    private static final int PLAY_LOGIN_OUT = 0x2C;
-    private static final int PLAY_PLAYER_ABILITIES_OUT = 0x3A;
-    private static final int PLAY_SET_CENTER_CHUNK_OUT = 0x58;
-    private static final int PLAY_CHUNK_DATA_OUT = 0x28;
-    private static final int PLAY_SYNC_PLAYER_POSITION_OUT = 0x42;
-    private static final int PLAY_GAME_EVENT_OUT = 0x23;
+    private static final int PLAY_LOGIN_OUT = 0x30;
+    private static final int PLAY_PLAYER_ABILITIES_OUT = 0x3E;
+    private static final int PLAY_SET_CENTER_CHUNK_OUT = 0x5C;
+    private static final int PLAY_CHUNK_DATA_OUT = 0x2C;
+    private static final int PLAY_SYNC_PLAYER_POSITION_OUT = 0x46;
+    private static final int PLAY_GAME_EVENT_OUT = 0x26;
     private static final int LOGIN_DISCONNECT_OUT = 0x00;
     private static final int CONFIG_DISCONNECT_OUT = 0x02;
 
@@ -103,7 +103,7 @@ class NonPremiumModernForwardingJoinTest {
             DataOutputStream out = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
             DataInputStream in = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
 
-            // 1) Handshake: protocol 769, next state 2 (login).
+            // 1) Handshake: protocol 774, next state 2 (login).
             ByteArrayOutputStream hs = new ByteArrayOutputStream();
             DataOutputStream hsOut = new DataOutputStream(hs);
             Protocol.writeVarInt(hsOut, Protocol.MINECRAFT_PROTOCOL_VERSION);
@@ -125,7 +125,7 @@ class NonPremiumModernForwardingJoinTest {
             assertNotEquals(LOGIN_DISCONNECT_OUT, request.packetId(),
                     "Server must not Login-Disconnect a cracked client in modern-forwarding mode.");
             assertEquals(LOGIN_PLUGIN_REQUEST_OUT, request.packetId(),
-                    "1.21.4 Login Plugin Request clientbound id must be 0x04");
+                    "1.21.11 Login Plugin Request clientbound id must be 0x04");
             int messageId = Protocol.readVarInt(request.payload());
             String channel = Protocol.readString(request.payload(), 256);
             assertEquals("velocity:player_info", channel);
@@ -162,12 +162,12 @@ class NonPremiumModernForwardingJoinTest {
             // 6) Login Acknowledged → CONFIGURATION.
             send(out, Protocol.Packets.LOGIN_ACKNOWLEDGED, new byte[0]);
 
-            // Vanilla 1.21.4 server order: Feature Flags first, THEN Select Known Packs.
+            // Vanilla 1.21.11 server order: Feature Flags first, THEN Select Known Packs.
             Frame featureFlags = readFrame(in);
             assertNotEquals(CONFIG_DISCONNECT_OUT, featureFlags.packetId(),
                     "Server must not Config-Disconnect before Feature Flags.");
             assertEquals(CONFIG_FEATURE_FLAGS_OUT, featureFlags.packetId(),
-                    "1.21.4 Feature Flags clientbound id must be 0x0C");
+                    "1.21.11 Feature Flags clientbound id must be 0x0C");
 
             Frame knownPacks = readFrame(in);
             assertEquals(CONFIG_SELECT_KNOWN_PACKS_OUT, knownPacks.packetId());
@@ -181,7 +181,7 @@ class NonPremiumModernForwardingJoinTest {
             Protocol.writeVarInt(pa, 0);
             send(out, Protocol.Packets.CONFIG_SELECT_KNOWN_PACKS_RESPONSE, packAck.toByteArray());
 
-            // 1.21.4 sequence after Known Packs response: Registry Data (multiple) → Update Tags
+            // 1.21.11 sequence after Known Packs response: Registry Data (multiple) → Update Tags
             // → Finish Configuration. None of these may be a Config Disconnect.
             java.util.Set<String> registriesSent = new java.util.HashSet<>();
             int peekedAfterRegistries = -1;
@@ -209,7 +209,7 @@ class NonPremiumModernForwardingJoinTest {
             assertTrue(registriesSent.contains("minecraft:chat_type"));
             assertTrue(registriesSent.contains("minecraft:damage_type"));
             assertEquals(CONFIG_UPDATE_TAGS_OUT, peekedAfterRegistries,
-                    "1.21.4 Update Tags (0x0D) must come after Registry Data and before Finish Configuration.");
+                    "1.21.11 Update Tags (0x0D) must come after Registry Data and before Finish Configuration.");
 
             Frame finish = readFrame(in);
             assertEquals(CONFIG_FINISH_OUT, finish.packetId(),

@@ -44,7 +44,8 @@ class RegisterPremiumGateTest {
                         base.premium().httpTimeoutMs(),
                         base.premium().failOpenOnCheckError()
                 ),
-                base.limbo()
+                base.limbo(),
+                base.prompts()
         );
     }
 

@@ -38,6 +38,15 @@ public final class TestConfigs {
         );
     }
 
+    public static PluginConfig.Prompts defaultPrompts() {
+        return new PluginConfig.Prompts(
+                true, true, true, true,
+                15L,
+                "RED", "PROGRESS", 1.0f,
+                true, true
+        );
+    }
+
     public static PluginConfig defaultConfig() {
         return new PluginConfig(
                 "lobby",
@@ -48,7 +57,8 @@ public final class TestConfigs {
                 new PluginConfig.Session(true, 240L, 10L),
                 new PluginConfig.Security(8, 3, 600L, 10, 4, "pepper"),
                 new PluginConfig.Premium(true, 600L, 10_000, 4_000L, false),
-                defaultLimbo()
+                defaultLimbo(),
+                defaultPrompts()
         );
     }
 
@@ -70,7 +80,8 @@ public final class TestConfigs {
                         base.security().ipHashPepper()
                 ),
                 base.premium(),
-                base.limbo()
+                base.limbo(),
+                base.prompts()
         );
     }
 
@@ -85,7 +96,8 @@ public final class TestConfigs {
                 base.session(),
                 base.security(),
                 base.premium(),
-                base.limbo()
+                base.limbo(),
+                base.prompts()
         );
     }
 
@@ -108,7 +120,8 @@ public final class TestConfigs {
                 base.session(),
                 base.security(),
                 base.premium(),
-                overriddenLimbo
+                overriddenLimbo,
+                base.prompts()
         );
     }
 
@@ -129,7 +142,8 @@ public final class TestConfigs {
                         base.premium().httpTimeoutMs(),
                         failOpen
                 ),
-                base.limbo()
+                base.limbo(),
+                base.prompts()
         );
     }
 
@@ -152,7 +166,8 @@ public final class TestConfigs {
                 base.session(),
                 base.security(),
                 base.premium(),
-                overridden
+                overridden,
+                base.prompts()
         );
     }
 }

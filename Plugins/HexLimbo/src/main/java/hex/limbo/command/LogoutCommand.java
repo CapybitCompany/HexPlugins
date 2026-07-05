@@ -7,6 +7,7 @@ import hex.limbo.auth.SessionService;
 import hex.limbo.config.RuntimeContext;
 import hex.limbo.db.AuditLogService;
 import hex.limbo.limbo.LimboRouter;
+import hex.limbo.prompt.PromptService;
 import net.kyori.adventure.text.Component;
 import org.slf4j.Logger;
 
@@ -19,6 +20,7 @@ public final class LogoutCommand implements SimpleCommand {
     private final LimboRouter router;
     private final RuntimeContext context;
     private final AuditLogService auditLog;
+    private final PromptService promptService;
     private final Executor authExecutor;
     private final Logger logger;
 
@@ -28,6 +30,7 @@ public final class LogoutCommand implements SimpleCommand {
             LimboRouter router,
             RuntimeContext context,
             AuditLogService auditLog,
+            PromptService promptService,
             Executor authExecutor,
             Logger logger
     ) {
@@ -36,6 +39,7 @@ public final class LogoutCommand implements SimpleCommand {
         this.router = router;
         this.context = context;
         this.auditLog = auditLog;
+        this.promptService = promptService;
         this.authExecutor = authExecutor;
         this.logger = logger;
     }
@@ -52,6 +56,9 @@ public final class LogoutCommand implements SimpleCommand {
                 switch (outcome) {
                     case SUCCESS -> {
                         sessionService.invalidate(player.getUniqueId());
+                        // Drop any stale prompt state before re-routing; onServerConnected will
+                        // re-show the correct login prompt once the player lands back in the limbo.
+                        promptService.clear(player.getUniqueId(), player);
                         player.sendMessage(Component.text(context.messages().raw("logout.success")));
                         auditLog.record("LOGOUT", player.getUsername().toLowerCase(), player.getUniqueId(), null, null);
                         router.sendToLimbo(player);

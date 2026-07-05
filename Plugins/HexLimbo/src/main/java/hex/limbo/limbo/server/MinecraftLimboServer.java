@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 /**
- * Hand-rolled minimal Minecraft backend server. Targets protocol {@code 769} (Minecraft 1.21.4).
+ * Hand-rolled minimal Minecraft backend server. Targets protocol {@code 774} (Minecraft 1.21.11).
  *
  * <p>The server opens a plain TCP {@link ServerSocket} on the configured bind address and spawns
  * a thread per incoming connection. Each connection runs the state machine in
@@ -38,11 +38,11 @@ import java.util.function.Supplier;
  *     <li>Login uses either the username from Login Start (mode NONE/LEGACY) or the UUID/name
  *     forwarded by Velocity via the {@code velocity:player_info} Login Plugin Request handshake
  *     (mode MODERN).</li>
- *     <li>Configuration sends the Known Packs handshake plus one Registry Data packet per
- *     data-driven registry listed in {@link MinimalRegistries}. Each entry carries
- *     {@code hasData=false} so the client resolves the NBT from its built-in
- *     {@code minecraft:core 1.21.4} pack. Skipping Registry Data altogether kicks the client
- *     during PLAY init.</li>
+ *     <li>Configuration sends the Known Packs handshake, then replays the complete captured
+ *     1.21.11 registry set from {@link RegistryData} (23 registries, full NBT inline). Shipping
+ *     the exact registry data a real server sends is the only thing the native client and
+ *     ViaVersion/ViaFabric reliably accept; an incomplete or hand-rolled set kicks the client at
+ *     the CONFIGURATION → PLAY transition.</li>
  *     <li>Play sends Login → Player Abilities → Set Center Chunk → a 5×5 patch of empty chunks →
  *     Synchronize Player Position → Game Event 13 ("start waiting for level chunks"). Keep-alives
  *     run every 15 s.</li>

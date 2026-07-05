@@ -29,7 +29,7 @@ class ConfigLoaderLimboTest {
         // v1 ships with actionbar OFF: the NBT text-component encoding is fragile across
         // client builds and a malformed packet kicks the player.
         assertEquals(false, limbo.actionbarEnabled());
-        assertEquals("Please login or register.", limbo.actionbarText());
+        assertEquals("Zaloguj się przez /login lub zarejestruj przez /register.", limbo.actionbarText());
         assertEquals(false, limbo.debugProtocol());
     }
 

@@ -44,6 +44,7 @@ import hex.limbo.listener.ServerConnectListener;
 import hex.limbo.premium.CachedPremiumResolver;
 import hex.limbo.premium.MojangPremiumResolver;
 import hex.limbo.premium.PremiumResolverHandle;
+import hex.limbo.prompt.PromptService;
 import hex.limbo.security.IpHasher;
 import hex.limbo.security.RateLimiter;
 import hex.limbo.uuid.FakeUuidService;
@@ -84,6 +85,7 @@ public final class HexLimboPlugin {
     private PremiumResolverHandle premiumResolver;
     private LimboServer limboServer;
     private LimboRouter router;
+    private PromptService promptService;
     private PasswordHasher passwordHasher;
     private AuditLogService auditLog;
     private ExecutorService authExecutor;
@@ -172,6 +174,13 @@ public final class HexLimboPlugin {
         }
 
         router = new LimboRouter(proxy, runtimeContext, limboServer, logger);
+        promptService = new PromptService(runtimeContext, (intervalSeconds, task) -> {
+            ScheduledTask scheduled = proxy.getScheduler().buildTask(this, task)
+                    .delay(intervalSeconds, TimeUnit.SECONDS)
+                    .repeat(intervalSeconds, TimeUnit.SECONDS)
+                    .schedule();
+            return scheduled::cancel;
+        });
         FakeUuidService fakeUuidService = new FakeUuidService();
 
         registerListeners(fakeUuidService, ipHasher);
@@ -273,10 +282,10 @@ public final class HexLimboPlugin {
         GameProfileListener gameProfile = new GameProfileListener(repository, fakeUuidService, logger);
         LoginListener loginListener = new LoginListener(proxy, this, authService, sessionService, repository, ipHasher, runtimeContext, auditLog, logger);
         InitialServerListener initialServer = new InitialServerListener(authService, router, runtimeContext);
-        ServerConnectListener serverConnect = new ServerConnectListener(authService, router, runtimeContext);
+        ServerConnectListener serverConnect = new ServerConnectListener(authService, router, runtimeContext, promptService);
         CommandListener commandListener = new CommandListener(authService, runtimeContext);
         ChatListener chatListener = new ChatListener(authService, runtimeContext);
-        DisconnectListener disconnectListener = new DisconnectListener(authService, loginListener);
+        DisconnectListener disconnectListener = new DisconnectListener(authService, loginListener, promptService);
 
         proxy.getEventManager().register(this, preLogin);
         proxy.getEventManager().register(this, gameProfile);
@@ -290,9 +299,9 @@ public final class HexLimboPlugin {
 
     private void registerCommands() {
         CommandManager cm = proxy.getCommandManager();
-        register(cm, "register", new RegisterCommand(authService, sessionService, router, runtimeContext, premiumResolver, auditLog, authExecutor, logger), "reg");
-        register(cm, "login", new LoginCommand(authService, sessionService, router, runtimeContext, auditLog, authExecutor, logger), "l");
-        register(cm, "logout", new LogoutCommand(authService, sessionService, router, runtimeContext, auditLog, authExecutor, logger));
+        register(cm, "register", new RegisterCommand(authService, sessionService, router, runtimeContext, premiumResolver, auditLog, promptService, authExecutor, logger), "reg");
+        register(cm, "login", new LoginCommand(authService, sessionService, router, runtimeContext, auditLog, promptService, authExecutor, logger), "l");
+        register(cm, "logout", new LogoutCommand(authService, sessionService, router, runtimeContext, auditLog, promptService, authExecutor, logger));
         register(cm, "changepassword", new ChangePasswordCommand(authService, sessionService, runtimeContext, auditLog, authExecutor, logger), "cpw");
         register(cm, "premium", new PremiumCommand(authService, repository, runtimeContext, auditLog, authExecutor, logger));
         register(cm, "limbo", new LimboCommand(runtimeContext));
@@ -327,7 +336,7 @@ public final class HexLimboPlugin {
         if (runtimeContext != null) {
             reason = () -> Component.text(runtimeContext.messages().raw("disconnect.service-unavailable"));
         } else {
-            reason = () -> Component.text("HexLimbo is currently unavailable. Please try again later.");
+            reason = () -> Component.text("HexLimbo jest chwilowo niedostępne. Spróbuj ponownie później.");
         }
         proxy.getEventManager().register(this, new FailFastKickListener(reason));
     }
@@ -378,7 +387,8 @@ public final class HexLimboPlugin {
                 parsedConfig.session(),
                 parsedConfig.security(),
                 parsedConfig.premium(),
-                oldConfig.limbo()
+                oldConfig.limbo(),
+                parsedConfig.prompts()
         );
         runtimeContext.update(effectiveConfig, newMessages);
 

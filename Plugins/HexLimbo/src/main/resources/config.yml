@@ -2,8 +2,8 @@
 # Values that can be hot-reloaded with `/hexlimbo reload`:
 #   servers.target, auth.*, session.* (duration / enabled live on every call;
 #   purge-interval-minutes triggers a re-schedule), security.* (live except
-#   rate-limit-per-minute window which is fixed at startup), premium.*, messages.yml,
-#   limbo.actionbar-* (visual only).
+#   rate-limit-per-minute window which is fixed at startup), premium.*, prompts.*,
+#   messages.yml, limbo.actionbar-* (visual only).
 # Restart-required: database.*, security.ip-hash-pepper, security.rate-limit-per-minute,
 # limbo.server-name / bind-host / bind-port / spawn.* (these define the internal backend).
 
@@ -32,9 +32,9 @@ limbo:
 
   # Visual-only: show an actionbar message reminding the player to /login or /register.
   # Default OFF in v1: the NBT TextComponent encoding for the action-bar packet is fragile
-  # across 1.21.4 client builds. Re-enable once you've smoke-tested it against your client.
+  # across 1.21.11 client builds. Re-enable once you've smoke-tested it against your client.
   actionbar-enabled: false
-  actionbar-text: "Please login or register."
+  actionbar-text: "Zaloguj się przez /login lub zarejestruj przez /register."
 
   # Toggle structured INFO-level logs around each step of the backend protocol handshake.
   # Useful for live-debugging "client disconnects right after joining limbo" reports. Logs each
@@ -131,3 +131,31 @@ premium:
   # the safe behaviour is to deny login/registration so a cracked client cannot grab a premium
   # name during a Mojang outage. Set to true ONLY if you accept that risk (e.g. closed networks).
   fail-open-on-check-error: false
+
+prompts:
+  # Master switch for the unauthenticated login/register prompts (BossBar, title, chat) shown to
+  # players sitting in the limbo, plus the welcome shown after they authenticate. When false, the
+  # limbo stays silent (players still see command feedback from /login and /register).
+  enabled: true
+  # Show a persistent BossBar reading e.g. "Zaloguj się: /login <hasło>".
+  bossbar-enabled: true
+  # Show a one-shot center-screen title + subtitle when the player enters the limbo and again on
+  # successful authentication.
+  title-enabled: true
+  # Send the initial chat instruction and the periodic reminders below.
+  chat-enabled: true
+  # How often (seconds) to re-send the chat reminder while the player is unauthenticated. The
+  # BossBar and title are NOT re-spammed; only the chat line repeats. Set 0 to disable reminders
+  # (the player still gets one initial chat line). Requires chat-enabled: true.
+  reminder-interval-seconds: 15
+  # BossBar styling. color: PINK, BLUE, RED, GREEN, YELLOW, PURPLE, WHITE.
+  # overlay: PROGRESS, NOTCHED_6, NOTCHED_10, NOTCHED_12, NOTCHED_20. Invalid values fall back to
+  # RED / PROGRESS. progress: 0.0-1.0 fill fraction.
+  bossbar-color: "RED"
+  bossbar-overlay: "PROGRESS"
+  bossbar-progress: 1.0
+  # Also show a title/subtitle on successful authentication and to premium players in the lobby.
+  success-title-enabled: true
+  # Greet premium / admin-bypass players who skipped the limbo with a short "limbo skipped" message
+  # when they arrive in the target lobby.
+  premium-skip-enabled: true

@@ -27,11 +27,10 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Verifies that the limbo parses the Select Known Packs response payload and proceeds with the
- * full Registry Data → Update Tags → Finish Configuration sequence regardless of which packs the
- * client echoes back. Today v1 always proceeds with {@code hasData=false} entries and only logs
- * a warning when {@code minecraft:core 1.21.4} is absent; this test ensures the sequence does
- * not hang or disconnect even on a non-vanilla pack list.
+ * Verifies that the limbo parses the Select Known Packs response payload and then replays the
+ * complete captured 1.21.11 registry set (23 registries, data inline / {@code hasData=true}) →
+ * Update Tags → Finish Configuration, regardless of which packs the client echoed – including the
+ * live {@code count=0} answer ViaVersion / ViaFabric give. The sequence must never disconnect.
  */
 class KnownPacksResponseTest {
 
@@ -117,16 +116,21 @@ class KnownPacksResponseTest {
         assertEquals(CONFIG_SELECT_KNOWN_PACKS_OUT, knownPacks.packetId());
     }
 
+    /** What {@link #assertSequenceCompletes} observed on the wire for one Registry Data run. */
+    private record Sequence(java.util.Map<String, Boolean> hasData,
+                            java.util.Map<String, Integer> entryCounts) {}
+
     /**
      * Walks Registry Data → Update Tags → Finish Configuration and returns, for each registry
-     * sent, the value of the {@code hasData} byte on its FIRST entry. Caller asserts on the map
-     * to verify the right encoding mode was chosen.
+     * sent, the {@code hasData} byte on its FIRST entry and the declared entry count. Caller
+     * asserts on the maps to verify the right encoding mode AND a complete registry set were sent.
      */
-    private java.util.Map<String, Boolean> assertSequenceCompletes(
+    private Sequence assertSequenceCompletes(
             DataOutputStream out, DataInputStream in, byte[] knownPacksResponsePayload) throws IOException {
         send(out, Protocol.Packets.CONFIG_SELECT_KNOWN_PACKS_RESPONSE, knownPacksResponsePayload);
 
         java.util.Map<String, Boolean> registryHasData = new java.util.LinkedHashMap<>();
+        java.util.Map<String, Integer> registryEntryCounts = new java.util.LinkedHashMap<>();
         int afterRegistries = -1;
         while (true) {
             Frame frame = readFrame(in);
@@ -139,6 +143,7 @@ class KnownPacksResponseTest {
                 Protocol.readString(frame.payload(), 256);   // first entry id
                 boolean hasData = frame.payload().readBoolean();
                 registryHasData.put(registryName, hasData);
+                registryEntryCounts.put(registryName, entryCount);
                 continue;
             }
             afterRegistries = frame.packetId();
@@ -150,11 +155,32 @@ class KnownPacksResponseTest {
 
         Frame finish = readFrame(in);
         assertEquals(CONFIG_FINISH_OUT, finish.packetId());
-        return registryHasData;
+        return new Sequence(registryHasData, registryEntryCounts);
+    }
+
+    /** The registries a void 1.21.11 session must not omit, plus a few new-in-1.21.5+ ones. */
+    private static void assertShipsFullDump(Sequence seq) {
+        java.util.Map<String, Boolean> hasData = seq.hasData();
+        // The complete captured set is 23 registries; every one is sent with data inline.
+        assertEquals(23, hasData.size(), "Must replay the complete 1.21.11 registry set (got " + hasData.keySet() + ")");
+        for (var e : hasData.entrySet()) {
+            assertEquals(true, e.getValue(), e.getKey() + " must be sent hasData=true (data inline)");
+        }
+        // Hard-required registries and a couple that only exist post-1.21.4 (proving it is the real
+        // 1.21.11 dump, not the old hand-rolled four).
+        for (String required : new String[]{
+                "minecraft:dimension_type", "minecraft:worldgen/biome", "minecraft:damage_type",
+                "minecraft:chat_type", "minecraft:painting_variant", "minecraft:wolf_variant",
+                "minecraft:cow_variant", "minecraft:pig_variant", "minecraft:dialog"}) {
+            assertTrue(hasData.containsKey(required), "Registry set must include " + required);
+        }
+        // damage_type is the full vanilla set (50 entries), not a hand-rolled subset.
+        assertTrue(seq.entryCounts().get("minecraft:damage_type") >= 40,
+                "damage_type must be the full vanilla set, got " + seq.entryCounts().get("minecraft:damage_type"));
     }
 
     @Test
-    void responseWithCorePackUsesHasDataFalse() throws IOException {
+    void coreKnownPackAckStillShipsFullRegistryData() throws IOException {
         int port = freePort();
         MinecraftLimboServer server = start(port);
         try (Socket socket = new Socket()) {
@@ -165,29 +191,21 @@ class KnownPacksResponseTest {
 
             walkToKnownPacks(out, in);
 
-            // Echo back exactly the Known Pack we announced.
+            // Even when the client echoes the core pack, we send the data inline (always valid).
             ByteArrayOutputStream resp = new ByteArrayOutputStream();
             DataOutputStream r = new DataOutputStream(resp);
             Protocol.writeVarInt(r, 1);
             Protocol.writeString(r, "minecraft");
             Protocol.writeString(r, "core");
             Protocol.writeString(r, Protocol.MINECRAFT_VERSION_LABEL);
-            java.util.Map<String, Boolean> hasData = assertSequenceCompletes(out, in, resp.toByteArray());
-
-            assertEquals(false, hasData.get("minecraft:dimension_type"),
-                    "Known-pack mode must use hasData=false");
-            assertEquals(false, hasData.get("minecraft:worldgen/biome"),
-                    "Known-pack mode must use hasData=false");
-            // Token registries also participate in known-pack mode.
-            assertTrue(hasData.containsKey("minecraft:trim_pattern"),
-                    "Known-pack mode includes token registries");
+            assertShipsFullDump(assertSequenceCompletes(out, in, resp.toByteArray()));
         } finally {
             server.stop();
         }
     }
 
     @Test
-    void responseWithoutCorePackUsesFullNbtFallback() throws IOException {
+    void countZeroResponseShipsFullRegistryData() throws IOException {
         int port = freePort();
         MinecraftLimboServer server = start(port);
         try (Socket socket = new Socket()) {
@@ -198,23 +216,12 @@ class KnownPacksResponseTest {
 
             walkToKnownPacks(out, in);
 
-            // Live regression: Velocity/ViaVersion replies count=0.
+            // Live scenario: ViaVersion / ViaFabric answer Select Known Packs with count=0. We must
+            // still ship the complete registry set inline and reach Finish Configuration.
             ByteArrayOutputStream resp = new ByteArrayOutputStream();
             DataOutputStream r = new DataOutputStream(resp);
             Protocol.writeVarInt(r, 0);
-            java.util.Map<String, Boolean> hasData = assertSequenceCompletes(out, in, resp.toByteArray());
-
-            // Fallback mode: primary registries must ship full NBT (hasData=true) ...
-            assertEquals(true, hasData.get("minecraft:dimension_type"),
-                    "Fallback mode must ship full NBT with hasData=true");
-            assertEquals(true, hasData.get("minecraft:worldgen/biome"));
-            assertEquals(true, hasData.get("minecraft:chat_type"));
-            assertEquals(true, hasData.get("minecraft:damage_type"));
-            // ... and token-only registries must be skipped entirely.
-            assertTrue(!hasData.containsKey("minecraft:trim_pattern"),
-                    "Fallback mode must skip token-only registries (got " + hasData.keySet() + ")");
-            assertTrue(!hasData.containsKey("minecraft:wolf_variant"));
-            assertTrue(!hasData.containsKey("minecraft:painting_variant"));
+            assertShipsFullDump(assertSequenceCompletes(out, in, resp.toByteArray()));
         } finally {
             server.stop();
         }

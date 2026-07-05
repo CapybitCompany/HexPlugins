@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Byte-level smoke test for {@link MinecraftLimboServer}. Verifies that the server actually
- * performs the four-state Minecraft 1.21.4 handshake instead of merely binding a TCP port.
+ * performs the four-state Minecraft 1.21.11 handshake instead of merely binding a TCP port.
  *
  * <p>The test does not replace a real Minecraft client – framing nuances, NBT correctness or
  * client-side expectations beyond packet ids must still be validated with an actual client. But
@@ -109,17 +109,17 @@ class MinecraftLimboServerProtocolTest {
 
     @Test
     void nonPremiumJoinReachesPlayWithChunks() throws IOException {
-        // Hard-coded packet ids from minecraft-data 1.21.4 protocol.json. These intentionally do
+        // Hard-coded packet ids from minecraft-data 1.21.11 protocol.json. These intentionally do
         // NOT reuse Protocol.Packets constants – if the constants regress, this test catches it.
         int loginSuccessOut = 0x02;
         int knownPacksOut = 0x0E;
         int finishConfigOut = 0x03;
-        int playLoginOut = 0x2C;
-        int playerAbilitiesOut = 0x3A;
-        int setCenterChunkOut = 0x58;
-        int chunkDataOut = 0x28;
-        int syncPlayerPositionOut = 0x42;
-        int gameEventOut = 0x23;
+        int playLoginOut = 0x30;
+        int playerAbilitiesOut = 0x3E;
+        int setCenterChunkOut = 0x5C;
+        int chunkDataOut = 0x2C;
+        int syncPlayerPositionOut = 0x46;
+        int gameEventOut = 0x26;
 
         int port = freePort();
         MinecraftLimboServer server = start(port);
@@ -141,28 +141,28 @@ class MinecraftLimboServerProtocolTest {
             // Expect Login Success (server is in NONE forwarding mode by default).
             Frame loginSuccess = readFrame(in);
             assertEquals(loginSuccessOut, loginSuccess.packetId(),
-                    "1.21.4 Login Success clientbound id must be 0x02");
+                    "1.21.11 Login Success clientbound id must be 0x02");
             UUID returnedUuid = Protocol.readUuid(loginSuccess.payload());
             String returnedName = Protocol.readString(loginSuccess.payload(), 16);
             assertEquals("ProtocolTester", returnedName);
             assertNotEquals(new UUID(0, 0), returnedUuid);
-            // 1.21.4 Login Success body ends after the properties array – no strict_error_handling.
+            // 1.21.11 Login Success body ends after the properties array – no strict_error_handling.
             assertEquals(0, Protocol.readVarInt(loginSuccess.payload()), "properties array must be empty");
 
             // Client confirms login → server transitions to CONFIGURATION.
             send(out, Protocol.Packets.LOGIN_ACKNOWLEDGED, new byte[0]);
 
-            // Vanilla 1.21.4 sends Feature Flags BEFORE Select Known Packs.
+            // Vanilla 1.21.11 sends Feature Flags BEFORE Select Known Packs.
             int featureFlagsOut = 0x0C;
             Frame featureFlags = readFrame(in);
             assertEquals(featureFlagsOut, featureFlags.packetId(),
-                    "1.21.4 Feature Flags clientbound id must be 0x0C");
+                    "1.21.11 Feature Flags clientbound id must be 0x0C");
             int flagCount = Protocol.readVarInt(featureFlags.payload());
             assertTrue(flagCount >= 1, "Feature Flags must list at least minecraft:vanilla");
 
             Frame knownPacks = readFrame(in);
             assertEquals(knownPacksOut, knownPacks.packetId(),
-                    "1.21.4 Select Known Packs clientbound id must be 0x0E");
+                    "1.21.11 Select Known Packs clientbound id must be 0x0E");
 
             // Echo the known-packs handshake back with the matching pack.
             ByteArrayOutputStream packAck = new ByteArrayOutputStream();
@@ -173,7 +173,7 @@ class MinecraftLimboServerProtocolTest {
             Protocol.writeString(pa, Protocol.MINECRAFT_VERSION_LABEL);
             send(out, Protocol.Packets.CONFIG_SELECT_KNOWN_PACKS_RESPONSE, packAck.toByteArray());
 
-            // After Known Packs response 1.21.4 expects: Registry Data (multiple) → Update Tags
+            // After Known Packs response 1.21.11 expects: Registry Data (multiple) → Update Tags
             // → Finish Configuration. Tag references rely on registry entries existing, so tags
             // MUST come after registries.
             int registryDataOut = 0x07;
@@ -195,22 +195,22 @@ class MinecraftLimboServerProtocolTest {
             assertTrue(registriesSent.contains("minecraft:worldgen/biome"),
                     "Server must send Registry Data for minecraft:worldgen/biome (used by chunk data)");
             assertEquals(updateTagsOut, peekedAfterRegistries,
-                    "1.21.4 Update Tags clientbound id 0x0D must come after Registry Data and before Finish Configuration");
+                    "1.21.11 Update Tags clientbound id 0x0D must come after Registry Data and before Finish Configuration");
 
             Frame finishConfig = readFrame(in);
             assertEquals(finishConfigOut, finishConfig.packetId(),
-                    "1.21.4 Finish Configuration clientbound id must be 0x03 after Update Tags");
+                    "1.21.11 Finish Configuration clientbound id must be 0x03 after Update Tags");
 
             // Client ACK → PLAY.
             send(out, Protocol.Packets.CONFIG_FINISH_ACK, new byte[0]);
 
             // Concrete-id verification of the PLAY opening sequence. Catches packet-id drift.
             assertEquals(playLoginOut, readFrame(in).packetId(),
-                    "1.21.4 Play Login clientbound id must be 0x2C");
+                    "1.21.11 Play Login clientbound id must be 0x30");
             assertEquals(playerAbilitiesOut, readFrame(in).packetId(),
-                    "1.21.4 Player Abilities clientbound id must be 0x3A");
+                    "1.21.11 Player Abilities clientbound id must be 0x3E");
             assertEquals(setCenterChunkOut, readFrame(in).packetId(),
-                    "1.21.4 Set Center Chunk clientbound id must be 0x58");
+                    "1.21.11 Set Center Chunk clientbound id must be 0x5C");
 
             int chunksSeen = 0;
             int peekedNonChunkPacketId = -1;
@@ -224,13 +224,13 @@ class MinecraftLimboServerProtocolTest {
                 }
             }
             assertTrue(chunksSeen > 0,
-                    "1.21.4 Chunk Data clientbound id must be 0x28 and at least one must be sent");
+                    "1.21.11 Chunk Data clientbound id must be 0x2C and at least one must be sent");
             assertEquals(syncPlayerPositionOut, peekedNonChunkPacketId,
-                    "1.21.4 Sync Player Position clientbound id must be 0x42");
+                    "1.21.11 Sync Player Position clientbound id must be 0x46");
 
             Frame gameEvent = readFrame(in);
             assertEquals(gameEventOut, gameEvent.packetId(),
-                    "1.21.4 Game Event clientbound id must be 0x23");
+                    "1.21.11 Game Event clientbound id must be 0x26");
             // Verify Game Event payload: byte event id (13 = "start waiting for level chunks") + float.
             byte gameEventCode = gameEvent.payload().readByte();
             assertEquals(13, gameEventCode);

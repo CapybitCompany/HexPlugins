@@ -47,7 +47,8 @@ class LimboReloadSafetyTest {
                 parsedNew.session(),
                 parsedNew.security(),
                 parsedNew.premium(),
-                oldConfig.limbo() // ← this is the production guard
+                oldConfig.limbo(), // ← this is the production guard
+                parsedNew.prompts()
         );
         assertEquals(oldConfig.limbo().bindPort(), effective.limbo().bindPort(),
                 "Effective config must keep the OLD limbo block.");

@@ -32,7 +32,7 @@ import java.util.function.Supplier;
  * Per-connection state machine for one Velocity backend connection. Runs on its own worker
  * thread; the I/O is plain blocking sockets.
  *
- * <p>State transitions follow the Minecraft 1.21.4 protocol:
+ * <p>State transitions follow the Minecraft 1.21.11 protocol:
  * <pre>
  *   HANDSHAKE → STATUS (server list ping)        → terminate
  *             → LOGIN  → CONFIGURATION → PLAY    → keep alive loop
@@ -183,9 +183,9 @@ final class LimboConnection {
         }
         if (protocolVersion != Protocol.MINECRAFT_PROTOCOL_VERSION) {
             // Hard fail: we will not "proceed anyway" on a protocol the limbo wasn't built for.
-            String message = "{\"text\":\"HexLimbo requires Minecraft " + Protocol.MINECRAFT_VERSION_LABEL
-                    + " (protocol " + Protocol.MINECRAFT_PROTOCOL_VERSION + "). "
-                    + "Use ViaVersion on the proxy to translate to this version.\"}";
+            String message = "{\"text\":\"HexLimbo wymaga Minecrafta " + Protocol.MINECRAFT_VERSION_LABEL
+                    + " (protokół " + Protocol.MINECRAFT_PROTOCOL_VERSION + "). "
+                    + "Użyj ViaVersion na proxy, aby przetłumaczyć klienta do tej wersji.\"}";
             // Login disconnect packet is valid in the LOGIN state even before we transition.
             Protocol.writePacket(out, Protocol.Packets.LOGIN_DISCONNECT_OUT,
                     Protocol.payload(o -> Protocol.writeString(o, message)));
@@ -206,7 +206,7 @@ final class LimboConnection {
                     + "\"version\":{\"name\":\"HexLimbo " + Protocol.MINECRAFT_VERSION_LABEL + "\","
                     + "\"protocol\":" + Protocol.MINECRAFT_PROTOCOL_VERSION + "},"
                     + "\"players\":{\"max\":0,\"online\":" + sessions.activeCount() + "},"
-                    + "\"description\":{\"text\":\"HexLimbo void backend\"}"
+                    + "\"description\":{\"text\":\"Zaplecze poczekalni HexLimbo\"}"
                     + "}";
             Protocol.writePacket(out, Protocol.Packets.STATUS_RESPONSE_OUT,
                     Protocol.payload(o -> Protocol.writeString(o, json)));
@@ -254,7 +254,7 @@ final class LimboConnection {
         } else if (packetId == Protocol.Packets.LOGIN_ACKNOWLEDGED) {
             trace("LOGIN_ACKNOWLEDGED", "→ CONFIGURATION");
             state.set(State.CONFIGURATION);
-            // Vanilla 1.21.4 server order: Feature Flags first so the client knows we're a vanilla
+            // Vanilla 1.21.11 server order: Feature Flags first so the client knows we're a vanilla
             // network, THEN the Select Known Packs handshake. The client refuses to participate in
             // hasData=false registries if it hasn't first learned which feature set we run.
             sendFeatureFlags(out);
@@ -337,8 +337,8 @@ final class LimboConnection {
     private void completeLogin(OutputStream out, UUID uuid, String username) throws IOException {
         session = sessions.add(new LimboSession(uuid, username));
         Protocol.writePacket(out, Protocol.Packets.LOGIN_SUCCESS_OUT, Protocol.payload(o -> {
-            // Protocol 769 Login Success: UUID, username, properties array. The strict_error_handling
-            // boolean from 1.20.5 was removed in 1.21.2; do NOT append it here for 1.21.4.
+            // Protocol 774 Login Success: UUID, username, properties array. The strict_error_handling
+            // boolean from 1.20.5 was removed in 1.21.2; do NOT append it here for 1.21.11.
             Protocol.writeUuid(o, uuid);
             Protocol.writeString(o, username);
             Protocol.writeVarInt(o, 0); // no profile properties
@@ -398,14 +398,12 @@ final class LimboConnection {
             return;
         }
         if (packetId == Protocol.Packets.CONFIG_SELECT_KNOWN_PACKS_RESPONSE) {
-            boolean knownCoreAccepted = parseAndLogKnownPacksResponse(in);
-            // useFullNbt=true is the SAFE fallback: when the client didn't acknowledge a known
-            // pack, hasData=false would leave it without resolved NBT and it disconnects after
-            // Finish Configuration. We then ship full NBT for the registries we have writers for
-            // and skip the rest entirely.
-            boolean useFullNbt = !knownCoreAccepted;
-            trace("CONFIG", "Registry Data mode=" + (useFullNbt ? "full-nbt fallback" : "hasData=false via known pack"));
-            sendRegistryData(out, useFullNbt);
+            logKnownPacksResponse(in);
+            // We always replay the COMPLETE captured 1.21.11 registry set with data inline
+            // (hasData=true), regardless of which packs the client echoed. Providing full data is
+            // always valid, and it is the only thing that works behind ViaVersion/ViaFabric, which
+            // answer Select Known Packs with count=0 and expect the server to send everything.
+            sendRegistryData(out);
             sendUpdateTags(out);
             Protocol.writePacket(out, Protocol.Packets.CONFIG_FINISH_OUT, new byte[0]);
             out.flush();
@@ -431,78 +429,39 @@ final class LimboConnection {
     }
 
     private void sendUpdateTags(OutputStream out) throws IOException {
-        // Empty Update Tags packet: VarInt(0) = zero registries with tags. The vanilla 1.21.4
-        // client treats this as "no datapack tags to load". Some interactions reference tags
-        // (e.g. block-set lookups) but our void never triggers them.
-        Protocol.writePacket(out, Protocol.Packets.CONFIG_UPDATE_TAGS_OUT, Protocol.payload(o -> {
-            Protocol.writeVarInt(o, 0);
-        }));
+        // Populated Update Tags captured for 1.21.11 (registry → tag → entry ids). An EMPTY tag set
+        // makes the 1.21.11 client reject the session right after Finish Configuration – it wants
+        // the block/item/fluid/entity/… tags present before entering PLAY. The payload is bundled
+        // as a resource and replayed verbatim.
+        Protocol.writePacket(out, Protocol.Packets.CONFIG_UPDATE_TAGS_OUT, RegistryData.updateTagsPayload());
         lastConfigStep = "Update Tags";
-        trace("CONFIG", "sent Update Tags (0 registries)");
+        trace("CONFIG", "sent Update Tags (populated 1.21.11 set)");
     }
 
-    /**
-     * Parse the Select Known Packs response and return whether the client acknowledged
-     * {@code minecraft:core 1.21.4}. Caller uses this to pick the Registry Data encoding mode.
-     */
-    private boolean parseAndLogKnownPacksResponse(DataInputStream in) throws IOException {
+    /** Parse and log the Select Known Packs response. Purely diagnostic – it does not change what
+     *  we send, because we always ship the full registry data inline. */
+    private void logKnownPacksResponse(DataInputStream in) throws IOException {
         // Format: VarInt count, then for each pack: String namespace, String id, String version.
         int count = Protocol.readVarInt(in);
         java.util.List<String> packs = new java.util.ArrayList<>(count);
-        boolean acknowledgedCore = false;
         for (int i = 0; i < count; i++) {
             String namespace = Protocol.readString(in, 256);
             String id = Protocol.readString(in, 256);
             String version = Protocol.readString(in, 256);
             packs.add(namespace + ":" + id + "/" + version);
-            if ("minecraft".equals(namespace) && "core".equals(id)
-                    && Protocol.MINECRAFT_VERSION_LABEL.equals(version)) {
-                acknowledgedCore = true;
-            }
         }
-        trace("CONFIG", "received Select Known Packs response count=" + count + " packs=" + packs);
-        if (acknowledgedCore) {
-            trace("CONFIG", "knownCoreAccepted=true – will use hasData=false");
-        } else {
-            // Velocity / ViaVersion has been observed to answer with count=0 in production. We
-            // fall back to shipping full NBT inline for the registries we have writers for.
-            trace("CONFIG", "knownCoreAccepted=false – will use hasData=true full-NBT fallback");
-        }
-        return acknowledgedCore;
+        trace("CONFIG", "received Select Known Packs response count=" + count + " packs=" + packs
+                + " (ignored – always sending full registry data)");
     }
 
-    private void sendRegistryData(OutputStream out, boolean useFullNbt) throws IOException {
-        int registriesSent = 0;
-        for (MinimalRegistries.Registry registry : MinimalRegistries.ALL) {
-            // Pick the entries we can send safely in this mode.
-            //   known-pack mode: send everything with hasData=false (resolved via the pack).
-            //   fallback mode: only entries that ship full NBT; never send hasData=true with
-            //                  a missing body – the client would try to deserialise garbage.
-            java.util.List<MinimalRegistries.Entry> sendable = useFullNbt
-                    ? registry.entries().stream().filter(MinimalRegistries.Entry::hasNbt).toList()
-                    : registry.entries();
-            if (sendable.isEmpty()) {
-                trace("CONFIG", "skip Registry Data " + registry.name() + " (no NBT writers in fallback mode)");
-                continue;
-            }
-            Protocol.writePacket(out, Protocol.Packets.CONFIG_REGISTRY_DATA_OUT, Protocol.payload(o -> {
-                Protocol.writeString(o, registry.name());
-                Protocol.writeVarInt(o, sendable.size());
-                for (MinimalRegistries.Entry entry : sendable) {
-                    Protocol.writeString(o, entry.id());
-                    if (useFullNbt) {
-                        Protocol.writeBoolean(o, true);
-                        entry.nbt().write(o);
-                    } else {
-                        Protocol.writeBoolean(o, false);
-                    }
-                }
-            }));
-            trace("CONFIG", "sent Registry Data " + registry.name() + " entries=" + sendable.size()
-                    + " hasData=" + useFullNbt);
-            registriesSent++;
+    private void sendRegistryData(OutputStream out) throws IOException {
+        for (RegistryData.Registry registry : RegistryData.all()) {
+            // Each payload already contains registryId + entryCount + (entryId, hasData=true, NBT)*.
+            Protocol.writePacket(out, Protocol.Packets.CONFIG_REGISTRY_DATA_OUT, registry.payload());
+            trace("CONFIG", "sent Registry Data " + registry.name());
         }
-        lastConfigStep = "Registry Data (" + registriesSent + " registries, useFullNbt=" + useFullNbt + ")";
+        lastConfigStep = "Registry Data (" + RegistryData.all().size() + " registries)";
+        trace("CONFIG", "sent Registry Data for " + RegistryData.all().size() + " registries (full 1.21.11 set)");
     }
 
     // ---------- PLAY ----------
@@ -513,24 +472,30 @@ final class LimboConnection {
             o.writeInt(1);                                    // entity ID
             Protocol.writeBoolean(o, false);                  // hardcore
             Protocol.writeVarInt(o, 1);                       // dimension count
-            Protocol.writeString(o, "minecraft:overworld");   // dimension names[0]
+            Protocol.writeString(o, "minecraft:the_end");     // dimension names[0]
             Protocol.writeVarInt(o, 0);                       // max players (ignored by client)
             Protocol.writeVarInt(o, VIEW_DISTANCE);           // view distance
             Protocol.writeVarInt(o, VIEW_DISTANCE);           // simulation distance
             Protocol.writeBoolean(o, false);                  // reduced debug info
             Protocol.writeBoolean(o, true);                   // enable respawn screen
             Protocol.writeBoolean(o, false);                  // do limited crafting
-            Protocol.writeVarInt(o, 0);                       // dimension type id (overworld at registry index 0)
-            Protocol.writeString(o, "minecraft:overworld");   // dimension name
+            // dimension type id = index of minecraft:the_end in the shipped dimension_type registry
+            // (order: overworld=0, overworld_caves=1, the_end=2, the_nether=3). Gives the End void.
+            Protocol.writeVarInt(o, 2);                       // dimension type id (the_end)
+            Protocol.writeString(o, "minecraft:the_end");     // dimension name
             o.writeLong(0L);                                  // hashed seed
             o.writeByte(2);                                   // game mode (2 = adventure)
             o.writeByte(-1);                                  // previous game mode
             Protocol.writeBoolean(o, false);                  // is debug
-            Protocol.writeBoolean(o, true);                   // is flat
+            Protocol.writeBoolean(o, false);                  // is flat (the End is not a flat world)
             Protocol.writeBoolean(o, false);                  // has death location
             Protocol.writeVarInt(o, 0);                       // portal cooldown
             Protocol.writeVarInt(o, 64);                      // sea level
-            Protocol.writeBoolean(o, true);                   // enforces secure chat
+            // enforces secure chat = false: the limbo serves offline (non-premium) players who
+            // have no Mojang chat-signing key. Enforcing secure chat would make their client
+            // warn about / refuse unsigned chat, which is exactly the /login and /register input
+            // the limbo exists to collect.
+            Protocol.writeBoolean(o, false);                  // enforces secure chat
         }));
 
         // 2) Player Abilities BEFORE the chunks so the void can't insta-kill the player while
@@ -617,7 +582,7 @@ final class LimboConnection {
                 String json = "{\"text\":\"" + escapeJson(config.actionbarText()) + "\"}";
                 synchronized (out) {
                     Protocol.writePacket(out, Protocol.Packets.PLAY_ACTIONBAR_OUT, Protocol.payload(o -> {
-                        // Action Bar Text in 1.21.4: TextComponent (NBT). For broad compatibility
+                        // Action Bar Text in 1.21.11: TextComponent (NBT). For broad compatibility
                         // through ViaVersion we fall back to JSON over the legacy System Chat
                         // path; if the client rejects this packet shape it is silently ignored
                         // and v1 still works without the action bar.

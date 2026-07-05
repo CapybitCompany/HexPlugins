@@ -48,6 +48,7 @@ public final class ConfigLoader {
         Map<String, Object> sessionSection = section(root, "session");
         Map<String, Object> securitySection = section(root, "security");
         Map<String, Object> premiumSection = section(root, "premium");
+        Map<String, Object> promptsSection = section(root, "prompts");
         Map<String, Object> limboSection = section(root, "limbo");
         Map<String, Object> limboSpawn = section(limboSection, "spawn");
         Map<String, Object> limboForwarding = section(limboSection, "forwarding");
@@ -95,6 +96,19 @@ public final class ConfigLoader {
                 bool(premiumSection, "fail-open-on-check-error", false)
         );
 
+        PluginConfig.Prompts prompts = new PluginConfig.Prompts(
+                bool(promptsSection, "enabled", true),
+                bool(promptsSection, "bossbar-enabled", true),
+                bool(promptsSection, "title-enabled", true),
+                bool(promptsSection, "chat-enabled", true),
+                number(promptsSection, "reminder-interval-seconds", 15L).longValue(),
+                string(promptsSection, "bossbar-color", "RED"),
+                string(promptsSection, "bossbar-overlay", "PROGRESS"),
+                number(promptsSection, "bossbar-progress", 1.0).floatValue(),
+                bool(promptsSection, "success-title-enabled", true),
+                bool(promptsSection, "premium-skip-enabled", true)
+        );
+
         PluginConfig.Forwarding forwarding = new PluginConfig.Forwarding(
                 ForwardingMode.parse(string(limboForwarding, "mode", "MODERN"), ForwardingMode.MODERN),
                 string(limboForwarding, "secret", "")
@@ -110,9 +124,9 @@ public final class ConfigLoader {
                 number(limboSpawn, "yaw", 0.0).floatValue(),
                 number(limboSpawn, "pitch", 0.0).floatValue(),
                 // Default off: the v1 NBT text-component encoding has not been verified against
-                // every 1.21.4 client build and a malformed packet here disconnects the player.
+                // every 1.21.11 client build and a malformed packet here disconnects the player.
                 bool(limboSection, "actionbar-enabled", false),
-                string(limboSection, "actionbar-text", "Please login or register."),
+                string(limboSection, "actionbar-text", "Zaloguj się przez /login lub zarejestruj przez /register."),
                 forwarding,
                 bool(limboSection, "debug-protocol", false)
         );
@@ -131,7 +145,8 @@ public final class ConfigLoader {
                 session,
                 security,
                 premium,
-                limbo
+                limbo,
+                prompts
         );
     }
 

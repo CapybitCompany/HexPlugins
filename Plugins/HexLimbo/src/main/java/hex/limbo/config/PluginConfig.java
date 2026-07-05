@@ -48,6 +48,23 @@ public final class PluginConfig {
 
     public record Forwarding(ForwardingMode mode, String secret) {}
 
+    /**
+     * Toggles and styling for the unauthenticated login/register prompts (BossBar, title, chat)
+     * shown to players sitting in the limbo, and the welcome shown once they authenticate.
+     */
+    public record Prompts(
+            boolean enabled,
+            boolean bossbarEnabled,
+            boolean titleEnabled,
+            boolean chatEnabled,
+            long reminderIntervalSeconds,
+            String bossbarColor,
+            String bossbarOverlay,
+            float bossbarProgress,
+            boolean successTitleEnabled,
+            boolean premiumSkipEnabled
+    ) {}
+
     public record Limbo(
             String serverName,
             String bindHost,
@@ -72,6 +89,7 @@ public final class PluginConfig {
     private final Security security;
     private final Premium premium;
     private final Limbo limbo;
+    private final Prompts prompts;
 
     public PluginConfig(
             String targetServer,
@@ -82,7 +100,8 @@ public final class PluginConfig {
             Session session,
             Security security,
             Premium premium,
-            Limbo limbo
+            Limbo limbo,
+            Prompts prompts
     ) {
         this.targetServer = Objects.requireNonNull(targetServer, "targetServer");
         this.loginTimeoutSeconds = loginTimeoutSeconds;
@@ -93,6 +112,7 @@ public final class PluginConfig {
         this.security = Objects.requireNonNull(security, "security");
         this.premium = Objects.requireNonNull(premium, "premium");
         this.limbo = Objects.requireNonNull(limbo, "limbo");
+        this.prompts = Objects.requireNonNull(prompts, "prompts");
     }
 
     /** Convenience: the name HexLimbo registers its internal void backend under. */
@@ -106,4 +126,5 @@ public final class PluginConfig {
     public Security security() { return security; }
     public Premium premium() { return premium; }
     public Limbo limbo() { return limbo; }
+    public Prompts prompts() { return prompts; }
 }

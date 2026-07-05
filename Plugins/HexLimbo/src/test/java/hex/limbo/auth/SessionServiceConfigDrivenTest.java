@@ -32,7 +32,8 @@ class SessionServiceConfigDrivenTest {
                 new PluginConfig.Session(enabled, durationMinutes, base.session().purgeIntervalMinutes()),
                 base.security(),
                 base.premium(),
-                base.limbo()
+                base.limbo(),
+                base.prompts()
         );
     }
 

@@ -10,6 +10,7 @@ import hex.limbo.config.RuntimeContext;
 import hex.limbo.db.AuditLogService;
 import hex.limbo.limbo.LimboRouter;
 import hex.limbo.premium.PremiumResolver;
+import hex.limbo.prompt.PromptService;
 import net.kyori.adventure.text.Component;
 import org.slf4j.Logger;
 
@@ -28,6 +29,7 @@ public final class RegisterCommand implements SimpleCommand {
     private final RuntimeContext context;
     private final PremiumResolver premiumResolver;
     private final AuditLogService auditLog;
+    private final PromptService promptService;
     private final Executor authExecutor;
     private final Logger logger;
 
@@ -38,6 +40,7 @@ public final class RegisterCommand implements SimpleCommand {
             RuntimeContext context,
             PremiumResolver premiumResolver,
             AuditLogService auditLog,
+            PromptService promptService,
             Executor authExecutor,
             Logger logger
     ) {
@@ -47,6 +50,7 @@ public final class RegisterCommand implements SimpleCommand {
         this.context = context;
         this.premiumResolver = premiumResolver;
         this.auditLog = auditLog;
+        this.promptService = promptService;
         this.authExecutor = authExecutor;
         this.logger = logger;
     }
@@ -105,6 +109,7 @@ public final class RegisterCommand implements SimpleCommand {
             case SUCCESS -> {
                 player.sendMessage(Component.text(messages.raw("register.success")));
                 state.setStage(AuthState.Stage.AUTHENTICATED_CRACKED);
+                promptService.onAuthenticated(player.getUniqueId(), player);
                 authService.repository().findByUuid(player.getUniqueId()).ifPresent(account ->
                         sessionService.createSession(account.id(), player.getUniqueId(), account.usernameLower(), state.ipHash()));
                 auditLog.record("REGISTER", player.getUsername().toLowerCase(), player.getUniqueId(), state.ipHash(), null);
