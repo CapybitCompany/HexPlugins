@@ -25,12 +25,35 @@ public final class HexNpcConfigLoader {
 
         HexNpcConfig.Render render = new HexNpcConfig.Render(
                 config.getDouble("render.view-distance-blocks", 48.0D),
-                config.getInt("render.tablist-remove-delay-ticks", 40)
+                config.getInt("render.tablist-remove-delay-ticks", 40),
+                config.getDouble("render.sitting-y-offset", HexNpcConfig.Render.DEFAULT_SITTING_Y_OFFSET)
         );
+
+        HexNpcConfig.Skins skins = loadSkins(config.getConfigurationSection("skins"));
 
         ShopConfig shops = loadShopConfig(config.getConfigurationSection("shops"));
 
-        return new HexNpcConfig(enabled, debug, dialogue, proximity, render, shops);
+        return new HexNpcConfig(enabled, debug, dialogue, proximity, render, skins, shops);
+    }
+
+    private HexNpcConfig.Skins loadSkins(ConfigurationSection section) {
+        if (section == null) {
+            return HexNpcConfig.Skins.defaults();
+        }
+        ConfigurationSection mineskin = section.getConfigurationSection("mineskin");
+        if (mineskin == null) {
+            return HexNpcConfig.Skins.defaults();
+        }
+        HexNpcConfig.Skins.MineSkin d = HexNpcConfig.Skins.MineSkin.defaults();
+        return new HexNpcConfig.Skins(new HexNpcConfig.Skins.MineSkin(
+                mineskin.getBoolean("enabled", d.enabled()),
+                mineskin.getString("api-key", d.apiKey()),
+                mineskin.getString("user-agent", d.userAgent()),
+                mineskin.getString("base-url", d.baseUrl()),
+                mineskin.getInt("request-timeout-seconds", d.requestTimeoutSeconds()),
+                mineskin.getInt("max-poll-attempts", d.maxPollAttempts()),
+                mineskin.getLong("poll-interval-millis", d.pollIntervalMillis())
+        ));
     }
 
     private ShopConfig loadShopConfig(ConfigurationSection section) {

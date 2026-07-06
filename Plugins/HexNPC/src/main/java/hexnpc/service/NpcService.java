@@ -5,6 +5,7 @@ import hexnpc.model.Dialogue;
 import hexnpc.model.DialogueLine;
 import hexnpc.model.InteractionSettings;
 import hexnpc.model.InteractionTrigger;
+import hexnpc.model.LookAtSettings;
 import hexnpc.model.NpcAction;
 import hexnpc.model.NpcActions;
 import hexnpc.model.NpcAppearance;
@@ -164,8 +165,40 @@ public final class NpcService {
         return updateAppearance(id, appearance -> appearance.withGlow(glow));
     }
 
+    /**
+     * Setzt Glow-Status und -Farbe in einem Schritt. {@code glowColor == null} laesst
+     * die bestehende Farbe unveraendert; ein leerer/expliziter Wert setzt bzw. entfernt
+     * sie. Die Farbe wird nur wirksam, wenn {@code glow == true}.
+     */
+    public Optional<NpcDefinition> setGlow(NpcId id, boolean glow, String glowColor) throws Exception {
+        return updateAppearance(id, appearance -> {
+            NpcAppearance next = appearance.withGlow(glow);
+            return glowColor == null ? next : next.withGlowColor(glowColor);
+        });
+    }
+
+    public Optional<NpcDefinition> setGlowColor(NpcId id, String glowColor) throws Exception {
+        return updateAppearance(id, appearance -> appearance.withGlowColor(glowColor));
+    }
+
     public Optional<NpcDefinition> setPose(NpcId id, NpcPose pose) throws Exception {
         return updateAppearance(id, appearance -> appearance.withPose(pose));
+    }
+
+    /**
+     * Aktualisiert die Look-At-Einstellungen eines NPCs. Persistiert nur — kein Respawn
+     * noetig, da das Verfolgen rein packet-seitig ueber den Tracking-Task laeuft. Beim
+     * Deaktivieren setzt der Task die Rotation beim naechsten Tick zurueck.
+     */
+    public Optional<NpcDefinition> setLookAt(NpcId id, LookAtSettings settings) throws Exception {
+        Optional<NpcDefinition> current = storage.find(id);
+        if (current.isEmpty()) {
+            return Optional.empty();
+        }
+        NpcDefinition updated = current.get().withLookAt(
+                settings == null ? LookAtSettings.defaults() : settings);
+        storage.save(updated);
+        return Optional.of(updated);
     }
 
     private Optional<NpcDefinition> updateAppearance(

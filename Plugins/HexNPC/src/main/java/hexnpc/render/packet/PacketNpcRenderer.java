@@ -75,8 +75,6 @@ public final class PacketNpcRenderer implements NpcRenderer {
     private static final byte FLAG_INVISIBLE = 0x20;
     private static final byte FLAG_GLOWING = 0x40;
 
-    /** Vertikaler Versatz des unsichtbaren Sitz-Entities unter dem NPC (kosmetisch, justierbar). */
-    private static final double SEAT_MOUNT_DROP = 1.0D;
     /**
      * Hoehe des unsichtbaren Nameplate-Hologramms ueber den NPC-Fuessen. Der Armor-Stand
      * rendert seinen Namen ~2.25 Bloecke ueber seinen Fuessen — bei Offset 0 schwebt der
@@ -91,6 +89,24 @@ public final class PacketNpcRenderer implements NpcRenderer {
     private final Map<NpcId, RenderedNpc> bySupervisor = new HashMap<>();
     private final Map<Integer, NpcId> byEntityId = new HashMap<>();
     private BukkitTask refreshTask;
+
+    /**
+     * Vertikaler Render-Offset der Sitz-Pose (Config {@code render.sitting-y-offset},
+     * Default {@code -1.0}). Nur render-/packet-seitig: die gespeicherte NPC-Location
+     * bleibt unveraendert.
+     */
+    private double sittingYOffset() {
+        HexNpcConfig config = configSupplier.get();
+        if (config == null) {
+            return HexNpcConfig.Render.DEFAULT_SITTING_Y_OFFSET;
+        }
+        return config.render().sittingYOffset();
+    }
+
+    /** Reine, testbare Ableitung der Sitz-/Mount-Y aus Basis-Y und Offset. */
+    static double seatMountY(double baseY, double offset) {
+        return baseY + offset;
+    }
 
     public PacketNpcRenderer(Plugin plugin,
                              Supplier<HexNpcConfig> configSupplier,
@@ -174,8 +190,11 @@ public final class PacketNpcRenderer implements NpcRenderer {
         int npcEntityId = ENTITY_ID.getAndIncrement();
         int seatEntityId = ENTITY_ID.getAndIncrement();
         int nameEntityId = ENTITY_ID.getAndIncrement();
+        UUID profileUuid = randomNpcUuid();
+        // Technischer Profilname/Team-Entry einmal pro Render bestimmen und gegen aktuell
+        // online Spielernamen absichern (siehe uniqueProfileName / buildTechnicalProfileName).
         RenderedNpc rendered = new RenderedNpc(npcEntityId, seatEntityId, nameEntityId,
-                definition, randomNpcUuid());
+                definition, profileUuid, uniqueProfileName(profileUuid));
         bySupervisor.put(definition.id(), rendered);
         // Alle drei IDs auf dieselbe NpcId mappen, damit jeder Klick — auf die Player-
         // Entity, das Sitz-Vehicle (beim Sitzen) oder das Nameplate-Hologramm — dieselbe
@@ -364,8 +383,11 @@ public final class PacketNpcRenderer implements NpcRenderer {
         NpcDefinition def = rendered.definition;
         // UserProfile.name = Mojang-Username: max 16 Zeichen, sonst lehnt der Client
         // den Player-Info-Eintrag ab und der NPC erscheint ohne Skin. Der sichtbar
-        // angezeigte Display-Name (Component) bleibt davon unberührt.
-        UserProfile profile = new UserProfile(rendered.profileUuid, profileName(def));
+        // angezeigte Display-Name (Component) bleibt davon unberührt. Der Name ist ein
+        // garantiert eindeutiger technischer Eintrag (siehe RenderedNpc.profileName) —
+        // damit kann er nie mit echten Spielern oder anderen NPCs kollidieren und ist
+        // zugleich der Scoreboard-Team-Entry fuer Nametag-Hiding und Glow-Farbe.
+        UserProfile profile = new UserProfile(rendered.profileUuid, rendered.profileName());
         if (def.skin().hasTexture()) {
             profile.setTextureProperties(List.of(
                     new TextureProperty("textures", def.skin().value(), def.skin().signature())
@@ -411,13 +433,56 @@ public final class PacketNpcRenderer implements NpcRenderer {
 
     private void sendRotation(Player viewer, RenderedNpc rendered) {
         NpcLocation loc = rendered.definition.location();
+        sendLookRotation(viewer, rendered.entityId, loc.yaw(), loc.pitch());
+    }
+
+    /**
+     * Sendet Body-Rotation (EntityRotation) + Head-Look an einen Viewer. Gemeinsame Basis
+     * fuer die Standard-Rotation und das Look-At-Feature. Rein packet-seitig — die
+     * gespeicherte NPC-Location bleibt unberuehrt.
+     */
+    private void sendLookRotation(Player viewer, int entityId, float yaw, float pitch) {
         WrapperPlayServerEntityRotation rotation = new WrapperPlayServerEntityRotation(
-                rendered.entityId, loc.yaw(), loc.pitch(), true);
+                entityId, yaw, pitch, true);
         PacketEvents.getAPI().getPlayerManager().sendPacket(viewer, rotation);
 
         WrapperPlayServerEntityHeadLook headLook = new WrapperPlayServerEntityHeadLook(
-                rendered.entityId, loc.yaw());
+                entityId, yaw);
         PacketEvents.getAPI().getPlayerManager().sendPacket(viewer, headLook);
+    }
+
+    /**
+     * Look-At fuer alle Viewer: dreht die Player-Entity (auch bei SITTING — der Head-Look
+     * wirkt weiterhin) temporaer auf yaw/pitch. Seat-/Nameplate-Entities und die
+     * Click-Lookup-Maps bleiben unberuehrt.
+     */
+    @Override
+    public synchronized void lookAt(NpcId id, float yaw, float pitch) {
+        RenderedNpc rendered = bySupervisor.get(id);
+        if (rendered == null) {
+            return;
+        }
+        for (UUID viewerId : rendered.viewers) {
+            Player viewer = Bukkit.getPlayer(viewerId);
+            if (viewer != null) {
+                sendLookRotation(viewer, rendered.entityId, yaw, pitch);
+            }
+        }
+    }
+
+    @Override
+    public synchronized void resetLook(NpcId id) {
+        RenderedNpc rendered = bySupervisor.get(id);
+        if (rendered == null) {
+            return;
+        }
+        NpcLocation loc = rendered.definition.location();
+        for (UUID viewerId : rendered.viewers) {
+            Player viewer = Bukkit.getPlayer(viewerId);
+            if (viewer != null) {
+                sendLookRotation(viewer, rendered.entityId, loc.yaw(), loc.pitch());
+            }
+        }
     }
 
     private void sendTeleport(Player viewer, RenderedNpc rendered) {
@@ -427,7 +492,7 @@ public final class PacketNpcRenderer implements NpcRenderer {
         // positioniert Passagiere relativ zum Fahrzeug, also muss das Reit-Entity
         // teleportiert werden, nicht die NPC-Entity selbst.
         int targetId = sitting ? rendered.seatEntityId : rendered.entityId;
-        double targetY = sitting ? loc.y() - SEAT_MOUNT_DROP : loc.y();
+        double targetY = sitting ? seatMountY(loc.y(), sittingYOffset()) : loc.y();
         WrapperPlayServerEntityTeleport teleport = new WrapperPlayServerEntityTeleport(
                 targetId,
                 new Vector3d(loc.x(), targetY, loc.z()),
@@ -526,7 +591,7 @@ public final class PacketNpcRenderer implements NpcRenderer {
                 rendered.seatEntityId,
                 Optional.of(UUID.randomUUID()),
                 EntityTypes.ARMOR_STAND,
-                new Vector3d(loc.x(), loc.y() - SEAT_MOUNT_DROP, loc.z()),
+                new Vector3d(loc.x(), seatMountY(loc.y(), sittingYOffset()), loc.z()),
                 0f, 0f, 0f, 0, Optional.empty()
         );
         PacketEvents.getAPI().getPlayerManager().sendPacket(viewer, seatSpawn);
@@ -561,17 +626,23 @@ public final class PacketNpcRenderer implements NpcRenderer {
      * Namen dieselbe Interaktion wie ein Klick auf den Koerper ausloest.
      */
     private void sendNameplate(Player viewer, RenderedNpc rendered) {
-        // 1) Profil-Nametag (technische Id) per Team ausblenden.
+        // 1) Profil-Nametag (technischer Entry) per Team ausblenden UND die Glow-Farbe
+        //    setzen. Die Team-Farbe steuert die Glow-Farbe der NPC-Body-Entity; der
+        //    Nametag selbst ist NEVER sichtbar, also faerbt sie NICHT die Nameplate.
+        //    Die Nameplate-Farbe kommt unabhaengig aus den &-Codes (eigenes Hologramm).
         WrapperPlayServerTeams.ScoreBoardTeamInfo info = new WrapperPlayServerTeams.ScoreBoardTeamInfo(
                 Component.empty(), Component.empty(), Component.empty(),
                 WrapperPlayServerTeams.NameTagVisibility.NEVER,
                 WrapperPlayServerTeams.CollisionRule.ALWAYS,
-                NamedTextColor.WHITE,
+                glowTeamColor(rendered.definition.appearance()),
                 WrapperPlayServerTeams.OptionData.NONE
         );
+        // Team-Entry = der eindeutige technische Profilname der NPC-Body-Entity, damit
+        // Team-Formatierung/Glow-Farbe genau diese Entity treffen (Player-Entities werden
+        // per Username, nicht per UUID, einem Team zugeordnet).
         WrapperPlayServerTeams team = new WrapperPlayServerTeams(
                 rendered.teamName(), WrapperPlayServerTeams.TeamMode.CREATE, info,
-                profileName(rendered.definition));
+                rendered.profileName());
         PacketEvents.getAPI().getPlayerManager().sendPacket(viewer, team);
 
         // 2) Unsichtbares Hologramm mit dem Nickname als Custom Name.
@@ -664,31 +735,67 @@ public final class PacketNpcRenderer implements NpcRenderer {
     }
 
     /**
-     * Technischer Mojang-Username für {@link UserProfile}. Bewusst ausschliesslich
-     * aus der {@link NpcId} abgeleitet und damit STABIL gegen Skin-Wechsel: die
-     * Skin-Quelle liefert nur noch Textures (value/signature), niemals den Profil-
-     * bzw. Nameplate-Namen. NpcId erlaubt bis zu 32 Zeichen; Minecraft akzeptiert in
-     * der Player-Info aber nur 16 — wir kürzen daher hart auf 16 und ersetzen das in
-     * NpcId zulässige {@code '-'} (kein gültiges Mojang-Username-Zeichen) durch
-     * {@code '_'}. Der sichtbar angezeigte Name (Component) bleibt ebenfalls
-     * unberührt — siehe {@link #visibleName(NpcDefinition)}.
+     * Technischer Mojang-Username fuer {@link UserProfile} UND Scoreboard-Team-Entry.
+     * Aus den Zufallsbits der Render-{@code profileUuid} abgeleitet (plus Salt) — bewusst
+     * NICHT aus NpcId/Skin/Nickname:
+     * <ul>
+     *   <li>Stabil fuer die Lebensdauer eines Renders und ein gueltiger Username
+     *       (≤ 16 Zeichen, nur {@code [A-Za-z0-9_]}).</li>
+     *   <li>Aus ~63 Zufallsbits gebildet: extrem geringe Kollisionswahrscheinlichkeit —
+     *       weder mit anderen NPCs noch mit (auch cracked) Spielernamen. Garantiert
+     *       kollisionsfrei ist ein 16-Zeichen-Name grundsaetzlich nicht, deshalb wird beim
+     *       Spawn zusaetzlich gegen die aktuell online Spielernamen geprueft
+     *       (siehe {@link #uniqueProfileName(UUID)}).</li>
+     *   <li>Unabhaengig vom Skin — ein Skin-Wechsel aendert weder Profil- noch
+     *       Nameplate-Namen (bestehender Fix bleibt erhalten).</li>
+     * </ul>
+     * Der sichtbare Nickname (Component) bleibt davon unberuehrt — siehe
+     * {@link #visibleName(NpcDefinition)}.
      */
-    static String profileName(NpcDefinition def) {
-        return sanitizeProfileName(def.id().value());
+    static String buildTechnicalProfileName(UUID source, int salt) {
+        long bits = (source.getMostSignificantBits() ^ source.getLeastSignificantBits())
+                + ((long) salt * 0x9E3779B97F4A7C15L);
+        // Vorzeichenfrei in Base36 -> nur [0-9a-z]; Praefix macht den Eintrag als NPC erkennbar.
+        String suffix = Long.toString(bits & 0x7FFFFFFFFFFFFFFFL, 36);
+        String name = "npc_" + suffix;
+        return name.length() > 16 ? name.substring(0, 16) : name;
     }
 
-    static String sanitizeProfileName(String raw) {
-        if (raw == null) {
-            return "NPC";
+    /**
+     * Waehlt einen technischen Profilnamen, der nicht mit einem aktuell online Spieler
+     * kollidiert. Variiert bei (extrem seltener) Kollision den Salt; nach einigen Versuchen
+     * wird der Basisname akzeptiert (Restrisiko vernachlaessigbar, da aus Zufallsbits).
+     */
+    private String uniqueProfileName(UUID profileUuid) {
+        for (int salt = 0; salt < 16; salt++) {
+            String candidate = buildTechnicalProfileName(profileUuid, salt);
+            if (!isOnlinePlayerName(candidate)) {
+                return candidate;
+            }
         }
-        String cleaned = raw.replace('-', '_');
-        if (cleaned.length() > 16) {
-            cleaned = cleaned.substring(0, 16);
+        return buildTechnicalProfileName(profileUuid, 0);
+    }
+
+    private boolean isOnlinePlayerName(String name) {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (player.getName().equalsIgnoreCase(name)) {
+                return true;
+            }
         }
-        if (cleaned.isEmpty()) {
-            return "NPC";
+        return false;
+    }
+
+    /**
+     * Team-/Glow-Farbe eines NPCs. Nur wirksam wenn Glow aktiv ist und eine gueltige
+     * Farbe gesetzt wurde; sonst {@link NamedTextColor#WHITE} (Standard-Glow, weisse
+     * Team-Farbe). Package-private Test-Seam.
+     */
+    static NamedTextColor glowTeamColor(NpcAppearance appearance) {
+        if (!appearance.glow() || appearance.glowColor() == null) {
+            return NamedTextColor.WHITE;
         }
-        return cleaned;
+        NamedTextColor color = NamedTextColor.NAMES.value(appearance.glowColor());
+        return color == null ? NamedTextColor.WHITE : color;
     }
 
     private boolean inSameWorld(Player player, RenderedNpc rendered) {
@@ -718,16 +825,19 @@ public final class PacketNpcRenderer implements NpcRenderer {
         /** Unsichtbares Hologramm-Entity, das den sichtbaren Nickname als Nameplate traegt. */
         private final int nameEntityId;
         private final UUID profileUuid;
+        /** Stabiler, kollisionsgepruefter technischer Profilname/Team-Entry (siehe uniqueProfileName). */
+        private final String profileName;
         private NpcDefinition definition;
         private final Set<UUID> viewers = new HashSet<>();
 
         private RenderedNpc(int entityId, int seatEntityId, int nameEntityId,
-                            NpcDefinition definition, UUID profileUuid) {
+                            NpcDefinition definition, UUID profileUuid, String profileName) {
             this.entityId = entityId;
             this.seatEntityId = seatEntityId;
             this.nameEntityId = nameEntityId;
             this.definition = definition;
             this.profileUuid = profileUuid;
+            this.profileName = profileName;
         }
 
         /**
@@ -736,6 +846,14 @@ public final class PacketNpcRenderer implements NpcRenderer {
          */
         private String teamName() {
             return "hxnpc_" + entityId;
+        }
+
+        /**
+         * Stabiler technischer Profilname/Team-Entry dieses Renders. Siehe
+         * {@link PacketNpcRenderer#buildTechnicalProfileName(UUID, int)}.
+         */
+        private String profileName() {
+            return profileName;
         }
 
         @Override

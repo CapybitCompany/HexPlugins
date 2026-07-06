@@ -29,6 +29,31 @@ render:
   view-distance-blocks: 48
   # Delay (ticks) after spawn before the fake player is removed from tablist.
   tablist-remove-delay-ticks: 40
+  # Vertical render offset (blocks) applied ONLY to the invisible seat mount of a
+  # SITTING NPC, so it sits on the ground/block instead of floating in the air.
+  # Purely visual/packet-side; the stored NPC location is never changed.
+  # Negative = lower. Default -1.0.
+  sitting-y-offset: -1.0
+
+# Skin resolution. NPC skins can be configured per-NPC in npcs.yml by player name,
+# by direct signed textures (value/signature), by skin URL, or by MineSkin skin UUID.
+# URL / MineSkin-UUID sources are resolved to signed textures via the MineSkin v2 API
+# and the result (value/signature) is persisted back into npcs.yml, so the API is not
+# hit on every spawn/restart. On any failure the old/default skin is kept.
+skins:
+  mineskin:
+    # Must be true to resolve "url:" and "mineskin-uuid:" skin sources.
+    enabled: false
+    # Optional MineSkin API key (https://account.mineskin.org). Leave empty for
+    # anonymous access (stricter rate limits). No secrets are hardcoded.
+    api-key: ""
+    # Sent as User-Agent header; identify your server per MineSkin guidelines.
+    user-agent: "HexNPC/1.0"
+    base-url: "https://api.mineskin.org"
+    request-timeout-seconds: 20
+    # Job status polling for URL generation (POST /v2/queue + GET /v2/queue/:id).
+    max-poll-attempts: 10
+    poll-interval-millis: 2000
 
 # NPC shop subsystem. Shops are defined in shops.yml and opened from NPC
 # actions with type "npc-shop". User-facing texts in Polish.

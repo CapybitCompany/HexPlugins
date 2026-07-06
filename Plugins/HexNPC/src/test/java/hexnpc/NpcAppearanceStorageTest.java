@@ -77,6 +77,94 @@ class NpcAppearanceStorageTest {
     }
 
     @Test
+    void glowColorRoundTrips() throws Exception {
+        File tmp = Files.createTempFile("npcs-glowcolor-", ".yml").toFile();
+        tmp.delete();
+        YamlNpcStorage storage = new YamlNpcStorage(tmp, plugin.getLogger());
+        storage.load();
+        storage.save(new NpcDefinition(
+                new NpcId("guard"),
+                NpcSkin.ofName("guard"),
+                new NpcLocation("world", 0, 64, 0, 0f, 0f),
+                InteractionSettings.defaultClick(),
+                Dialogue.empty(),
+                NpcActions.empty(),
+                new NpcAppearance("&cGuard", true, "red", NpcPose.STANDING)));
+
+        YamlNpcStorage reloaded = new YamlNpcStorage(tmp, plugin.getLogger());
+        reloaded.load();
+        NpcDefinition read = reloaded.find(new NpcId("guard")).orElseThrow();
+        assertTrue(read.appearance().glow());
+        assertEquals("red", read.appearance().glowColor());
+        assertEquals("&cGuard", read.appearance().displayName(),
+                "Nameplate-Text bleibt unabhaengig von der Glow-Farbe");
+    }
+
+    @Test
+    void lookAtRoundTripsAndDefaultsWhenAbsent() throws Exception {
+        File tmp = Files.createTempFile("npcs-lookat-", ".yml").toFile();
+        tmp.delete();
+        YamlNpcStorage storage = new YamlNpcStorage(tmp, plugin.getLogger());
+        storage.load();
+        storage.save(new NpcDefinition(
+                new NpcId("watcher"),
+                NpcSkin.ofName("watcher"),
+                new NpcLocation("world", 0, 64, 0, 0f, 0f),
+                InteractionSettings.defaultClick(),
+                Dialogue.empty(),
+                NpcActions.empty(),
+                NpcAppearance.defaults(),
+                new hexnpc.model.LookAtSettings(true, 6.0D, 3, false)));
+
+        YamlNpcStorage reloaded = new YamlNpcStorage(tmp, plugin.getLogger());
+        reloaded.load();
+        NpcDefinition read = reloaded.find(new NpcId("watcher")).orElseThrow();
+        assertTrue(read.lookAt().enabled());
+        assertEquals(6.0D, read.lookAt().range(), 1e-9);
+        assertEquals(3, read.lookAt().intervalTicks());
+        assertFalse(read.lookAt().resetWhenEmpty());
+
+        // Neuer NPC ohne look-at-Block -> Defaults (Feature aus).
+        NpcDefinition defaults = new NpcDefinition(
+                new NpcId("plain2"), NpcSkin.ofName("plain2"),
+                new NpcLocation("world", 0, 64, 0, 0f, 0f),
+                InteractionSettings.defaultClick(), Dialogue.empty(), NpcActions.empty());
+        assertFalse(defaults.lookAt().enabled(), "Default: Look-At aus");
+        assertTrue(defaults.lookAt().resetWhenEmpty(), "Default: reset-when-empty true");
+    }
+
+    @Test
+    void skinUrlAndMineSkinUuidRoundTrip() throws Exception {
+        File tmp = Files.createTempFile("npcs-skinsrc-", ".yml").toFile();
+        tmp.delete();
+        YamlNpcStorage storage = new YamlNpcStorage(tmp, plugin.getLogger());
+        storage.load();
+        storage.save(new NpcDefinition(
+                new NpcId("urlnpc"),
+                NpcSkin.ofUrl("https://example/skin.png"),
+                new NpcLocation("world", 0, 64, 0, 0f, 0f),
+                InteractionSettings.defaultClick(),
+                Dialogue.empty(),
+                NpcActions.empty(),
+                NpcAppearance.defaults()));
+        storage.save(new NpcDefinition(
+                new NpcId("uuidnpc"),
+                NpcSkin.ofMineSkinUuid("abc-123"),
+                new NpcLocation("world", 0, 64, 0, 0f, 0f),
+                InteractionSettings.defaultClick(),
+                Dialogue.empty(),
+                NpcActions.empty(),
+                NpcAppearance.defaults()));
+
+        YamlNpcStorage reloaded = new YamlNpcStorage(tmp, plugin.getLogger());
+        reloaded.load();
+        assertEquals("https://example/skin.png",
+                reloaded.find(new NpcId("urlnpc")).orElseThrow().skin().url());
+        assertEquals("abc-123",
+                reloaded.find(new NpcId("uuidnpc")).orElseThrow().skin().mineskinUuid());
+    }
+
+    @Test
     void appearanceDefaultsWhenBrandNew() throws Exception {
         File tmp = Files.createTempFile("npcs-appearance-def-", ".yml").toFile();
         tmp.delete();

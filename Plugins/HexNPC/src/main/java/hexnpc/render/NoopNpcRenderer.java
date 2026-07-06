@@ -76,6 +76,16 @@ public final class NoopNpcRenderer implements NpcRenderer {
     }
 
     @Override
+    public void lookAt(NpcId id, float yaw, float pitch) {
+        // no-op
+    }
+
+    @Override
+    public void resetLook(NpcId id) {
+        // no-op
+    }
+
+    @Override
     public void showTo(Player player) {
         // no-op
     }

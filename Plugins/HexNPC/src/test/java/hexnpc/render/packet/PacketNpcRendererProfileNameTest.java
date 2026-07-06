@@ -1,95 +1,75 @@
 package hexnpc.render.packet;
 
-import hexnpc.model.Dialogue;
-import hexnpc.model.InteractionSettings;
-import hexnpc.model.NpcActions;
-import hexnpc.model.NpcDefinition;
-import hexnpc.model.NpcId;
-import hexnpc.model.NpcLocation;
-import hexnpc.model.NpcSkin;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+import java.util.regex.Pattern;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Mojang-Usernames sind auf 16 Zeichen limitiert und akzeptieren das in NpcId
- * erlaubte Minuszeichen nicht. Diese Tests sichern den Sanitizer ab, der den
- * Profilnamen für UserProfile aufbereitet, ohne die NpcId-Regeln zu brechen.
+ * Der technische Profilname ist zugleich UserProfile-Username und Scoreboard-Team-Entry.
+ * Er muss ein gueltiger Mojang-Username sein (≤ 16 Zeichen, nur {@code [A-Za-z0-9_]}),
+ * stabil fuer denselben Input und aus Zufallsbits abgeleitet (nicht aus NpcId/Skin/Nickname),
+ * damit die Kollisionswahrscheinlichkeit mit echten Spielern/anderen NPCs verschwindend ist.
  */
 class PacketNpcRendererProfileNameTest {
 
+    private static final Pattern VALID_USERNAME = Pattern.compile("[A-Za-z0-9_]{1,16}");
+
     @Test
-    void shortIdIsReturnedUnchanged() {
-        NpcDefinition def = npc("greeter", null);
-        assertEquals("greeter", PacketNpcRenderer.profileName(def));
+    void profileNameIsValidMojangUsername() {
+        String name = PacketNpcRenderer.buildTechnicalProfileName(UUID.randomUUID(), 0);
+        assertTrue(VALID_USERNAME.matcher(name).matches(),
+                "must be <=16 chars and only [A-Za-z0-9_], got '" + name + "'");
     }
 
     @Test
-    void longIdIsTruncatedToSixteenChars() {
-        // NpcId erlaubt bis 32 Zeichen — Profilname darf max. 16 sein.
-        NpcDefinition def = npc("abcdefghij_klmno_pqrs", null);
-        String name = PacketNpcRenderer.profileName(def);
-        assertTrue(name.length() <= 16, "profile name must be <= 16 chars, got " + name);
-        assertEquals("abcdefghij_klmno", name);
+    void profileNameNeverExceedsSixteenChars() {
+        for (int i = 0; i < 1000; i++) {
+            String name = PacketNpcRenderer.buildTechnicalProfileName(UUID.randomUUID(), i);
+            assertTrue(name.length() <= 16, "profile name must be <= 16 chars, got " + name);
+            assertTrue(VALID_USERNAME.matcher(name).matches(), "valid username chars only: " + name);
+        }
     }
 
     @Test
-    void hyphenInIdIsReplacedWithUnderscore() {
-        // '-' ist in NpcId zulässig, aber kein gültiges Mojang-Username-Zeichen.
-        NpcDefinition def = npc("event-greeter", null);
-        assertEquals("event_greeter", PacketNpcRenderer.profileName(def));
+    void sameUuidAndSaltIsStable() {
+        UUID uuid = UUID.randomUUID();
+        assertEquals(
+                PacketNpcRenderer.buildTechnicalProfileName(uuid, 3),
+                PacketNpcRenderer.buildTechnicalProfileName(uuid, 3),
+                "same uuid+salt must map to the same technical name");
     }
 
     @Test
-    void skinNameDoesNotAffectProfileName() {
-        // Profilname folgt AUSSCHLIESSLICH der NpcId, niemals der Skin-Quelle.
-        NpcDefinition def = npc("greeter", NpcSkin.ofName("Notch"));
-        assertEquals("greeter", PacketNpcRenderer.profileName(def));
+    void differentSaltProducesDifferentName() {
+        UUID uuid = UUID.randomUUID();
+        assertNotEquals(
+                PacketNpcRenderer.buildTechnicalProfileName(uuid, 0),
+                PacketNpcRenderer.buildTechnicalProfileName(uuid, 1),
+                "the collision-avoidance salt must actually change the name");
     }
 
     @Test
-    void changingSkinKeepsProfileNameStable() {
-        // Kernanforderung: /hexnpc skin <id> <name> darf den Fake-Player-Profilnamen
-        // nicht mehr aendern — von Notch zu Herobrine bleibt der Profilname gleich.
-        NpcDefinition base = npc("greeter", NpcSkin.ofName("Notch"));
-        String before = PacketNpcRenderer.profileName(base);
-        String afterNotch = PacketNpcRenderer.profileName(base.withSkin(NpcSkin.ofName("Notch")));
-        String afterHerobrine = PacketNpcRenderer.profileName(base.withSkin(NpcSkin.ofName("Herobrine")));
-        assertEquals(before, afterNotch);
-        assertEquals(before, afterHerobrine);
-        assertEquals("greeter", afterHerobrine);
+    void namesAreEffectivelyUniqueAcrossManyUuids() {
+        Set<String> names = new HashSet<>();
+        int collisions = 0;
+        for (int i = 0; i < 5000; i++) {
+            if (!names.add(PacketNpcRenderer.buildTechnicalProfileName(UUID.randomUUID(), 0))) {
+                collisions++;
+            }
+        }
+        assertTrue(collisions == 0, "expected no collisions across random uuids, got " + collisions);
     }
 
     @Test
-    void profileNameIgnoresLongSkinNameAndFollowsId() {
-        NpcDefinition def = npc("greeter", NpcSkin.ofName("very-long-skin-name-needs-cut"));
-        assertEquals("greeter", PacketNpcRenderer.profileName(def),
-                "langer Skin-Name darf den Profilnamen nicht beeinflussen");
-    }
-
-    @Test
-    void sanitizerFallbackHandlesEmptyInput() {
-        assertEquals("NPC", PacketNpcRenderer.sanitizeProfileName(""));
-        assertEquals("NPC", PacketNpcRenderer.sanitizeProfileName(null));
-    }
-
-    @Test
-    void sanitizerReturnsNonNullForAnyInput() {
-        // Edge case: ein String, der nach replace nichts enthält, fällt auf "NPC" zurück.
-        // Hier nur sicherstellen, dass nichts crasht.
-        assertNotNull(PacketNpcRenderer.sanitizeProfileName("a"));
-    }
-
-    private static NpcDefinition npc(String id, NpcSkin skin) {
-        return new NpcDefinition(
-                new NpcId(id),
-                skin == null ? NpcSkin.ofName(id) : skin,
-                new NpcLocation("world", 0, 64, 0, 0f, 0f),
-                InteractionSettings.defaultClick(),
-                Dialogue.empty(),
-                NpcActions.empty()
-        );
+    void carriesNpcPrefix() {
+        assertTrue(PacketNpcRenderer.buildTechnicalProfileName(UUID.randomUUID(), 0).startsWith("npc_"),
+                "technical entry must be recognizable as an NPC");
     }
 }

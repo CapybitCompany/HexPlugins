@@ -70,14 +70,62 @@ class PacketNpcRendererAppearanceTest {
     }
 
     @Test
-    void profileNameIsIndependentOfNicknameAndSkinAndMaxSixteen() {
-        // Weder der (farbige, > 16 Zeichen lange) Nickname noch die Skin-Quelle duerfen
-        // den technischen 16-Zeichen-Profilnamen beeinflussen — er folgt nur der Id.
-        NpcDefinition def = npc("shopkeeper", NpcSkin.ofName("Notch"),
-                new NpcAppearance("&6&lBardzo Długi Nick Sprzedawcy", false, NpcPose.SITTING));
-        String profile = PacketNpcRenderer.profileName(def);
-        assertEquals("shopkeeper", profile, "Profilname folgt der Id, nicht Nickname/Skin");
-        assertTrue(profile.length() <= 16);
+    void technicalProfileNameIsBoundedAndValid() {
+        // Der technische Profilname (UserProfile + Team-Entry) ist ≤ 16 Zeichen und ein
+        // gueltiger Mojang-Username — unabhaengig von Nickname/Skin (aus Zufallsbits abgeleitet).
+        String profile = PacketNpcRenderer.buildTechnicalProfileName(java.util.UUID.randomUUID(), 0);
+        assertTrue(profile.length() <= 16, "profile name <= 16");
+        assertTrue(profile.matches("[A-Za-z0-9_]{1,16}"), "valid username chars only");
+    }
+
+    @Test
+    void glowTeamColorDefaultsToWhiteWithoutColorOrGlow() {
+        assertEquals(NamedTextColor.WHITE,
+                PacketNpcRenderer.glowTeamColor(NpcAppearance.defaults()),
+                "kein Glow/keine Farbe -> weiss");
+        assertEquals(NamedTextColor.WHITE,
+                PacketNpcRenderer.glowTeamColor(new NpcAppearance(null, false, "gold", NpcPose.STANDING)),
+                "Farbe ohne aktives Glow bleibt weiss (Glow aus)");
+        assertEquals(NamedTextColor.WHITE,
+                PacketNpcRenderer.glowTeamColor(new NpcAppearance(null, true, null, NpcPose.STANDING)),
+                "Glow ohne Farbe -> Standard weiss");
+    }
+
+    @Test
+    void glowTeamColorMapsNamedColors() {
+        assertEquals(NamedTextColor.GOLD,
+                PacketNpcRenderer.glowTeamColor(new NpcAppearance(null, true, "gold", NpcPose.STANDING)));
+        assertEquals(NamedTextColor.RED,
+                PacketNpcRenderer.glowTeamColor(new NpcAppearance(null, true, "red", NpcPose.STANDING)));
+        assertEquals(NamedTextColor.DARK_AQUA,
+                PacketNpcRenderer.glowTeamColor(new NpcAppearance(null, true, "dark_aqua", NpcPose.STANDING)));
+    }
+
+    @Test
+    void glowTeamColorFallsBackToWhiteForUnknownName() {
+        assertEquals(NamedTextColor.WHITE,
+                PacketNpcRenderer.glowTeamColor(new NpcAppearance(null, true, "not-a-color", NpcPose.STANDING)),
+                "unbekannte Farbe faellt sauber auf weiss zurueck");
+    }
+
+    @Test
+    void glowColorDoesNotAffectNameplateColor() {
+        // Nameplate-Farbe kommt aus &-Codes; die Glow-/Team-Farbe darf sie nicht ueberschreiben.
+        NpcDefinition def = npc("king", NpcSkin.ofName("Notch"),
+                new NpcAppearance("&6Król", true, "red", NpcPose.STANDING));
+        assertEquals(NamedTextColor.GOLD, PacketNpcRenderer.nameplateComponent(def).color(),
+                "Nameplate bleibt &6=GOLD, unabhaengig von der roten Glow-Farbe");
+        assertEquals(NamedTextColor.RED, PacketNpcRenderer.glowTeamColor(def.appearance()),
+                "Glow-Farbe ist rot, getrennt von der Nameplate");
+    }
+
+    @Test
+    void seatMountYAppliesOffsetToBaseY() {
+        assertEquals(63.0D, PacketNpcRenderer.seatMountY(64.0D, -1.0D), 1e-9,
+                "SITTING versetzt die Sitz-/Mount-Position um den Offset nach unten");
+        assertEquals(64.0D, PacketNpcRenderer.seatMountY(64.0D, 0.0D), 1e-9,
+                "Offset 0 laesst die Position unveraendert");
+        assertEquals(61.5D, PacketNpcRenderer.seatMountY(64.0D, -2.5D), 1e-9);
     }
 
     @Test

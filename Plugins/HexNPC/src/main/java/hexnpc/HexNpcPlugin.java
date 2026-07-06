@@ -17,9 +17,15 @@ import hexnpc.render.packet.PacketNpcRenderer;
 import hexnpc.service.DialogueService;
 import hexnpc.service.NpcActionRegistry;
 import hexnpc.service.NpcInteractionService;
+import hexnpc.service.NpcLookAtService;
 import hexnpc.service.NpcProximityService;
+import hexnpc.model.NpcDefinition;
+import hexnpc.model.NpcId;
+import hexnpc.model.NpcSkin;
 import hexnpc.service.NpcService;
+import hexnpc.service.skin.MineSkinClient;
 import hexnpc.service.skin.SkinResolver;
+import hexnpc.service.skin.SkinSourceResolver;
 import hexnpc.shop.ShopRegistry;
 import hexnpc.shop.ShopService;
 import hexnpc.shop.action.ShopActionHandler;
@@ -32,6 +38,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.http.HttpClient;
+import java.time.Duration;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class HexNpcPlugin extends JavaPlugin {
@@ -43,6 +53,7 @@ public class HexNpcPlugin extends JavaPlugin {
     private NpcActionRegistry actionRegistry;
     private HexCoreBridge hexCoreBridge;
     private SkinResolver skinResolver;
+    private HttpClient httpClient;
     private PacketListenerCommon packetClickListener;
     private EconomyBridge economyBridge;
     private ShopRegistry shopRegistry;
@@ -53,9 +64,11 @@ public class HexNpcPlugin extends JavaPlugin {
     private YamlNpcStorage storage;
     private NpcRenderer renderer;
     private NpcService npcService;
+    private SkinSourceResolver skinSourceResolver;
     private DialogueService dialogueService;
     private NpcInteractionService interactionService;
     private NpcProximityService proximityService;
+    private NpcLookAtService lookAtService;
 
     @Override
     public void onEnable() {
@@ -73,7 +86,9 @@ public class HexNpcPlugin extends JavaPlugin {
                 NpcActionRegistry.class, actionRegistry, this, ServicePriority.Normal);
 
         this.hexCoreBridge = new HexCoreBridge(getLogger());
-        this.skinResolver = new SkinResolver(getLogger());
+        // Ein HttpClient fuer alle Skin-Aufloesungen (Mojang + MineSkin), einmal gebaut.
+        this.httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
+        this.skinResolver = new SkinResolver(getLogger(), httpClient);
         this.economyBridge = new EconomyBridge(getLogger());
         this.shopRegistry = new ShopRegistry(getLogger());
         // Build ShopService once. configRef changes are picked up via supplier.
@@ -123,6 +138,7 @@ public class HexNpcPlugin extends JavaPlugin {
             skinResolver.shutdown();
             skinResolver = null;
         }
+        httpClient = null;
         if (economyBridge != null) {
             economyBridge.shutdown();
             economyBridge = null;
@@ -167,12 +183,20 @@ public class HexNpcPlugin extends JavaPlugin {
         return proximityService;
     }
 
+    public NpcLookAtService lookAtService() {
+        return lookAtService;
+    }
+
     public HexCoreBridge hexCoreBridge() {
         return hexCoreBridge;
     }
 
     public SkinResolver skinResolver() {
         return skinResolver;
+    }
+
+    public SkinSourceResolver skinSourceResolver() {
+        return skinSourceResolver;
     }
 
     public ShopRegistry shopRegistry() {
@@ -199,6 +223,7 @@ public class HexNpcPlugin extends JavaPlugin {
         this.renderer = createRenderer(loaded);
         this.renderer.start();
         this.npcService = new NpcService(storage, renderer, configRef::get, getLogger());
+        this.skinSourceResolver = buildSkinSourceResolver(loaded);
 
         this.dialogueService = new DialogueService(this, configRef::get);
         this.interactionService = new NpcInteractionService(dialogueService, actionRegistry, configRef::get, getLogger());
@@ -217,11 +242,67 @@ public class HexNpcPlugin extends JavaPlugin {
             return false;
         }
 
+        // Skins mit einer Quelle (url/mineskin-uuid/name) aber ohne Textures einmalig
+        // aufloesen, cachen und persistieren — damit nicht jeder Spawn/Restart die API belastet.
+        warmSkins();
+
         this.proximityService = new NpcProximityService(this, npcService, interactionService, configRef::get);
         proximityService.start();
 
+        // Look-At-Tracking: dreht NPCs packet-seitig zu nahen Spielern (unabhaengig von
+        // Dialogue/Proximity-Triggern). Nutzt denselben Renderer, veraendert keine Location.
+        this.lookAtService = new NpcLookAtService(this, npcService, renderer, configRef::get);
+        lookAtService.start();
+
         reloadShopCatalog();
         return true;
+    }
+
+    private SkinSourceResolver buildSkinSourceResolver(HexNpcConfig loaded) {
+        HexNpcConfig.Skins.MineSkin ms = loaded.skins().mineskin();
+        MineSkinClient client = null;
+        if (ms.enabled()) {
+            client = new MineSkinClient(ms, getLogger(),
+                    MineSkinClient.defaultHttp(httpClient, ms.requestTimeoutSeconds()));
+        }
+        return new SkinSourceResolver(skinResolver, client, ms.enabled(), getLogger());
+    }
+
+    /**
+     * Loest fuer alle NPCs mit aufloesbarer, aber noch nicht signierter Skin-Quelle die
+     * Textures asynchron auf und wendet das Ergebnis auf dem Main-Thread an (persistiert
+     * value/signature). Fehler behalten den alten/Default-Skin — nie blockierend.
+     */
+    private void warmSkins() {
+        if (npcService == null || skinSourceResolver == null) {
+            return;
+        }
+        for (NpcDefinition def : List.copyOf(npcService.list())) {
+            NpcSkin skin = def.skin();
+            if (!skinSourceResolver.needsResolution(skin)) {
+                continue;
+            }
+            NpcId id = def.id();
+            skinSourceResolver.resolve(skin).whenComplete((resolved, ex) -> {
+                if (resolved == null || !resolved.hasTexture()) {
+                    return; // Fallback: alten/Default-Skin behalten (bereits geloggt).
+                }
+                getServer().getScheduler().runTask(this, () -> {
+                    try {
+                        // Nur anwenden, wenn der NPC weiterhin existiert und noch keine
+                        // Textures hat (kein Ueberschreiben eines zwischenzeitlich manuell
+                        // gesetzten Skins).
+                        Optional<NpcDefinition> current = npcService.find(id);
+                        if (current.isPresent() && !current.get().skin().hasTexture()) {
+                            npcService.setSkin(id, resolved);
+                        }
+                    } catch (Exception failure) {
+                        getLogger().warning("HexNPC: failed to apply resolved skin for "
+                                + id + ": " + failure.getMessage());
+                    }
+                });
+            });
+        }
     }
 
     /** Loads (or reloads) the shop catalog from disk. */
@@ -270,6 +351,10 @@ public class HexNpcPlugin extends JavaPlugin {
     }
 
     private void shutdownRuntime() {
+        if (lookAtService != null) {
+            lookAtService.stop();
+            lookAtService = null;
+        }
         if (proximityService != null) {
             proximityService.stop();
             proximityService = null;
@@ -283,6 +368,7 @@ public class HexNpcPlugin extends JavaPlugin {
             npcService.despawnAll();
             npcService = null;
         }
+        skinSourceResolver = null;
         if (renderer != null) {
             renderer.stop();
             renderer = null;

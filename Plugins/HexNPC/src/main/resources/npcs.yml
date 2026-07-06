@@ -7,15 +7,31 @@
 #
 # npcs:
 #   example:
-#     skin:
-#       name: "Notch"               # skin source only (Mojang username); no longer the visible name
-#       # value: "ewogIC..."
-#       # signature: "abcd..."
+#     skin:                         # pick ONE source; all resolve to signed textures.
+#       name: "Notch"               # (a) Mojang username. Skin source only; not the visible name.
+#       # value: "ewogIC..."        # (b) direct signed textures value + ...
+#       # signature: "abcd..."      #     ...signature (used as-is, no API call).
+#       # url: "https://.../skin.png"  # (c) skin PNG URL, resolved via MineSkin v2 (needs skins.mineskin.enabled).
+#       # mineskin-uuid: "..."      # (d) existing MineSkin skin UUID, fetched via /v2/skins/:uuid.
+#                                   # Resolved value/signature are written back here so the API is
+#                                   # not hit again on the next spawn/restart. On failure the
+#                                   # default skin is kept.
 #     appearance:
 #       display-name: "&6&lKról"    # visible nickname; supports legacy colors (&6) and formats (&l).
 #                                   # omit -> falls back to the NPC id. Independent from skin.
 #       glow: false                 # true -> glowing outline
+#       glow-color: gold            # optional glow color: one of the 16 team colors
+#                                   # (black, dark_blue, dark_green, dark_aqua, dark_red, dark_purple,
+#                                   #  gold, gray, dark_gray, blue, green, aqua, red, light_purple,
+#                                   #  yellow, white). Only applies while glow is true. Does NOT
+#                                   #  affect the &-code nameplate color. Omit -> white glow.
 #       pose: standing              # standing | sitting | sleeping | crawling | sneaking
+#     look-at:                      # optional head/eye tracking; independent from dialogue/proximity.
+#       enabled: true               # NPC turns head/body toward the nearest player in range.
+#       range: 6.0                  # optional; omit or <=0 -> falls back to proximity.default-radius.
+#       interval-ticks: 5           # update cadence; clamped to >= 1.
+#       reset-when-empty: true      # default true; turn back to the stored yaw/pitch when no one is near.
+#                                   # Purely packet-side; the stored NPC yaw/pitch is never changed.
 #     location:
 #       world: world
 #       x: 0.5

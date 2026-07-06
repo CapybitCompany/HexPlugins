@@ -4,6 +4,7 @@ import hexnpc.HexNpcPlugin;
 import hexnpc.model.DialogueLine;
 import hexnpc.model.InteractionSettings;
 import hexnpc.model.InteractionTrigger;
+import hexnpc.model.LookAtSettings;
 import hexnpc.model.NpcAction;
 import hexnpc.model.NpcDefinition;
 import hexnpc.model.NpcId;
@@ -65,6 +66,7 @@ public final class HexNpcCommand implements CommandExecutor, TabCompleter {
                 case "skin" -> handleSkin(sender, args);
                 case "name", "nick", "nickname" -> handleName(sender, args);
                 case "glow" -> handleGlow(sender, args);
+                case "lookat", "look" -> handleLookAt(sender, args);
                 case "pose", "animation" -> handlePose(sender, args);
                 case "dialogue" -> handleDialogue(sender, args);
                 case "trigger" -> handleTrigger(sender, args);
@@ -349,7 +351,8 @@ public final class HexNpcCommand implements CommandExecutor, TabCompleter {
 
     private boolean handleGlow(CommandSender sender, String[] args) throws Exception {
         if (args.length < 3) {
-            sender.sendMessage(LegacyFormat.component("&cUżycie: /hexnpc glow <id> <on|off>"));
+            sender.sendMessage(LegacyFormat.component(
+                    "&cUżycie: /hexnpc glow <id> <on|off> [kolor]  (kolory: " + glowColorList() + ")"));
             return true;
         }
         NpcId id = parseId(sender, args[1]);
@@ -357,10 +360,85 @@ public final class HexNpcCommand implements CommandExecutor, TabCompleter {
             return true;
         }
         boolean glow = parseOnOff(args[2]);
-        Optional<NpcDefinition> updated = plugin.npcService().setGlow(id, glow);
-        sender.sendMessage(LegacyFormat.component(updated.isPresent()
-                ? "&aŚwiecenie NPC &f" + id + "&a: " + (glow ? "&2włączone" : "&cwyłączone")
-                : "&cNie znaleziono NPC o id &f" + id));
+        // Optionale Farbe (4. Argument). Wird nur zusammen mit glow=on sichtbar.
+        String color = null;
+        if (args.length >= 4) {
+            String raw = args[3].toLowerCase(Locale.ROOT);
+            if (!GLOW_COLORS.contains(raw)) {
+                sender.sendMessage(LegacyFormat.component(
+                        "&cNieznany kolor: &f" + args[3] + "&c. Dostępne: &f" + glowColorList()));
+                return true;
+            }
+            color = raw;
+        }
+        Optional<NpcDefinition> updated = plugin.npcService().setGlow(id, glow, color);
+        if (updated.isEmpty()) {
+            sender.sendMessage(LegacyFormat.component("&cNie znaleziono NPC o id &f" + id));
+            return true;
+        }
+        String colorSuffix = "";
+        if (glow) {
+            String effective = updated.get().appearance().glowColor();
+            colorSuffix = "&7 (kolor: &f" + (effective == null ? "white" : effective) + "&7)";
+        }
+        sender.sendMessage(LegacyFormat.component(
+                "&aŚwiecenie NPC &f" + id + "&a: " + (glow ? "&2włączone" : "&cwyłączone") + colorSuffix));
+        return true;
+    }
+
+    /** Gueltige Glow-/Team-Farbnamen (die 16 Minecraft-Standardfarben). */
+    private static final List<String> GLOW_COLORS = List.of(
+            "black", "dark_blue", "dark_green", "dark_aqua", "dark_red", "dark_purple",
+            "gold", "gray", "dark_gray", "blue", "green", "aqua", "red",
+            "light_purple", "yellow", "white");
+
+    private static String glowColorList() {
+        return String.join("|", GLOW_COLORS);
+    }
+
+    private boolean handleLookAt(CommandSender sender, String[] args) throws Exception {
+        if (args.length < 3) {
+            sender.sendMessage(LegacyFormat.component(
+                    "&cUżycie: /hexnpc lookat <id> <on|off> [range] [interval-ticks]"));
+            return true;
+        }
+        NpcId id = parseId(sender, args[1]);
+        if (id == null) {
+            return true;
+        }
+        Optional<NpcDefinition> current = plugin.npcService().find(id);
+        if (current.isEmpty()) {
+            sender.sendMessage(LegacyFormat.component("&cNie znaleziono NPC o id &f" + id));
+            return true;
+        }
+        boolean enabled = parseOnOff(args[2]);
+        LookAtSettings settings = current.get().lookAt().withEnabled(enabled);
+        if (args.length >= 4) {
+            try {
+                settings = settings.withRange(Double.parseDouble(args[3]));
+            } catch (NumberFormatException ex) {
+                sender.sendMessage(LegacyFormat.component("&cRange musi być liczbą."));
+                return true;
+            }
+        }
+        if (args.length >= 5) {
+            try {
+                settings = settings.withIntervalTicks(Integer.parseInt(args[4]));
+            } catch (NumberFormatException ex) {
+                sender.sendMessage(LegacyFormat.component("&cInterwał musi być liczbą całkowitą."));
+                return true;
+            }
+        }
+        Optional<NpcDefinition> updated = plugin.npcService().setLookAt(id, settings);
+        if (updated.isEmpty()) {
+            sender.sendMessage(LegacyFormat.component("&cNie znaleziono NPC o id &f" + id));
+            return true;
+        }
+        LookAtSettings eff = updated.get().lookAt();
+        String rangeText = eff.hasRange() ? String.format(Locale.US, "%.1f", eff.range()) : "domyślny";
+        sender.sendMessage(LegacyFormat.component(
+                "&aŚledzenie gracza NPC &f" + id + "&a: " + (enabled ? "&2włączone" : "&cwyłączone")
+                        + "&7 (range: &f" + rangeText + "&7, interval: &f" + eff.intervalTicks() + "&7)"));
         return true;
     }
 
@@ -705,7 +783,8 @@ public final class HexNpcCommand implements CommandExecutor, TabCompleter {
                 "&7/" + label + " rotate <id> [yaw pitch]",
                 "&7/" + label + " skin <id> <playerName>  | raw <value> <signature>",
                 "&7/" + label + " name set <id> <nick...>  | clear <id>  (auch: name <id> <nick...>)",
-                "&7/" + label + " glow <id> <on|off>",
+                "&7/" + label + " glow <id> <on|off> [color]",
+                "&7/" + label + " lookat <id> <on|off> [range] [interval-ticks]",
                 "&7/" + label + " pose <id> <" + poseChoices() + ">",
                 "&7/" + label + " dialogue <id> <add|clear|cooldown> ...",
                 "&7/" + label + " trigger <id> <click|proximity> <on|off> [radius] [cooldown]",
@@ -720,7 +799,7 @@ public final class HexNpcCommand implements CommandExecutor, TabCompleter {
 
     private static final List<String> TOP_LEVEL = List.of(
             "create", "remove", "list", "tp", "move", "rotate", "skin",
-            "name", "glow", "pose", "dialogue", "trigger", "action", "shop", "reload");
+            "name", "glow", "lookat", "pose", "dialogue", "trigger", "action", "shop", "reload");
 
     private static final List<String> SHOP_OPS = List.of("reload", "list", "open", "info");
 
@@ -770,6 +849,7 @@ public final class HexNpcCommand implements CommandExecutor, TabCompleter {
                 case "trigger" -> filterPrefix(List.of("click", "proximity"), args[2]);
                 case "action" -> filterPrefix(List.of("add", "clear"), args[2]);
                 case "glow" -> filterPrefix(List.of("on", "off"), args[2]);
+                case "lookat", "look" -> filterPrefix(List.of("on", "off"), args[2]);
                 case "pose", "animation" -> filterPrefix(poseKeys(), args[2]);
                 case "name", "nick", "nickname" -> {
                     // /hexnpc name set|clear <id>  -> ids; Legacy /hexnpc name <id> clear -> "clear"
@@ -784,6 +864,10 @@ public final class HexNpcCommand implements CommandExecutor, TabCompleter {
         }
         if (args.length == 4 && sub.equals("trigger")) {
             return filterPrefix(List.of("on", "off"), args[3]);
+        }
+        if (args.length == 4 && sub.equals("glow")) {
+            // /hexnpc glow <id> <on|off> [color]
+            return filterPrefix(GLOW_COLORS, args[3]);
         }
         if (args.length == 4 && sub.equals("action")) {
             if (args[2].equalsIgnoreCase("add")) {

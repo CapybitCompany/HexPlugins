@@ -3,6 +3,7 @@ package hexnpc.storage;
 import hexnpc.model.Dialogue;
 import hexnpc.model.DialogueLine;
 import hexnpc.model.InteractionSettings;
+import hexnpc.model.LookAtSettings;
 import hexnpc.model.NpcAction;
 import hexnpc.model.NpcActions;
 import hexnpc.model.NpcAppearance;
@@ -115,7 +116,24 @@ public final class YamlNpcStorage implements NpcStorage {
         Dialogue dialogue = readDialogue(section.getConfigurationSection("dialogue"));
         NpcActions actions = readActions(section);
         NpcAppearance appearance = readAppearance(section.getConfigurationSection("appearance"), skin);
-        return new NpcDefinition(id, skin, location, interaction, dialogue, actions, appearance);
+        LookAtSettings lookAt = readLookAt(section.getConfigurationSection("look-at"));
+        return new NpcDefinition(id, skin, location, interaction, dialogue, actions, appearance, lookAt);
+    }
+
+    /**
+     * Liest den Look-At-Block. Rueckwaerts-kompatibel: fehlt der Block, gelten die
+     * Defaults ({@link LookAtSettings#defaults()}) — Feature aus, damit bestehende NPCs
+     * ihr Verhalten nicht aendern.
+     */
+    private LookAtSettings readLookAt(ConfigurationSection section) {
+        if (section == null) {
+            return LookAtSettings.defaults();
+        }
+        boolean enabled = section.getBoolean("enabled", false);
+        double range = section.getDouble("range", 0.0D);
+        int interval = section.getInt("interval-ticks", LookAtSettings.DEFAULT_INTERVAL_TICKS);
+        boolean reset = section.getBoolean("reset-when-empty", true);
+        return new LookAtSettings(enabled, range, interval, reset);
     }
 
     /**
@@ -137,8 +155,9 @@ public final class YamlNpcStorage implements NpcStorage {
         // Skin-Namen als sichtbaren Namen einblenden.
         String displayName = section.getString("display-name");
         boolean glow = section.getBoolean("glow", false);
+        String glowColor = section.getString("glow-color");
         NpcPose pose = NpcPose.fromStorage(section.getString("pose"));
-        return new NpcAppearance(displayName, glow, pose);
+        return new NpcAppearance(displayName, glow, glowColor, pose);
     }
 
     private NpcSkin readSkin(ConfigurationSection section, String fallbackName) {
@@ -148,7 +167,9 @@ public final class YamlNpcStorage implements NpcStorage {
         String name = section.getString("name");
         String value = section.getString("value");
         String signature = section.getString("signature");
-        return new NpcSkin(name, value, signature);
+        String url = section.getString("url");
+        String mineskinUuid = section.getString("mineskin-uuid");
+        return new NpcSkin(name, value, signature, url, mineskinUuid);
     }
 
     private NpcLocation readLocation(ConfigurationSection section) {
@@ -252,6 +273,17 @@ public final class YamlNpcStorage implements NpcStorage {
         actions.set("on-click", toActionList(def.actions().onClick()));
         actions.set("on-proximity", toActionList(def.actions().onProximity()));
         writeAppearance(section.createSection("appearance"), def.appearance());
+        writeLookAt(section.createSection("look-at"), def.lookAt());
+    }
+
+    private void writeLookAt(ConfigurationSection section, LookAtSettings lookAt) {
+        section.set("enabled", lookAt.enabled());
+        // range nur schreiben wenn explizit gesetzt (> 0); sonst gilt der Fallback.
+        if (lookAt.hasRange()) {
+            section.set("range", lookAt.range());
+        }
+        section.set("interval-ticks", lookAt.intervalTicks());
+        section.set("reset-when-empty", lookAt.resetWhenEmpty());
     }
 
     private void writeAppearance(ConfigurationSection section, NpcAppearance appearance) {
@@ -261,6 +293,10 @@ public final class YamlNpcStorage implements NpcStorage {
             section.set("display-name", appearance.displayName());
         }
         section.set("glow", appearance.glow());
+        // glow-color nur schreiben wenn gesetzt; fehlt es, leuchtet der NPC weiss.
+        if (appearance.glowColor() != null) {
+            section.set("glow-color", appearance.glowColor());
+        }
         section.set("pose", appearance.pose().storageKey());
     }
 
@@ -273,6 +309,12 @@ public final class YamlNpcStorage implements NpcStorage {
         }
         if (skin.signature() != null) {
             section.set("signature", skin.signature());
+        }
+        if (skin.url() != null) {
+            section.set("url", skin.url());
+        }
+        if (skin.mineskinUuid() != null) {
+            section.set("mineskin-uuid", skin.mineskinUuid());
         }
     }
 
