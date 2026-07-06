@@ -8,9 +8,14 @@
 # npcs:
 #   example:
 #     skin:
-#       name: "Notch"               # OR: value + signature for cached textures
+#       name: "Notch"               # skin source only (Mojang username); no longer the visible name
 #       # value: "ewogIC..."
 #       # signature: "abcd..."
+#     appearance:
+#       display-name: "&6&lKról"    # visible nickname; supports legacy colors (&6) and formats (&l).
+#                                   # omit -> falls back to the NPC id. Independent from skin.
+#       glow: false                 # true -> glowing outline
+#       pose: standing              # standing | sitting | sleeping | crawling | sneaking
 #     location:
 #       world: world
 #       x: 0.5

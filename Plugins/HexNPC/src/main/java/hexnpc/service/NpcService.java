@@ -7,9 +7,11 @@ import hexnpc.model.InteractionSettings;
 import hexnpc.model.InteractionTrigger;
 import hexnpc.model.NpcAction;
 import hexnpc.model.NpcActions;
+import hexnpc.model.NpcAppearance;
 import hexnpc.model.NpcDefinition;
 import hexnpc.model.NpcId;
 import hexnpc.model.NpcLocation;
+import hexnpc.model.NpcPose;
 import hexnpc.model.NpcSkin;
 import hexnpc.render.NpcRenderer;
 import hexnpc.storage.NpcStorage;
@@ -143,6 +145,38 @@ public final class NpcService {
         NpcDefinition updated = current.get().withSkin(skin);
         storage.save(updated);
         // Skin changes require a full respawn at the renderer level.
+        if (renderingEnabled()) {
+            renderer.despawn(id);
+            renderer.spawn(updated);
+        }
+        return Optional.of(updated);
+    }
+
+    /**
+     * Setzt den sichtbaren Nickname (Legacy-Farben erlaubt). {@code null}/leer
+     * setzt zurueck auf den Standard (NPC-Id). Aendert den Skin NICHT.
+     */
+    public Optional<NpcDefinition> setDisplayName(NpcId id, String displayName) throws Exception {
+        return updateAppearance(id, appearance -> appearance.withDisplayName(displayName));
+    }
+
+    public Optional<NpcDefinition> setGlow(NpcId id, boolean glow) throws Exception {
+        return updateAppearance(id, appearance -> appearance.withGlow(glow));
+    }
+
+    public Optional<NpcDefinition> setPose(NpcId id, NpcPose pose) throws Exception {
+        return updateAppearance(id, appearance -> appearance.withPose(pose));
+    }
+
+    private Optional<NpcDefinition> updateAppearance(
+            NpcId id, java.util.function.UnaryOperator<NpcAppearance> mutator) throws Exception {
+        Optional<NpcDefinition> current = storage.find(id);
+        if (current.isEmpty()) {
+            return Optional.empty();
+        }
+        NpcDefinition updated = current.get().withAppearance(mutator.apply(current.get().appearance()));
+        storage.save(updated);
+        // Appearance (Name/Glow/Pose) wird beim Client per Respawn zuverlaessig neu aufgebaut.
         if (renderingEnabled()) {
             renderer.despawn(id);
             renderer.spawn(updated);

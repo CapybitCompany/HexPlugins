@@ -9,7 +9,7 @@ softdepend: [HexCore, packetevents, HexEconomy]
 commands:
   hexnpc:
     description: Manage HexNPC NPCs
-    usage: /hexnpc <create|remove|list|tp|move|rotate|skin|dialogue|trigger|action|shop|reload>
+    usage: /hexnpc <create|remove|list|tp|move|rotate|skin|name|glow|pose|dialogue|trigger|action|shop|reload>
     aliases: [ hnpc, npc ]
     permission: hexnpc.admin
 

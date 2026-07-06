@@ -8,6 +8,7 @@ import hexnpc.model.NpcAction;
 import hexnpc.model.NpcDefinition;
 import hexnpc.model.NpcId;
 import hexnpc.model.NpcLocation;
+import hexnpc.model.NpcPose;
 import hexnpc.model.NpcSkin;
 import hexnpc.service.NpcService;
 import hexnpc.shop.ShopRegistry;
@@ -62,6 +63,9 @@ public final class HexNpcCommand implements CommandExecutor, TabCompleter {
                 case "move" -> handleMove(sender, args);
                 case "rotate" -> handleRotate(sender, args);
                 case "skin" -> handleSkin(sender, args);
+                case "name", "nick", "nickname" -> handleName(sender, args);
+                case "glow" -> handleGlow(sender, args);
+                case "pose", "animation" -> handlePose(sender, args);
                 case "dialogue" -> handleDialogue(sender, args);
                 case "trigger" -> handleTrigger(sender, args);
                 case "action" -> handleAction(sender, args);
@@ -277,6 +281,121 @@ public final class HexNpcCommand implements CommandExecutor, TabCompleter {
             });
         });
         return true;
+    }
+
+    private boolean handleName(CommandSender sender, String[] args) throws Exception {
+        // Unterstuetzte Syntaxen (alt + neu):
+        //   /hexnpc name <id> <nick...>        (Legacy)
+        //   /hexnpc name <id> clear            (Legacy)
+        //   /hexnpc name set <id> <nick...>    (neu)
+        //   /hexnpc name clear <id>            (neu)
+        String op = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "";
+        if (op.equals("set")) {
+            if (args.length < 4) {
+                sender.sendMessage(LegacyFormat.component("&cUżycie: /hexnpc name set <id> <nick...>"));
+                return true;
+            }
+            NpcId id = parseId(sender, args[2]);
+            if (id == null) {
+                return true;
+            }
+            String nickname = String.join(" ", java.util.Arrays.copyOfRange(args, 3, args.length));
+            return applyName(sender, id, nickname);
+        }
+        if (op.equals("clear") || op.equals("reset")) {
+            if (args.length < 3) {
+                sender.sendMessage(LegacyFormat.component("&cUżycie: /hexnpc name clear <id>"));
+                return true;
+            }
+            NpcId id = parseId(sender, args[2]);
+            if (id == null) {
+                return true;
+            }
+            return applyName(sender, id, null);
+        }
+        // Legacy: /hexnpc name <id> ...
+        if (args.length < 3) {
+            sender.sendMessage(LegacyFormat.component(
+                    "&cUżycie: /hexnpc name set <id> <nick...>  lub  /hexnpc name clear <id>"));
+            return true;
+        }
+        NpcId id = parseId(sender, args[1]);
+        if (id == null) {
+            return true;
+        }
+        boolean clear = args.length == 3
+                && (args[2].equalsIgnoreCase("clear") || args[2].equalsIgnoreCase("reset"));
+        String nickname = clear ? null : String.join(" ", java.util.Arrays.copyOfRange(args, 2, args.length));
+        return applyName(sender, id, nickname);
+    }
+
+    private boolean applyName(CommandSender sender, NpcId id, String nickname) throws Exception {
+        Optional<NpcDefinition> updated = plugin.npcService().setDisplayName(id, nickname);
+        if (updated.isEmpty()) {
+            sender.sendMessage(LegacyFormat.component("&cNie znaleziono NPC o id &f" + id));
+            return true;
+        }
+        boolean cleared = nickname == null || nickname.isBlank();
+        if (cleared) {
+            sender.sendMessage(LegacyFormat.component("&aWyczyszczono nick NPC &f" + id
+                    + " &7(widoczny teraz jako id)."));
+        } else {
+            // Podgląd z zastosowanym formatowaniem, aby admin widział efekt kodów &.
+            sender.sendMessage(LegacyFormat.component("&aUstawiono nick NPC &f" + id + "&a: ")
+                    .append(LegacyFormat.component(nickname)));
+        }
+        return true;
+    }
+
+    private boolean handleGlow(CommandSender sender, String[] args) throws Exception {
+        if (args.length < 3) {
+            sender.sendMessage(LegacyFormat.component("&cUżycie: /hexnpc glow <id> <on|off>"));
+            return true;
+        }
+        NpcId id = parseId(sender, args[1]);
+        if (id == null) {
+            return true;
+        }
+        boolean glow = parseOnOff(args[2]);
+        Optional<NpcDefinition> updated = plugin.npcService().setGlow(id, glow);
+        sender.sendMessage(LegacyFormat.component(updated.isPresent()
+                ? "&aŚwiecenie NPC &f" + id + "&a: " + (glow ? "&2włączone" : "&cwyłączone")
+                : "&cNie znaleziono NPC o id &f" + id));
+        return true;
+    }
+
+    private boolean handlePose(CommandSender sender, String[] args) throws Exception {
+        if (args.length < 3) {
+            sender.sendMessage(LegacyFormat.component(
+                    "&cUżycie: /hexnpc pose <id> <" + poseChoices() + ">"));
+            return true;
+        }
+        NpcId id = parseId(sender, args[1]);
+        if (id == null) {
+            return true;
+        }
+        Optional<NpcPose> pose = NpcPose.parse(args[2]);
+        if (pose.isEmpty()) {
+            sender.sendMessage(LegacyFormat.component(
+                    "&cNieznana poza: &f" + args[2] + "&c. Dostępne: &f" + poseChoices()));
+            return true;
+        }
+        Optional<NpcDefinition> updated = plugin.npcService().setPose(id, pose.get());
+        sender.sendMessage(LegacyFormat.component(updated.isPresent()
+                ? "&aUstawiono pozę NPC &f" + id + "&a: &f" + pose.get().storageKey()
+                : "&cNie znaleziono NPC o id &f" + id));
+        return true;
+    }
+
+    private static String poseChoices() {
+        StringBuilder sb = new StringBuilder();
+        for (NpcPose p : NpcPose.values()) {
+            if (sb.length() > 0) {
+                sb.append('|');
+            }
+            sb.append(p.storageKey());
+        }
+        return sb.toString();
     }
 
     private boolean handleDialogue(CommandSender sender, String[] args) throws Exception {
@@ -585,6 +704,9 @@ public final class HexNpcCommand implements CommandExecutor, TabCompleter {
                 "&7/" + label + " move <id>",
                 "&7/" + label + " rotate <id> [yaw pitch]",
                 "&7/" + label + " skin <id> <playerName>  | raw <value> <signature>",
+                "&7/" + label + " name set <id> <nick...>  | clear <id>  (auch: name <id> <nick...>)",
+                "&7/" + label + " glow <id> <on|off>",
+                "&7/" + label + " pose <id> <" + poseChoices() + ">",
                 "&7/" + label + " dialogue <id> <add|clear|cooldown> ...",
                 "&7/" + label + " trigger <id> <click|proximity> <on|off> [radius] [cooldown]",
                 "&7/" + label + " action <id> add <click|proximity> <type> key=value...",
@@ -598,7 +720,7 @@ public final class HexNpcCommand implements CommandExecutor, TabCompleter {
 
     private static final List<String> TOP_LEVEL = List.of(
             "create", "remove", "list", "tp", "move", "rotate", "skin",
-            "dialogue", "trigger", "action", "shop", "reload");
+            "name", "glow", "pose", "dialogue", "trigger", "action", "shop", "reload");
 
     private static final List<String> SHOP_OPS = List.of("reload", "list", "open", "info");
 
@@ -618,6 +740,12 @@ public final class HexNpcCommand implements CommandExecutor, TabCompleter {
         String sub = args[0].toLowerCase(Locale.ROOT);
         if (args.length == 2 && sub.equals("shop")) {
             return filterPrefix(SHOP_OPS, args[1]);
+        }
+        if (args.length == 2 && (sub.equals("name") || sub.equals("nick") || sub.equals("nickname"))) {
+            // /hexnpc name <set|clear|id>
+            List<String> opts = new ArrayList<>(List.of("set", "clear"));
+            opts.addAll(idList(service));
+            return filterPrefix(opts, args[1]);
         }
         if (args.length == 2 && !sub.equals("list") && !sub.equals("reload") && !sub.equals("create") && !sub.equals("shop")) {
             return filterPrefix(idList(service), args[1]);
@@ -641,6 +769,16 @@ public final class HexNpcCommand implements CommandExecutor, TabCompleter {
                 case "dialogue" -> filterPrefix(List.of("add", "clear", "cooldown"), args[2]);
                 case "trigger" -> filterPrefix(List.of("click", "proximity"), args[2]);
                 case "action" -> filterPrefix(List.of("add", "clear"), args[2]);
+                case "glow" -> filterPrefix(List.of("on", "off"), args[2]);
+                case "pose", "animation" -> filterPrefix(poseKeys(), args[2]);
+                case "name", "nick", "nickname" -> {
+                    // /hexnpc name set|clear <id>  -> ids; Legacy /hexnpc name <id> clear -> "clear"
+                    if (args[1].equalsIgnoreCase("set") || args[1].equalsIgnoreCase("clear")
+                            || args[1].equalsIgnoreCase("reset")) {
+                        yield filterPrefix(idList(service), args[2]);
+                    }
+                    yield filterPrefix(List.of("clear"), args[2]);
+                }
                 default -> List.of();
             };
         }
@@ -659,6 +797,14 @@ public final class HexNpcCommand implements CommandExecutor, TabCompleter {
             return filterPrefix(List.of("message", "console-command", "player-command", "npc-shop"), args[4]);
         }
         return List.of();
+    }
+
+    private static List<String> poseKeys() {
+        List<String> keys = new ArrayList<>();
+        for (NpcPose p : NpcPose.values()) {
+            keys.add(p.storageKey());
+        }
+        return keys;
     }
 
     private List<String> idList(NpcService service) {

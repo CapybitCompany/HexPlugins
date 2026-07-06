@@ -43,17 +43,30 @@ class PacketNpcRendererProfileNameTest {
     }
 
     @Test
-    void skinNameTakesPrecedenceOverId() {
-        NpcDefinition def = npc("anything", NpcSkin.ofName("Notch"));
-        assertEquals("Notch", PacketNpcRenderer.profileName(def));
+    void skinNameDoesNotAffectProfileName() {
+        // Profilname folgt AUSSCHLIESSLICH der NpcId, niemals der Skin-Quelle.
+        NpcDefinition def = npc("greeter", NpcSkin.ofName("Notch"));
+        assertEquals("greeter", PacketNpcRenderer.profileName(def));
     }
 
     @Test
-    void longSkinNameIsTruncatedAndSanitized() {
-        NpcDefinition def = npc("anything", NpcSkin.ofName("very-long-skin-name-needs-cut"));
-        String name = PacketNpcRenderer.profileName(def);
-        assertTrue(name.length() <= 16, "profile name too long: " + name);
-        assertEquals("very_long_skin_n", name);
+    void changingSkinKeepsProfileNameStable() {
+        // Kernanforderung: /hexnpc skin <id> <name> darf den Fake-Player-Profilnamen
+        // nicht mehr aendern — von Notch zu Herobrine bleibt der Profilname gleich.
+        NpcDefinition base = npc("greeter", NpcSkin.ofName("Notch"));
+        String before = PacketNpcRenderer.profileName(base);
+        String afterNotch = PacketNpcRenderer.profileName(base.withSkin(NpcSkin.ofName("Notch")));
+        String afterHerobrine = PacketNpcRenderer.profileName(base.withSkin(NpcSkin.ofName("Herobrine")));
+        assertEquals(before, afterNotch);
+        assertEquals(before, afterHerobrine);
+        assertEquals("greeter", afterHerobrine);
+    }
+
+    @Test
+    void profileNameIgnoresLongSkinNameAndFollowsId() {
+        NpcDefinition def = npc("greeter", NpcSkin.ofName("very-long-skin-name-needs-cut"));
+        assertEquals("greeter", PacketNpcRenderer.profileName(def),
+                "langer Skin-Name darf den Profilnamen nicht beeinflussen");
     }
 
     @Test

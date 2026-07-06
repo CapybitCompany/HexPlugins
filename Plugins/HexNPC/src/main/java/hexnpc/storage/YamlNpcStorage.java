@@ -5,9 +5,11 @@ import hexnpc.model.DialogueLine;
 import hexnpc.model.InteractionSettings;
 import hexnpc.model.NpcAction;
 import hexnpc.model.NpcActions;
+import hexnpc.model.NpcAppearance;
 import hexnpc.model.NpcDefinition;
 import hexnpc.model.NpcId;
 import hexnpc.model.NpcLocation;
+import hexnpc.model.NpcPose;
 import hexnpc.model.NpcSkin;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -112,7 +114,31 @@ public final class YamlNpcStorage implements NpcStorage {
         InteractionSettings interaction = readInteraction(section.getConfigurationSection("interaction"));
         Dialogue dialogue = readDialogue(section.getConfigurationSection("dialogue"));
         NpcActions actions = readActions(section);
-        return new NpcDefinition(id, skin, location, interaction, dialogue, actions);
+        NpcAppearance appearance = readAppearance(section.getConfigurationSection("appearance"), skin);
+        return new NpcDefinition(id, skin, location, interaction, dialogue, actions, appearance);
+    }
+
+    /**
+     * Liest den Darstellungs-Block. Rueckwaerts-kompatibel: alte npcs.yml haben
+     * keinen {@code appearance}-Block. Der sichtbare Name wurde frueher aus
+     * {@code skin.name} abgeleitet — den migrieren wir hier als Nickname, damit
+     * bestehende NPCs weiterhin denselben sichtbaren Namen behalten. Skin-Quelle
+     * ({@code skin.name}) bleibt davon unabhaengig erhalten.
+     */
+    private NpcAppearance readAppearance(ConfigurationSection section, NpcSkin skin) {
+        if (section == null) {
+            // Echte Legacy-Config ohne appearance-Block: sichtbarer Name kam frueher
+            // aus skin.name -> als Nickname migrieren.
+            return new NpcAppearance(skin.name(), false, NpcPose.STANDING);
+        }
+        // appearance-Block vorhanden: fehlender display-name bedeutet "kein expliziter
+        // Name" (Renderer faellt auf die Id zurueck) — NICHT auf skin.name migrieren,
+        // sonst wuerde ein bewusstes /hexnpc name <id> clear beim Reload wieder den
+        // Skin-Namen als sichtbaren Namen einblenden.
+        String displayName = section.getString("display-name");
+        boolean glow = section.getBoolean("glow", false);
+        NpcPose pose = NpcPose.fromStorage(section.getString("pose"));
+        return new NpcAppearance(displayName, glow, pose);
     }
 
     private NpcSkin readSkin(ConfigurationSection section, String fallbackName) {
@@ -225,6 +251,17 @@ public final class YamlNpcStorage implements NpcStorage {
         ConfigurationSection actions = section.createSection("actions");
         actions.set("on-click", toActionList(def.actions().onClick()));
         actions.set("on-proximity", toActionList(def.actions().onProximity()));
+        writeAppearance(section.createSection("appearance"), def.appearance());
+    }
+
+    private void writeAppearance(ConfigurationSection section, NpcAppearance appearance) {
+        // display-name nur schreiben wenn explizit gesetzt; fehlt es, faellt der
+        // Renderer beim Laden auf die NPC-Id zurueck.
+        if (appearance.displayName() != null) {
+            section.set("display-name", appearance.displayName());
+        }
+        section.set("glow", appearance.glow());
+        section.set("pose", appearance.pose().storageKey());
     }
 
     private void writeSkin(ConfigurationSection section, NpcSkin skin) {
