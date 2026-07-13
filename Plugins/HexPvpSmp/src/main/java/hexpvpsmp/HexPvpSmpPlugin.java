@@ -7,12 +7,12 @@ import hexpvpsmp.combat.CombatTagService;
 import hexpvpsmp.command.HexPvpCommand;
 import hexpvpsmp.config.HexPvpConfig;
 import hexpvpsmp.config.HexPvpConfigLoader;
-import hexpvpsmp.integration.HexCoreBridge;
 import hexpvpsmp.movement.SafezoneMovementListener;
 import hexpvpsmp.protection.ConfigRegionProtectionProvider;
 import hexpvpsmp.protection.ProtectionProvider;
 import hexpvpsmp.protection.ProtectionService;
-import hexpvpsmp.protection.WorldGuardProtectionProvider;
+import hexpvpsmp.protection.PublicChestRegistry;
+import hexpvpsmp.protection.SpawnProtectionListener;
 import hexpvpsmp.redline.RedLineService;
 import hexpvpsmp.ui.ActionBarService;
 import hexpvpsmp.ui.MessageService;
@@ -30,7 +30,7 @@ public class HexPvpSmpPlugin extends JavaPlugin {
     // Built once per plugin lifecycle.
     private CombatTagService combatTagService;
     private MessageService messageService;
-    private HexCoreBridge hexCoreBridge;
+    private PublicChestRegistry publicChestRegistry;
 
     // Rebuilt on reload.
     private ProtectionService protectionService;
@@ -42,7 +42,7 @@ public class HexPvpSmpPlugin extends JavaPlugin {
 
         this.messageService = new MessageService(getServer(), configRef::get);
         this.combatTagService = new CombatTagService(getServer(), configRef::get);
-        this.hexCoreBridge = new HexCoreBridge(getLogger());
+        this.publicChestRegistry = new PublicChestRegistry(configRef::get);
 
         if (!initializeRuntime()) {
             getLogger().severe("Failed to initialize HexPvpSmp. Disabling plugin.");
@@ -60,6 +60,7 @@ public class HexPvpSmpPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new CombatCommandListener(this), this);
         getServer().getPluginManager().registerEvents(new CombatLogListener(this), this);
         getServer().getPluginManager().registerEvents(new SafezoneMovementListener(this), this);
+        getServer().getPluginManager().registerEvents(new SpawnProtectionListener(this), this);
         getServer().getPluginManager().registerEvents(new RedLineService(this), this);
 
         getLogger().info("HexPvpSmp enabled.");
@@ -73,7 +74,7 @@ public class HexPvpSmpPlugin extends JavaPlugin {
             combatTagService = null;
         }
         messageService = null;
-        hexCoreBridge = null;
+        publicChestRegistry = null;
         getLogger().info("HexPvpSmp disabled.");
     }
 
@@ -99,12 +100,24 @@ public class HexPvpSmpPlugin extends JavaPlugin {
         return protectionService;
     }
 
-    public HexCoreBridge hexCoreBridge() {
-        return hexCoreBridge;
+    public PublicChestRegistry publicChestRegistry() {
+        return publicChestRegistry;
     }
 
     public ActionBarService actionBarService() {
         return actionBarService;
+    }
+
+    /** Whether verbose protection logging is active. */
+    public boolean debug() {
+        HexPvpConfig current = configRef.get();
+        return current != null && current.debug();
+    }
+
+    public void debugLog(String message) {
+        if (debug()) {
+            getLogger().info("[debug] " + message);
+        }
     }
 
     public void setRuntimeDebug(boolean enabled) {
@@ -115,7 +128,7 @@ public class HexPvpSmpPlugin extends JavaPlugin {
         configRef.set(new HexPvpConfig(
                 current.enabled(), enabled,
                 current.combat(), current.safezones(),
-                current.worlds(), current.towns()
+                current.messages(), current.worlds()
         ));
     }
 
@@ -125,8 +138,7 @@ public class HexPvpSmpPlugin extends JavaPlugin {
             configRef.set(loaded);
 
             List<ProtectionProvider> providers = List.of(
-                    new ConfigRegionProtectionProvider(configRef::get),
-                    new WorldGuardProtectionProvider(getLogger())
+                    new ConfigRegionProtectionProvider(configRef::get)
             );
             this.protectionService = new ProtectionService(providers);
 

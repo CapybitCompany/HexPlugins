@@ -65,16 +65,17 @@ public final class SafezoneMovementListener implements Listener {
             return;
         }
 
-        List<ProtectedRegion> regionsAtTo = protection.regionsAt(to);
-        if (regionsAtTo.isEmpty()) {
-            // Tagged player moved freely outside any region -- refresh fallback.
+        List<ProtectedRegion> safezonesAtTo = protection.safezonesAt(to);
+        if (safezonesAtTo.isEmpty()) {
+            // Tagged player moved freely outside any spawn safezone -- refresh
+            // fallback. NO_BUILD zones are not safezones, so entering them is fine.
             tagger.updateLastSafeLocation(player, to);
             return;
         }
 
         // Cancellation is enough for ordinary movement; record + notify.
         event.setCancelled(true);
-        plugin.messageService().sendChat(player, config.safezones().entryMessage());
+        plugin.messageService().sendChat(player, config.messages().safezoneEntryDenied());
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
@@ -97,13 +98,13 @@ public final class SafezoneMovementListener implements Listener {
         if (!tagger.isTagged(player)) {
             return;
         }
-        if (protection.regionsAt(to).isEmpty()) {
+        if (protection.safezonesAt(to).isEmpty()) {
             tagger.updateLastSafeLocation(player, to);
             return;
         }
 
         event.setCancelled(true);
-        plugin.messageService().sendChat(player, config.safezones().entryMessage());
+        plugin.messageService().sendChat(player, config.messages().safezoneEntryDenied());
 
         // Defensive fallback: some teleport paths slip past setCancelled.
         // Compute a safe destination NOW; schedule the teleport so we don't
@@ -118,7 +119,7 @@ public final class SafezoneMovementListener implements Listener {
                 return;
             }
             Location current = player.getLocation();
-            if (protection.regionsAt(current).isEmpty()) {
+            if (protection.safezonesAt(current).isEmpty()) {
                 return; // cancel already worked
             }
             if (atSameBlock(current, fallback)) {
@@ -144,9 +145,9 @@ public final class SafezoneMovementListener implements Listener {
         if (isSafeOutside(protection, from)) {
             return from;
         }
-        List<ProtectedRegion> regionsAtTo = protection.regionsAt(to);
-        if (!regionsAtTo.isEmpty()) {
-            Location pushed = pushToBoundary(to, regionsAtTo);
+        List<ProtectedRegion> safezonesAtTo = protection.safezonesAt(to);
+        if (!safezonesAtTo.isEmpty()) {
+            Location pushed = pushToBoundary(to, safezonesAtTo);
             if (isSafeOutside(protection, pushed)) {
                 return pushed;
             }
@@ -158,7 +159,8 @@ public final class SafezoneMovementListener implements Listener {
         if (loc == null || loc.getWorld() == null) {
             return false;
         }
-        return protection.regionsAt(loc).isEmpty();
+        // "Safe" for fallback purposes means outside every spawn safezone.
+        return protection.safezonesAt(loc).isEmpty();
     }
 
     private static boolean atSameBlock(Location a, Location b) {

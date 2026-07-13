@@ -6,6 +6,7 @@ import hexpvpsmp.protection.ConfigRegionProtectionProvider;
 import hexpvpsmp.protection.ProtectionService;
 import hexpvpsmp.region.Cuboid;
 import hexpvpsmp.region.RegionType;
+import org.bukkit.Location;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,25 +40,43 @@ class RegionAndProtectionTest {
     }
 
     @Test
-    void cuboidContainsRespectsAllAxes() {
-        Cuboid c = new Cuboid(-10, 0, -10, 10, 100, 10);
-        assertTrue(c.contains(0, 50, 0));
-        assertTrue(c.contains(-10, 0, -10));
-        assertTrue(c.contains(10, 100, 10));
-        assertFalse(c.contains(11, 50, 0));
-        assertFalse(c.contains(0, -1, 0));
-        assertFalse(c.contains(0, 50, 11));
+    void cuboidContainsIsXzOnlyAndIgnoresY() {
+        Cuboid c = new Cuboid(-10, -10, 10, 10);
+        assertTrue(c.contains(0, 0));
+        assertTrue(c.contains(-10, -10));
+        assertTrue(c.contains(10, 10));
+        assertFalse(c.contains(11, 0));
+        assertFalse(c.contains(0, 11));
+        // contains(Location) ignores Y: same x/z at wildly different heights.
+        assertTrue(c.contains(new Location(server.getWorld("world"), 0, -5000, 0)));
+        assertTrue(c.contains(new Location(server.getWorld("world"), 0, 5000, 0)));
     }
 
     @Test
     void cuboidHorizontalDistanceToEdge() {
-        Cuboid c = new Cuboid(0, 0, 0, 100, 100, 100);
+        Cuboid c = new Cuboid(0, 0, 100, 100);
         // dead center -> 50 to nearest edge
         assertEquals(50.0, c.horizontalDistanceToEdge(50, 50));
         // near the edge inside
         assertEquals(2.0, c.horizontalDistanceToEdge(2, 50));
         // outside on x
         assertEquals(5.0, c.horizontalDistanceToEdge(-5, 50));
+    }
+
+    @Test
+    void spawnAndNoBuildProtectionApplyAtEveryHeight() {
+        ProtectionService service = plugin.protectionService();
+        for (int y : new int[]{-64, -32, 0, 64, 200, 319}) {
+            assertTrue(service.isPvpProtected("world", 0, y, 0),
+                    "spawn PvP protection must hold at y=" + y);
+            assertTrue(service.isBuildProtected("world", 0, y, 0),
+                    "spawn build protection must hold at y=" + y);
+            // No-build zone: build-protected but PvP allowed, at every height.
+            assertFalse(service.isPvpProtected("world", 0, y, 150),
+                    "no-build zone must never block PvP, y=" + y);
+            assertTrue(service.isBuildProtected("world", 0, y, 150),
+                    "no-build zone build protection must hold at y=" + y);
+        }
     }
 
     @Test
@@ -70,26 +89,33 @@ class RegionAndProtectionTest {
         // Same coordinates in "nether" -> not configured -> no regions
         assertTrue(provider.regionsAt("nether", 0, 64, 0).isEmpty(),
                 "should not match in 'nether'");
-        // Outside spawn in "world"
+        // Outside every region in "world"
         assertTrue(provider.regionsAt("world", 9999, 64, 9999).isEmpty());
     }
 
     @Test
-    void protectionServiceComposesProviders() {
+    void spawnRegionIsSafezoneNoBuildZoneIsNotPvpProtected() {
         ProtectionService service = plugin.protectionService();
-        assertFalse(service.regionsAt("world", 0, 64, 0).isEmpty(),
-                "spawn should match through service");
-        assertTrue(service.regionsAt("world", 9999, 64, 9999).isEmpty());
-        // Example town from default config:
-        assertFalse(service.regionsAt("world", 250, 64, 250).isEmpty(),
-                "example_town should match");
+        // Spawn (inside): PvP-protected and build-protected.
+        assertTrue(service.isPvpProtected("world", 0, 64, 0));
+        assertTrue(service.isBuildProtected("world", 0, 64, 0));
+        // No-build zone (front_spawn, z in [101,180]): build-protected but PvP allowed.
+        assertFalse(service.isPvpProtected("world", 0, 64, 150));
+        assertTrue(service.isBuildProtected("world", 0, 64, 150));
+        // Wilderness: neither.
+        assertFalse(service.isPvpProtected("world", 9999, 64, 9999));
+        assertFalse(service.isBuildProtected("world", 9999, 64, 9999));
     }
 
     @Test
-    void townRegionsAreLoadedAsTown() {
-        HexPvpConfig config = plugin.config();
-        assertEquals(1, config.towns().regions().size());
-        assertEquals(RegionType.TOWN, config.towns().regions().get(0).type());
+    void regionsCarryCorrectTypes() {
+        ProtectionService service = plugin.protectionService();
+        boolean spawnIsSafezone = service.regionsAt("world", 0, 64, 0).stream()
+                .anyMatch(r -> r.type() == RegionType.SPAWN_SAFEZONE);
+        assertTrue(spawnIsSafezone);
+        boolean frontIsNoBuild = service.regionsAt("world", 0, 64, 150).stream()
+                .anyMatch(r -> r.type() == RegionType.NO_BUILD);
+        assertTrue(frontIsNoBuild);
     }
 
     @Test
@@ -100,9 +126,41 @@ class RegionAndProtectionTest {
     }
 
     @Test
-    void allRegionsReturnsSpawnAndTownsAcrossProviders() {
+    void allRegionsReturnsSpawnAndNoBuildZones() {
         List<?> all = plugin.protectionService().allRegions();
-        // 1 spawn + 1 example_town == 2
+        // 1 spawn + 1 no-build zone == 2
         assertEquals(2, all.size());
+    }
+
+    @Test
+    void publicChestIsRegistered() {
+        assertTrue(plugin.publicChestRegistry().isPublicChest("world", 0, 65, 0));
+        assertFalse(plugin.publicChestRegistry().isPublicChest("world", 1, 65, 0));
+    }
+
+    @Test
+    void disabledWorldContributesNoRegions() {
+        plugin.getConfig().set("worlds.world.enabled", false);
+        plugin.saveConfig();
+        assertTrue(plugin.reloadPluginRuntime());
+
+        ProtectionService service = plugin.protectionService();
+        assertTrue(service.allRegions().isEmpty(),
+                "a disabled world must not contribute regions to /hexpvp regions");
+        assertTrue(service.regionsAt("world", 0, 64, 0).isEmpty(),
+                "a disabled world must not protect any location");
+    }
+
+    @Test
+    void publicChestIsIgnoredWhenWorldDisabled() {
+        // Enabled: the configured chest is recognised.
+        assertTrue(plugin.publicChestRegistry().isPublicChest("world", 0, 65, 0));
+
+        plugin.getConfig().set("worlds.world.enabled", false);
+        plugin.saveConfig();
+        assertTrue(plugin.reloadPluginRuntime());
+
+        assertFalse(plugin.publicChestRegistry().isPublicChest("world", 0, 65, 0),
+                "a public chest in a disabled world must not be treated as special");
     }
 }

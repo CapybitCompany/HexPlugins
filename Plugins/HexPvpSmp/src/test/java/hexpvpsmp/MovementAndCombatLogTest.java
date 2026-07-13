@@ -50,6 +50,11 @@ class MovementAndCombatLogTest {
         return new Location(server.getWorld("world"), 0, 64, 0);
     }
 
+    private Location noBuildZone() {
+        // front_spawn no-build zone: x in [-150,150], z in [101,180].
+        return new Location(server.getWorld("world"), 0, 64, 150);
+    }
+
     @Test
     void taggedMoveIntoSafezoneIsCancelled() {
         Location from = outside();
@@ -61,6 +66,35 @@ class MovementAndCombatLogTest {
         server.getPluginManager().callEvent(event);
 
         assertTrue(event.isCancelled(), "tagged move into spawn must be cancelled");
+    }
+
+    @Test
+    void taggedMoveIntoNoBuildZoneIsAllowed() {
+        Location from = outside();
+        Location to = noBuildZone();
+        player.teleport(from);
+        plugin.combatTagService().tag(player);
+
+        PlayerMoveEvent event = new PlayerMoveEvent(player, from, to);
+        server.getPluginManager().callEvent(event);
+
+        assertFalse(event.isCancelled(),
+                "no-build zone is not a safezone -> tagged player may enter");
+    }
+
+    @Test
+    void taggedMoveIntoSpawnHighAboveOldYRangeIsCancelled() {
+        Location from = outside();
+        // Well above the previous max-y=320: region is now unbounded in Y.
+        Location to = new Location(server.getWorld("world"), 0, 500, 0);
+        player.teleport(from);
+        plugin.combatTagService().tag(player);
+
+        PlayerMoveEvent event = new PlayerMoveEvent(player, from, to);
+        server.getPluginManager().callEvent(event);
+
+        assertTrue(event.isCancelled(),
+                "combat-tagged player must not enter spawn at any height");
     }
 
     @Test

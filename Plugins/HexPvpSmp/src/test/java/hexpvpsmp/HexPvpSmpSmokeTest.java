@@ -36,7 +36,7 @@ class HexPvpSmpSmokeTest {
         assertNotNull(plugin.messageService());
         assertNotNull(plugin.protectionService());
         assertNotNull(plugin.actionBarService());
-        assertNotNull(plugin.hexCoreBridge());
+        assertNotNull(plugin.publicChestRegistry());
     }
 
     @Test

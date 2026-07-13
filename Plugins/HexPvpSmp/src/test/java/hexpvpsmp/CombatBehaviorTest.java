@@ -3,9 +3,12 @@ package hexpvpsmp;
 import hexpvpsmp.combat.CombatTagService;
 import hexpvpsmp.combat.PermissionGate;
 import org.bukkit.Location;
+import org.bukkit.damage.DamageSource;
+import org.bukkit.damage.DamageType;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,6 +52,11 @@ class CombatBehaviorTest {
         return new Location(server.getWorld("world"), 0, 64, 0);
     }
 
+    private Location insideNoBuildZone() {
+        // front_spawn no-build zone: x in [-150,150], z in [101,180].
+        return new Location(server.getWorld("world"), 0, 64, 150);
+    }
+
     private void fireDamage(Player a, Player v) {
         EntityDamageByEntityEvent event = new EntityDamageByEntityEvent(
                 a, v, EntityDamageByEntityEvent.DamageCause.ENTITY_ATTACK,
@@ -83,6 +91,32 @@ class CombatBehaviorTest {
     }
 
     @Test
+    void pvpInNoBuildZoneIsAllowedAndTagsBothPlayers() {
+        attacker.teleport(insideNoBuildZone());
+        victim.teleport(insideNoBuildZone());
+
+        fireDamage(attacker, victim);
+
+        CombatTagService tagger = plugin.combatTagService();
+        assertTrue(tagger.isTagged(attacker), "PvP is allowed in a no-build zone -> attacker tagged");
+        assertTrue(tagger.isTagged(victim), "PvP is allowed in a no-build zone -> victim tagged");
+    }
+
+    @Test
+    void pvpInSpawnIsBlockedAtAnyHeight() {
+        // High above the old y-range: still spawn (X/Z only).
+        Location high = new Location(server.getWorld("world"), 0, 250, 0);
+        attacker.teleport(high);
+        victim.teleport(high);
+
+        fireDamage(attacker, victim);
+
+        CombatTagService tagger = plugin.combatTagService();
+        assertFalse(tagger.isTagged(attacker), "PvP high above spawn must still be blocked");
+        assertFalse(tagger.isTagged(victim), "PvP high above spawn must still be blocked");
+    }
+
+    @Test
     void opAttackerBypassesTagging() {
         attacker.setOp(true);
         attacker.teleport(outsideSpawn());
@@ -103,6 +137,22 @@ class CombatBehaviorTest {
         attacker.setOp(false);
         attacker.addAttachment(plugin, PermissionGate.BYPASS_PERMISSION, true);
         assertTrue(PermissionGate.bypasses(attacker));
+    }
+
+    @Test
+    void realDeathClearsCombatTag() {
+        CombatTagService tagger = plugin.combatTagService();
+        victim.teleport(outsideSpawn());
+        tagger.tag(victim);
+        assertTrue(tagger.isTagged(victim), "precondition: victim is tagged");
+
+        PlayerDeathEvent event = new PlayerDeathEvent(
+                victim,
+                DamageSource.builder(DamageType.GENERIC).build(),
+                new java.util.ArrayList<>(), 0, "died");
+        server.getPluginManager().callEvent(event);
+
+        assertFalse(tagger.isTagged(victim), "a real death must clear the combat tag");
     }
 
     @Test

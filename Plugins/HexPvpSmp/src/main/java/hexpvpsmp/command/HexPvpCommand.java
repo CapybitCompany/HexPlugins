@@ -31,7 +31,7 @@ public final class HexPvpCommand implements CommandExecutor, TabCompleter {
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command,
                              @NotNull String label, @NotNull String[] args) {
         if (!sender.hasPermission(PERM) && !sender.isOp()) {
-            sender.sendMessage(LegacyFormat.component("&cYou do not have permission."));
+            sender.sendMessage(LegacyFormat.component(plugin.config().messages().noPermission()));
             return true;
         }
         if (args.length == 0) {
@@ -55,63 +55,63 @@ public final class HexPvpCommand implements CommandExecutor, TabCompleter {
     private boolean handleReload(CommandSender sender) {
         boolean ok = plugin.reloadPluginRuntime();
         sender.sendMessage(LegacyFormat.component(ok
-                ? "&aHexPvpSmp reloaded."
-                : "&cReload failed, check console."));
+                ? plugin.config().messages().reloadSuccess()
+                : plugin.config().messages().reloadFailed()));
         return true;
     }
 
     private boolean handleStatus(CommandSender sender, String[] args) {
         if (args.length < 2) {
-            sender.sendMessage(LegacyFormat.component("&cUsage: /hexpvp status <player>"));
+            sender.sendMessage(LegacyFormat.component("&cUżycie: /hexpvp status <gracz>"));
             return true;
         }
         OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]);
         if (target == null || target.getName() == null) {
-            sender.sendMessage(LegacyFormat.component("&cUnknown player: &f" + args[1]));
+            sender.sendMessage(LegacyFormat.component("&cNieznany gracz: &f" + args[1]));
             return true;
         }
         boolean tagged = plugin.combatTagService().isTagged(target.getUniqueId());
         int remaining = plugin.combatTagService().remainingSeconds(target.getUniqueId());
         if (tagged) {
             sender.sendMessage(LegacyFormat.component(
-                    "&e" + target.getName() + " &7is &cTAGGED &7(" + remaining + "s left)"));
+                    "&e" + target.getName() + " &7jest &cW WALCE &7(pozostało " + remaining + "s)"));
         } else {
             sender.sendMessage(LegacyFormat.component(
-                    "&e" + target.getName() + " &7is &aNOT tagged"));
+                    "&e" + target.getName() + " &7NIE jest &aw walce"));
         }
         return true;
     }
 
     private boolean handleUntag(CommandSender sender, String[] args) {
         if (args.length < 2) {
-            sender.sendMessage(LegacyFormat.component("&cUsage: /hexpvp untag <player>"));
+            sender.sendMessage(LegacyFormat.component("&cUżycie: /hexpvp untag <gracz>"));
             return true;
         }
         Player target = Bukkit.getPlayerExact(args[1]);
         if (target == null) {
-            sender.sendMessage(LegacyFormat.component("&cPlayer not online: &f" + args[1]));
+            sender.sendMessage(LegacyFormat.component("&cGracz nie jest online: &f" + args[1]));
             return true;
         }
         boolean removed = plugin.combatTagService().untag(target.getUniqueId());
         sender.sendMessage(LegacyFormat.component(removed
-                ? "&aUntagged &f" + target.getName()
-                : "&7" + target.getName() + " was not tagged."));
+                ? "&aZdjęto tag walki z &f" + target.getName()
+                : "&7" + target.getName() + " nie był w walce."));
         return true;
     }
 
     private boolean handleRegions(CommandSender sender) {
         List<ProtectedRegion> regions = plugin.protectionService().allRegions();
         if (regions.isEmpty()) {
-            sender.sendMessage(LegacyFormat.component("&7No regions configured."));
+            sender.sendMessage(LegacyFormat.component("&7Brak skonfigurowanych regionów."));
             return true;
         }
-        sender.sendMessage(LegacyFormat.component("&aRegions (" + regions.size() + "):"));
+        sender.sendMessage(LegacyFormat.component("&aRegiony (" + regions.size() + "):"));
         for (ProtectedRegion r : regions) {
             sender.sendMessage(LegacyFormat.component(String.format(Locale.US,
-                    "&7- &f%s &7[%s] @ %s &7(%.0f,%.0f,%.0f .. %.0f,%.0f,%.0f)",
+                    "&7- &f%s &7[%s] @ %s &7(X %.0f..%.0f, Z %.0f..%.0f, &owszystkie wysokości&7)",
                     r.id(), r.type(), r.world(),
-                    r.cuboid().minX(), r.cuboid().minY(), r.cuboid().minZ(),
-                    r.cuboid().maxX(), r.cuboid().maxY(), r.cuboid().maxZ()
+                    r.cuboid().minX(), r.cuboid().maxX(),
+                    r.cuboid().minZ(), r.cuboid().maxZ()
             )));
         }
         return true;
@@ -119,7 +119,7 @@ public final class HexPvpCommand implements CommandExecutor, TabCompleter {
 
     private boolean handleDebug(CommandSender sender, String[] args) {
         if (args.length < 2) {
-            sender.sendMessage(LegacyFormat.component("&cUsage: /hexpvp debug <on|off>"));
+            sender.sendMessage(LegacyFormat.component("&cUżycie: /hexpvp debug <on|off>"));
             return true;
         }
         boolean on = switch (args[1].toLowerCase(Locale.ROOT)) {
@@ -127,18 +127,18 @@ public final class HexPvpCommand implements CommandExecutor, TabCompleter {
             default -> false;
         };
         plugin.setRuntimeDebug(on);
-        sender.sendMessage(LegacyFormat.component("&aDebug now: &f" + (on ? "ON" : "OFF")));
+        sender.sendMessage(LegacyFormat.component("&aTryb debug: &f" + (on ? "WŁĄCZONY" : "WYŁĄCZONY")));
         return true;
     }
 
     private void usage(CommandSender sender, String label) {
         sender.sendMessage(LegacyFormat.component("&aHexPvpSmp:"));
         for (String line : new String[]{
-                "&7/" + label + " reload",
-                "&7/" + label + " status <player>",
-                "&7/" + label + " untag <player>",
-                "&7/" + label + " regions",
-                "&7/" + label + " debug <on|off>"
+                "&7/" + label + " reload &8- przeładuj konfigurację",
+                "&7/" + label + " status <gracz> &8- sprawdź tag walki",
+                "&7/" + label + " untag <gracz> &8- zdejmij tag walki",
+                "&7/" + label + " regions &8- lista regionów",
+                "&7/" + label + " debug <on|off> &8- logowanie debug"
         }) {
             sender.sendMessage(LegacyFormat.component(line));
         }

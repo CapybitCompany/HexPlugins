@@ -57,12 +57,12 @@ public final class RedLineService implements Listener {
             return;
         }
         Cuboid c = spawn.region();
-        if (!c.containsHorizontal(at.getX(), at.getZ())) {
+        if (!c.contains(at.getX(), at.getZ())) {
             return; // already outside spawn; let the safezone listener handle entry blocks
         }
         double distance = c.horizontalDistanceToEdge(at.getX(), at.getZ());
         if (distance <= redLine.warningDistance()) {
-            plugin.messageService().sendActionBar(player, redLine.message());
+            plugin.messageService().sendActionBar(player, config.messages().leavingSpawn());
         }
     }
 

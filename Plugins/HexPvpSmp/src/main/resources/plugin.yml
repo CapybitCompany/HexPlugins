@@ -2,21 +2,20 @@ name: HexPvpSmp
 version: '1.0.0'
 main: hexpvpsmp.HexPvpSmpPlugin
 api-version: '1.21.11'
-description: PvP SMP combat tag, spawn/town safezones, command whitelist, combat-log punishment.
+description: PvP SMP combat tag, config-based spawn safezone + no-build protection, command whitelist, combat-log punishment.
 authors: [HexDevTeam]
-softdepend: [HexCore, WorldGuard]
 
 commands:
   hexpvp:
-    description: Manage HexPvpSmp
+    description: Zarządzaj HexPvpSmp
     usage: /hexpvp <reload|status|untag|regions|debug>
     aliases: [ hpvp ]
     permission: hexpvpsmp.admin
 
 permissions:
   hexpvpsmp.admin:
-    description: Configure HexPvpSmp
+    description: Konfiguruj HexPvpSmp
     default: op
   hexpvpsmp.bypass:
-    description: Bypass combat/safezone restrictions
+    description: Omijaj ograniczenia walki/spawnu/ochrony
     default: op

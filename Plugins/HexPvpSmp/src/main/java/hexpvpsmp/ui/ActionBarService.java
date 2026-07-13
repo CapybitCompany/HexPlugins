@@ -2,6 +2,7 @@ package hexpvpsmp.ui;
 
 import hexpvpsmp.combat.CombatTagService;
 import hexpvpsmp.config.HexPvpConfig;
+import hexpvpsmp.util.LegacyFormat;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -69,7 +70,9 @@ public final class ActionBarService {
             if (remaining <= 0) {
                 continue;
             }
-            messageService.sendActionBarUnthrottled(player, "&cCombat: &f" + remaining + "s");
+            String text = LegacyFormat.replace(
+                    config.messages().combatActionbar(), "<seconds>", Integer.toString(remaining));
+            messageService.sendActionBarUnthrottled(player, text);
         }
     }
 }

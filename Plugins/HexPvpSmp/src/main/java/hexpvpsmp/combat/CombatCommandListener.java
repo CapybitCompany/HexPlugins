@@ -3,6 +3,7 @@ package hexpvpsmp.combat;
 import hexpvpsmp.HexPvpSmpPlugin;
 import hexpvpsmp.config.HexPvpConfig;
 import hexpvpsmp.ui.MessageService;
+import hexpvpsmp.util.LegacyFormat;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
 import org.bukkit.event.EventHandler;
@@ -13,6 +14,19 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import java.util.Locale;
 import java.util.Objects;
 
+/**
+ * Blocks combat-tagged players from running non-whitelisted commands.
+ *
+ * <p>Trust boundary: this gates {@link PlayerCommandPreprocessEvent}, which
+ * fires for player-typed commands and for {@code player.performCommand(...)}.
+ * HexNPC {@code player-command} actions therefore ARE subject to the whitelist
+ * while the player is tagged — intended, so an NPC cannot be used to escape
+ * combat (e.g. an NPC {@code /spawn} button). NPC actions that must always run
+ * should use console/op-dispatched commands instead of {@code performCommand},
+ * or the player needs {@code hexpvpsmp.bypass}. If NPC actions ever need to be
+ * fully trusted, expose {@code CombatConfig#isCommandAllowed} as a shared gate
+ * rather than special-casing here.
+ */
 public final class CombatCommandListener implements Listener {
 
     private final HexPvpSmpPlugin plugin;
@@ -44,8 +58,8 @@ public final class CombatCommandListener implements Listener {
 
         event.setCancelled(true);
         MessageService messages = plugin.messageService();
-        messages.sendChat(event.getPlayer(),
-                "&cYou cannot use &f/" + label + " &cwhile in combat.");
+        String text = LegacyFormat.replace(config.messages().commandBlocked(), "<command>", label);
+        messages.sendChat(event.getPlayer(), text);
     }
 
     private boolean isAllowed(HexPvpConfig config, String label) {

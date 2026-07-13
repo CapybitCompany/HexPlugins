@@ -2,6 +2,7 @@ package hexpvpsmp.config;
 
 import hexpvpsmp.region.Cuboid;
 import hexpvpsmp.region.ProtectedRegion;
+import hexpvpsmp.region.PublicChest;
 import hexpvpsmp.region.RegionId;
 import hexpvpsmp.region.RegionType;
 import org.bukkit.configuration.ConfigurationSection;
@@ -22,10 +23,10 @@ public final class HexPvpConfigLoader {
 
         CombatConfig combat = loadCombat(config);
         SafezoneConfig safezones = loadSafezones(config);
+        MessagesConfig messages = loadMessages(config.getConfigurationSection("messages"));
         Map<String, WorldConfig> worlds = loadWorlds(config.getConfigurationSection("worlds"), logger);
-        TownsConfig towns = loadTowns(config.getConfigurationSection("towns"), logger);
 
-        return new HexPvpConfig(enabled, debug, combat, safezones, worlds, towns);
+        return new HexPvpConfig(enabled, debug, combat, safezones, messages, worlds);
     }
 
     private CombatConfig loadCombat(FileConfiguration config) {
@@ -51,9 +52,24 @@ public final class HexPvpConfigLoader {
     private SafezoneConfig loadSafezones(FileConfiguration config) {
         return new SafezoneConfig(
                 config.getBoolean("safezones.block-entry-while-combat", true),
-                config.getString("safezones.entry-message", ""),
-                config.getString("safezones.pvp-deny-message", ""),
                 config.getInt("safezones.warning-cooldown-ticks", 20)
+        );
+    }
+
+    private MessagesConfig loadMessages(ConfigurationSection section) {
+        if (section == null) {
+            return MessagesConfig.defaults();
+        }
+        return new MessagesConfig(
+                section.getString("no-permission"),
+                section.getString("pvp-denied"),
+                section.getString("safezone-entry-denied"),
+                section.getString("command-blocked"),
+                section.getString("combat-actionbar"),
+                section.getString("leaving-spawn"),
+                section.getString("build-denied"),
+                section.getString("reload-success"),
+                section.getString("reload-failed")
         );
     }
 
@@ -70,7 +86,12 @@ public final class HexPvpConfigLoader {
             String normalizedWorld = world.toLowerCase(Locale.ROOT);
             boolean enabled = w.getBoolean("enabled", true);
             SpawnConfig spawn = loadSpawn(w.getConfigurationSection("spawn"), logger, world);
-            output.put(normalizedWorld, new WorldConfig(normalizedWorld, enabled, spawn));
+            List<ProtectedRegion> noBuild = loadNoBuildZones(
+                    w.getConfigurationSection("no-build-zones"), logger, normalizedWorld, world);
+            List<PublicChest> chests = loadPublicChests(
+                    w.getConfigurationSection("public-chests"), logger, normalizedWorld, world);
+            output.put(normalizedWorld,
+                    new WorldConfig(normalizedWorld, enabled, spawn, noBuild, chests));
         }
         return Map.copyOf(output);
     }
@@ -87,7 +108,8 @@ public final class HexPvpConfigLoader {
             enabled = false;
         }
         RedLineConfig redLine = loadRedLine(section.getConfigurationSection("red-line"));
-        return new SpawnConfig(enabled, cuboid, redLine);
+        boolean blockMobSpawns = section.getBoolean("block-mob-spawns", true);
+        return new SpawnConfig(enabled, cuboid, redLine, blockMobSpawns);
     }
 
     private RedLineConfig loadRedLine(ConfigurationSection section) {
@@ -96,50 +118,62 @@ public final class HexPvpConfigLoader {
         }
         return new RedLineConfig(
                 section.getBoolean("enabled", false),
-                section.getDouble("warning-distance", 0.0D),
-                section.getString("message", "")
+                section.getDouble("warning-distance", 0.0D)
         );
     }
 
-    private TownsConfig loadTowns(ConfigurationSection section, Logger logger) {
+    private List<ProtectedRegion> loadNoBuildZones(ConfigurationSection section, Logger logger,
+                                                   String worldKey, String worldRaw) {
         if (section == null) {
-            return new TownsConfig(TownsConfig.Provider.CONFIG, List.of());
-        }
-        TownsConfig.Provider provider;
-        try {
-            provider = TownsConfig.Provider.valueOf(
-                    section.getString("provider", "CONFIG").trim().toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException ex) {
-            logger.warning("HexPvpSmp: unknown towns.provider, defaulting to CONFIG");
-            provider = TownsConfig.Provider.CONFIG;
-        }
-
-        ConfigurationSection regions = section.getConfigurationSection("regions");
-        if (regions == null) {
-            return new TownsConfig(provider, List.of());
+            return List.of();
         }
         List<ProtectedRegion> output = new ArrayList<>();
-        for (String key : regions.getKeys(false)) {
-            ConfigurationSection r = regions.getConfigurationSection(key);
+        for (String key : section.getKeys(false)) {
+            ConfigurationSection r = section.getConfigurationSection(key);
             if (r == null) {
                 continue;
             }
+            if (!r.getBoolean("enabled", true)) {
+                continue;
+            }
+            Cuboid c = readCuboid(r.getConfigurationSection("region"), logger,
+                    "worlds." + worldRaw + ".no-build-zones." + key);
+            if (c == null) {
+                continue;
+            }
             try {
-                String world = r.getString("world");
-                if (world == null || world.isBlank()) {
-                    logger.warning("HexPvpSmp: town '" + key + "' missing world");
-                    continue;
-                }
-                Cuboid c = readCuboid(r, logger, "towns.regions." + key);
-                if (c == null) {
-                    continue;
-                }
-                output.add(new ProtectedRegion(new RegionId(key), world, RegionType.TOWN, c));
+                output.add(new ProtectedRegion(new RegionId(key), worldKey, RegionType.NO_BUILD, c));
             } catch (Exception ex) {
-                logger.warning("HexPvpSmp: skipping town '" + key + "': " + ex.getMessage());
+                logger.warning("HexPvpSmp: skipping no-build zone '" + key + "': " + ex.getMessage());
             }
         }
-        return new TownsConfig(provider, output);
+        return output;
+    }
+
+    private List<PublicChest> loadPublicChests(ConfigurationSection section, Logger logger,
+                                               String worldKey, String worldRaw) {
+        if (section == null) {
+            return List.of();
+        }
+        List<PublicChest> output = new ArrayList<>();
+        for (String key : section.getKeys(false)) {
+            ConfigurationSection c = section.getConfigurationSection(key);
+            if (c == null) {
+                continue;
+            }
+            try {
+                // 'world' is optional; defaults to the enclosing world section.
+                String world = c.getString("world", worldKey);
+                int x = c.getInt("x");
+                int y = c.getInt("y");
+                int z = c.getInt("z");
+                output.add(new PublicChest(world, x, y, z));
+            } catch (Exception ex) {
+                logger.warning("HexPvpSmp: skipping public-chest '" + key
+                        + "' in '" + worldRaw + "': " + ex.getMessage());
+            }
+        }
+        return output;
     }
 
     private Cuboid readCuboid(ConfigurationSection section, Logger logger, String path) {
@@ -147,15 +181,19 @@ public final class HexPvpConfigLoader {
             return null;
         }
         try {
+            // Regions are vertically unbounded X/Z columns. Legacy configs may
+            // still carry min-y/max-y — tolerate them, but ignore + warn once.
+            if (section.isSet("min-y") || section.isSet("max-y")) {
+                logger.warning("HexPvpSmp: '" + path + "' has min-y/max-y — these are "
+                        + "ignored; regions now protect all heights (X/Z only).");
+            }
             double minX = section.getDouble("min-x");
             double maxX = section.getDouble("max-x");
-            double minY = section.getDouble("min-y");
-            double maxY = section.getDouble("max-y");
             double minZ = section.getDouble("min-z");
             double maxZ = section.getDouble("max-z");
             return new Cuboid(
-                    Math.min(minX, maxX), Math.min(minY, maxY), Math.min(minZ, maxZ),
-                    Math.max(minX, maxX), Math.max(minY, maxY), Math.max(minZ, maxZ)
+                    Math.min(minX, maxX), Math.min(minZ, maxZ),
+                    Math.max(minX, maxX), Math.max(minZ, maxZ)
             );
         } catch (Exception ex) {
             logger.warning("HexPvpSmp: invalid cuboid at " + path + ": " + ex.getMessage());

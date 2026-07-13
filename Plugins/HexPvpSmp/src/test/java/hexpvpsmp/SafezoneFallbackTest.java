@@ -130,7 +130,7 @@ class SafezoneFallbackTest {
         server.getScheduler().performOneTick();
 
         ProtectionService protection = plugin.protectionService();
-        assertFalse(protection.isInSafezone(player.getLocation()),
+        assertTrue(protection.safezonesAt(player.getLocation()).isEmpty(),
                 "after fallback the player must be outside any safezone");
     }
 }

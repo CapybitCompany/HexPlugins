@@ -10,13 +10,17 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.projectiles.ProjectileSource;
 
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * Cancels PvP damage inside any safezone; outside, tags both players.
- * Cancelled hits never tag, per spec.
+ * Cancelled hits never tag, per spec. Also drops the combat tag on a real
+ * death — combat-log-on-quit punishment lives in {@code CombatLogListener}
+ * and is untouched by this.
  */
 public final class CombatListener implements Listener {
 
@@ -43,12 +47,14 @@ public final class CombatListener implements Listener {
         ProtectionService protection = plugin.protectionService();
         MessageService messages = plugin.messageService();
 
-        // Either side inside a safezone -> no PvP.
-        boolean victimInSafezone = protection.isInSafezone(victim.getLocation());
-        boolean attackerInSafezone = protection.isInSafezone(attacker.getLocation());
-        if (victimInSafezone || attackerInSafezone) {
+        // Either side inside a spawn safezone -> no PvP. No-build zones do NOT
+        // block PvP, only building.
+        boolean victimProtected = protection.isPvpProtected(victim.getLocation());
+        boolean attackerProtected = protection.isPvpProtected(attacker.getLocation());
+        if (victimProtected || attackerProtected) {
             event.setCancelled(true);
-            messages.sendChat(attacker, config.safezones().pvpDenyMessage());
+            messages.sendChat(attacker, config.messages().pvpDenied());
+            plugin.debugLog("PvP denied: " + attacker.getName() + " -> " + victim.getName() + " (safezone)");
             return;
         }
 
@@ -59,6 +65,22 @@ public final class CombatListener implements Listener {
         }
         if (!PermissionGate.bypasses(victim)) {
             tagger.tag(victim);
+        }
+    }
+
+    /**
+     * A player who actually died should not stay combat-tagged. Clear the tag
+     * (and their message cooldowns) so respawn/teleport is not blocked and the
+     * actionbar stops. This is independent of the combat-log-on-quit flow.
+     */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onDeath(PlayerDeathEvent event) {
+        Player player = event.getEntity();
+        UUID playerId = player.getUniqueId();
+        CombatTagService tagger = plugin.combatTagService();
+        if (tagger != null && tagger.untag(playerId)) {
+            plugin.messageService().clearCooldowns(playerId);
+            plugin.debugLog("Combat tag cleared on death for " + player.getName());
         }
     }
 

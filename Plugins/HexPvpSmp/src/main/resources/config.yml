@@ -1,7 +1,11 @@
 # ==========================================================
 # HexPvpSmp - global config
+# All player/admin UI text is Polish. This plugin owns spawn
+# protection entirely (no WorldGuard). Towns are managed by a
+# separate plugin and are NOT handled here.
 # ==========================================================
 enabled: true
+# When true, protection decisions (pvp/build/mob denials) are logged.
 debug: false
 
 combat:
@@ -24,43 +28,66 @@ combat:
     drop-inventory: true
     # When enabled, drop the player's accumulated XP and reset level.
     drop-exp: true
-    broadcast: "&c<player> logged out during combat and died."
+    broadcast: "&c<player> wylogował się podczas walki i zginął."
+
+# All user-facing messages. <command> and <seconds> are placeholders.
+messages:
+  no-permission: "&cNie masz uprawnień."
+  pvp-denied: "&cPvP jest tutaj wyłączone."
+  safezone-entry-denied: "&cNie możesz wejść na spawn podczas walki."
+  command-blocked: "&cNie możesz użyć &f/<command> &cpodczas walki."
+  combat-actionbar: "&cWalka: &f<seconds>s"
+  leaving-spawn: "&eOpuszczasz ochronę spawnu."
+  build-denied: "&cNie możesz tutaj budować."
+  reload-success: "&aHexPvpSmp przeładowany."
+  reload-failed: "&cPrzeładowanie nie powiodło się. Sprawdź konsolę."
 
 safezones:
   block-entry-while-combat: true
-  entry-message: "&cYou cannot enter a safezone while in combat."
-  pvp-deny-message: "&cPvP is disabled here."
   # Rate-limit per-player warning chat/actionbar messages.
   warning-cooldown-ticks: 20
 
+# Regions are horizontal X/Z areas and protect EVERY height automatically
+# (from world bottom to top). Only min-x/max-x/min-z/max-z are used; there is
+# no min-y/max-y. This stops players bypassing spawn protection by building
+# above or tunnelling below the box. (Legacy min-y/max-y are ignored + warned.)
 worlds:
   world:
     enabled: true
+
+    # SPAWN_SAFEZONE: no PvP, no build, blocks combat-tagged entry, blocks mobs.
     spawn:
       enabled: true
+      block-mob-spawns: true
       region:
         type: CUBOID
         min-x: -100
         max-x: 100
-        min-y: -64
-        max-y: 320
         min-z: -100
         max-z: 100
       red-line:
         enabled: true
-        # Blocks from spawn boundary that trigger a warning.
+        # Blocks from spawn boundary that trigger the "leaving spawn" warning.
         warning-distance: 5
-        message: "&eYou are leaving spawn protection."
 
-towns:
-  # CONFIG = static YAML below. WORLDGUARD is reserved for a future provider.
-  provider: CONFIG
-  regions:
-    example_town:
-      world: world
-      min-x: 200
-      max-x: 300
-      min-y: -64
-      max-y: 320
-      min-z: 200
-      max-z: 300
+    # NO_BUILD: PvP allowed, combat allowed, but building/breaking is denied.
+    # Keeps the area in front of spawn clean without being a PvP safe haven.
+    no-build-zones:
+      front_spawn:
+        enabled: true
+        region:
+          type: CUBOID
+          min-x: -150
+          max-x: 150
+          min-z: 101
+          max-z: 180
+
+    # Public chests: block coordinates players may open/use inside spawn.
+    # They are protected from being broken/exploded. List each half of a
+    # double chest separately.
+    public-chests:
+      spawn_public:
+        world: world
+        x: 0
+        y: 65
+        z: 0
