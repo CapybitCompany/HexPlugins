@@ -1,6 +1,7 @@
 package hexchat.service;
 
 import hexchat.config.HexChatConfig;
+import hexchat.permission.HexChatPermissions;
 import hexchat.util.CommandNormalizationUtil;
 import org.bukkit.entity.Player;
 
@@ -27,7 +28,7 @@ public final class TabCompleteFilterService {
 
     public void filterCommandSendSuggestions(Player player, Collection<String> commands) {
         State state = stateRef.get();
-        if (!state.enabled || player.hasPermission(state.bypassPermission)) {
+        if (!state.enabled || isBypassed(player, state)) {
             return;
         }
 
@@ -36,11 +37,19 @@ public final class TabCompleteFilterService {
 
     public void filterTabCompletions(Player player, List<String> completions) {
         State state = stateRef.get();
-        if (!state.enabled || player.hasPermission(state.bypassPermission)) {
+        if (!state.enabled || isBypassed(player, state)) {
             return;
         }
 
         completions.removeIf(state::matches);
+    }
+
+    // Spójnie z CommandFilterService: OP oraz gracze z uprawnieniem administratora
+    // pomijają filtr, tak samo jak posiadacze dedykowanego uprawnienia bypass.
+    private boolean isBypassed(Player player, State state) {
+        return player.isOp()
+                || player.hasPermission(HexChatPermissions.ADMIN)
+                || player.hasPermission(state.bypassPermission);
     }
 
     private record State(

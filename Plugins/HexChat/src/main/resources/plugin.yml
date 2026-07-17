@@ -1,7 +1,7 @@
 name: HexChat
 version: '1.0.0'
 main: hexchat.HexChatPlugin
-api-version: '1.21'
+api-version: '1.21.11'
 description: System czatu dla sieci Hex
 authors: [HexDevTeam]
 softdepend:

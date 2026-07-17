@@ -383,18 +383,7 @@ public final class HexChatConfigLoader {
             return fallback;
         }
 
-        List<String> parsed = new ArrayList<>();
-        for (String rawValue : rawValues) {
-            if (rawValue == null) {
-                continue;
-            }
-
-            String value = rawValue.trim();
-            if (!value.isBlank()) {
-                parsed.add(value);
-            }
-        }
-
+        List<String> parsed = parseNonBlankList(rawValues);
         if (parsed.isEmpty()) {
             logger.warning("Brak poprawnych wpisów '" + path + "' w config.yml. Używam wartości domyślnej.");
             return fallback;
@@ -410,19 +399,36 @@ public final class HexChatConfigLoader {
             List<String> fallback,
             Logger logger
     ) {
-        List<String> values = readNonBlankStringList(config, path, List.of(), logger);
+        // Odczyt surowy bez logowania: dla nowoczesnych configów z poprawną listą
+        // nie generujemy żadnych ostrzeżeń (regresja z wcześniejszego "czytaj z pustym fallbackiem").
+        List<String> values = parseNonBlankList(config.getStringList(path));
         if (!values.isEmpty()) {
-            return values;
+            return List.copyOf(values);
         }
 
-        List<String> legacyValues = readNonBlankStringList(config, legacyPath, List.of(), logger);
+        List<String> legacyValues = parseNonBlankList(config.getStringList(legacyPath));
         if (!legacyValues.isEmpty()) {
             logger.warning("Wykryto legacy klucz '" + legacyPath + "'. Zmień na '" + path + "'.");
-            return legacyValues;
+            return List.copyOf(legacyValues);
         }
 
         logger.warning("Brak poprawnych wpisów '" + path + "' w config.yml. Używam wartości domyślnej.");
         return fallback;
+    }
+
+    private List<String> parseNonBlankList(List<String> rawValues) {
+        List<String> parsed = new ArrayList<>();
+        for (String rawValue : rawValues) {
+            if (rawValue == null) {
+                continue;
+            }
+
+            String value = rawValue.trim();
+            if (!value.isBlank()) {
+                parsed.add(value);
+            }
+        }
+        return parsed;
     }
 
     private String readNonBlank(FileConfiguration config, String path, String fallback, Logger logger) {
