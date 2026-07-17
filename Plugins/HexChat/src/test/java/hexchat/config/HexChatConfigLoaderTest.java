@@ -168,6 +168,63 @@ class HexChatConfigLoaderTest {
     }
 
     @Test
+    void loadsContentFilterPlayerMuteAndConflictGuardDefaults() {
+        CapturingLogger log = new CapturingLogger();
+        HexChatConfig config = load("chat:\n  enabled: true\n", log);
+
+        assertTrue(config.contentFilter().enabled());
+        assertEquals("hexchat.filter.bypass", config.contentFilter().bypassPermission());
+        assertEquals("***", config.contentFilter().censorMask());
+        assertEquals(HexChatConfig.FilterAction.BLOCK, config.contentFilter().antiAdvertising().action());
+        assertTrue(config.playerMute().enabled());
+        assertEquals("hexchat.mute.bypass", config.playerMute().bypassPermission());
+        assertTrue(config.chat().conflictGuard().enabled());
+        assertFalse(config.chat().conflictGuard().enforceFormat());
+        assertFalse(config.chat().conflictGuard().knownChatPlugins().isEmpty());
+    }
+
+    @Test
+    void invalidFilterActionFallsBackToBlock() {
+        CapturingLogger log = new CapturingLogger();
+        String yaml = ""
+                + "content-filter:\n"
+                + "  blacklist:\n"
+                + "    action: \"NIEZNANE\"\n";
+        HexChatConfig config = load(yaml, log);
+
+        assertEquals(HexChatConfig.FilterAction.BLOCK, config.contentFilter().blacklist().action());
+        assertTrue(log.hasWarningContaining("action"));
+    }
+
+    @Test
+    void parsesCensorActionCaseInsensitive() {
+        CapturingLogger log = new CapturingLogger();
+        String yaml = ""
+                + "content-filter:\n"
+                + "  anti-advertising:\n"
+                + "    action: \"censor\"\n";
+        HexChatConfig config = load(yaml, log);
+
+        assertEquals(HexChatConfig.FilterAction.CENSOR, config.contentFilter().antiAdvertising().action());
+    }
+
+    @Test
+    void antiSpamValuesAreClampedToSaneRanges() {
+        CapturingLogger log = new CapturingLogger();
+        String yaml = ""
+                + "content-filter:\n"
+                + "  anti-spam:\n"
+                + "    max-repeated-messages: 1\n"
+                + "    max-caps-percentage: 500\n"
+                + "    min-length-for-caps-check: -3\n";
+        HexChatConfig config = load(yaml, log);
+
+        assertEquals(2, config.contentFilter().antiSpam().maxRepeatedMessages());
+        assertEquals(100, config.contentFilter().antiSpam().maxCapsPercentage());
+        assertEquals(1, config.contentFilter().antiSpam().minLengthForCapsCheck());
+    }
+
+    @Test
     void allowedCommandsUseLegacyBlockedCommandsKeyWhenModernMissing() {
         CapturingLogger log = new CapturingLogger();
         String yaml = ""

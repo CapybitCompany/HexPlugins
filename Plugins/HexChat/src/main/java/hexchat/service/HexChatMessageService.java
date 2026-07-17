@@ -79,6 +79,84 @@ public final class HexChatMessageService {
         sendPrefixed(sender, message, "command-filter.block-message");
     }
 
+    public void sendContentBlocked(CommandSender sender, String message) {
+        sendPrefixed(sender, message, "content-filter.block-message");
+    }
+
+    public void sendPrivateMuted(CommandSender sender, String timeText, String reason) {
+        sendPrefixed(
+                sender,
+                configSupplier.get().messages().privateMuted(),
+                "messages.private-muted",
+                TagResolver.resolver(
+                        Placeholder.unparsed("time", timeText),
+                        Placeholder.unparsed("reason", reason)
+                )
+        );
+    }
+
+    public void sendPlayerMuteSet(CommandSender sender, String playerName, String timeText, String reason) {
+        sendPrefixed(
+                sender,
+                configSupplier.get().messages().playerMuteSet(),
+                "messages.player-mute-set",
+                TagResolver.resolver(
+                        Placeholder.unparsed("player", playerName),
+                        Placeholder.unparsed("time", timeText),
+                        Placeholder.unparsed("reason", reason)
+                )
+        );
+    }
+
+    public void sendPlayerMuteRemoved(CommandSender sender, String playerName) {
+        sendPrefixed(
+                sender,
+                configSupplier.get().messages().playerMuteRemoved(),
+                "messages.player-mute-removed",
+                Placeholder.unparsed("player", playerName)
+        );
+    }
+
+    public void sendPlayerMuteNotMuted(CommandSender sender, String playerName) {
+        sendPrefixed(
+                sender,
+                configSupplier.get().messages().playerMuteNotMuted(),
+                "messages.player-mute-not-muted",
+                Placeholder.unparsed("player", playerName)
+        );
+    }
+
+    public void sendPlayerMuteTargetNotFound(CommandSender sender, String playerName) {
+        sendPrefixed(
+                sender,
+                configSupplier.get().messages().playerMuteTargetNotFound(),
+                "messages.player-mute-target-not-found",
+                Placeholder.unparsed("player", playerName)
+        );
+    }
+
+    public void sendPlayerMuteInfo(CommandSender sender, String playerName, String timeText, String reason) {
+        sendPrefixed(
+                sender,
+                configSupplier.get().messages().playerMuteInfo(),
+                "messages.player-mute-info",
+                TagResolver.resolver(
+                        Placeholder.unparsed("player", playerName),
+                        Placeholder.unparsed("time", timeText),
+                        Placeholder.unparsed("reason", reason)
+                )
+        );
+    }
+
+    public void sendPlayerMuteDurationInvalid(CommandSender sender, String input) {
+        sendPrefixed(
+                sender,
+                configSupplier.get().messages().playerMuteDurationInvalid(),
+                "messages.player-mute-duration-invalid",
+                Placeholder.unparsed("input", input)
+        );
+    }
+
     public void sendHelpUnavailable(CommandSender sender, String body) {
         sendPrefixed(sender, body, "help.unavailable-message");
     }

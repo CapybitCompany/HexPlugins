@@ -21,6 +21,8 @@ class HexChatMessageServiceTest {
         return new HexChatConfig(
                 TestConfigs.chat(),
                 TestConfigs.cooldown(),
+                TestConfigs.contentFilter(),
+                TestConfigs.playerMute(),
                 TestConfigs.autoMessages(),
                 TestConfigs.commandFilter(),
                 TestConfigs.tabCompleteFilter(),
@@ -37,7 +39,8 @@ class HexChatMessageServiceTest {
                 "<yellow>usage</yellow>",
                 cooldownWait,
                 "<red>muted</red>",
-                "e", "d", "ae", "ad", "se", "sd"
+                "e", "d", "ae", "ad", "se", "sd",
+                "pm", "ms", "mr", "mn", "mt", "mi", "md"
         );
     }
 

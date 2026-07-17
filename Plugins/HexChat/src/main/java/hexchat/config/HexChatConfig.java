@@ -6,6 +6,8 @@ import java.util.Objects;
 public record HexChatConfig(
         Chat chat,
         Cooldown cooldown,
+        ContentFilter contentFilter,
+        PlayerMute playerMute,
         AutoMessages autoMessages,
         CommandFilter commandFilter,
         TabCompleteFilter tabCompleteFilter,
@@ -15,6 +17,8 @@ public record HexChatConfig(
     public HexChatConfig {
         chat = Objects.requireNonNull(chat, "chat");
         cooldown = Objects.requireNonNull(cooldown, "cooldown");
+        contentFilter = Objects.requireNonNull(contentFilter, "contentFilter");
+        playerMute = Objects.requireNonNull(playerMute, "playerMute");
         autoMessages = Objects.requireNonNull(autoMessages, "autoMessages");
         commandFilter = Objects.requireNonNull(commandFilter, "commandFilter");
         tabCompleteFilter = Objects.requireNonNull(tabCompleteFilter, "tabCompleteFilter");
@@ -25,11 +29,13 @@ public record HexChatConfig(
     public record Chat(
             boolean enabled,
             String format,
-            GlobalMute globalMute
+            GlobalMute globalMute,
+            ConflictGuard conflictGuard
     ) {
         public Chat {
             format = Objects.requireNonNull(format, "format");
             globalMute = Objects.requireNonNull(globalMute, "globalMute");
+            conflictGuard = Objects.requireNonNull(conflictGuard, "conflictGuard");
             if (format.isBlank()) {
                 throw new IllegalArgumentException("format cannot be blank");
             }
@@ -45,6 +51,112 @@ public record HexChatConfig(
             bypassPermission = Objects.requireNonNull(bypassPermission, "bypassPermission");
             if (bypassPermission.isBlank()) {
                 throw new IllegalArgumentException("bypassPermission cannot be blank");
+            }
+        }
+    }
+
+    /**
+     * Ochrona przed konfliktami z innymi pluginami zarządzającymi czatem.
+     * HexChat nigdy nie modyfikuje podpisanej treści wiadomości (tylko anuluje lub
+     * podmienia render/wyświetlanie), więc sam nie powoduje "Chat Verification Error".
+     * Guard wykrywa i raportuje inne pluginy czatu, a opcjonalnie wymusza render HexChat.
+     */
+    public record ConflictGuard(
+            boolean enabled,
+            boolean warnOnConflict,
+            boolean enforceFormat,
+            List<String> knownChatPlugins
+    ) {
+        public ConflictGuard {
+            knownChatPlugins = List.copyOf(Objects.requireNonNull(knownChatPlugins, "knownChatPlugins"));
+        }
+    }
+
+    public record ContentFilter(
+            boolean enabled,
+            String bypassPermission,
+            String censorMask,
+            AntiAdvertising antiAdvertising,
+            Blacklist blacklist,
+            AntiSpam antiSpam
+    ) {
+        public ContentFilter {
+            bypassPermission = Objects.requireNonNull(bypassPermission, "bypassPermission");
+            if (bypassPermission.isBlank()) {
+                throw new IllegalArgumentException("bypassPermission cannot be blank");
+            }
+            censorMask = Objects.requireNonNull(censorMask, "censorMask");
+            if (censorMask.isBlank()) {
+                throw new IllegalArgumentException("censorMask cannot be blank");
+            }
+            antiAdvertising = Objects.requireNonNull(antiAdvertising, "antiAdvertising");
+            blacklist = Objects.requireNonNull(blacklist, "blacklist");
+            antiSpam = Objects.requireNonNull(antiSpam, "antiSpam");
+        }
+    }
+
+    public enum FilterAction {
+        BLOCK,
+        CENSOR
+    }
+
+    public record AntiAdvertising(
+            boolean enabled,
+            FilterAction action,
+            String blockMessage,
+            List<String> allowedDomains,
+            List<String> extraPatterns
+    ) {
+        public AntiAdvertising {
+            action = Objects.requireNonNull(action, "action");
+            blockMessage = Objects.requireNonNull(blockMessage, "blockMessage");
+            allowedDomains = List.copyOf(Objects.requireNonNull(allowedDomains, "allowedDomains"));
+            extraPatterns = List.copyOf(Objects.requireNonNull(extraPatterns, "extraPatterns"));
+        }
+    }
+
+    public record Blacklist(
+            boolean enabled,
+            FilterAction action,
+            String blockMessage,
+            boolean matchLeetspeak,
+            List<String> words
+    ) {
+        public Blacklist {
+            action = Objects.requireNonNull(action, "action");
+            blockMessage = Objects.requireNonNull(blockMessage, "blockMessage");
+            words = List.copyOf(Objects.requireNonNull(words, "words"));
+        }
+    }
+
+    public record AntiSpam(
+            boolean enabled,
+            String blockMessage,
+            int maxRepeatedMessages,
+            int maxCapsPercentage,
+            int minLengthForCapsCheck
+    ) {
+        public AntiSpam {
+            blockMessage = Objects.requireNonNull(blockMessage, "blockMessage");
+            maxRepeatedMessages = Math.max(2, maxRepeatedMessages);
+            maxCapsPercentage = Math.min(100, Math.max(0, maxCapsPercentage));
+            minLengthForCapsCheck = Math.max(1, minLengthForCapsCheck);
+        }
+    }
+
+    public record PlayerMute(
+            boolean enabled,
+            String bypassPermission,
+            String defaultReason
+    ) {
+        public PlayerMute {
+            bypassPermission = Objects.requireNonNull(bypassPermission, "bypassPermission");
+            if (bypassPermission.isBlank()) {
+                throw new IllegalArgumentException("bypassPermission cannot be blank");
+            }
+            defaultReason = Objects.requireNonNull(defaultReason, "defaultReason");
+            if (defaultReason.isBlank()) {
+                throw new IllegalArgumentException("defaultReason cannot be blank");
             }
         }
     }
@@ -178,7 +290,14 @@ public record HexChatConfig(
             String chatMuteAlreadyEnabled,
             String chatMuteAlreadyDisabled,
             String chatMuteStatusEnabled,
-            String chatMuteStatusDisabled
+            String chatMuteStatusDisabled,
+            String privateMuted,
+            String playerMuteSet,
+            String playerMuteRemoved,
+            String playerMuteNotMuted,
+            String playerMuteTargetNotFound,
+            String playerMuteInfo,
+            String playerMuteDurationInvalid
     ) {
         public Messages {
             prefix = Objects.requireNonNull(prefix, "prefix");
@@ -193,6 +312,13 @@ public record HexChatConfig(
             chatMuteAlreadyDisabled = Objects.requireNonNull(chatMuteAlreadyDisabled, "chatMuteAlreadyDisabled");
             chatMuteStatusEnabled = Objects.requireNonNull(chatMuteStatusEnabled, "chatMuteStatusEnabled");
             chatMuteStatusDisabled = Objects.requireNonNull(chatMuteStatusDisabled, "chatMuteStatusDisabled");
+            privateMuted = Objects.requireNonNull(privateMuted, "privateMuted");
+            playerMuteSet = Objects.requireNonNull(playerMuteSet, "playerMuteSet");
+            playerMuteRemoved = Objects.requireNonNull(playerMuteRemoved, "playerMuteRemoved");
+            playerMuteNotMuted = Objects.requireNonNull(playerMuteNotMuted, "playerMuteNotMuted");
+            playerMuteTargetNotFound = Objects.requireNonNull(playerMuteTargetNotFound, "playerMuteTargetNotFound");
+            playerMuteInfo = Objects.requireNonNull(playerMuteInfo, "playerMuteInfo");
+            playerMuteDurationInvalid = Objects.requireNonNull(playerMuteDurationInvalid, "playerMuteDurationInvalid");
         }
     }
 }

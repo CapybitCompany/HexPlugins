@@ -11,7 +11,7 @@ softdepend:
 commands:
   hexchat:
     description: Zarządzanie pluginem HexChat
-    usage: /hexchat <reload|mute|unmute|togglemute|mutestatus>
+    usage: /hexchat <reload|mute|unmute|togglemute|mutestatus|muteinfo> [gracz] [czas] [powód]
     permission: hexchat.admin
 
 permissions:
@@ -30,6 +30,12 @@ permissions:
   hexchat.tabcomplete.bypass:
     description: Pomija filtr podpowiedzi komend
     default: false
+  hexchat.filter.bypass:
+    description: Pomija filtr treści (reklama/blacklista/spam)
+    default: op
+  hexchat.mute.bypass:
+    description: Pomija indywidualne wyciszenie gracza
+    default: op
   chat.cooldown.bypass:
     description: Legacy bypass cooldownu (dla kompatybilności)
     default: false

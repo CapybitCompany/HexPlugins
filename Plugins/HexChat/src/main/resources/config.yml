@@ -5,6 +5,55 @@ chat:
     enabled: true
     initially-muted: false
     bypass-permission: "hexchat.chatmute.bypass"
+  # Ochrona przed konfliktami z innymi pluginami czatu (typowa przyczyna "Chat Verification Error").
+  # HexChat nigdy nie zmienia podpisanej treści wiadomości — tylko anuluje lub podmienia render.
+  conflict-guard:
+    enabled: true
+    warn-on-conflict: true      # loguj ostrzeżenie, gdy wykryto inny plugin czatu
+    enforce-format: false       # true = HexChat zawsze narzuca swój format; false = ustępuje przy konflikcie
+    known-chat-plugins:
+      - "EssentialsXChat"
+      - "VentureChat"
+      - "ChatControl"
+      - "ChatControlRed"
+      - "DeluxeChat"
+      - "TownyChat"
+      - "Chatty"
+      - "CMI"
+      - "AdvancedChat"
+
+# Filtr treści czatu: reklama, blacklista słów (hate speech) i anti-spam.
+# action: BLOCK (anuluje wiadomość) lub CENSOR (maskuje dopasowania tylko w wyświetlaniu).
+content-filter:
+  enabled: true
+  bypass-permission: "hexchat.filter.bypass"
+  censor-mask: "***"
+  anti-advertising:
+    enabled: true
+    action: "BLOCK"
+    block-message: "<red>Reklamy i linki są zabronione.</red>"
+    allowed-domains:
+      - "twojserwer.pl"
+    extra-patterns: []          # dodatkowe wzorce regex (opcjonalnie)
+  blacklist:
+    enabled: true
+    action: "BLOCK"
+    block-message: "<red>Twoja wiadomość zawiera niedozwolone słowa.</red>"
+    match-leetspeak: true       # wykrywaj podstawienia typu 4=a, 3=e, 0=o
+    words: []                   # wpisz tutaj zabronione słowa (małymi literami)
+  anti-spam:
+    enabled: true
+    block-message: "<red>Nie spamuj na czacie.</red>"
+    max-repeated-messages: 3    # blokuj po N identycznych wiadomościach z rzędu
+    max-caps-percentage: 70     # maks. % wielkich liter
+    min-length-for-caps-check: 8
+
+# Indywidualne (per gracz) wyciszenia, uzupełnienie globalnego wyciszenia.
+# Zapisywane w mutes.yml w folderze pluginu. Obsługa: /hexchat mute <gracz> [czas] [powód]
+player-mute:
+  enabled: true
+  bypass-permission: "hexchat.mute.bypass"
+  default-reason: "Naruszenie regulaminu czatu."
 
 cooldown:
   enabled: true
@@ -90,3 +139,10 @@ messages:
   chat-mute-already-disabled: "<yellow>Czat globalny nie jest wyciszony.</yellow>"
   chat-mute-status-enabled: "<red>Status czatu: WYCISZONY.</red>"
   chat-mute-status-disabled: "<green>Status czatu: AKTYWNY.</green>"
+  private-muted: "<red>Jesteś wyciszony (<time>). Powód: <reason></red>"
+  player-mute-set: "<green>Wyciszono gracza <white><player></white> na <white><time></white>. Powód: <reason></green>"
+  player-mute-removed: "<green>Zdjęto wyciszenie z gracza <white><player></white>.</green>"
+  player-mute-not-muted: "<yellow>Gracz <white><player></white> nie jest wyciszony.</yellow>"
+  player-mute-target-not-found: "<red>Nie znaleziono gracza <white><player></white>.</red>"
+  player-mute-info: "<gold>Gracz <white><player></white> jest wyciszony (<time>). Powód: <reason></gold>"
+  player-mute-duration-invalid: "<red>Niepoprawny czas trwania: <white><input></white>. Przykłady: 30m, 2h, 7d, perm.</red>"

@@ -67,6 +67,32 @@ public final class HexChatConfigLoader {
             "minecraft:version",
             "paper:version"
     );
+    private static final String DEFAULT_CONTENT_FILTER_BYPASS_PERMISSION = "hexchat.filter.bypass";
+    private static final String DEFAULT_PLAYER_MUTE_BYPASS_PERMISSION = "hexchat.mute.bypass";
+    private static final String DEFAULT_CENSOR_MASK = "***";
+    private static final String DEFAULT_AD_BLOCK_MESSAGE = "<red>Reklamy i linki są zabronione.</red>";
+    private static final String DEFAULT_BLACKLIST_BLOCK_MESSAGE = "<red>Twoja wiadomość zawiera niedozwolone słowa.</red>";
+    private static final String DEFAULT_SPAM_BLOCK_MESSAGE = "<red>Nie spamuj na czacie.</red>";
+    private static final String DEFAULT_MUTE_REASON = "Naruszenie regulaminu czatu.";
+    private static final List<String> DEFAULT_ALLOWED_DOMAINS = List.of("twojserwer.pl");
+    private static final List<String> DEFAULT_KNOWN_CHAT_PLUGINS = List.of(
+            "EssentialsXChat",
+            "VentureChat",
+            "ChatControl",
+            "ChatControlRed",
+            "DeluxeChat",
+            "TownyChat",
+            "Chatty",
+            "CMI",
+            "AdvancedChat"
+    );
+    private static final String DEFAULT_PRIVATE_MUTED = "<red>Jesteś wyciszony (<time>). Powód: <reason></red>";
+    private static final String DEFAULT_PLAYER_MUTE_SET = "<green>Wyciszono gracza <white><player></white> na <white><time></white>. Powód: <reason></green>";
+    private static final String DEFAULT_PLAYER_MUTE_REMOVED = "<green>Zdjęto wyciszenie z gracza <white><player></white>.</green>";
+    private static final String DEFAULT_PLAYER_MUTE_NOT_MUTED = "<yellow>Gracz <white><player></white> nie jest wyciszony.</yellow>";
+    private static final String DEFAULT_PLAYER_MUTE_TARGET_NOT_FOUND = "<red>Nie znaleziono gracza <white><player></white>.</red>";
+    private static final String DEFAULT_PLAYER_MUTE_INFO = "<gold>Gracz <white><player></white> jest wyciszony (<time>). Powód: <reason></gold>";
+    private static final String DEFAULT_PLAYER_MUTE_DURATION_INVALID = "<red>Niepoprawny czas trwania: <white><input></white>. Przykłady: 30m, 2h, 7d, perm.</red>";
     private static final List<String> DEFAULT_HELP_ALIASES = List.of("help");
     private static final List<String> DEFAULT_HELP_CUSTOM_LINES = List.of(
             "<gold>Najważniejsze komendy:</gold>",
@@ -86,6 +112,8 @@ public final class HexChatConfigLoader {
 
         HexChatConfig.Chat chat = loadChat(config, logger);
         HexChatConfig.Cooldown cooldown = loadCooldown(config, logger);
+        HexChatConfig.ContentFilter contentFilter = loadContentFilter(config, logger);
+        HexChatConfig.PlayerMute playerMute = loadPlayerMute(config, logger);
         HexChatConfig.AutoMessages autoMessages = loadAutoMessages(config, logger);
         HexChatConfig.CommandFilter commandFilter = loadCommandFilter(config, logger);
         HexChatConfig.TabCompleteFilter tabCompleteFilter = loadTabCompleteFilter(config, logger);
@@ -95,6 +123,8 @@ public final class HexChatConfigLoader {
         return new HexChatConfig(
                 chat,
                 cooldown,
+                contentFilter,
+                playerMute,
                 autoMessages,
                 commandFilter,
                 tabCompleteFilter,
@@ -116,7 +146,83 @@ public final class HexChatConfigLoader {
         );
 
         HexChatConfig.GlobalMute globalMute = new HexChatConfig.GlobalMute(globalMuteEnabled, initiallyMuted, bypassPermission);
-        return new HexChatConfig.Chat(enabled, format, globalMute);
+        HexChatConfig.ConflictGuard conflictGuard = loadConflictGuard(config, logger);
+        return new HexChatConfig.Chat(enabled, format, globalMute, conflictGuard);
+    }
+
+    private HexChatConfig.ConflictGuard loadConflictGuard(FileConfiguration config, Logger logger) {
+        boolean enabled = config.getBoolean("chat.conflict-guard.enabled", true);
+        boolean warnOnConflict = config.getBoolean("chat.conflict-guard.warn-on-conflict", true);
+        boolean enforceFormat = config.getBoolean("chat.conflict-guard.enforce-format", false);
+        List<String> knownChatPlugins = readNonBlankStringList(
+                config,
+                "chat.conflict-guard.known-chat-plugins",
+                DEFAULT_KNOWN_CHAT_PLUGINS,
+                logger
+        );
+        return new HexChatConfig.ConflictGuard(enabled, warnOnConflict, enforceFormat, knownChatPlugins);
+    }
+
+    private HexChatConfig.ContentFilter loadContentFilter(FileConfiguration config, Logger logger) {
+        boolean enabled = config.getBoolean("content-filter.enabled", true);
+        String bypassPermission = readNonBlank(
+                config,
+                "content-filter.bypass-permission",
+                DEFAULT_CONTENT_FILTER_BYPASS_PERMISSION,
+                logger
+        );
+        String censorMask = readNonBlank(config, "content-filter.censor-mask", DEFAULT_CENSOR_MASK, logger);
+
+        HexChatConfig.AntiAdvertising antiAdvertising = new HexChatConfig.AntiAdvertising(
+                config.getBoolean("content-filter.anti-advertising.enabled", true),
+                readFilterAction(config, "content-filter.anti-advertising.action", logger),
+                readNonBlank(config, "content-filter.anti-advertising.block-message", DEFAULT_AD_BLOCK_MESSAGE, logger),
+                readNonBlankStringList(config, "content-filter.anti-advertising.allowed-domains", DEFAULT_ALLOWED_DOMAINS, logger),
+                config.getStringList("content-filter.anti-advertising.extra-patterns")
+        );
+
+        HexChatConfig.Blacklist blacklist = new HexChatConfig.Blacklist(
+                config.getBoolean("content-filter.blacklist.enabled", true),
+                readFilterAction(config, "content-filter.blacklist.action", logger),
+                readNonBlank(config, "content-filter.blacklist.block-message", DEFAULT_BLACKLIST_BLOCK_MESSAGE, logger),
+                config.getBoolean("content-filter.blacklist.match-leetspeak", true),
+                config.getStringList("content-filter.blacklist.words")
+        );
+
+        HexChatConfig.AntiSpam antiSpam = new HexChatConfig.AntiSpam(
+                config.getBoolean("content-filter.anti-spam.enabled", true),
+                readNonBlank(config, "content-filter.anti-spam.block-message", DEFAULT_SPAM_BLOCK_MESSAGE, logger),
+                config.getInt("content-filter.anti-spam.max-repeated-messages", 3),
+                config.getInt("content-filter.anti-spam.max-caps-percentage", 70),
+                config.getInt("content-filter.anti-spam.min-length-for-caps-check", 8)
+        );
+
+        return new HexChatConfig.ContentFilter(enabled, bypassPermission, censorMask, antiAdvertising, blacklist, antiSpam);
+    }
+
+    private HexChatConfig.PlayerMute loadPlayerMute(FileConfiguration config, Logger logger) {
+        boolean enabled = config.getBoolean("player-mute.enabled", true);
+        String bypassPermission = readNonBlank(
+                config,
+                "player-mute.bypass-permission",
+                DEFAULT_PLAYER_MUTE_BYPASS_PERMISSION,
+                logger
+        );
+        String defaultReason = readNonBlank(config, "player-mute.default-reason", DEFAULT_MUTE_REASON, logger);
+        return new HexChatConfig.PlayerMute(enabled, bypassPermission, defaultReason);
+    }
+
+    private HexChatConfig.FilterAction readFilterAction(FileConfiguration config, String path, Logger logger) {
+        String raw = config.getString(path, HexChatConfig.FilterAction.BLOCK.name());
+        if (raw == null || raw.isBlank()) {
+            return HexChatConfig.FilterAction.BLOCK;
+        }
+        try {
+            return HexChatConfig.FilterAction.valueOf(raw.trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException ex) {
+            logger.warning("Niepoprawna wartość '" + path + "': '" + raw + "'. Używam BLOCK.");
+            return HexChatConfig.FilterAction.BLOCK;
+        }
     }
 
     private HexChatConfig.Cooldown loadCooldown(FileConfiguration config, Logger logger) {
@@ -276,6 +382,23 @@ public final class HexChatConfigLoader {
                 DEFAULT_CHAT_MUTE_STATUS_DISABLED,
                 logger
         );
+        String privateMuted = readNonBlank(config, "messages.private-muted", DEFAULT_PRIVATE_MUTED, logger);
+        String playerMuteSet = readNonBlank(config, "messages.player-mute-set", DEFAULT_PLAYER_MUTE_SET, logger);
+        String playerMuteRemoved = readNonBlank(config, "messages.player-mute-removed", DEFAULT_PLAYER_MUTE_REMOVED, logger);
+        String playerMuteNotMuted = readNonBlank(config, "messages.player-mute-not-muted", DEFAULT_PLAYER_MUTE_NOT_MUTED, logger);
+        String playerMuteTargetNotFound = readNonBlank(
+                config,
+                "messages.player-mute-target-not-found",
+                DEFAULT_PLAYER_MUTE_TARGET_NOT_FOUND,
+                logger
+        );
+        String playerMuteInfo = readNonBlank(config, "messages.player-mute-info", DEFAULT_PLAYER_MUTE_INFO, logger);
+        String playerMuteDurationInvalid = readNonBlank(
+                config,
+                "messages.player-mute-duration-invalid",
+                DEFAULT_PLAYER_MUTE_DURATION_INVALID,
+                logger
+        );
 
         return new HexChatConfig.Messages(
                 prefix,
@@ -289,7 +412,14 @@ public final class HexChatConfigLoader {
                 chatMuteAlreadyEnabled,
                 chatMuteAlreadyDisabled,
                 chatMuteStatusEnabled,
-                chatMuteStatusDisabled
+                chatMuteStatusDisabled,
+                privateMuted,
+                playerMuteSet,
+                playerMuteRemoved,
+                playerMuteNotMuted,
+                playerMuteTargetNotFound,
+                playerMuteInfo,
+                playerMuteDurationInvalid
         );
     }
 
