@@ -1,6 +1,7 @@
 boosters:
   default-supported-tiers:
     - 1
+    - 2
 minion-types:
   cobblestone:
     enabled: true
@@ -38,60 +39,84 @@ minion-types:
         chance: 1.0
     tiers:
       1:
-        action-time-seconds: 14.0
+        action-time-seconds: 28.0
         storage: 64
         storage-slots: 1
         upgrade-requirements:
           collections: {}
           items: {}
       2:
-        action-time-seconds: 13.3
+        action-time-seconds: 26.6
         storage: 128
         storage-slots: 2
         upgrade-requirements:
-          collections:
-            mining.cobblestone: 3500
-          items: {}
+          collections: {}
+          items:
+            compressed_cobblestone:
+              special-item: compressed_cobblestone
+              amount: 11
+              display-name: Skompresowany Bruk
+              consume: true
       3:
-        action-time-seconds: 12.6
+        action-time-seconds: 25.2
         storage: 192
         storage-slots: 3
         upgrade-requirements:
-          collections:
-            mining.cobblestone: 10000
-          items: {}
+          collections: {}
+          items:
+            compressed_cobblestone:
+              special-item: compressed_cobblestone
+              amount: 32
+              display-name: Skompresowany Bruk
+              consume: true
       4:
-        action-time-seconds: 11.6
+        action-time-seconds: 23.2
         storage: 256
         storage-slots: 4
         upgrade-requirements:
-          collections:
-            mining.cobblestone: 100000
-          items: {}
+          collections: {}
+          items:
+            compressed_cobblestone:
+              special-item: compressed_cobblestone
+              amount: 313
+              display-name: Skompresowany Bruk
+              consume: true
       5:
-        action-time-seconds: 10.4
+        action-time-seconds: 20.8
         storage: 320
-        storage-slots: 5
-        upgrade-requirements:
-          collections:
-            mining.cobblestone: 175000
-          items: {}
-      6:
-        action-time-seconds: 8.8
-        storage: 384
         storage-slots: 6
         upgrade-requirements:
-          collections:
-            mining.cobblestone: 1000000
-          items: {}
-      7:
-        action-time-seconds: 7.0
-        storage: 448
+          collections: {}
+          items:
+            super_compressed_cobblestone:
+              special-item: super_compressed_cobblestone
+              amount: 4
+              display-name: Super skompresowany Bruk
+              consume: true
+      6:
+        action-time-seconds: 17.6
+        storage: 384
         storage-slots: 7
         upgrade-requirements:
-          collections:
-            mining.cobblestone: 1750000
-          items: {}
+          collections: {}
+          items:
+            super_compressed_cobblestone:
+              special-item: super_compressed_cobblestone
+              amount: 20
+              display-name: Super skompresowany Bruk
+              consume: true
+      7:
+        action-time-seconds: 14.0
+        storage: 448
+        storage-slots: 9
+        upgrade-requirements:
+          collections: {}
+          items:
+            super_compressed_cobblestone:
+              special-item: super_compressed_cobblestone
+              amount: 35
+              display-name: Super skompresowany Bruk
+              consume: true
     max-tier: 7
     wiki:
       special-items:
@@ -136,60 +161,84 @@ minion-types:
         chance: 1.0
     tiers:
       1:
-        action-time-seconds: 18.0
+        action-time-seconds: 36.0
         storage: 64
         storage-slots: 1
         upgrade-requirements:
           collections: {}
           items: {}
       2:
-        action-time-seconds: 17.1
+        action-time-seconds: 34.2
         storage: 128
         storage-slots: 2
         upgrade-requirements:
-          collections:
-            mining.iron: 3500
-          items: {}
+          collections: {}
+          items:
+            compressed_iron:
+              special-item: compressed_iron
+              amount: 11
+              display-name: Skompresowany Sztabka żelaza
+              consume: true
       3:
-        action-time-seconds: 16.2
+        action-time-seconds: 32.4
         storage: 192
         storage-slots: 3
         upgrade-requirements:
-          collections:
-            mining.iron: 10000
-          items: {}
+          collections: {}
+          items:
+            compressed_iron:
+              special-item: compressed_iron
+              amount: 32
+              display-name: Skompresowany Sztabka żelaza
+              consume: true
       4:
-        action-time-seconds: 14.9
+        action-time-seconds: 29.8
         storage: 256
         storage-slots: 4
         upgrade-requirements:
-          collections:
-            mining.iron: 100000
-          items: {}
+          collections: {}
+          items:
+            compressed_iron:
+              special-item: compressed_iron
+              amount: 313
+              display-name: Skompresowany Sztabka żelaza
+              consume: true
       5:
-        action-time-seconds: 13.3
+        action-time-seconds: 26.6
         storage: 320
-        storage-slots: 5
-        upgrade-requirements:
-          collections:
-            mining.iron: 175000
-          items: {}
-      6:
-        action-time-seconds: 11.3
-        storage: 384
         storage-slots: 6
         upgrade-requirements:
-          collections:
-            mining.iron: 1000000
-          items: {}
-      7:
-        action-time-seconds: 9.0
-        storage: 448
+          collections: {}
+          items:
+            super_compressed_iron:
+              special-item: super_compressed_iron
+              amount: 4
+              display-name: Super skompresowany Sztabka żelaza
+              consume: true
+      6:
+        action-time-seconds: 22.6
+        storage: 384
         storage-slots: 7
         upgrade-requirements:
-          collections:
-            mining.iron: 1750000
-          items: {}
+          collections: {}
+          items:
+            super_compressed_iron:
+              special-item: super_compressed_iron
+              amount: 20
+              display-name: Super skompresowany Sztabka żelaza
+              consume: true
+      7:
+        action-time-seconds: 18.0
+        storage: 448
+        storage-slots: 9
+        upgrade-requirements:
+          collections: {}
+          items:
+            super_compressed_iron:
+              special-item: super_compressed_iron
+              amount: 35
+              display-name: Super skompresowany Sztabka żelaza
+              consume: true
     max-tier: 7
     wiki:
       special-items:
@@ -244,65 +293,88 @@ minion-types:
         chance: 1.0
     tiers:
       1:
-        action-time-seconds: 10.0
+        action-time-seconds: 20.0
         storage: 64
         storage-slots: 1
         upgrade-requirements:
           collections: {}
           items: {}
       2:
-        action-time-seconds: 9.5
+        action-time-seconds: 19.0
         storage: 128
         storage-slots: 2
         upgrade-requirements:
-          collections:
-            mining.dirt: 10000
-          items: {}
+          collections: {}
+          items:
+            compressed_dirt:
+              special-item: compressed_dirt
+              amount: 32
+              display-name: Skompresowany Ziemia
+              consume: true
       3:
-        action-time-seconds: 9.0
+        action-time-seconds: 18.0
         storage: 192
         storage-slots: 3
         upgrade-requirements:
-          collections:
-            mining.dirt: 17500
-          items: {}
+          collections: {}
+          items:
+            compressed_dirt:
+              special-item: compressed_dirt
+              amount: 55
+              display-name: Skompresowany Ziemia
+              consume: true
       4:
-        action-time-seconds: 8.3
+        action-time-seconds: 16.6
         storage: 256
         storage-slots: 4
         upgrade-requirements:
-          collections:
-            mining.dirt: 175000
-          items: {}
+          collections: {}
+          items:
+            super_compressed_dirt:
+              special-item: super_compressed_dirt
+              amount: 4
+              display-name: Super skompresowany Ziemia
+              consume: true
       5:
-        action-time-seconds: 7.4
+        action-time-seconds: 14.8
         storage: 320
-        storage-slots: 5
-        upgrade-requirements:
-          collections:
-            mining.dirt: 350000
-          items: {}
-      6:
-        action-time-seconds: 6.3
-        storage: 384
         storage-slots: 6
         upgrade-requirements:
-          collections:
-            mining.dirt: 1000000
-          items: {}
-      7:
-        action-time-seconds: 5.0
-        storage: 448
+          collections: {}
+          items:
+            super_compressed_dirt:
+              special-item: super_compressed_dirt
+              amount: 7
+              display-name: Super skompresowany Ziemia
+              consume: true
+      6:
+        action-time-seconds: 12.6
+        storage: 384
         storage-slots: 7
         upgrade-requirements:
-          collections:
-            mining.dirt: 3500000
-          items: {}
+          collections: {}
+          items:
+            super_compressed_dirt:
+              special-item: super_compressed_dirt
+              amount: 20
+              display-name: Super skompresowany Ziemia
+              consume: true
+      7:
+        action-time-seconds: 10.0
+        storage: 448
+        storage-slots: 9
+        upgrade-requirements:
+          collections: {}
+          items:
+            super_compressed_dirt:
+              special-item: super_compressed_dirt
+              amount: 69
+              display-name: Super skompresowany Ziemia
+              consume: true
     max-tier: 7
     wiki:
       special-items:
         - dirt_minion
-        - enchanted_crafting_table
       auto-compressed-resources: true
   stone:
     enabled: true
@@ -340,60 +412,84 @@ minion-types:
         chance: 1.0
     tiers:
       1:
-        action-time-seconds: 16.0
+        action-time-seconds: 32.0
         storage: 64
         storage-slots: 1
         upgrade-requirements:
           collections: {}
           items: {}
       2:
-        action-time-seconds: 15.2
+        action-time-seconds: 30.4
         storage: 128
         storage-slots: 2
         upgrade-requirements:
-          collections:
-            mining.stone: 3500
-          items: {}
+          collections: {}
+          items:
+            compressed_stone:
+              special-item: compressed_stone
+              amount: 11
+              display-name: Skompresowany Kamień
+              consume: true
       3:
-        action-time-seconds: 14.4
+        action-time-seconds: 28.8
         storage: 192
         storage-slots: 3
         upgrade-requirements:
-          collections:
-            mining.stone: 10000
-          items: {}
+          collections: {}
+          items:
+            compressed_stone:
+              special-item: compressed_stone
+              amount: 32
+              display-name: Skompresowany Kamień
+              consume: true
       4:
-        action-time-seconds: 13.3
+        action-time-seconds: 26.6
         storage: 256
         storage-slots: 4
         upgrade-requirements:
-          collections:
-            mining.stone: 100000
-          items: {}
+          collections: {}
+          items:
+            compressed_stone:
+              special-item: compressed_stone
+              amount: 313
+              display-name: Skompresowany Kamień
+              consume: true
       5:
-        action-time-seconds: 11.8
+        action-time-seconds: 23.6
         storage: 320
-        storage-slots: 5
-        upgrade-requirements:
-          collections:
-            mining.stone: 175000
-          items: {}
-      6:
-        action-time-seconds: 10.1
-        storage: 384
         storage-slots: 6
         upgrade-requirements:
-          collections:
-            mining.stone: 1000000
-          items: {}
-      7:
-        action-time-seconds: 8.0
-        storage: 448
+          collections: {}
+          items:
+            super_compressed_stone:
+              special-item: super_compressed_stone
+              amount: 4
+              display-name: Super skompresowany Kamień
+              consume: true
+      6:
+        action-time-seconds: 20.2
+        storage: 384
         storage-slots: 7
         upgrade-requirements:
-          collections:
-            mining.stone: 1750000
-          items: {}
+          collections: {}
+          items:
+            super_compressed_stone:
+              special-item: super_compressed_stone
+              amount: 20
+              display-name: Super skompresowany Kamień
+              consume: true
+      7:
+        action-time-seconds: 16.0
+        storage: 448
+        storage-slots: 9
+        upgrade-requirements:
+          collections: {}
+          items:
+            super_compressed_stone:
+              special-item: super_compressed_stone
+              amount: 35
+              display-name: Super skompresowany Kamień
+              consume: true
     max-tier: 7
     wiki:
       special-items:
@@ -439,64 +535,89 @@ minion-types:
         chance: 1.0
     tiers:
       1:
-        action-time-seconds: 16.0
+        action-time-seconds: 32.0
         storage: 64
         storage-slots: 1
         upgrade-requirements:
           collections: {}
           items: {}
       2:
-        action-time-seconds: 15.2
+        action-time-seconds: 30.4
         storage: 128
         storage-slots: 2
         upgrade-requirements:
-          collections:
-            foraging.oak_wood: 3500
-          items: {}
+          collections: {}
+          items:
+            compressed_oak_plank:
+              special-item: compressed_oak_plank
+              amount: 11
+              display-name: Skompresowany Drewno dębowe
+              consume: true
       3:
-        action-time-seconds: 14.4
+        action-time-seconds: 28.8
         storage: 192
         storage-slots: 3
         upgrade-requirements:
-          collections:
-            foraging.oak_wood: 10000
-          items: {}
+          collections: {}
+          items:
+            compressed_oak_plank:
+              special-item: compressed_oak_plank
+              amount: 32
+              display-name: Skompresowany Drewno dębowe
+              consume: true
       4:
-        action-time-seconds: 13.3
+        action-time-seconds: 26.6
         storage: 256
         storage-slots: 4
         upgrade-requirements:
-          collections:
-            foraging.oak_wood: 100000
-          items: {}
+          collections: {}
+          items:
+            compressed_oak_plank:
+              special-item: compressed_oak_plank
+              amount: 313
+              display-name: Skompresowany Drewno dębowe
+              consume: true
       5:
-        action-time-seconds: 11.8
+        action-time-seconds: 23.6
         storage: 320
-        storage-slots: 5
-        upgrade-requirements:
-          collections:
-            foraging.oak_wood: 175000
-          items: {}
-      6:
-        action-time-seconds: 10.1
-        storage: 384
         storage-slots: 6
         upgrade-requirements:
-          collections:
-            foraging.oak_wood: 1000000
-          items: {}
-      7:
-        action-time-seconds: 8.0
-        storage: 448
+          collections: {}
+          items:
+            super_compressed_oak_plank:
+              special-item: super_compressed_oak_plank
+              amount: 4
+              display-name: Super skompresowany Drewno dębowe
+              consume: true
+      6:
+        action-time-seconds: 20.2
+        storage: 384
         storage-slots: 7
         upgrade-requirements:
-          collections:
-            foraging.oak_wood: 1750000
-          items: {}
+          collections: {}
+          items:
+            super_compressed_oak_plank:
+              special-item: super_compressed_oak_plank
+              amount: 20
+              display-name: Super skompresowany Drewno dębowe
+              consume: true
+      7:
+        action-time-seconds: 16.0
+        storage: 448
+        storage-slots: 9
+        upgrade-requirements:
+          collections: {}
+          items:
+            super_compressed_oak_plank:
+              special-item: super_compressed_oak_plank
+              amount: 35
+              display-name: Super skompresowany Drewno dębowe
+              consume: true
     max-tier: 7
     wiki:
       special-items:
         - oak_plank_minion
+        - enchanted_crafting_table
         - storage_expander
       auto-compressed-resources: true
   coal:
@@ -535,60 +656,84 @@ minion-types:
         chance: 1.0
     tiers:
       1:
-        action-time-seconds: 24.0
+        action-time-seconds: 48.0
         storage: 64
         storage-slots: 1
         upgrade-requirements:
           collections: {}
           items: {}
       2:
-        action-time-seconds: 22.8
+        action-time-seconds: 45.6
         storage: 128
         storage-slots: 2
         upgrade-requirements:
-          collections:
-            mining.coal: 1750
-          items: {}
+          collections: {}
+          items:
+            compressed_coal:
+              special-item: compressed_coal
+              amount: 6
+              display-name: Skompresowany Węgiel
+              consume: true
       3:
-        action-time-seconds: 21.6
+        action-time-seconds: 43.2
         storage: 192
         storage-slots: 3
         upgrade-requirements:
-          collections:
-            mining.coal: 10000
-          items: {}
+          collections: {}
+          items:
+            compressed_coal:
+              special-item: compressed_coal
+              amount: 32
+              display-name: Skompresowany Węgiel
+              consume: true
       4:
-        action-time-seconds: 19.9
+        action-time-seconds: 39.8
         storage: 256
         storage-slots: 4
         upgrade-requirements:
-          collections:
-            mining.coal: 35000
-          items: {}
+          collections: {}
+          items:
+            compressed_coal:
+              special-item: compressed_coal
+              amount: 110
+              display-name: Skompresowany Węgiel
+              consume: true
       5:
-        action-time-seconds: 17.8
+        action-time-seconds: 35.6
         storage: 320
-        storage-slots: 5
-        upgrade-requirements:
-          collections:
-            mining.coal: 175000
-          items: {}
-      6:
-        action-time-seconds: 15.1
-        storage: 384
         storage-slots: 6
         upgrade-requirements:
-          collections:
-            mining.coal: 350000
-          items: {}
-      7:
-        action-time-seconds: 12.0
-        storage: 448
+          collections: {}
+          items:
+            super_compressed_coal:
+              special-item: super_compressed_coal
+              amount: 4
+              display-name: Super skompresowany Węgiel
+              consume: true
+      6:
+        action-time-seconds: 30.2
+        storage: 384
         storage-slots: 7
         upgrade-requirements:
-          collections:
-            mining.coal: 1000000
-          items: {}
+          collections: {}
+          items:
+            super_compressed_coal:
+              special-item: super_compressed_coal
+              amount: 7
+              display-name: Super skompresowany Węgiel
+              consume: true
+      7:
+        action-time-seconds: 24.0
+        storage: 448
+        storage-slots: 9
+        upgrade-requirements:
+          collections: {}
+          items:
+            super_compressed_coal:
+              special-item: super_compressed_coal
+              amount: 20
+              display-name: Super skompresowany Węgiel
+              consume: true
     max-tier: 7
     wiki:
       special-items:
@@ -632,60 +777,84 @@ minion-types:
         chance: 1.0
     tiers:
       1:
-        action-time-seconds: 20.0
+        action-time-seconds: 40.0
         storage: 256
         storage-slots: 2
         upgrade-requirements:
           collections: {}
           items: {}
       2:
-        action-time-seconds: 19.0
+        action-time-seconds: 38.0
         storage: 512
         storage-slots: 3
         upgrade-requirements:
-          collections:
-            mining.redstone: 3500
-          items: {}
+          collections: {}
+          items:
+            compressed_redstone:
+              special-item: compressed_redstone
+              amount: 11
+              display-name: Skompresowany Redstone
+              consume: true
       3:
-        action-time-seconds: 18.0
+        action-time-seconds: 36.0
         storage: 768
         storage-slots: 4
         upgrade-requirements:
-          collections:
-            mining.redstone: 10000
-          items: {}
+          collections: {}
+          items:
+            compressed_redstone:
+              special-item: compressed_redstone
+              amount: 32
+              display-name: Skompresowany Redstone
+              consume: true
       4:
-        action-time-seconds: 16.6
+        action-time-seconds: 33.2
         storage: 1024
         storage-slots: 5
         upgrade-requirements:
-          collections:
-            mining.redstone: 100000
-          items: {}
+          collections: {}
+          items:
+            compressed_redstone:
+              special-item: compressed_redstone
+              amount: 313
+              display-name: Skompresowany Redstone
+              consume: true
       5:
-        action-time-seconds: 14.8
+        action-time-seconds: 29.6
         storage: 1280
-        storage-slots: 6
-        upgrade-requirements:
-          collections:
-            mining.redstone: 175000
-          items: {}
-      6:
-        action-time-seconds: 12.6
-        storage: 1344
         storage-slots: 7
         upgrade-requirements:
-          collections:
-            mining.redstone: 350000
-          items: {}
-      7:
-        action-time-seconds: 10.0
-        storage: 1408
+          collections: {}
+          items:
+            super_compressed_redstone:
+              special-item: super_compressed_redstone
+              amount: 4
+              display-name: Super skompresowany Redstone
+              consume: true
+      6:
+        action-time-seconds: 25.2
+        storage: 1344
         storage-slots: 8
         upgrade-requirements:
-          collections:
-            mining.redstone: 1750000
-          items: {}
+          collections: {}
+          items:
+            super_compressed_redstone:
+              special-item: super_compressed_redstone
+              amount: 7
+              display-name: Super skompresowany Redstone
+              consume: true
+      7:
+        action-time-seconds: 20.0
+        storage: 1408
+        storage-slots: 9
+        upgrade-requirements:
+          collections: {}
+          items:
+            super_compressed_redstone:
+              special-item: super_compressed_redstone
+              amount: 35
+              display-name: Super skompresowany Redstone
+              consume: true
     max-tier: 7
     wiki:
       special-items:
@@ -730,60 +899,72 @@ minion-types:
         chance: 1.0
     tiers:
       1:
-        action-time-seconds: 1440
+        action-time-seconds: 2880
         storage: 64
         storage-slots: 1
         upgrade-requirements:
           collections: {}
           items: {}
       2:
-        action-time-seconds: 1368
+        action-time-seconds: 2736
         storage: 96
         storage-slots: 2
         upgrade-requirements:
           collections:
-            mining.uranium: 25
+            mining.uranium: 13
           items: {}
       3:
-        action-time-seconds: 1296
+        action-time-seconds: 2592
         storage: 128
         storage-slots: 3
         upgrade-requirements:
           collections:
-            mining.uranium: 84
+            mining.uranium: 42
           items: {}
       4:
-        action-time-seconds: 1195
+        action-time-seconds: 2390
         storage: 160
         storage-slots: 4
         upgrade-requirements:
           collections:
-            mining.uranium: 1000
+            mining.uranium: 500
           items: {}
       5:
-        action-time-seconds: 1066
+        action-time-seconds: 2132
         storage: 192
-        storage-slots: 5
-        upgrade-requirements:
-          collections:
-            mining.uranium: 1750
-          items: {}
-      6:
-        action-time-seconds: 907
-        storage: 224
         storage-slots: 6
         upgrade-requirements:
-          collections:
-            mining.uranium: 10000
-          items: {}
-      7:
-        action-time-seconds: 720
-        storage: 288
+          collections: {}
+          items:
+            compressed_uranium:
+              special-item: compressed_uranium
+              amount: 6
+              display-name: Skompresowany Uran
+              consume: true
+      6:
+        action-time-seconds: 1814
+        storage: 224
         storage-slots: 7
         upgrade-requirements:
-          collections:
-            mining.uranium: 17500
-          items: {}
+          collections: {}
+          items:
+            compressed_uranium:
+              special-item: compressed_uranium
+              amount: 32
+              display-name: Skompresowany Uran
+              consume: true
+      7:
+        action-time-seconds: 1440
+        storage: 288
+        storage-slots: 9
+        upgrade-requirements:
+          collections: {}
+          items:
+            compressed_uranium:
+              special-item: compressed_uranium
+              amount: 55
+              display-name: Skompresowany Uran
+              consume: true
     max-tier: 7
     wiki:
       special-items:
@@ -827,60 +1008,80 @@ minion-types:
         chance: 1.0
     tiers:
       1:
-        action-time-seconds: 110
+        action-time-seconds: 220
         storage: 64
         storage-slots: 1
         upgrade-requirements:
           collections: {}
           items: {}
       2:
-        action-time-seconds: 105
+        action-time-seconds: 210
         storage: 128
         storage-slots: 2
         upgrade-requirements:
           collections:
-            mining.gold: 1000
+            mining.gold: 500
           items: {}
       3:
-        action-time-seconds: 99
+        action-time-seconds: 198
         storage: 192
         storage-slots: 3
         upgrade-requirements:
-          collections:
-            mining.gold: 1750
-          items: {}
+          collections: {}
+          items:
+            compressed_gold:
+              special-item: compressed_gold
+              amount: 6
+              display-name: Skompresowany Sztabka złota
+              consume: true
       4:
-        action-time-seconds: 91
+        action-time-seconds: 182
         storage: 256
         storage-slots: 4
         upgrade-requirements:
-          collections:
-            mining.gold: 10000
-          items: {}
+          collections: {}
+          items:
+            compressed_gold:
+              special-item: compressed_gold
+              amount: 32
+              display-name: Skompresowany Sztabka złota
+              consume: true
       5:
-        action-time-seconds: 81
+        action-time-seconds: 162
         storage: 320
-        storage-slots: 5
-        upgrade-requirements:
-          collections:
-            mining.gold: 17500
-          items: {}
-      6:
-        action-time-seconds: 69
-        storage: 384
         storage-slots: 6
         upgrade-requirements:
-          collections:
-            mining.gold: 100000
-          items: {}
-      7:
-        action-time-seconds: 55
-        storage: 448
+          collections: {}
+          items:
+            compressed_gold:
+              special-item: compressed_gold
+              amount: 55
+              display-name: Skompresowany Sztabka złota
+              consume: true
+      6:
+        action-time-seconds: 138
+        storage: 384
         storage-slots: 7
         upgrade-requirements:
-          collections:
-            mining.gold: 175000
-          items: {}
+          collections: {}
+          items:
+            compressed_gold:
+              special-item: compressed_gold
+              amount: 313
+              display-name: Skompresowany Sztabka złota
+              consume: true
+      7:
+        action-time-seconds: 110
+        storage: 448
+        storage-slots: 9
+        upgrade-requirements:
+          collections: {}
+          items:
+            super_compressed_gold:
+              special-item: super_compressed_gold
+              amount: 4
+              display-name: Super skompresowany Sztabka złota
+              consume: true
     max-tier: 7
     wiki:
       special-items:
@@ -932,60 +1133,76 @@ minion-types:
         chance: 1.0
     tiers:
       1:
-        action-time-seconds: 180
+        action-time-seconds: 360
         storage: 64
         storage-slots: 1
         upgrade-requirements:
           collections: {}
           items: {}
       2:
-        action-time-seconds: 171
+        action-time-seconds: 342
         storage: 128
         storage-slots: 2
         upgrade-requirements:
           collections:
-            mining.obsidian: 350
+            mining.obsidian: 175
           items: {}
       3:
-        action-time-seconds: 162
+        action-time-seconds: 324
         storage: 192
         storage-slots: 3
         upgrade-requirements:
           collections:
-            mining.obsidian: 1000
+            mining.obsidian: 500
           items: {}
       4:
-        action-time-seconds: 149
+        action-time-seconds: 298
         storage: 256
         storage-slots: 4
         upgrade-requirements:
-          collections:
-            mining.obsidian: 10000
-          items: {}
+          collections: {}
+          items:
+            compressed_obsidian:
+              special-item: compressed_obsidian
+              amount: 32
+              display-name: Skompresowany Obsydian
+              consume: true
       5:
-        action-time-seconds: 133
+        action-time-seconds: 266
         storage: 320
-        storage-slots: 5
-        upgrade-requirements:
-          collections:
-            mining.obsidian: 17500
-          items: {}
-      6:
-        action-time-seconds: 113
-        storage: 384
         storage-slots: 6
         upgrade-requirements:
-          collections:
-            mining.obsidian: 100000
-          items: {}
-      7:
-        action-time-seconds: 90
-        storage: 448
+          collections: {}
+          items:
+            compressed_obsidian:
+              special-item: compressed_obsidian
+              amount: 55
+              display-name: Skompresowany Obsydian
+              consume: true
+      6:
+        action-time-seconds: 226
+        storage: 384
         storage-slots: 7
         upgrade-requirements:
-          collections:
-            mining.obsidian: 175000
-          items: {}
+          collections: {}
+          items:
+            compressed_obsidian:
+              special-item: compressed_obsidian
+              amount: 313
+              display-name: Skompresowany Obsydian
+              consume: true
+      7:
+        action-time-seconds: 180
+        storage: 448
+        storage-slots: 9
+        upgrade-requirements:
+          collections: {}
+          items:
+            super_compressed_obsidian:
+              special-item: super_compressed_obsidian
+              amount: 4
+              display-name: Super skompresowany Obsydian
+              consume: true
     max-tier: 7
     wiki:
       special-items:
@@ -1034,65 +1251,84 @@ minion-types:
         chance: 1.0
     tiers:
       1:
-        action-time-seconds: 300
+        action-time-seconds: 600
         storage: 64
         storage-slots: 1
         upgrade-requirements:
           collections: {}
           items: {}
       2:
-        action-time-seconds: 285
+        action-time-seconds: 570
         storage: 128
         storage-slots: 2
         upgrade-requirements:
           collections:
-            mining.diamond: 175
+            mining.diamond: 88
           items: {}
       3:
-        action-time-seconds: 270
+        action-time-seconds: 540
         storage: 192
         storage-slots: 3
         upgrade-requirements:
           collections:
-            mining.diamond: 1000
+            mining.diamond: 500
           items: {}
       4:
-        action-time-seconds: 249
+        action-time-seconds: 498
         storage: 256
         storage-slots: 4
         upgrade-requirements:
-          collections:
-            mining.diamond: 3500
-          items: {}
+          collections: {}
+          items:
+            compressed_diamond:
+              special-item: compressed_diamond
+              amount: 11
+              display-name: Skompresowany Diament
+              consume: true
       5:
-        action-time-seconds: 222
+        action-time-seconds: 444
         storage: 320
-        storage-slots: 5
-        upgrade-requirements:
-          collections:
-            mining.diamond: 10000
-          items: {}
-      6:
-        action-time-seconds: 189
-        storage: 384
         storage-slots: 6
         upgrade-requirements:
-          collections:
-            mining.diamond: 35000
-          items: {}
-      7:
-        action-time-seconds: 150
-        storage: 448
+          collections: {}
+          items:
+            compressed_diamond:
+              special-item: compressed_diamond
+              amount: 32
+              display-name: Skompresowany Diament
+              consume: true
+      6:
+        action-time-seconds: 378
+        storage: 384
         storage-slots: 7
         upgrade-requirements:
-          collections:
-            mining.diamond: 100000
-          items: {}
+          collections: {}
+          items:
+            compressed_diamond:
+              special-item: compressed_diamond
+              amount: 110
+              display-name: Skompresowany Diament
+              consume: true
+      7:
+        action-time-seconds: 300
+        storage: 448
+        storage-slots: 9
+        upgrade-requirements:
+          collections: {}
+          items:
+            compressed_diamond:
+              special-item: compressed_diamond
+              amount: 313
+              display-name: Skompresowany Diament
+              consume: true
     max-tier: 7
     wiki:
       special-items:
         - compressed_diamond
         - glass_cable
+        - energy_diamond
+        - advanced_accumulator
+        - super_capacitor
       auto-compressed-resources: true
   netherite:
     enabled: true
@@ -1130,65 +1366,190 @@ minion-types:
         chance: 1.0
     tiers:
       1:
-        action-time-seconds: 180
+        action-time-seconds: 360
         storage: 64
         storage-slots: 1
         upgrade-requirements:
           collections: {}
           items: {}
       2:
-        action-time-seconds: 171
+        action-time-seconds: 342
         storage: 128
         storage-slots: 2
         upgrade-requirements:
           collections:
-            mining.netherite: 350
+            mining.netherite: 175
           items: {}
       3:
-        action-time-seconds: 162
+        action-time-seconds: 324
         storage: 192
         storage-slots: 3
         upgrade-requirements:
           collections:
-            mining.netherite: 1000
+            mining.netherite: 500
           items: {}
       4:
-        action-time-seconds: 149
+        action-time-seconds: 298
         storage: 256
         storage-slots: 4
         upgrade-requirements:
           collections:
-            mining.netherite: 10000
+            mining.netherite: 5000
           items: {}
       5:
-        action-time-seconds: 133
+        action-time-seconds: 266
         storage: 320
-        storage-slots: 5
-        upgrade-requirements:
-          collections:
-            mining.netherite: 17500
-          items: {}
-      6:
-        action-time-seconds: 113
-        storage: 384
         storage-slots: 6
         upgrade-requirements:
           collections:
-            mining.netherite: 100000
+            mining.netherite: 8750
           items: {}
-      7:
-        action-time-seconds: 90
-        storage: 448
+      6:
+        action-time-seconds: 226
+        storage: 384
         storage-slots: 7
         upgrade-requirements:
           collections:
-            mining.netherite: 175000
+            mining.netherite: 50000
+          items: {}
+      7:
+        action-time-seconds: 180
+        storage: 448
+        storage-slots: 9
+        upgrade-requirements:
+          collections:
+            mining.netherite: 87500
           items: {}
     max-tier: 7
     wiki:
       special-items:
         - auto_smelter
         - large_minion_storage
+      auto-compressed-resources: true
+  netherrack:
+    enabled: true
+    display-name: <dark_red>Minion netherracka</dark_red>
+    category: mining
+    item:
+      material: PLAYER_HEAD
+      texture-base64: 
+        eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNmZlNjk1NTM1ZGY4OWExM2I2MTgzNzgwYTk1ZWQxMDU5ODJlZTFmMDdhYjY0NGUwNjc2OWJkOTE2N2UxNjgxZiJ9fX0=
+      display-name: <dark_red>Minion netherracka <yellow>Tier <tier></yellow></dark_red>
+      lore:
+        - <dark_gray>Minion miasta</dark_gray>
+        - '<gray>Generuje: <dark_red>Netherrack</dark_red></gray>'
+        - <gray>Postaw na terenie swojego miasta.</gray>
+      custom-model-data: 0
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+        - WATER
+        - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: netherrack_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+        - 1
+        - 2
+    resource-table:
+      - resource: netherrack
+        amount-min: 1
+        amount-max: 1
+        chance: 1.0
+    tiers:
+      1:
+        action-time-seconds: 1.0
+        storage: 64
+        storage-slots: 1
+        upgrade-requirements:
+          collections: {}
+          items: {}
+      2:
+        action-time-seconds: 1.0
+        storage: 128
+        storage-slots: 2
+        upgrade-requirements:
+          collections: {}
+          items:
+            netherrack:
+              material: NETHERRACK
+              amount: 1336
+              display-name: Netherrack
+              consume: true
+      3:
+        action-time-seconds: 0.9
+        storage: 192
+        storage-slots: 3
+        upgrade-requirements:
+          collections: {}
+          items:
+            compressed_netherrack:
+              special-item: compressed_netherrack
+              amount: 44
+              display-name: Skompresowany Netherrack
+              consume: true
+      4:
+        action-time-seconds: 0.8
+        storage: 256
+        storage-slots: 4
+        upgrade-requirements:
+          collections: {}
+          items:
+            compressed_netherrack:
+              special-item: compressed_netherrack
+              amount: 168
+              display-name: Skompresowany Netherrack
+              consume: true
+      5:
+        action-time-seconds: 0.7
+        storage: 320
+        storage-slots: 6
+        upgrade-requirements:
+          collections: {}
+          items:
+            compressed_netherrack:
+              special-item: compressed_netherrack
+              amount: 836
+              display-name: Skompresowany Netherrack
+              consume: true
+      6:
+        action-time-seconds: 0.6
+        storage: 384
+        storage-slots: 7
+        upgrade-requirements:
+          collections: {}
+          items:
+            compressed_netherrack:
+              special-item: compressed_netherrack
+              amount: 1668
+              display-name: Skompresowany Netherrack
+              consume: true
+      7:
+        action-time-seconds: 0.5
+        storage: 448
+        storage-slots: 9
+        upgrade-requirements:
+          collections: {}
+          items:
+            super_compressed_netherrack:
+              special-item: super_compressed_netherrack
+              amount: 28
+              display-name: Super skompresowany Netherrack
+              consume: true
+    max-tier: 7
+    wiki:
+      special-items:
+        - netherrack_minion
+        - compressed_netherrack
+        - super_compressed_netherrack
+        - smelting_furnace
+        - electric_furnace
+        - minion_booster_tier_2
       auto-compressed-resources: true
   zombie:
     enabled: true
@@ -1251,14 +1612,14 @@ minion-types:
         chance: 0.965
     tiers:
       1:
-        action-time-seconds: 30.0
+        action-time-seconds: 60.0
         storage: 64
         storage-slots: 1
         upgrade-requirements:
           collections: {}
           items: {}
       2:
-        action-time-seconds: 28.5
+        action-time-seconds: 57.0
         storage: 128
         storage-slots: 2
         upgrade-requirements:
@@ -1266,11 +1627,11 @@ minion-types:
           items:
             rotten_flesh:
               material: ROTTEN_FLESH
-              amount: 1750
+              amount: 875
               display-name: Zgniłe mięso
               consume: true
       3:
-        action-time-seconds: 27.0
+        action-time-seconds: 54.0
         storage: 192
         storage-slots: 3
         upgrade-requirements:
@@ -1278,11 +1639,11 @@ minion-types:
           items:
             rotten_flesh:
               material: ROTTEN_FLESH
-              amount: 10000
+              amount: 5000
               display-name: Zgniłe mięso
               consume: true
       4:
-        action-time-seconds: 24.9
+        action-time-seconds: 49.8
         storage: 256
         storage-slots: 4
         upgrade-requirements:
@@ -1290,43 +1651,43 @@ minion-types:
           items:
             rotten_flesh:
               material: ROTTEN_FLESH
-              amount: 35000
+              amount: 17500
               display-name: Zgniłe mięso
               consume: true
       5:
-        action-time-seconds: 22.2
+        action-time-seconds: 44.4
         storage: 320
-        storage-slots: 5
-        upgrade-requirements:
-          collections: {}
-          items:
-            rotten_flesh:
-              material: ROTTEN_FLESH
-              amount: 100000
-              display-name: Zgniłe mięso
-              consume: true
-      6:
-        action-time-seconds: 18.9
-        storage: 384
         storage-slots: 6
         upgrade-requirements:
           collections: {}
           items:
             rotten_flesh:
               material: ROTTEN_FLESH
-              amount: 350000
+              amount: 50000
               display-name: Zgniłe mięso
               consume: true
-      7:
-        action-time-seconds: 15.0
-        storage: 448
+      6:
+        action-time-seconds: 37.8
+        storage: 384
         storage-slots: 7
         upgrade-requirements:
           collections: {}
           items:
             rotten_flesh:
               material: ROTTEN_FLESH
-              amount: 1000000
+              amount: 175000
+              display-name: Zgniłe mięso
+              consume: true
+      7:
+        action-time-seconds: 30.0
+        storage: 448
+        storage-slots: 9
+        upgrade-requirements:
+          collections: {}
+          items:
+            rotten_flesh:
+              material: ROTTEN_FLESH
+              amount: 500000
               display-name: Zgniłe mięso
               consume: true
     max-tier: 7
@@ -1386,16 +1747,28 @@ minion-types:
         chance: 0.298
     tiers:
       1:
-        action-time-seconds: 100
+        action-time-seconds: 200
         storage: 64
         storage-slots: 1
         upgrade-requirements:
           collections: {}
           items: {}
       2:
-        action-time-seconds: 95
+        action-time-seconds: 190
         storage: 128
         storage-slots: 2
+        upgrade-requirements:
+          collections: {}
+          items:
+            bone:
+              material: BONE
+              amount: 88
+              display-name: Kość
+              consume: true
+      3:
+        action-time-seconds: 180
+        storage: 192
+        storage-slots: 3
         upgrade-requirements:
           collections: {}
           items:
@@ -1404,20 +1777,8 @@ minion-types:
               amount: 175
               display-name: Kość
               consume: true
-      3:
-        action-time-seconds: 90
-        storage: 192
-        storage-slots: 3
-        upgrade-requirements:
-          collections: {}
-          items:
-            bone:
-              material: BONE
-              amount: 350
-              display-name: Kość
-              consume: true
       4:
-        action-time-seconds: 83
+        action-time-seconds: 166
         storage: 256
         storage-slots: 4
         upgrade-requirements:
@@ -1425,48 +1786,49 @@ minion-types:
           items:
             bone:
               material: BONE
-              amount: 3500
+              amount: 1750
               display-name: Kość
               consume: true
       5:
-        action-time-seconds: 74
+        action-time-seconds: 148
         storage: 320
-        storage-slots: 5
-        upgrade-requirements:
-          collections: {}
-          items:
-            bone:
-              material: BONE
-              amount: 7500
-              display-name: Kość
-              consume: true
-      6:
-        action-time-seconds: 63
-        storage: 384
         storage-slots: 6
         upgrade-requirements:
           collections: {}
           items:
             bone:
               material: BONE
-              amount: 17500
+              amount: 3750
               display-name: Kość
               consume: true
-      7:
-        action-time-seconds: 50
-        storage: 448
+      6:
+        action-time-seconds: 126
+        storage: 384
         storage-slots: 7
         upgrade-requirements:
           collections: {}
           items:
             bone:
               material: BONE
-              amount: 75000
+              amount: 8750
+              display-name: Kość
+              consume: true
+      7:
+        action-time-seconds: 100
+        storage: 448
+        storage-slots: 9
+        upgrade-requirements:
+          collections: {}
+          items:
+            bone:
+              material: BONE
+              amount: 37500
               display-name: Kość
               consume: true
     max-tier: 7
     wiki:
-      special-items: []
+      special-items:
+        - musket
       auto-compressed-resources: false
   spider:
     enabled: true
@@ -1514,14 +1876,14 @@ minion-types:
         chance: 0.8
     tiers:
       1:
-        action-time-seconds: 100
+        action-time-seconds: 200
         storage: 64
         storage-slots: 1
         upgrade-requirements:
           collections: {}
           items: {}
       2:
-        action-time-seconds: 95
+        action-time-seconds: 190
         storage: 128
         storage-slots: 2
         upgrade-requirements:
@@ -1529,16 +1891,16 @@ minion-types:
           items:
             spider_eye:
               material: SPIDER_EYE
-              amount: 84
+              amount: 42
               display-name: Oko pająka
               consume: true
             string:
               material: STRING
-              amount: 750
+              amount: 375
               display-name: Nitka
               consume: true
       3:
-        action-time-seconds: 90
+        action-time-seconds: 180
         storage: 192
         storage-slots: 3
         upgrade-requirements:
@@ -1546,18 +1908,35 @@ minion-types:
           items:
             spider_eye:
               material: SPIDER_EYE
-              amount: 175
+              amount: 88
               display-name: Oko pająka
               consume: true
             string:
               material: STRING
-              amount: 1500
+              amount: 750
               display-name: Nitka
               consume: true
       4:
-        action-time-seconds: 83
+        action-time-seconds: 166
         storage: 256
         storage-slots: 4
+        upgrade-requirements:
+          collections: {}
+          items:
+            spider_eye:
+              material: SPIDER_EYE
+              amount: 875
+              display-name: Oko pająka
+              consume: true
+            string:
+              material: STRING
+              amount: 7500
+              display-name: Nitka
+              consume: true
+      5:
+        action-time-seconds: 148
+        storage: 320
+        storage-slots: 6
         upgrade-requirements:
           collections: {}
           items:
@@ -1571,55 +1950,38 @@ minion-types:
               amount: 15000
               display-name: Nitka
               consume: true
-      5:
-        action-time-seconds: 74
-        storage: 320
-        storage-slots: 5
-        upgrade-requirements:
-          collections: {}
-          items:
-            spider_eye:
-              material: SPIDER_EYE
-              amount: 3500
-              display-name: Oko pająka
-              consume: true
-            string:
-              material: STRING
-              amount: 30000
-              display-name: Nitka
-              consume: true
       6:
-        action-time-seconds: 63
+        action-time-seconds: 126
         storage: 384
-        storage-slots: 6
-        upgrade-requirements:
-          collections: {}
-          items:
-            spider_eye:
-              material: SPIDER_EYE
-              amount: 10000
-              display-name: Oko pająka
-              consume: true
-            string:
-              material: STRING
-              amount: 75000
-              display-name: Nitka
-              consume: true
-      7:
-        action-time-seconds: 50
-        storage: 448
         storage-slots: 7
         upgrade-requirements:
           collections: {}
           items:
             spider_eye:
               material: SPIDER_EYE
-              amount: 35000
+              amount: 5000
               display-name: Oko pająka
               consume: true
             string:
               material: STRING
-              amount: 300000
+              amount: 37500
+              display-name: Nitka
+              consume: true
+      7:
+        action-time-seconds: 100
+        storage: 448
+        storage-slots: 9
+        upgrade-requirements:
+          collections: {}
+          items:
+            spider_eye:
+              material: SPIDER_EYE
+              amount: 17500
+              display-name: Oko pająka
+              consume: true
+            string:
+              material: STRING
+              amount: 150000
               display-name: Nitka
               consume: true
     max-tier: 7
@@ -1659,20 +2021,28 @@ minion-types:
       supported-tiers:
         - 1
     resource-table:
+      - resource: silverfish_armor
+        amount-min: 1
+        amount-max: 1
+        chance: 0.0001
+        special-drop: true
+        special-drop-scaling:
+          from-tier: 2
+          per-tier-bonus: 0.0001
       - resource: experience_bottle
         amount-min: 1
         amount-max: 1
         chance: 1.0
     tiers:
       1:
-        action-time-seconds: 660
+        action-time-seconds: 1320
         storage: 64
         storage-slots: 1
         upgrade-requirements:
           collections: {}
           items: {}
       2:
-        action-time-seconds: 627
+        action-time-seconds: 1254
         storage: 128
         storage-slots: 2
         upgrade-requirements:
@@ -1680,11 +2050,11 @@ minion-types:
           items:
             experience_bottle:
               material: EXPERIENCE_BOTTLE
-              amount: 67
+              amount: 34
               display-name: Butelka doświadczenia
               consume: true
       3:
-        action-time-seconds: 594
+        action-time-seconds: 1188
         storage: 192
         storage-slots: 3
         upgrade-requirements:
@@ -1692,13 +2062,25 @@ minion-types:
           items:
             experience_bottle:
               material: EXPERIENCE_BOTTLE
-              amount: 350
+              amount: 175
               display-name: Butelka doświadczenia
               consume: true
       4:
-        action-time-seconds: 548
+        action-time-seconds: 1096
         storage: 256
         storage-slots: 4
+        upgrade-requirements:
+          collections: {}
+          items:
+            experience_bottle:
+              material: EXPERIENCE_BOTTLE
+              amount: 875
+              display-name: Butelka doświadczenia
+              consume: true
+      5:
+        action-time-seconds: 976
+        storage: 320
+        storage-slots: 6
         upgrade-requirements:
           collections: {}
           items:
@@ -1707,22 +2089,22 @@ minion-types:
               amount: 1750
               display-name: Butelka doświadczenia
               consume: true
-      5:
-        action-time-seconds: 488
-        storage: 320
-        storage-slots: 5
+      6:
+        action-time-seconds: 832
+        storage: 384
+        storage-slots: 7
         upgrade-requirements:
           collections: {}
           items:
             experience_bottle:
               material: EXPERIENCE_BOTTLE
-              amount: 3500
+              amount: 8750
               display-name: Butelka doświadczenia
               consume: true
-      6:
-        action-time-seconds: 416
-        storage: 384
-        storage-slots: 6
+      7:
+        action-time-seconds: 660
+        storage: 448
+        storage-slots: 9
         upgrade-requirements:
           collections: {}
           items:
@@ -1731,21 +2113,13 @@ minion-types:
               amount: 17500
               display-name: Butelka doświadczenia
               consume: true
-      7:
-        action-time-seconds: 330
-        storage: 448
-        storage-slots: 7
-        upgrade-requirements:
-          collections: {}
-          items:
-            experience_bottle:
-              material: EXPERIENCE_BOTTLE
-              amount: 35000
-              display-name: Butelka doświadczenia
-              consume: true
     max-tier: 7
     wiki:
-      special-items: []
+      special-items:
+        - silverfish_minion
+        - silverfish_armor
+        - miner_robot
+        - miner_robot_storage
       auto-compressed-resources: false
   spruce_wood:
     enabled: true
@@ -1792,66 +2166,90 @@ minion-types:
           per-tier-bonus: 0.003
     tiers:
       1:
-        action-time-seconds: 16.0
+        action-time-seconds: 32.0
         storage: 64
         storage-slots: 1
         upgrade-requirements:
           collections: {}
           items: {}
       2:
-        action-time-seconds: 15.2
+        action-time-seconds: 30.4
         storage: 128
         storage-slots: 2
         upgrade-requirements:
           collections:
-            foraging.spruce_wood: 3500
-            foraging.spruce_resin: 42
-          items: {}
+            foraging.spruce_resin: 21
+          items:
+            compressed_spruce_wood:
+              special-item: compressed_spruce_wood
+              amount: 11
+              display-name: Skompresowany Drewno świerkowe
+              consume: true
       3:
-        action-time-seconds: 14.4
+        action-time-seconds: 28.8
         storage: 192
         storage-slots: 3
         upgrade-requirements:
           collections:
-            foraging.spruce_wood: 10000
-            foraging.spruce_resin: 175
-          items: {}
+            foraging.spruce_resin: 88
+          items:
+            compressed_spruce_wood:
+              special-item: compressed_spruce_wood
+              amount: 32
+              display-name: Skompresowany Drewno świerkowe
+              consume: true
       4:
-        action-time-seconds: 13.3
+        action-time-seconds: 26.6
         storage: 256
         storage-slots: 4
         upgrade-requirements:
           collections:
-            foraging.spruce_wood: 100000
-            foraging.spruce_resin: 1000
-          items: {}
+            foraging.spruce_resin: 500
+          items:
+            compressed_spruce_wood:
+              special-item: compressed_spruce_wood
+              amount: 313
+              display-name: Skompresowany Drewno świerkowe
+              consume: true
       5:
-        action-time-seconds: 11.8
+        action-time-seconds: 23.6
         storage: 320
-        storage-slots: 5
-        upgrade-requirements:
-          collections:
-            foraging.spruce_wood: 175000
-            foraging.spruce_resin: 1750
-          items: {}
-      6:
-        action-time-seconds: 10.1
-        storage: 384
         storage-slots: 6
         upgrade-requirements:
           collections:
-            foraging.spruce_wood: 1000000
-            foraging.spruce_resin: 10000
-          items: {}
-      7:
-        action-time-seconds: 8.0
-        storage: 448
+            foraging.spruce_resin: 875
+          items:
+            super_compressed_spruce_wood:
+              special-item: super_compressed_spruce_wood
+              amount: 4
+              display-name: Super skompresowany Drewno świerkowe
+              consume: true
+      6:
+        action-time-seconds: 20.2
+        storage: 384
         storage-slots: 7
         upgrade-requirements:
           collections:
-            foraging.spruce_wood: 1750000
-            foraging.spruce_resin: 17500
-          items: {}
+            foraging.spruce_resin: 5000
+          items:
+            super_compressed_spruce_wood:
+              special-item: super_compressed_spruce_wood
+              amount: 20
+              display-name: Super skompresowany Drewno świerkowe
+              consume: true
+      7:
+        action-time-seconds: 16.0
+        storage: 448
+        storage-slots: 9
+        upgrade-requirements:
+          collections:
+            foraging.spruce_resin: 8750
+          items:
+            super_compressed_spruce_wood:
+              special-item: super_compressed_spruce_wood
+              amount: 35
+              display-name: Super skompresowany Drewno świerkowe
+              consume: true
     max-tier: 7
     wiki:
       special-items:
@@ -1908,66 +2306,90 @@ minion-types:
         chance: 0.99995
     tiers:
       1:
-        action-time-seconds: 32.0
+        action-time-seconds: 64.0
         storage: 64
         storage-slots: 1
         upgrade-requirements:
           collections: {}
           items: {}
       2:
-        action-time-seconds: 30.4
+        action-time-seconds: 60.8
         storage: 128
         storage-slots: 2
         upgrade-requirements:
           collections:
             mining.rare_elements: 1
-            mining.copper: 1750
-          items: {}
+          items:
+            compressed_copper:
+              special-item: compressed_copper
+              amount: 6
+              display-name: Skompresowany Surowa miedź
+              consume: true
       3:
-        action-time-seconds: 28.8
+        action-time-seconds: 57.6
         storage: 192
         storage-slots: 3
         upgrade-requirements:
           collections:
-            mining.rare_elements: 2
-            mining.copper: 10000
-          items: {}
+            mining.rare_elements: 1
+          items:
+            compressed_copper:
+              special-item: compressed_copper
+              amount: 32
+              display-name: Skompresowany Surowa miedź
+              consume: true
       4:
-        action-time-seconds: 26.6
+        action-time-seconds: 53.2
         storage: 256
         storage-slots: 4
         upgrade-requirements:
           collections:
-            mining.rare_elements: 5
-            mining.copper: 35000
-          items: {}
+            mining.rare_elements: 3
+          items:
+            compressed_copper:
+              special-item: compressed_copper
+              amount: 110
+              display-name: Skompresowany Surowa miedź
+              consume: true
       5:
-        action-time-seconds: 23.7
+        action-time-seconds: 47.4
         storage: 320
-        storage-slots: 5
-        upgrade-requirements:
-          collections:
-            mining.rare_elements: 12
-            mining.copper: 100000
-          items: {}
-      6:
-        action-time-seconds: 20.2
-        storage: 384
         storage-slots: 6
         upgrade-requirements:
           collections:
-            mining.rare_elements: 34
-            mining.copper: 350000
-          items: {}
-      7:
-        action-time-seconds: 16.0
-        storage: 448
+            mining.rare_elements: 6
+          items:
+            compressed_copper:
+              special-item: compressed_copper
+              amount: 313
+              display-name: Skompresowany Surowa miedź
+              consume: true
+      6:
+        action-time-seconds: 40.4
+        storage: 384
         storage-slots: 7
         upgrade-requirements:
           collections:
-            mining.rare_elements: 84
-            mining.copper: 1000000
-          items: {}
+            mining.rare_elements: 17
+          items:
+            super_compressed_copper:
+              special-item: super_compressed_copper
+              amount: 7
+              display-name: Super skompresowany Surowa miedź
+              consume: true
+      7:
+        action-time-seconds: 32.0
+        storage: 448
+        storage-slots: 9
+        upgrade-requirements:
+          collections:
+            mining.rare_elements: 42
+          items:
+            super_compressed_copper:
+              special-item: super_compressed_copper
+              amount: 20
+              display-name: Super skompresowany Surowa miedź
+              consume: true
     max-tier: 7
     wiki:
       special-items:
@@ -2013,60 +2435,76 @@ minion-types:
         chance: 1.0
     tiers:
       1:
-        action-time-seconds: 280
+        action-time-seconds: 560
         storage: 64
         storage-slots: 1
         upgrade-requirements:
           collections: {}
           items: {}
       2:
-        action-time-seconds: 266
+        action-time-seconds: 532
         storage: 128
         storage-slots: 2
         upgrade-requirements:
           collections:
-            mining.tin: 175
+            mining.tin: 88
           items: {}
       3:
-        action-time-seconds: 252
+        action-time-seconds: 504
         storage: 192
         storage-slots: 3
         upgrade-requirements:
           collections:
-            mining.tin: 1000
+            mining.tin: 500
           items: {}
       4:
-        action-time-seconds: 232
+        action-time-seconds: 464
         storage: 256
         storage-slots: 4
         upgrade-requirements:
-          collections:
-            mining.tin: 3500
-          items: {}
+          collections: {}
+          items:
+            compressed_tin_ingot:
+              special-item: compressed_tin_ingot
+              amount: 11
+              display-name: Skompresowany Sztabka cyny
+              consume: true
       5:
-        action-time-seconds: 207
+        action-time-seconds: 414
         storage: 320
-        storage-slots: 5
-        upgrade-requirements:
-          collections:
-            mining.tin: 10000
-          items: {}
-      6:
-        action-time-seconds: 176
-        storage: 384
         storage-slots: 6
         upgrade-requirements:
-          collections:
-            mining.tin: 35000
-          items: {}
-      7:
-        action-time-seconds: 140
-        storage: 448
+          collections: {}
+          items:
+            compressed_tin_ingot:
+              special-item: compressed_tin_ingot
+              amount: 32
+              display-name: Skompresowany Sztabka cyny
+              consume: true
+      6:
+        action-time-seconds: 352
+        storage: 384
         storage-slots: 7
         upgrade-requirements:
-          collections:
-            mining.tin: 100000
-          items: {}
+          collections: {}
+          items:
+            compressed_tin_ingot:
+              special-item: compressed_tin_ingot
+              amount: 110
+              display-name: Skompresowany Sztabka cyny
+              consume: true
+      7:
+        action-time-seconds: 280
+        storage: 448
+        storage-slots: 9
+        upgrade-requirements:
+          collections: {}
+          items:
+            compressed_tin_ingot:
+              special-item: compressed_tin_ingot
+              amount: 313
+              display-name: Skompresowany Sztabka cyny
+              consume: true
     max-tier: 7
     wiki:
       special-items:
@@ -2121,65 +2559,65 @@ minion-types:
         chance: 0.02
     tiers:
       1:
-        action-time-seconds: 56
+        action-time-seconds: 112
         storage: 64
         storage-slots: 1
         upgrade-requirements:
           collections: {}
           items: {}
       2:
-        action-time-seconds: 53
+        action-time-seconds: 106
         storage: 128
         storage-slots: 2
         upgrade-requirements:
           collections:
-            animals.wool: 1000
-            animals.mutton: 17
+            animals.wool: 500
+            animals.mutton: 9
           items: {}
       3:
-        action-time-seconds: 50
+        action-time-seconds: 100
         storage: 192
         storage-slots: 3
         upgrade-requirements:
           collections:
-            animals.wool: 3500
-            animals.mutton: 67
+            animals.wool: 1750
+            animals.mutton: 34
           items: {}
       4:
-        action-time-seconds: 46
+        action-time-seconds: 92
         storage: 256
         storage-slots: 4
         upgrade-requirements:
           collections:
-            animals.wool: 17500
-            animals.mutton: 350
+            animals.wool: 8750
+            animals.mutton: 175
           items: {}
       5:
-        action-time-seconds: 41.4
+        action-time-seconds: 82.8
         storage: 320
-        storage-slots: 5
-        upgrade-requirements:
-          collections:
-            animals.wool: 35000
-            animals.mutton: 1000
-          items: {}
-      6:
-        action-time-seconds: 35.3
-        storage: 384
         storage-slots: 6
         upgrade-requirements:
           collections:
-            animals.wool: 175000
-            animals.mutton: 3500
+            animals.wool: 17500
+            animals.mutton: 500
           items: {}
-      7:
-        action-time-seconds: 28.0
-        storage: 448
+      6:
+        action-time-seconds: 70.6
+        storage: 384
         storage-slots: 7
         upgrade-requirements:
           collections:
-            animals.wool: 350000
-            animals.mutton: 10000
+            animals.wool: 87500
+            animals.mutton: 1750
+          items: {}
+      7:
+        action-time-seconds: 56.0
+        storage: 448
+        storage-slots: 9
+        upgrade-requirements:
+          collections:
+            animals.wool: 175000
+            animals.mutton: 5000
           items: {}
     max-tier: 7
     wiki:
@@ -2223,63 +2661,67 @@ minion-types:
         chance: 1.0
     tiers:
       1:
-        action-time-seconds: 132
+        action-time-seconds: 264
         storage: 64
         storage-slots: 1
         upgrade-requirements:
           collections: {}
           items: {}
       2:
-        action-time-seconds: 125
+        action-time-seconds: 250
         storage: 128
         storage-slots: 2
         upgrade-requirements:
           collections:
-            animals.pork: 350
+            animals.pork: 175
           items: {}
       3:
-        action-time-seconds: 119
+        action-time-seconds: 238
         storage: 192
         storage-slots: 3
         upgrade-requirements:
           collections:
-            animals.pork: 1750
+            animals.pork: 875
           items: {}
       4:
-        action-time-seconds: 110
+        action-time-seconds: 220
         storage: 256
         storage-slots: 4
         upgrade-requirements:
           collections:
-            animals.pork: 10000
+            animals.pork: 5000
           items: {}
       5:
-        action-time-seconds: 98
+        action-time-seconds: 196
         storage: 320
-        storage-slots: 5
-        upgrade-requirements:
-          collections:
-            animals.pork: 17500
-          items: {}
-      6:
-        action-time-seconds: 83
-        storage: 384
         storage-slots: 6
         upgrade-requirements:
           collections:
-            animals.pork: 100000
+            animals.pork: 8750
           items: {}
-      7:
-        action-time-seconds: 66
-        storage: 448
+      6:
+        action-time-seconds: 166
+        storage: 384
         storage-slots: 7
         upgrade-requirements:
           collections:
-            animals.pork: 175000
+            animals.pork: 50000
+          items: {}
+      7:
+        action-time-seconds: 132
+        storage: 448
+        storage-slots: 9
+        upgrade-requirements:
+          collections:
+            animals.pork: 87500
           items: {}
     max-tier: 7
     wiki:
-      special-items: []
+      special-items:
+        - meat_refinery
+        - refined_meat
+        - living_block
+        - plant_booster_tier_2
       auto-compressed-resources: false
   cow:
     enabled: true
@@ -2323,69 +2765,70 @@ minion-types:
         chance: 0.85
     tiers:
       1:
-        action-time-seconds: 132
+        action-time-seconds: 264
         storage: 64
         storage-slots: 1
         upgrade-requirements:
           collections: {}
           items: {}
       2:
-        action-time-seconds: 125
+        action-time-seconds: 250
         storage: 128
         storage-slots: 2
         upgrade-requirements:
           collections:
-            animals.leather: 42
-            animals.beef: 350
+            animals.leather: 21
+            animals.beef: 175
           items: {}
       3:
-        action-time-seconds: 119
+        action-time-seconds: 238
         storage: 192
         storage-slots: 3
         upgrade-requirements:
           collections:
-            animals.leather: 175
-            animals.beef: 1000
+            animals.leather: 88
+            animals.beef: 500
           items: {}
       4:
-        action-time-seconds: 110
+        action-time-seconds: 220
         storage: 256
         storage-slots: 4
         upgrade-requirements:
           collections:
-            animals.leather: 1750
-            animals.beef: 10000
+            animals.leather: 875
+            animals.beef: 5000
           items: {}
       5:
-        action-time-seconds: 98
+        action-time-seconds: 196
         storage: 320
-        storage-slots: 5
-        upgrade-requirements:
-          collections:
-            animals.leather: 3500
-            animals.beef: 17500
-          items: {}
-      6:
-        action-time-seconds: 83
-        storage: 384
         storage-slots: 6
         upgrade-requirements:
           collections:
-            animals.leather: 17500
-            animals.beef: 100000
+            animals.leather: 1750
+            animals.beef: 8750
           items: {}
-      7:
-        action-time-seconds: 66
-        storage: 448
+      6:
+        action-time-seconds: 166
+        storage: 384
         storage-slots: 7
         upgrade-requirements:
           collections:
-            animals.leather: 35000
-            animals.beef: 175000
+            animals.leather: 8750
+            animals.beef: 50000
+          items: {}
+      7:
+        action-time-seconds: 132
+        storage: 448
+        storage-slots: 9
+        upgrade-requirements:
+          collections:
+            animals.leather: 17500
+            animals.beef: 87500
           items: {}
     max-tier: 7
     wiki:
-      special-items: []
+      special-items:
+        - plant_fertilizer_booster
       auto-compressed-resources: false
   chicken:
     enabled: true
@@ -2434,59 +2877,59 @@ minion-types:
         chance: 0.15
     tiers:
       1:
-        action-time-seconds: 96
+        action-time-seconds: 192
         storage: 64
         storage-slots: 1
         upgrade-requirements:
           collections: {}
           items: {}
       2:
-        action-time-seconds: 91
+        action-time-seconds: 182
         storage: 128
         storage-slots: 2
         upgrade-requirements:
           collections:
-            animals.chicken_meat: 67
+            animals.chicken_meat: 34
           items: {}
       3:
-        action-time-seconds: 86
+        action-time-seconds: 172
         storage: 192
         storage-slots: 3
         upgrade-requirements:
           collections:
-            animals.chicken_meat: 350
+            animals.chicken_meat: 175
           items: {}
       4:
-        action-time-seconds: 80
+        action-time-seconds: 160
         storage: 256
         storage-slots: 4
         upgrade-requirements:
           collections:
-            animals.chicken_meat: 1750
+            animals.chicken_meat: 875
           items: {}
       5:
-        action-time-seconds: 71
+        action-time-seconds: 142
         storage: 320
-        storage-slots: 5
-        upgrade-requirements:
-          collections:
-            animals.chicken_meat: 3500
-          items: {}
-      6:
-        action-time-seconds: 60
-        storage: 384
         storage-slots: 6
         upgrade-requirements:
           collections:
-            animals.chicken_meat: 17500
+            animals.chicken_meat: 1750
           items: {}
-      7:
-        action-time-seconds: 48
-        storage: 448
+      6:
+        action-time-seconds: 120
+        storage: 384
         storage-slots: 7
         upgrade-requirements:
           collections:
-            animals.chicken_meat: 35000
+            animals.chicken_meat: 8750
+          items: {}
+      7:
+        action-time-seconds: 96
+        storage: 448
+        storage-slots: 9
+        upgrade-requirements:
+          collections:
+            animals.chicken_meat: 17500
           items: {}
     max-tier: 7
     wiki:
@@ -2529,64 +2972,67 @@ minion-types:
         chance: 1.0
     tiers:
       1:
-        action-time-seconds: 60
+        action-time-seconds: 120
         storage: 64
         storage-slots: 1
         upgrade-requirements:
           collections: {}
           items: {}
       2:
-        action-time-seconds: 57
+        action-time-seconds: 114
         storage: 128
         storage-slots: 2
         upgrade-requirements:
           collections:
-            farming.wheat: 1000
+            farming.wheat: 500
           items: {}
       3:
-        action-time-seconds: 54
+        action-time-seconds: 108
         storage: 192
         storage-slots: 3
         upgrade-requirements:
           collections:
-            farming.wheat: 3500
+            farming.wheat: 1750
           items: {}
       4:
-        action-time-seconds: 50
+        action-time-seconds: 100
         storage: 256
         storage-slots: 4
         upgrade-requirements:
           collections:
-            farming.wheat: 17500
+            farming.wheat: 8750
           items: {}
       5:
-        action-time-seconds: 44.4
+        action-time-seconds: 88.8
         storage: 320
-        storage-slots: 5
-        upgrade-requirements:
-          collections:
-            farming.wheat: 35000
-          items: {}
-      6:
-        action-time-seconds: 37.8
-        storage: 384
         storage-slots: 6
         upgrade-requirements:
           collections:
-            farming.wheat: 175000
+            farming.wheat: 17500
           items: {}
-      7:
-        action-time-seconds: 30.0
-        storage: 448
+      6:
+        action-time-seconds: 75.6
+        storage: 384
         storage-slots: 7
         upgrade-requirements:
           collections:
-            farming.wheat: 350000
+            farming.wheat: 87500
+          items: {}
+      7:
+        action-time-seconds: 60.0
+        storage: 448
+        storage-slots: 9
+        upgrade-requirements:
+          collections:
+            farming.wheat: 175000
           items: {}
     max-tier: 7
     wiki:
       special-items:
         - wheat_minion
+        - electric_mill
+        - refined_wheat
+        - biofuel
       auto-compressed-resources: false
   sugar_cane:
     enabled: true
@@ -2625,64 +3071,67 @@ minion-types:
         chance: 1.0
     tiers:
       1:
-        action-time-seconds: 52
+        action-time-seconds: 104
         storage: 64
         storage-slots: 1
         upgrade-requirements:
           collections: {}
           items: {}
       2:
-        action-time-seconds: 49
+        action-time-seconds: 98
         storage: 128
         storage-slots: 2
         upgrade-requirements:
           collections:
-            farming.sugar_cane: 1000
+            farming.sugar_cane: 500
           items: {}
       3:
-        action-time-seconds: 47
+        action-time-seconds: 94
         storage: 192
         storage-slots: 3
         upgrade-requirements:
           collections:
-            farming.sugar_cane: 3500
+            farming.sugar_cane: 1750
           items: {}
       4:
-        action-time-seconds: 43.2
+        action-time-seconds: 86.4
         storage: 256
         storage-slots: 4
         upgrade-requirements:
           collections:
-            farming.sugar_cane: 17500
+            farming.sugar_cane: 8750
           items: {}
       5:
-        action-time-seconds: 38.5
+        action-time-seconds: 77.0
         storage: 320
-        storage-slots: 5
-        upgrade-requirements:
-          collections:
-            farming.sugar_cane: 35000
-          items: {}
-      6:
-        action-time-seconds: 32.8
-        storage: 384
         storage-slots: 6
         upgrade-requirements:
           collections:
-            farming.sugar_cane: 175000
+            farming.sugar_cane: 17500
           items: {}
-      7:
-        action-time-seconds: 26.0
-        storage: 448
+      6:
+        action-time-seconds: 65.6
+        storage: 384
         storage-slots: 7
         upgrade-requirements:
           collections:
-            farming.sugar_cane: 350000
+            farming.sugar_cane: 87500
+          items: {}
+      7:
+        action-time-seconds: 52.0
+        storage: 448
+        storage-slots: 9
+        upgrade-requirements:
+          collections:
+            farming.sugar_cane: 175000
           items: {}
     max-tier: 7
     wiki:
       special-items:
         - sugar_cane_minion
+        - musket_ammo
+        - animal_booster
+        - sugar_cube
       auto-compressed-resources: false
   beetroot:
     enabled: true
@@ -2721,59 +3170,59 @@ minion-types:
         chance: 1.0
     tiers:
       1:
-        action-time-seconds: 150
+        action-time-seconds: 300
         storage: 64
         storage-slots: 1
         upgrade-requirements:
           collections: {}
           items: {}
       2:
-        action-time-seconds: 143
+        action-time-seconds: 286
         storage: 128
         storage-slots: 2
         upgrade-requirements:
           collections:
-            farming.beetroot: 350
+            farming.beetroot: 175
           items: {}
       3:
-        action-time-seconds: 135
+        action-time-seconds: 270
         storage: 192
         storage-slots: 3
         upgrade-requirements:
           collections:
-            farming.beetroot: 1000
+            farming.beetroot: 500
           items: {}
       4:
-        action-time-seconds: 125
+        action-time-seconds: 250
         storage: 256
         storage-slots: 4
         upgrade-requirements:
           collections:
-            farming.beetroot: 10000
+            farming.beetroot: 5000
           items: {}
       5:
-        action-time-seconds: 111
+        action-time-seconds: 222
         storage: 320
-        storage-slots: 5
-        upgrade-requirements:
-          collections:
-            farming.beetroot: 17500
-          items: {}
-      6:
-        action-time-seconds: 95
-        storage: 384
         storage-slots: 6
         upgrade-requirements:
           collections:
-            farming.beetroot: 100000
+            farming.beetroot: 8750
           items: {}
-      7:
-        action-time-seconds: 75
-        storage: 448
+      6:
+        action-time-seconds: 190
+        storage: 384
         storage-slots: 7
         upgrade-requirements:
           collections:
-            farming.beetroot: 175000
+            farming.beetroot: 50000
+          items: {}
+      7:
+        action-time-seconds: 150
+        storage: 448
+        storage-slots: 9
+        upgrade-requirements:
+          collections:
+            farming.beetroot: 87500
           items: {}
     max-tier: 7
     wiki:
@@ -2817,62 +3266,63 @@ minion-types:
         chance: 1.0
     tiers:
       1:
-        action-time-seconds: 120
+        action-time-seconds: 240
         storage: 64
         storage-slots: 1
         upgrade-requirements:
           collections: {}
           items: {}
       2:
-        action-time-seconds: 114
+        action-time-seconds: 228
         storage: 128
         storage-slots: 2
         upgrade-requirements:
           collections:
-            farming.cactus: 350
+            farming.cactus: 175
           items: {}
       3:
-        action-time-seconds: 108
+        action-time-seconds: 216
         storage: 192
         storage-slots: 3
         upgrade-requirements:
           collections:
-            farming.cactus: 1750
+            farming.cactus: 875
           items: {}
       4:
-        action-time-seconds: 100
+        action-time-seconds: 200
         storage: 256
         storage-slots: 4
         upgrade-requirements:
           collections:
-            farming.cactus: 10000
+            farming.cactus: 5000
           items: {}
       5:
-        action-time-seconds: 89
+        action-time-seconds: 178
         storage: 320
-        storage-slots: 5
-        upgrade-requirements:
-          collections:
-            farming.cactus: 17500
-          items: {}
-      6:
-        action-time-seconds: 76
-        storage: 384
         storage-slots: 6
         upgrade-requirements:
           collections:
-            farming.cactus: 100000
+            farming.cactus: 8750
           items: {}
-      7:
-        action-time-seconds: 60
-        storage: 448
+      6:
+        action-time-seconds: 152
+        storage: 384
         storage-slots: 7
         upgrade-requirements:
           collections:
-            farming.cactus: 175000
+            farming.cactus: 50000
+          items: {}
+      7:
+        action-time-seconds: 120
+        storage: 448
+        storage-slots: 9
+        upgrade-requirements:
+          collections:
+            farming.cactus: 87500
           items: {}
     max-tier: 7
     wiki:
       special-items:
         - cactus_minion
+        - hydro_update
       auto-compressed-resources: false

@@ -14,8 +14,22 @@ display:
     material: RAW_IRON
 valid_sources:
 - MINION_COLLECT
+- NATURAL_BLOCK_BREAK
 - CUSTOM_PLUGIN_GRANTED
 source_rules:
+  NATURAL_BLOCK_BREAK:
+    allowed_materials:
+    - STONE
+    - DEEPSLATE
+    allowed_worlds:
+    - world
+    - resource_world
+    - mining_world
+    blocked_worlds:
+    - spawn
+    allow_in_town_claims: false
+    deny_player_placed_blocks: true
+    deny_recently_broken_blocks: true
   MINION_COLLECT:
     allowed_minion_types:
     - TIN_MINION
@@ -23,25 +37,25 @@ source_rules:
     allow_in_town_claims: true
 levels:
   1:
-    required: 35
+    required: 18
     display_name: '&7Cyna I'
   2:
-    required: 500
+    required: 250
     display_name: '&7Cyna II'
   3:
-    required: 2500
+    required: 1250
     display_name: '&7Cyna III'
   4:
-    required: 10000
+    required: 5000
     display_name: '&7Cyna IV'
   5:
-    required: 25000
+    required: 12500
     display_name: '&7Cyna V'
   6:
-    required: 100000
+    required: 50000
     display_name: '&7Cyna VI'
   7:
-    required: 250000
+    required: 125000
     display_name: '&7Cyna VII'
 reward_claim_mode: AUTO
 placeholder:

@@ -8,6 +8,7 @@ import hex.minions.api.TownMinionMenuData;
 import hex.minions.config.MinionTypeDefinition;
 import hex.minions.menu.MinionMenu;
 import hex.minions.service.MinionItemFactory;
+import hex.minions.robot.MiningRobotManager;
 import hex.minions.service.MinionService;
 import hex.minions.service.OperationResult;
 import org.bukkit.Bukkit;
@@ -33,14 +34,16 @@ public final class MinionCommand implements CommandExecutor, TabCompleter {
     private final MinionService service;
     private final MinionItemFactory itemFactory;
     private final MinionMenu menu;
+    private final MiningRobotManager robotManager;
     private final Runnable reloadAction;
 
-    public MinionCommand(Plugin plugin, HexApi hex, MinionService service, MinionItemFactory itemFactory, MinionMenu menu, Runnable reloadAction) {
+    public MinionCommand(Plugin plugin, HexApi hex, MinionService service, MinionItemFactory itemFactory, MinionMenu menu, MiningRobotManager robotManager, Runnable reloadAction) {
         this.plugin = plugin;
         this.hex = hex;
         this.service = service;
         this.itemFactory = itemFactory;
         this.menu = menu;
+        this.robotManager = robotManager;
         this.reloadAction = reloadAction;
     }
 
@@ -54,6 +57,7 @@ public final class MinionCommand implements CommandExecutor, TabCompleter {
             case "give" -> give(sender, args);
             case "list" -> list(sender);
             case "wiki" -> wiki(sender, args);
+            case "robots", "roboty" -> robots(sender);
             case "pickup" -> playerAction(sender, args, "pickup");
             case "move" -> playerAction(sender, args, "move");
             case "select-index" -> selectIndex(sender, args);
@@ -139,6 +143,11 @@ public final class MinionCommand implements CommandExecutor, TabCompleter {
         }
     }
 
+    private void robots(CommandSender sender) {
+        if (!(sender instanceof Player player)) { hex.ui().send(sender, "minions.error.player-only"); return; }
+        robotManager.openList(player);
+    }
+
     private void reload(CommandSender sender) {
         if (!sender.hasPermission("hexminions.admin")) { hex.ui().send(sender, "minions.error.no-permission"); return; }
         reloadAction.run();
@@ -191,7 +200,7 @@ public final class MinionCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length == 1) return partial(args[0], List.of("help", "give", "list", "wiki", "pickup", "move", "select", "select-index", "action", "reload", "admin"));
+        if (args.length == 1) return partial(args[0], List.of("help", "give", "list", "wiki", "robots", "pickup", "move", "select", "select-index", "action", "reload", "admin"));
         if (args.length == 3 && args[0].equalsIgnoreCase("give")) return partial(args[2], new ArrayList<>(service.definitions().minionTypes().keySet()));
         if (args.length == 2 && args[0].equalsIgnoreCase("wiki")) return partial(args[1], new ArrayList<>(service.definitions().minionTypes().keySet()));
         if (args.length == 2 && args[0].equalsIgnoreCase("action")) return partial(args[1], List.of("collect", "upgrade", "pickup", "move", "open"));

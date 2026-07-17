@@ -44,12 +44,15 @@ public final class MachineRuntimeRepository {
                 "secondary_data MEDIUMTEXT NULL," +
                 "fuel_data MEDIUMTEXT NULL," +
                 "output_data MEDIUMTEXT NULL," +
+                "output1_data MEDIUMTEXT NULL," +
                 "upgrade0_data MEDIUMTEXT NULL," +
                 "upgrade1_data MEDIUMTEXT NULL," +
                 "upgrade2_data MEDIUMTEXT NULL," +
                 "energy INT NOT NULL DEFAULT 0," +
                 "recipe_id VARCHAR(128) NOT NULL DEFAULT ''," +
                 "progress_seconds INT NOT NULL DEFAULT 0," +
+                "recipe1_id VARCHAR(128) NOT NULL DEFAULT ''," +
+                "progress1_seconds INT NOT NULL DEFAULT 0," +
                 "last_fuel_seconds INT NOT NULL DEFAULT 0," +
                 "burn_remaining_seconds INT NOT NULL DEFAULT 0," +
                 "burn_eu_remaining INT NOT NULL DEFAULT 0," +
@@ -62,13 +65,16 @@ public final class MachineRuntimeRepository {
                 ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin");
         try { db.update("ALTER TABLE " + db.t("machine_runtimes") + " ADD COLUMN extra_input0_data MEDIUMTEXT NULL"); } catch (Throwable ignored) { }
         try { db.update("ALTER TABLE " + db.t("machine_runtimes") + " ADD COLUMN extra_input1_data MEDIUMTEXT NULL"); } catch (Throwable ignored) { }
+        try { db.update("ALTER TABLE " + db.t("machine_runtimes") + " ADD COLUMN output1_data MEDIUMTEXT NULL"); } catch (Throwable ignored) { }
+        try { db.update("ALTER TABLE " + db.t("machine_runtimes") + " ADD COLUMN recipe1_id VARCHAR(128) NOT NULL DEFAULT ''"); } catch (Throwable ignored) { }
+        try { db.update("ALTER TABLE " + db.t("machine_runtimes") + " ADD COLUMN progress1_seconds INT NOT NULL DEFAULT 0"); } catch (Throwable ignored) { }
         try { db.update("ALTER TABLE " + db.t("machine_runtimes") + " ADD COLUMN last_active_at BIGINT NOT NULL DEFAULT 0"); } catch (Throwable ignored) { }
         try { db.update("ALTER TABLE " + db.t("machine_runtimes") + " ADD COLUMN accumulator_input_face VARCHAR(16) NOT NULL DEFAULT ''"); } catch (Throwable ignored) { }
     }
 
     public List<MachineRuntime> loadAll() {
-        return db.query("SELECT block_key, machine_id, input_data, extra_input0_data, extra_input1_data, secondary_data, fuel_data, output_data, " +
-                        "upgrade0_data, upgrade1_data, upgrade2_data, energy, recipe_id, progress_seconds, " +
+        return db.query("SELECT block_key, machine_id, input_data, extra_input0_data, extra_input1_data, secondary_data, fuel_data, output_data, output1_data, " +
+                        "upgrade0_data, upgrade1_data, upgrade2_data, energy, recipe_id, progress_seconds, recipe1_id, progress1_seconds, " +
                         "last_fuel_seconds, burn_remaining_seconds, burn_eu_remaining, last_active_at, accumulator_input_face, updated_at FROM " + db.t("machine_runtimes"),
                 rs -> {
                     MachineRuntime runtime = new MachineRuntime(rs.getString("block_key"), rs.getString("machine_id"));
@@ -78,11 +84,13 @@ public final class MachineRuntimeRepository {
                     runtime.secondary(deserializeItem(rs.getString("secondary_data")));
                     runtime.fuel(deserializeItem(rs.getString("fuel_data")));
                     runtime.output(deserializeItem(rs.getString("output_data")));
+                    try { runtime.output2(deserializeItem(rs.getString("output1_data"))); } catch (Throwable ignored) { }
                     runtime.upgrade(0, deserializeItem(rs.getString("upgrade0_data")));
                     runtime.upgrade(1, deserializeItem(rs.getString("upgrade1_data")));
                     runtime.upgrade(2, deserializeItem(rs.getString("upgrade2_data")));
                     runtime.energy(rs.getInt("energy"));
                     runtime.restoreProcess(rs.getString("recipe_id"), rs.getInt("progress_seconds"));
+                    try { runtime.restoreProcessAt(1, rs.getString("recipe1_id"), rs.getInt("progress1_seconds")); } catch (Throwable ignored) { }
                     runtime.restoreBurn(rs.getInt("burn_eu_remaining"), rs.getInt("burn_remaining_seconds"), rs.getInt("last_fuel_seconds"));
                     long lastActive = rs.getLong("last_active_at");
                     if (lastActive <= 0L) lastActive = rs.getLong("updated_at");
@@ -101,20 +109,20 @@ public final class MachineRuntimeRepository {
             if (parts == null) continue;
             batch.add(new Object[]{
                     runtime.blockKey(), runtime.machineId(), parts.world, parts.x, parts.y, parts.z,
-                    serializeItem(runtime.input()), serializeItem(runtime.extraInput(0)), serializeItem(runtime.extraInput(1)), serializeItem(runtime.secondary()), serializeItem(runtime.fuel()), serializeItem(runtime.output()),
+                    serializeItem(runtime.input()), serializeItem(runtime.extraInput(0)), serializeItem(runtime.extraInput(1)), serializeItem(runtime.secondary()), serializeItem(runtime.fuel()), serializeItem(runtime.output()), serializeItem(runtime.outputAt(1)),
                     serializeItem(runtime.upgrade(0)), serializeItem(runtime.upgrade(1)), serializeItem(runtime.upgrade(2)),
-                    runtime.energy(), runtime.recipeId(), runtime.progressSeconds(), runtime.lastFuelSeconds(), runtime.burnRemainingSeconds(), runtime.burnEuRemaining(), runtime.lastActiveAtMillis() <= 0L ? now : runtime.lastActiveAtMillis(), runtime.accumulatorInputFace(), now
+                    runtime.energy(), runtime.recipeId(), runtime.progressSeconds(), runtime.recipeIdAt(1), runtime.progressSecondsAt(1), runtime.lastFuelSeconds(), runtime.burnRemainingSeconds(), runtime.burnEuRemaining(), runtime.lastActiveAtMillis() <= 0L ? now : runtime.lastActiveAtMillis(), runtime.accumulatorInputFace(), now
             });
         }
         if (batch.isEmpty()) return;
         db.batch("INSERT INTO " + db.t("machine_runtimes") + " (" +
-                        "block_key, machine_id, world, x, y, z, input_data, extra_input0_data, extra_input1_data, secondary_data, fuel_data, output_data, " +
-                        "upgrade0_data, upgrade1_data, upgrade2_data, energy, recipe_id, progress_seconds, last_fuel_seconds, " +
-                        "burn_remaining_seconds, burn_eu_remaining, last_active_at, accumulator_input_face, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) " +
+                        "block_key, machine_id, world, x, y, z, input_data, extra_input0_data, extra_input1_data, secondary_data, fuel_data, output_data, output1_data, " +
+                        "upgrade0_data, upgrade1_data, upgrade2_data, energy, recipe_id, progress_seconds, recipe1_id, progress1_seconds, last_fuel_seconds, " +
+                        "burn_remaining_seconds, burn_eu_remaining, last_active_at, accumulator_input_face, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) " +
                         "ON DUPLICATE KEY UPDATE machine_id=VALUES(machine_id), world=VALUES(world), x=VALUES(x), y=VALUES(y), z=VALUES(z), " +
-                        "input_data=VALUES(input_data), extra_input0_data=VALUES(extra_input0_data), extra_input1_data=VALUES(extra_input1_data), secondary_data=VALUES(secondary_data), fuel_data=VALUES(fuel_data), output_data=VALUES(output_data), " +
+                        "input_data=VALUES(input_data), extra_input0_data=VALUES(extra_input0_data), extra_input1_data=VALUES(extra_input1_data), secondary_data=VALUES(secondary_data), fuel_data=VALUES(fuel_data), output_data=VALUES(output_data), output1_data=VALUES(output1_data), " +
                         "upgrade0_data=VALUES(upgrade0_data), upgrade1_data=VALUES(upgrade1_data), upgrade2_data=VALUES(upgrade2_data), " +
-                        "energy=VALUES(energy), recipe_id=VALUES(recipe_id), progress_seconds=VALUES(progress_seconds), " +
+                        "energy=VALUES(energy), recipe_id=VALUES(recipe_id), progress_seconds=VALUES(progress_seconds), recipe1_id=VALUES(recipe1_id), progress1_seconds=VALUES(progress1_seconds), " +
                         "last_fuel_seconds=VALUES(last_fuel_seconds), burn_remaining_seconds=VALUES(burn_remaining_seconds), " +
                         "burn_eu_remaining=VALUES(burn_eu_remaining), last_active_at=VALUES(last_active_at), " +
                         "accumulator_input_face=VALUES(accumulator_input_face), updated_at=VALUES(updated_at)", batch);

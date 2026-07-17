@@ -17,6 +17,7 @@ tracked_items:
     amount_value: 1
 valid_sources:
 - MINION_COLLECT
+- NATURAL_CROP_HARVEST
 - CUSTOM_PLUGIN_GRANTED
 sources:
 - trigger: minions.resource.generated
@@ -30,31 +31,43 @@ sources:
     collectionId: farming.sugar_cane
     resourceId: sugar_cane
 source_rules:
+  NATURAL_CROP_HARVEST:
+    allowed_materials:
+    - SUGAR_CANE
+    allowed_worlds:
+    - world
+    - resource_world
+    - mining_world
+    blocked_worlds:
+    - spawn
+    allow_in_town_claims: false
+    deny_player_placed_blocks: true
+    deny_recently_broken_blocks: false
   MINION_COLLECT:
     allow_in_town_claims: true
   CUSTOM_PLUGIN_GRANTED:
     allow_in_town_claims: true
 levels:
   1:
-    required: 200
+    required: 100
     display_name: '&aTrzcina cukrowa I'
   2:
-    required: 2500
+    required: 1250
     display_name: '&aTrzcina cukrowa II'
   3:
-    required: 10000
+    required: 5000
     display_name: '&aTrzcina cukrowa III'
   4:
-    required: 50000
+    required: 25000
     display_name: '&aTrzcina cukrowa IV'
   5:
-    required: 100000
+    required: 50000
     display_name: '&aTrzcina cukrowa V'
   6:
-    required: 500000
+    required: 250000
     display_name: '&aTrzcina cukrowa VI'
   7:
-    required: 1000000
+    required: 500000
     display_name: '&aTrzcina cukrowa VII'
 reward_claim_mode: AUTO
 placeholder:

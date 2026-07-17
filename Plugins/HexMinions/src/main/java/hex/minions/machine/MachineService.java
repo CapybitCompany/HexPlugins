@@ -10,7 +10,10 @@ import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.World;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Chest;
@@ -19,18 +22,24 @@ import org.bukkit.block.data.Directional;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.plugin.Plugin;
 import hex.towns.model.ChunkPos;
 
+import java.io.File;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Deque;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -45,20 +54,35 @@ public final class MachineService {
     private final MinionService minions;
     private final MachineRegistry registry;
     private final MachineRuntimeRepository repository;
+    private final NamespacedKey machineMenuGuideKey;
+    private final NamespacedKey recipeFuelUsesKey;
     private CableService cableService;
     private final Map<String, MachineRuntime> runtimes = new LinkedHashMap<>();
+    private final Map<String, Set<String>> runtimeKeysByChunk = new LinkedHashMap<>();
     private final Set<String> dirtyRuntimeKeys = ConcurrentHashMap.newKeySet();
     private final Set<String> deletedRuntimeKeys = ConcurrentHashMap.newKeySet();
+    private final Deque<OfflineCatchupJob> offlineCatchupQueue = new ArrayDeque<>();
+    private final Set<String> queuedOfflineCatchupKeys = ConcurrentHashMap.newKeySet();
+    private final Map<UUID, Long> pendingEnergyByTown = new LinkedHashMap<>();
+    private final Map<UUID, Location> pendingEnergyLocationByTown = new LinkedHashMap<>();
     private final int saveIntervalTicks;
     private final int saveMaxRows;
     private int tickCursor;
     private int saveCountdown;
+    private int collectionFlushCountdownTicks;
     private int taskId = -1;
     private volatile boolean dbReady;
     private volatile boolean flushInFlight;
     private final boolean offlineEnabled;
     private final int offlineMaxSecondsPerMachine;
     private final int offlineMaxMachinesPerChunk;
+    private final int offlineMaxOperationsPerMachine;
+    private final int offlineMaxMachinesPerTick;
+    private final int collectionProgressFlushTicks;
+    private final int maxGeneratorsPerTown;
+    private final int maxEnergyMachinesPerTown;
+    private final int maxEnergyDevicesPerTown;
+    private final Map<String, Integer> recipeFuelUsesBySpecialItemId;
 
     public MachineService(Plugin plugin, HexApi hex, MinionService minions) {
         this.plugin = plugin;
@@ -66,13 +90,25 @@ public final class MachineService {
         this.minions = minions;
         this.registry = MachineRegistry.load(plugin);
         this.repository = new MachineRuntimeRepository(hex.db().db());
+        this.machineMenuGuideKey = new NamespacedKey(plugin, "machine_menu_guide");
+        this.recipeFuelUsesKey = new NamespacedKey(plugin, "machine_recipe_fuel_uses_remaining");
+        this.recipeFuelUsesBySpecialItemId = loadRecipeFuelUses(plugin);
         org.bukkit.configuration.file.FileConfiguration pluginConfig = plugin instanceof org.bukkit.plugin.java.JavaPlugin javaPlugin ? javaPlugin.getConfig() : null;
+        ConfigurationSection energy = energySection(pluginConfig);
+        ConfigurationSection offline = energy == null ? null : energy.getConfigurationSection("offline_catchup");
         this.saveIntervalTicks = Math.max(20, pluginConfig == null ? 200 : pluginConfig.getInt("minions.machines.persistence.flush-interval-ticks", 200));
         this.saveMaxRows = Math.max(25, pluginConfig == null ? 500 : pluginConfig.getInt("minions.machines.persistence.max-rows-per-flush", 500));
-        this.offlineEnabled = pluginConfig == null || pluginConfig.getBoolean("minions.machines.offline.enabled", true);
-        int defaultOfflineSeconds = pluginConfig == null ? 86400 : Math.max(60, pluginConfig.getInt("minions.engine.offline.max-hours", 24) * 3600);
-        this.offlineMaxSecondsPerMachine = Math.max(60, pluginConfig == null ? defaultOfflineSeconds : pluginConfig.getInt("minions.machines.offline.max-seconds-per-machine", defaultOfflineSeconds));
+        this.offlineEnabled = pluginConfig == null || getBoolean(pluginConfig, offline, true, "enabled", "minions.machines.offline.enabled");
+        int defaultOfflineSeconds = pluginConfig == null ? 21600 : Math.max(60, pluginConfig.getInt("minions.engine.offline.max-hours", 6) * 3600);
+        this.offlineMaxSecondsPerMachine = Math.max(60, getInt(pluginConfig, offline, defaultOfflineSeconds, "max_seconds_per_machine", "max-seconds-per-machine", "minions.machines.offline.max-seconds-per-machine"));
         this.offlineMaxMachinesPerChunk = Math.max(1, pluginConfig == null ? 512 : pluginConfig.getInt("minions.machines.offline.max-machines-per-chunk", 512));
+        this.offlineMaxOperationsPerMachine = Math.max(1, getInt(pluginConfig, offline, 256, "max_operations_per_machine", "max-operations-per-machine", "minions.machines.offline.max-operations-per-machine"));
+        this.offlineMaxMachinesPerTick = Math.max(1, getInt(pluginConfig, offline, 16, "max_machines_per_tick", "max-machines-per-tick", "minions.machines.offline.max-machines-per-tick", "energy.max_offline_catchup_machines_per_tick"));
+        this.collectionProgressFlushTicks = Math.max(20, 20 * getInt(pluginConfig, energy, 5, "collection_progress_flush_seconds", "collection-progress-flush-seconds"));
+        this.collectionFlushCountdownTicks = this.collectionProgressFlushTicks;
+        this.maxGeneratorsPerTown = Math.max(0, getInt(pluginConfig, energy, 16, "max_generators_per_town", "max-generators-per-town"));
+        this.maxEnergyMachinesPerTown = Math.max(0, getInt(pluginConfig, energy, 32, "max_energy_machines_per_town", "max-energy-machines-per-town"));
+        this.maxEnergyDevicesPerTown = Math.max(0, getInt(pluginConfig, energy, 64, "max_energy_devices_per_town", "max-energy-devices-per-town"));
         loadAsync();
     }
 
@@ -85,6 +121,10 @@ public final class MachineService {
         if (cableService != null) cableService.refreshVisuals();
     }
 
+    public void refreshCableVisualsNear(Block block) {
+        if (cableService != null && block != null) cableService.refreshVisualsNear(block.getLocation());
+    }
+
     public void start() {
         if (taskId != -1) return;
         taskId = Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 20L, 1L).getTaskId();
@@ -93,12 +133,14 @@ public final class MachineService {
     public void shutdown() {
         if (taskId != -1) Bukkit.getScheduler().cancelTask(taskId);
         taskId = -1;
+        flushPendingEnergyProgress();
         saveNow();
     }
 
     public MachineRuntime runtime(String blockKey, String machineId) {
         MachineRuntime existing = runtimes.get(blockKey);
         if (existing != null) {
+            indexRuntime(existing);
             if (machineId != null && !machineId.isBlank() && !machineId.equalsIgnoreCase(existing.machineId())) {
                 existing.machineId(machineId);
                 markDirty(existing);
@@ -108,6 +150,7 @@ public final class MachineService {
         MachineRuntime runtime = new MachineRuntime(blockKey, machineId);
         runtime.touchActiveNow();
         runtimes.put(blockKey, runtime);
+        indexRuntime(runtime);
         markDirty(runtime);
         return runtime;
     }
@@ -118,6 +161,7 @@ public final class MachineService {
         MachineRuntime removed = runtimes.remove(blockKey);
         if (removed != null && dropLocation != null) removed.drop(dropLocation);
         if (removed != null) {
+            deindexRuntime(removed);
             dirtyRuntimeKeys.remove(blockKey);
             deletedRuntimeKeys.add(blockKey);
         }
@@ -128,9 +172,11 @@ public final class MachineService {
         if (chunk == null || !dbReady) return;
         int handled = 0;
         List<MachineRuntime> inChunk = new ArrayList<>();
-        for (MachineRuntime runtime : new ArrayList<>(runtimes.values())) {
-            if (!isRuntimeInChunk(runtime, chunk.getWorld().getName(), chunk.getX(), chunk.getZ())) continue;
-            inChunk.add(runtime);
+        Set<String> keys = runtimeKeysByChunk.get(chunkKey(chunk.getWorld().getName(), chunk.getX(), chunk.getZ()));
+        if (keys == null || keys.isEmpty()) return;
+        for (String key : new ArrayList<>(keys)) {
+            MachineRuntime runtime = runtimes.get(key);
+            if (runtime != null) inChunk.add(runtime);
         }
         // Generatory i akumulatory najpierw uzupełniają bufory/sieć, a dopiero potem maszyny konsumujące rozliczają procesy.
         inChunk.sort(java.util.Comparator.comparingInt(this::offlineOrder));
@@ -140,7 +186,7 @@ public final class MachineService {
             MachineDefinition machine = block == null ? null : machineAt(block);
             if (machine == null) continue;
             runtime.machineId(machine.id());
-            applyOfflineCatchup(block, machine, runtime);
+            enqueueOfflineCatchup(block, machine, runtime);
             ensureActiveStamp(runtime, false);
         }
         if (handled > 0) saveSoon();
@@ -148,8 +194,11 @@ public final class MachineService {
 
     public void observeChunkUnload(Chunk chunk) {
         if (chunk == null || !dbReady) return;
-        for (MachineRuntime runtime : new ArrayList<>(runtimes.values())) {
-            if (!isRuntimeInChunk(runtime, chunk.getWorld().getName(), chunk.getX(), chunk.getZ())) continue;
+        Set<String> keys = runtimeKeysByChunk.get(chunkKey(chunk.getWorld().getName(), chunk.getX(), chunk.getZ()));
+        if (keys == null || keys.isEmpty()) return;
+        for (String key : new ArrayList<>(keys)) {
+            MachineRuntime runtime = runtimes.get(key);
+            if (runtime == null) continue;
             ensureActiveStamp(runtime, true);
         }
         if (!dirtyRuntimeKeys.isEmpty()) flushDirtyAsync();
@@ -164,7 +213,8 @@ public final class MachineService {
             if (parts == null || !parts.world().equals(worldName)) continue;
             String chunkKey = parts.world() + ":" + Math.floorDiv(parts.x(), 16) + ":" + Math.floorDiv(parts.z(), 16);
             if (chunkKeys.contains(chunkKey)) {
-                runtimes.remove(blockKey);
+                MachineRuntime removed = runtimes.remove(blockKey);
+                if (removed != null) deindexRuntime(removed);
                 dirtyRuntimeKeys.remove(blockKey);
                 deletedRuntimeKeys.add(blockKey);
             }
@@ -182,7 +232,7 @@ public final class MachineService {
         syncInputsFromInventory(machine, runtime, inv);
         runtime.secondary(machine.hasSecondarySlot() ? inv.getItem(machine.secondarySlot()) : null);
         runtime.fuel((machine.energy().enabled() || machine.hasRecipeFuelSlot()) ? inv.getItem(machine.fuelSlot()) : null);
-        runtime.output(inv.getItem(machine.outputSlot()));
+        syncOutputsFromInventory(machine, runtime, inv);
         List<Integer> upgrades = upgradeSlots(machine);
         for (int i = 0; i < Math.min(3, upgrades.size()); i++) runtime.upgrade(i, inv.getItem(upgrades.get(i)));
         markDirty(runtime);
@@ -194,13 +244,13 @@ public final class MachineService {
         syncInputsToInventory(machine, runtime, inv);
         if (machine.hasSecondarySlot()) inv.setItem(machine.secondarySlot(), runtime.secondary());
         if (machine.energy().enabled() || machine.hasRecipeFuelSlot()) inv.setItem(machine.fuelSlot(), runtime.fuel());
-        inv.setItem(machine.outputSlot(), runtime.output());
+        syncOutputsToInventory(machine, runtime, inv);
         List<Integer> upgrades = upgradeSlots(machine);
         for (int i = 0; i < Math.min(3, upgrades.size()); i++) inv.setItem(upgrades.get(i), runtime.upgrade(i));
     }
 
     private void syncInputsFromInventory(MachineDefinition machine, MachineRuntime runtime, Inventory inv) {
-        if (machine == null || runtime == null || inv == null || machine.recipes().isEmpty()) {
+        if (machine == null || runtime == null || inv == null || (!usesProcessingInputs(machine))) {
             if (runtime != null) {
                 runtime.input(null);
                 runtime.extraInput(0, null);
@@ -215,11 +265,29 @@ public final class MachineService {
     }
 
     private void syncInputsToInventory(MachineDefinition machine, MachineRuntime runtime, Inventory inv) {
-        if (machine == null || runtime == null || inv == null || machine.recipes().isEmpty()) return;
+        if (machine == null || runtime == null || inv == null || !usesProcessingInputs(machine)) return;
         List<Integer> slots = machine.inputSlots();
         if (slots.size() > 0) inv.setItem(slots.get(0), runtime.input());
         if (slots.size() > 1) inv.setItem(slots.get(1), runtime.extraInput(0));
         if (slots.size() > 2) inv.setItem(slots.get(2), runtime.extraInput(1));
+    }
+
+    private void syncOutputsFromInventory(MachineDefinition machine, MachineRuntime runtime, Inventory inv) {
+        if (machine == null || runtime == null || inv == null) return;
+        List<Integer> slots = machine.outputSlots();
+        runtime.output(slots.size() > 0 ? inv.getItem(slots.get(0)) : null);
+        runtime.output2(slots.size() > 1 ? inv.getItem(slots.get(1)) : null);
+    }
+
+    private void syncOutputsToInventory(MachineDefinition machine, MachineRuntime runtime, Inventory inv) {
+        if (machine == null || runtime == null || inv == null) return;
+        List<Integer> slots = machine.outputSlots();
+        if (slots.size() > 0) inv.setItem(slots.get(0), runtime.output());
+        if (slots.size() > 1) inv.setItem(slots.get(1), runtime.outputAt(1));
+    }
+
+    private boolean usesProcessingInputs(MachineDefinition machine) {
+        return machine != null && (!machine.recipes().isEmpty() || isElectricFurnace(machine));
     }
 
     public List<Integer> upgradeSlots(MachineDefinition machine) {
@@ -229,8 +297,8 @@ public final class MachineService {
 
     public boolean isEditableSlot(MachineDefinition machine, int slot) {
         if (machine == null) return false;
-        if (slot == machine.outputSlot() || slot == machine.arrowSlot()) return false;
-        if (!machine.recipes().isEmpty() && machine.inputSlots().contains(slot)) return true;
+        if (machine.outputSlots().contains(slot) || slot == machine.arrowSlot()) return false;
+        if (usesProcessingInputs(machine) && machine.inputSlots().contains(slot)) return true;
         if (slot == machine.secondarySlot() && machine.hasSecondarySlot()) return true;
         if (slot == machine.fuelSlot() && (machine.energy().enabled() || machine.hasRecipeFuelSlot())) return true;
         if (slot == machine.energy().batterySlot()) return true;
@@ -292,9 +360,13 @@ public final class MachineService {
     }
 
     public boolean collectOutput(MachineRuntime runtime, org.bukkit.entity.Player player) {
-        ItemStack output = runtime.output();
+        return collectOutput(runtime, 0, player);
+    }
+
+    public boolean collectOutput(MachineRuntime runtime, int outputIndex, org.bukkit.entity.Player player) {
+        ItemStack output = runtime.outputAt(outputIndex);
         if (output == null || output.getType().isAir()) return false;
-        runtime.output(null);
+        runtime.outputAt(outputIndex, null);
         player.getInventory().addItem(output).values().forEach(left -> player.getWorld().dropItemNaturally(player.getLocation(), left));
         markDirty(runtime);
         saveSoon();
@@ -306,18 +378,20 @@ public final class MachineService {
         if (!dbReady) return;
         if (slot < 10) tickGenerators(slot);
         else tickConsumers(slot - 10);
+        drainOfflineCatchupQueue();
         refreshOpenMenus();
+        if (--collectionFlushCountdownTicks <= 0) flushPendingEnergyProgress();
         if ((!dirtyRuntimeKeys.isEmpty() || !deletedRuntimeKeys.isEmpty()) && ++saveCountdown >= saveIntervalTicks) flushDirtyAsync();
     }
 
     private void tickGenerators(int secondSlot) {
-        for (MachineRuntime runtime : new ArrayList<>(runtimes.values())) {
-            if (Math.floorMod(runtime.blockKey().hashCode(), 10) != secondSlot) continue;
+        for (String key : loadedRuntimeKeysForBucket(secondSlot)) {
+            MachineRuntime runtime = runtimes.get(key);
+            if (runtime == null) continue;
             Block block = blockFromKeyIfLoaded(runtime.blockKey());
             MachineDefinition machine = block == null ? null : machineAt(block);
             if (machine == null || !machine.energy().enabled() || !machine.energy().generator()) continue;
             runtime.machineId(machine.id());
-            applyOfflineCatchup(block, machine, runtime);
             int generated = tickGeneratorEnergy(block, machine, runtime);
             if (generated > 0) recordEnergyGenerated(block, generated);
             distributeEnergy(block, machine, runtime);
@@ -326,20 +400,22 @@ public final class MachineService {
     }
 
     private void tickConsumers(int secondSlot) {
-        for (MachineRuntime runtime : new ArrayList<>(runtimes.values())) {
-            if (Math.floorMod(runtime.blockKey().hashCode(), 10) != secondSlot) continue;
+        for (String key : loadedRuntimeKeysForBucket(secondSlot)) {
+            MachineRuntime runtime = runtimes.get(key);
+            if (runtime == null) continue;
             Block block = blockFromKeyIfLoaded(runtime.blockKey());
             MachineDefinition machine = block == null ? null : machineAt(block);
             if (machine == null || machine.energy().generator()) continue;
             runtime.machineId(machine.id());
-            applyOfflineCatchup(block, machine, runtime);
             if (isAccumulator(machine)) {
                 distributeAccumulatorEnergy(block, machine, runtime);
                 ensureActiveStamp(runtime, false);
                 continue;
             }
             if (machine.energy().enabled()) tickFuel(machine, runtime, false);
-            tickProcess(machine, runtime);
+            if (isElectricFurnace(machine)) tickElectricFurnace(block, machine, runtime);
+            else if (isExternalOutputProcessor(machine)) tickExternalOutputProcessor(block, machine, runtime);
+            else tickProcess(machine, runtime);
             ensureActiveStamp(runtime, false);
         }
     }
@@ -359,28 +435,35 @@ public final class MachineService {
         if (elapsedSeconds <= 1) return;
         int beforeEnergy = runtime.energy();
         int beforeProgress = runtime.progressSeconds();
+        int beforeProgress1 = runtime.progressSecondsAt(1);
         int beforeBurn = runtime.burnRemainingSeconds();
         ItemStack beforeInput = runtime.input();
         ItemStack beforeExtraInput0 = runtime.extraInput(0);
         ItemStack beforeExtraInput1 = runtime.extraInput(1);
         ItemStack beforeOutput = runtime.output();
-        for (int i = 0; i < elapsedSeconds; i++) {
-            if (machine.energy().enabled() && machine.energy().generator()) {
+        ItemStack beforeOutput1 = runtime.outputAt(1);
+        int operations = Math.min(elapsedSeconds, offlineMaxOperationsPerMachine);
+        boolean generatorCatchup = machine.energy().enabled() && machine.energy().generator();
+        for (int i = 0; i < operations; i++) {
+            if (generatorCatchup) {
                 int generated = tickGeneratorEnergy(block, machine, runtime);
                 if (generated > 0) recordEnergyGenerated(block, generated);
-                // Transfer w catch-up przechodzi tylko przez aktualnie załadowane trasy kabli.
-                // Nie przerzucamy EU do maszyn/akumulatorów w niezaładowanych chunkach.
-                distributeEnergy(block, machine, runtime);
+                // Nie skanujemy/transferujemy tras kabli dla każdej sekundy offline.
+                // Co 10 uproszczonych kroków robimy jeden transfer, a finalny transfer po pętli.
+                if (i % 10 == 9) distributeEnergy(block, machine, runtime);
             } else if (isAccumulator(machine)) {
                 distributeAccumulatorEnergy(block, machine, runtime);
             } else {
                 if (machine.energy().enabled()) tickFuel(machine, runtime, false);
-                tickProcess(machine, runtime);
+                if (isElectricFurnace(machine)) tickElectricFurnace(block, machine, runtime);
+                else if (isExternalOutputProcessor(machine)) tickExternalOutputProcessor(block, machine, runtime);
+                else tickProcess(machine, runtime);
             }
         }
+        if (generatorCatchup) distributeEnergy(block, machine, runtime);
         runtime.lastActiveAtMillis(now);
-        if (beforeEnergy != runtime.energy() || beforeProgress != runtime.progressSeconds() || beforeBurn != runtime.burnRemainingSeconds()
-                || !similarItem(beforeInput, runtime.input()) || !similarItem(beforeExtraInput0, runtime.extraInput(0)) || !similarItem(beforeExtraInput1, runtime.extraInput(1)) || !similarItem(beforeOutput, runtime.output())) {
+        if (beforeEnergy != runtime.energy() || beforeProgress != runtime.progressSeconds() || beforeProgress1 != runtime.progressSecondsAt(1) || beforeBurn != runtime.burnRemainingSeconds()
+                || !similarItem(beforeInput, runtime.input()) || !similarItem(beforeExtraInput0, runtime.extraInput(0)) || !similarItem(beforeExtraInput1, runtime.extraInput(1)) || !similarItem(beforeOutput, runtime.output()) || !similarItem(beforeOutput1, runtime.outputAt(1))) {
             markDirty(runtime);
         } else {
             // Sam znacznik czasu też jest ważny: bez niego maszyna po kolejnym loadzie liczyłaby ten sam czas drugi raz.
@@ -429,21 +512,41 @@ public final class MachineService {
     }
 
     public void recordEnergyGeneratorPlaced(Block block, MachineDefinition machine) {
-        if (block == null || !isEnergyGenerator(machine)) return;
-        recordEnergyGenerated(block, 1L);
+        // Kolekcja energii ma reprezentowac realnie wygenerowane i przyjete EU,
+        // a nie samo postawienie generatora/panelu.
     }
 
     private void recordEnergyGenerated(Block block, long amount) {
         if (block == null || amount <= 0) return;
         try {
-            minions.towns().townAt(block.getLocation()).ifPresent(town -> minions.collections().addProgress(new CollectionProgressContext()
-                    .townId(town.id())
-                    .collectionId("industrial.energy")
-                    .amount(amount)
-                    .source(CollectionSource.CUSTOM_PLUGIN_GRANTED)
-                    .location(block.getLocation())
-                    .reason("machine.energy.generated")));
+            minions.towns().townAt(block.getLocation()).ifPresent(town -> {
+                pendingEnergyByTown.merge(town.id(), amount, Long::sum);
+                pendingEnergyLocationByTown.put(town.id(), block.getLocation());
+            });
         } catch (Throwable ignored) {
+        }
+    }
+
+    private void flushPendingEnergyProgress() {
+        collectionFlushCountdownTicks = collectionProgressFlushTicks;
+        if (pendingEnergyByTown.isEmpty()) return;
+        Map<UUID, Long> snapshot = new LinkedHashMap<>(pendingEnergyByTown);
+        Map<UUID, Location> locations = new LinkedHashMap<>(pendingEnergyLocationByTown);
+        pendingEnergyByTown.clear();
+        pendingEnergyLocationByTown.clear();
+        for (Map.Entry<UUID, Long> entry : snapshot.entrySet()) {
+            long amount = entry.getValue() == null ? 0L : entry.getValue();
+            if (amount <= 0) continue;
+            try {
+                minions.collections().addProgress(new CollectionProgressContext()
+                        .townId(entry.getKey())
+                        .collectionId("industrial.energy")
+                        .amount(amount)
+                        .source(CollectionSource.CUSTOM_PLUGIN_GRANTED)
+                        .location(locations.get(entry.getKey()))
+                        .reason("machine.energy.generated.flush"));
+            } catch (Throwable ignored) {
+            }
         }
     }
 
@@ -500,7 +603,7 @@ public final class MachineService {
             best = Math.max(best, switch (id) {
                 case "storage_expander" -> 3;
                 case "medium_minion_storage" -> 5;
-                case "large_minion_storage" -> 15;
+                case "large_minion_storage" -> 7;
                 default -> 0;
             });
         }
@@ -521,6 +624,521 @@ public final class MachineService {
         runtime.startBurn(value.eu, value.burnSeconds);
         runtime.burnTick(capacity);
         markDirty(runtime);
+    }
+
+
+    private void tickElectricFurnace(Block block, MachineDefinition machine, MachineRuntime runtime) {
+        if (block == null || machine == null || runtime == null) return;
+        ensureElectricFurnaceStorage(block, runtime);
+        pullElectricFurnaceInputs(block, runtime);
+        List<ElectricFurnaceJob> jobs = electricFurnaceJobs(block, machine, runtime, true);
+        if (jobs.isEmpty()) {
+            resetIdleElectricFurnaceProcesses(runtime, Set.of());
+            return;
+        }
+        if (!runtime.consumeEnergy(Math.max(0, machine.energy().euPerSecond()))) return;
+        Set<Integer> activeSlots = new HashSet<>();
+        for (ElectricFurnaceJob job : jobs) {
+            activeSlots.add(job.processSlot());
+            if (!job.recipeId().equals(runtime.recipeIdAt(job.processSlot()))) runtime.startProcessAt(job.processSlot(), job.recipeId());
+            runtime.addProgressSecondAt(job.processSlot());
+        }
+        resetIdleElectricFurnaceProcesses(runtime, activeSlots);
+        for (ElectricFurnaceJob job : jobs) {
+            if (runtime.progressSecondsAt(job.processSlot()) < job.timeSeconds()) continue;
+            completeElectricFurnaceJob(block, machine, runtime, job);
+        }
+        markDirty(runtime);
+    }
+
+    private void tickExternalOutputProcessor(Block block, MachineDefinition machine, MachineRuntime runtime) {
+        if (block == null || machine == null || runtime == null) return;
+        ensureElectricFurnaceStorage(block, runtime);
+        pullElectricComposterInput(block, machine, runtime);
+        Match active = findExternalOutputMatch(block, machine, runtime, true);
+        MachineRecipe recipe = active == null ? null : active.recipe();
+        if (recipe == null) {
+            if (!runtime.recipeId().isBlank() || runtime.progressSeconds() > 0) {
+                runtime.resetProcess();
+                markDirty(runtime);
+            }
+            return;
+        }
+        String processKey = recipe.id() + "@" + active.inputIndex();
+        if (!processKey.equals(runtime.recipeId())) runtime.startProcess(processKey);
+        if (machine.energy().enabled()) {
+            int cost = Math.max(0, machine.energy().euPerSecond());
+            if (!runtime.consumeEnergy(cost)) return;
+        }
+        runtime.addProgressSecond();
+        if (runtime.progressSeconds() >= recipe.timeSeconds()) completeExternalOutputRecipe(block, machine, runtime, recipe, active.inputIndex());
+        markDirty(runtime);
+    }
+
+    private void pullElectricComposterInput(Block block, MachineDefinition machine, MachineRuntime runtime) {
+        ItemStack current = runtime.input();
+        if (current != null && !current.getType().isAir()) return;
+        ItemStack pulled = pullFromMachineInputStorage(block, machine, runtime, null, 64);
+        if (pulled != null && !pulled.getType().isAir()) {
+            runtime.input(pulled);
+            markDirty(runtime);
+        }
+    }
+
+    private Match findExternalOutputMatch(Block block, MachineDefinition machine, MachineRuntime runtime, boolean createOutputChest) {
+        if (machine == null || runtime == null) return null;
+        int inputCount = Math.max(1, machine.inputSlots().size());
+        for (int inputIndex = 0; inputIndex < inputCount; inputIndex++) {
+            ItemStack candidateInput = runtime.inputAt(inputIndex);
+            for (MachineRecipe recipe : machine.recipes()) {
+                if (!recipe.matchesInput(candidateInput, minions.specialItems())) continue;
+                if (!recipe.matchesSecondary(runtime.secondary(), minions.specialItems())) continue;
+                if (!recipe.matchesFuel(runtime.fuel(), minions.specialItems())) continue;
+                if (!canAcceptExternalOutput(block, machine, runtime, output(recipe), createOutputChest)) continue;
+                return new Match(recipe, inputIndex);
+            }
+        }
+        return null;
+    }
+
+    private void completeExternalOutputRecipe(Block block, MachineDefinition machine, MachineRuntime runtime, MachineRecipe recipe, int inputIndex) {
+        Match active = findExternalOutputMatch(block, machine, runtime, true);
+        String processKey = recipe.id() + "@" + inputIndex;
+        if (active == null || !active.recipe().id().equals(recipe.id()) || active.inputIndex() != inputIndex || !processKey.equals(runtime.recipeId())) {
+            runtime.resetProcess();
+            return;
+        }
+        ItemStack beforeInput = runtime.inputAt(inputIndex);
+        boolean success = ThreadLocalRandom.current().nextDouble() <= recipe.successChance();
+        ItemStack output = success ? output(recipe) : null;
+        if (success && !insertExternalOutput(block, machine, runtime, output)) return;
+        runtime.consumeInputAt(inputIndex, recipe.inputAmount());
+        if (!recipe.secondarySpecialItem().isBlank() || recipe.secondaryMaterial() != Material.AIR) runtime.consumeSecondary(recipe.secondaryAmount());
+        if (!recipe.fuelSpecialItem().isBlank() || recipe.fuelMaterial() != Material.AIR) consumeRecipeFuel(runtime, recipe);
+        refillMachineInput(block, machine, runtime, inputIndex, beforeInput);
+        if (success) recordMachineOutput(runtime, recipe);
+        runtime.resetProcess();
+    }
+
+    private boolean canAcceptExternalOutput(Block block, MachineDefinition machine, MachineRuntime runtime, ItemStack item, boolean createOutputChest) {
+        if (item == null || item.getType().isAir()) return false;
+        ItemStack[] virtualChest = electricOutputChestContents(block, runtime, createOutputChest);
+        if (reserveIntoVirtualInventory(virtualChest, item)) return true;
+        return canAddOutputAt(machine, runtime, item, 0);
+    }
+
+    private boolean canAddOutputAt(MachineDefinition machine, MachineRuntime runtime, ItemStack output, int outputIndex) {
+        if (machine == null || runtime == null || output == null || output.getType().isAir()) return false;
+        ItemStack current = runtime.outputAt(outputIndex);
+        int max = Math.min(output.getMaxStackSize(), machine.defaultOutputStackSize());
+        if (current == null || current.getType().isAir()) return output.getAmount() <= max;
+        return current.isSimilar(output) && current.getAmount() + output.getAmount() <= max;
+    }
+
+    private boolean insertExternalOutput(Block block, MachineDefinition machine, MachineRuntime runtime, ItemStack output) {
+        if (insertIntoElectricOutputStorage(block, runtime, output)) return true;
+        return addOutputAt(machine, runtime, output, 0);
+    }
+
+    private void refillMachineInput(Block block, MachineDefinition machine, MachineRuntime runtime, int inputIndex, ItemStack template) {
+        if (template == null || template.getType().isAir()) return;
+        ItemStack current = runtime.inputAt(inputIndex);
+        int currentAmount = current == null || current.getType().isAir() ? 0 : current.getAmount();
+        int need = Math.max(0, template.getMaxStackSize() - currentAmount);
+        if (need <= 0) return;
+        ItemStack pulled = pullFromMachineInputStorage(block, machine, runtime, template, need);
+        if (pulled == null || pulled.getType().isAir()) return;
+        if (current == null || current.getType().isAir()) {
+            runtime.inputAt(inputIndex, pulled);
+        } else if (current.isSimilar(pulled)) {
+            current.setAmount(Math.min(current.getMaxStackSize(), current.getAmount() + pulled.getAmount()));
+            runtime.inputAt(inputIndex, current);
+        }
+    }
+
+    private ItemStack pullFromMachineInputStorage(Block block, MachineDefinition machine, MachineRuntime runtime, ItemStack template, int maxAmount) {
+        int slots = electricInputStorageSlots(runtime);
+        if (slots <= 0 || block == null || machine == null) return null;
+        Chest chest = electricStorageChest(block, BlockFace.UP, slots, true);
+        if (chest == null) return null;
+        Inventory inventory = chest.getBlockInventory();
+        int limit = Math.min(slots, inventory.getSize());
+        for (int i = 0; i < limit; i++) {
+            ItemStack candidate = inventory.getItem(i);
+            if (candidate == null || candidate.getType().isAir()) continue;
+            if (template != null && !candidate.isSimilar(template)) continue;
+            if (template == null && !isMachineInputCandidate(machine, candidate)) continue;
+            int move = Math.min(Math.max(1, maxAmount), candidate.getAmount());
+            ItemStack result = candidate.clone();
+            result.setAmount(move);
+            candidate.setAmount(candidate.getAmount() - move);
+            if (candidate.getAmount() <= 0) inventory.setItem(i, null);
+            return result;
+        }
+        return null;
+    }
+
+    private boolean isMachineInputCandidate(MachineDefinition machine, ItemStack item) {
+        if (machine == null || item == null || item.getType().isAir()) return false;
+        for (MachineRecipe recipe : machine.recipes()) {
+            if (recipe.matchesInput(item, minions.specialItems())) return true;
+        }
+        return false;
+    }
+
+    private void resetIdleElectricFurnaceProcesses(MachineRuntime runtime, Set<Integer> activeSlots) {
+        for (int slot = 0; slot < 2; slot++) {
+            if (!activeSlots.contains(slot) && (!runtime.recipeIdAt(slot).isBlank() || runtime.progressSecondsAt(slot) > 0)) runtime.resetProcessAt(slot);
+        }
+    }
+
+    private List<ElectricFurnaceJob> electricFurnaceJobs(Block block, MachineDefinition machine, MachineRuntime runtime, boolean createOutputChest) {
+        if (!isElectricFurnace(machine)) return List.of();
+        List<ElectricFurnaceJob> jobs = new ArrayList<>();
+        ItemStack[] virtualOutputs = new ItemStack[]{runtime.outputAt(0), runtime.outputAt(1)};
+        ItemStack[] virtualChest = electricOutputChestContents(block, runtime, createOutputChest);
+        ElectricFurnaceJob steel = steelJob(machine, runtime, virtualOutputs, virtualChest);
+        if (steel != null) {
+            jobs.add(steel);
+            return jobs;
+        }
+        for (int inputIndex = 0; inputIndex < Math.min(2, Math.max(1, machine.inputSlots().size())); inputIndex++) {
+            ItemStack input = runtime.inputAt(inputIndex);
+            ElectricVanillaRecipe recipe = vanillaFurnaceRecipe(input);
+            if (recipe == null) {
+                if (!runtime.recipeIdAt(inputIndex).isBlank()) runtime.resetProcessAt(inputIndex);
+                continue;
+            }
+            ItemStack output = recipe.output();
+            int preferredOutput = reserveElectricOutput(machine, virtualOutputs, virtualChest, output, inputIndex);
+            if (preferredOutput < -1) continue;
+            jobs.add(new ElectricFurnaceJob("vanilla:" + recipe.key(), inputIndex, inputIndex, -1, 1, 0, output, recipe.timeSeconds(), preferredOutput));
+        }
+        return jobs;
+    }
+
+    private ElectricFurnaceJob steelJob(MachineDefinition machine, MachineRuntime runtime, ItemStack[] virtualOutputs, ItemStack[] virtualChest) {
+        int ironSlot = -1;
+        int coalSlot = -1;
+        for (int i = 0; i < 2; i++) {
+            ItemStack item = runtime.inputAt(i);
+            if (item == null || item.getType().isAir()) continue;
+            if (item.getType() == Material.IRON_INGOT && item.getAmount() >= 1) ironSlot = i;
+            if (item.getType() == Material.COAL && item.getAmount() >= 8) coalSlot = i;
+        }
+        if (ironSlot < 0 || coalSlot < 0 || ironSlot == coalSlot) return null;
+        ItemStack output = minions.specialItems().createItem("steel_ingot", 1);
+        int preferredOutput = reserveElectricOutput(machine, virtualOutputs, virtualChest, output, ironSlot);
+        if (preferredOutput < -1) return null;
+        return new ElectricFurnaceJob("electric_steel:" + ironSlot + ":" + coalSlot, 0, ironSlot, coalSlot, 1, 8, output, electricFurnaceDefaultTimeSeconds(), preferredOutput);
+    }
+
+    private void completeElectricFurnaceJob(Block block, MachineDefinition machine, MachineRuntime runtime, ElectricFurnaceJob job) {
+        ItemStack beforePrimary = runtime.inputAt(job.primaryInputSlot());
+        ItemStack beforeSecondary = job.secondaryInputSlot() >= 0 ? runtime.inputAt(job.secondaryInputSlot()) : null;
+        if (!insertElectricOutput(block, machine, runtime, job.output(), job.preferredOutputIndex())) return;
+        runtime.consumeInputAt(job.primaryInputSlot(), job.primaryAmount());
+        if (job.secondaryInputSlot() >= 0) runtime.consumeInputAt(job.secondaryInputSlot(), job.secondaryAmount());
+        refillElectricInput(block, runtime, job.primaryInputSlot(), beforePrimary);
+        if (job.secondaryInputSlot() >= 0) refillElectricInput(block, runtime, job.secondaryInputSlot(), beforeSecondary);
+        runtime.resetProcessAt(job.processSlot());
+        if (job.secondaryInputSlot() >= 0) runtime.resetProcessAt(1);
+    }
+
+    private int reserveElectricOutput(MachineDefinition machine, ItemStack[] virtualOutputs, ItemStack[] virtualChest, ItemStack output, int preferredOutputIndex) {
+        if (output == null || output.getType().isAir()) return -2;
+        if (reserveIntoVirtualInventory(virtualChest, output)) return -1;
+        int preferred = Math.max(0, Math.min(1, preferredOutputIndex));
+        if (reserveIntoVirtualOutput(machine, virtualOutputs, output, preferred)) return preferred;
+        int other = preferred == 0 ? 1 : 0;
+        if (reserveIntoVirtualOutput(machine, virtualOutputs, output, other)) return other;
+        return -2;
+    }
+
+    private boolean reserveIntoVirtualInventory(ItemStack[] contents, ItemStack item) {
+        if (contents == null || item == null || item.getType().isAir()) return false;
+        int remaining = item.getAmount();
+        for (int i = 0; i < contents.length && remaining > 0; i++) {
+            ItemStack current = contents[i];
+            if (current == null || current.getType().isAir()) {
+                int move = Math.min(remaining, item.getMaxStackSize());
+                ItemStack copy = item.clone();
+                copy.setAmount(move);
+                contents[i] = copy;
+                remaining -= move;
+            } else if (current.isSimilar(item)) {
+                int move = Math.min(remaining, Math.max(0, current.getMaxStackSize() - current.getAmount()));
+                current.setAmount(current.getAmount() + move);
+                remaining -= move;
+            }
+        }
+        return remaining <= 0;
+    }
+
+    private boolean reserveIntoVirtualOutput(MachineDefinition machine, ItemStack[] outputs, ItemStack item, int index) {
+        if (outputs == null || item == null || index < 0 || index >= outputs.length) return false;
+        ItemStack current = outputs[index];
+        int max = Math.min(item.getMaxStackSize(), machine.defaultOutputStackSize());
+        if (current == null || current.getType().isAir()) {
+            ItemStack copy = item.clone();
+            copy.setAmount(Math.min(max, item.getAmount()));
+            if (copy.getAmount() < item.getAmount()) return false;
+            outputs[index] = copy;
+            return true;
+        }
+        if (!current.isSimilar(item)) return false;
+        if (current.getAmount() + item.getAmount() > max) return false;
+        current.setAmount(current.getAmount() + item.getAmount());
+        return true;
+    }
+
+    private boolean insertElectricOutput(Block block, MachineDefinition machine, MachineRuntime runtime, ItemStack output, int preferredOutputIndex) {
+        if (insertIntoElectricOutputStorage(block, runtime, output)) return true;
+        int preferred = preferredOutputIndex < 0 ? 0 : Math.max(0, Math.min(1, preferredOutputIndex));
+        if (addOutputAt(machine, runtime, output, preferred)) return true;
+        return addOutputAt(machine, runtime, output, preferred == 0 ? 1 : 0);
+    }
+
+    private boolean addOutputAt(MachineDefinition machine, MachineRuntime runtime, ItemStack output, int outputIndex) {
+        ItemStack current = runtime.outputAt(outputIndex);
+        int max = Math.min(output.getMaxStackSize(), machine.defaultOutputStackSize());
+        if (current == null || current.getType().isAir()) {
+            if (output.getAmount() > max) return false;
+            runtime.outputAt(outputIndex, output);
+            return true;
+        }
+        if (!current.isSimilar(output) || current.getAmount() + output.getAmount() > max) return false;
+        current.setAmount(current.getAmount() + output.getAmount());
+        runtime.outputAt(outputIndex, current);
+        return true;
+    }
+
+    private void ensureElectricFurnaceStorage(Block block, MachineRuntime runtime) {
+        if (block == null || runtime == null) return;
+        int inputSlots = electricInputStorageSlots(runtime);
+        if (inputSlots > 0) electricStorageChest(block, BlockFace.UP, inputSlots, true);
+        int outputSlots = electricOutputStorageSlots(runtime);
+        if (outputSlots > 0) electricStorageChest(block, BlockFace.DOWN, outputSlots, true);
+    }
+
+    private void pullElectricFurnaceInputs(Block block, MachineRuntime runtime) {
+        for (int inputIndex = 0; inputIndex < 2; inputIndex++) {
+            ItemStack current = runtime.inputAt(inputIndex);
+            if (current != null && !current.getType().isAir()) continue;
+            ItemStack pulled = pullFromElectricInputStorage(block, runtime, null, 64);
+            if (pulled != null && !pulled.getType().isAir()) {
+                runtime.inputAt(inputIndex, pulled);
+                markDirty(runtime);
+            }
+        }
+    }
+
+    private void refillElectricInput(Block block, MachineRuntime runtime, int inputIndex, ItemStack template) {
+        if (template == null || template.getType().isAir()) return;
+        ItemStack current = runtime.inputAt(inputIndex);
+        int currentAmount = current == null || current.getType().isAir() ? 0 : current.getAmount();
+        int need = Math.max(0, template.getMaxStackSize() - currentAmount);
+        if (need <= 0) return;
+        ItemStack pulled = pullFromElectricInputStorage(block, runtime, template, need);
+        if (pulled == null || pulled.getType().isAir()) return;
+        if (current == null || current.getType().isAir()) {
+            runtime.inputAt(inputIndex, pulled);
+        } else if (current.isSimilar(pulled)) {
+            current.setAmount(Math.min(current.getMaxStackSize(), current.getAmount() + pulled.getAmount()));
+            runtime.inputAt(inputIndex, current);
+        }
+    }
+
+    private ItemStack pullFromElectricInputStorage(Block block, MachineRuntime runtime, ItemStack template, int maxAmount) {
+        int slots = electricInputStorageSlots(runtime);
+        if (slots <= 0 || block == null) return null;
+        Chest chest = electricStorageChest(block, BlockFace.UP, slots, true);
+        if (chest == null) return null;
+        Inventory inventory = chest.getBlockInventory();
+        int limit = Math.min(slots, inventory.getSize());
+        for (int i = 0; i < limit; i++) {
+            ItemStack candidate = inventory.getItem(i);
+            if (candidate == null || candidate.getType().isAir()) continue;
+            if (template != null && !candidate.isSimilar(template)) continue;
+            if (template == null && !isElectricFurnaceInputCandidate(candidate)) continue;
+            int move = Math.min(Math.max(1, maxAmount), candidate.getAmount());
+            ItemStack result = candidate.clone();
+            result.setAmount(move);
+            candidate.setAmount(candidate.getAmount() - move);
+            if (candidate.getAmount() <= 0) inventory.setItem(i, null);
+            return result;
+        }
+        return null;
+    }
+
+    private boolean insertIntoElectricOutputStorage(Block block, MachineRuntime runtime, ItemStack item) {
+        int slots = electricOutputStorageSlots(runtime);
+        if (slots <= 0 || block == null || item == null || item.getType().isAir()) return false;
+        Chest chest = electricStorageChest(block, BlockFace.DOWN, slots, true);
+        if (chest == null) return false;
+        return insertIntoLimitedInventory(chest.getBlockInventory(), slots, item);
+    }
+
+    private boolean insertIntoLimitedInventory(Inventory inventory, int slots, ItemStack item) {
+        if (inventory == null || item == null || item.getType().isAir()) return false;
+        int limit = Math.min(slots, inventory.getSize());
+        int remaining = item.getAmount();
+        for (int i = 0; i < limit && remaining > 0; i++) {
+            ItemStack current = inventory.getItem(i);
+            if (current == null || current.getType().isAir() || !current.isSimilar(item)) continue;
+            int move = Math.min(remaining, Math.max(0, current.getMaxStackSize() - current.getAmount()));
+            if (move <= 0) continue;
+            current.setAmount(current.getAmount() + move);
+            remaining -= move;
+        }
+        for (int i = 0; i < limit && remaining > 0; i++) {
+            ItemStack current = inventory.getItem(i);
+            if (current != null && !current.getType().isAir()) continue;
+            int move = Math.min(remaining, item.getMaxStackSize());
+            ItemStack copy = item.clone();
+            copy.setAmount(move);
+            inventory.setItem(i, copy);
+            remaining -= move;
+        }
+        return remaining <= 0;
+    }
+
+    private ItemStack[] electricOutputChestContents(Block block, MachineRuntime runtime, boolean create) {
+        int slots = electricOutputStorageSlots(runtime);
+        if (slots <= 0 || block == null) return null;
+        Chest chest = electricStorageChest(block, BlockFace.DOWN, slots, create);
+        if (chest == null) return null;
+        Inventory inventory = chest.getBlockInventory();
+        int limit = Math.min(slots, inventory.getSize());
+        ItemStack[] contents = new ItemStack[limit];
+        for (int i = 0; i < limit; i++) {
+            ItemStack item = inventory.getItem(i);
+            contents[i] = item == null || item.getType().isAir() ? null : item.clone();
+        }
+        return contents;
+    }
+
+    private Chest electricStorageChest(Block block, BlockFace face, int slots, boolean create) {
+        if (block == null || slots <= 0) return null;
+        Block storageBlock = block.getRelative(face);
+        if (storageBlock.getType() == Material.AIR && create) storageBlock.setType(Material.CHEST, false);
+        if (!(storageBlock.getState() instanceof Chest chest)) return null;
+        return chest;
+    }
+
+    private int electricInputStorageSlots(MachineRuntime runtime) {
+        return storageSlotsFromItem(runtime == null ? null : runtime.upgrade(0));
+    }
+
+    private int electricOutputStorageSlots(MachineRuntime runtime) {
+        return storageSlotsFromItem(runtime == null ? null : runtime.upgrade(1));
+    }
+
+    private int storageSlotsFromItem(ItemStack item) {
+        if (item == null || item.getType().isAir()) return 0;
+        int configured = minions.storageChestSlotsFromItem(item);
+        if (configured > 0) return configured;
+        String id = minions.specialItems().readSpecialItemId(item).orElse("").toLowerCase(java.util.Locale.ROOT);
+        return switch (id) {
+            case "storage_expander" -> 3;
+            case "medium_minion_storage" -> 5;
+            case "large_minion_storage" -> 7;
+            case "iron_uranium_chest" -> 5;
+            default -> 0;
+        };
+    }
+
+    private boolean isElectricFurnaceInputCandidate(ItemStack item) {
+        if (item == null || item.getType().isAir()) return false;
+        if (item.getType() == Material.IRON_INGOT || item.getType() == Material.COAL) return true;
+        return vanillaFurnaceRecipe(item) != null;
+    }
+
+    private ElectricVanillaRecipe vanillaFurnaceRecipe(ItemStack input) {
+        if (input == null || input.getType().isAir()) return null;
+        ItemStack one = input.clone();
+        one.setAmount(1);
+        java.util.Iterator<org.bukkit.inventory.Recipe> iterator = Bukkit.recipeIterator();
+        while (iterator.hasNext()) {
+            org.bukkit.inventory.Recipe recipe = iterator.next();
+            if (!(recipe instanceof org.bukkit.inventory.FurnaceRecipe furnace)) continue;
+            org.bukkit.inventory.RecipeChoice choice = furnace.getInputChoice();
+            if (choice == null || !choice.test(one)) continue;
+            ItemStack result = furnace.getResult();
+            if (result == null || result.getType().isAir()) continue;
+            return new ElectricVanillaRecipe(furnace.getKey().toString(), result.clone(), Math.max(1, furnace.getCookingTime() / 20 - 1));
+        }
+        return null;
+    }
+
+    private int electricFurnaceDefaultTimeSeconds() {
+        return 9;
+    }
+
+    public boolean isExternalStorageMachine(MachineDefinition machine) {
+        return hasExternalStorage(machine);
+    }
+
+    public boolean isExternalStorageUpgradeSlot(MachineDefinition machine, int slot) {
+        if (!hasExternalStorage(machine)) return false;
+        List<Integer> slots = upgradeSlots(machine);
+        return !slots.isEmpty() && (slot == slots.get(0) || (slots.size() > 1 && slot == slots.get(1)));
+    }
+
+    public boolean isValidExternalStorageItem(ItemStack item) {
+        return storageSlotsFromItem(item) > 0;
+    }
+
+    public boolean canInstallExternalStorageAt(Block machineBlock, MachineDefinition machine, int menuSlot, ItemStack item) {
+        if (machineBlock == null || machine == null || !isExternalStorageUpgradeSlot(machine, menuSlot)) return false;
+        if (item == null || item.getType().isAir()) return true;
+        if (!isValidExternalStorageItem(item)) return false;
+        List<Integer> slots = upgradeSlots(machine);
+        BlockFace face = menuSlot == slots.get(0) ? BlockFace.UP : BlockFace.DOWN;
+        Block storageBlock = machineBlock.getRelative(face);
+        return storageBlock.getType().isAir() || storageBlock.getState() instanceof Chest;
+    }
+
+    public void ensureExternalStorage(Block block, MachineDefinition machine, MachineRuntime runtime) {
+        if (!hasExternalStorage(machine)) return;
+        ensureElectricFurnaceStorage(block, runtime);
+    }
+
+    public void removeElectricFurnaceStorage(Block block, Location dropLocation) {
+        if (block == null) return;
+        MachineDefinition machine = machineAt(block);
+        if (!hasExternalStorage(machine)) return;
+        removeStorageChest(block.getRelative(BlockFace.UP), dropLocation);
+        removeStorageChest(block.getRelative(BlockFace.DOWN), dropLocation);
+    }
+
+    private void removeStorageChest(Block block, Location dropLocation) {
+        if (block == null || !(block.getState() instanceof Chest chest)) return;
+        Location drop = dropLocation == null ? block.getLocation().add(0.5, 0.5, 0.5) : dropLocation;
+        for (ItemStack item : chest.getBlockInventory().getContents()) {
+            if (item != null && !item.getType().isAir()) drop.getWorld().dropItemNaturally(drop, item);
+        }
+        block.setType(Material.AIR, false);
+    }
+
+    private boolean isElectricFurnace(MachineDefinition machine) {
+        return machine != null && "ELECTRIC_FURNACE".equalsIgnoreCase(machine.type());
+    }
+
+    private boolean isElectricComposter(MachineDefinition machine) {
+        return machine != null && "ELECTRIC_MILL".equalsIgnoreCase(machine.type());
+    }
+
+    private boolean isMeatRefinery(MachineDefinition machine) {
+        return machine != null && "MEAT_REFINERY".equalsIgnoreCase(machine.type());
+    }
+
+    private boolean isExternalOutputProcessor(MachineDefinition machine) {
+        return isElectricComposter(machine) || isMeatRefinery(machine);
+    }
+
+    private boolean hasExternalStorage(MachineDefinition machine) {
+        return isElectricFurnace(machine) || isExternalOutputProcessor(machine);
     }
 
     private void tickProcess(MachineDefinition machine, MachineRuntime runtime) {
@@ -553,7 +1171,7 @@ public final class MachineService {
         }
         runtime.consumeInputAt(inputIndex, recipe.inputAmount());
         if (!recipe.secondarySpecialItem().isBlank() || recipe.secondaryMaterial() != Material.AIR) runtime.consumeSecondary(recipe.secondaryAmount());
-        if (!recipe.fuelSpecialItem().isBlank() || recipe.fuelMaterial() != Material.AIR) runtime.consumeRecipeFuel(recipe.fuelAmount());
+        if (!recipe.fuelSpecialItem().isBlank() || recipe.fuelMaterial() != Material.AIR) consumeRecipeFuel(runtime, recipe);
         if (ThreadLocalRandom.current().nextDouble() <= recipe.successChance()) {
             addOutput(machine, runtime, output(recipe));
             recordMachineOutput(runtime, recipe);
@@ -633,6 +1251,65 @@ public final class MachineService {
         }
     }
 
+    private Map<String, Integer> loadRecipeFuelUses(Plugin plugin) {
+        File file = new File(plugin.getDataFolder(), "special-items.yml");
+        if (!file.exists()) plugin.saveResource("special-items.yml", false);
+        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
+        ConfigurationSection root = yaml.getConfigurationSection("custom-fuels");
+        if (root == null) return Map.of();
+        Map<String, Integer> result = new LinkedHashMap<>();
+        for (String id : root.getKeys(false)) {
+            ConfigurationSection section = root.getConfigurationSection(id);
+            if (section == null || !section.getBoolean("enabled", true)) continue;
+            String specialItemId = section.getString("special-item", id);
+            int uses = Math.max(1, section.getInt("machine-recipe-uses", 1));
+            if (specialItemId != null && !specialItemId.isBlank() && uses > 1) {
+                result.put(specialItemId.toLowerCase(java.util.Locale.ROOT), uses);
+            }
+        }
+        return Map.copyOf(result);
+    }
+
+    private void consumeRecipeFuel(MachineRuntime runtime, MachineRecipe recipe) {
+        if (runtime == null || recipe == null) return;
+        ItemStack fuel = runtime.fuel();
+        String specialId = minions.specialItems().readSpecialItemId(fuel).orElse("").toLowerCase(java.util.Locale.ROOT);
+        int usesPerItem = recipeFuelUsesBySpecialItemId.getOrDefault(specialId, 0);
+        boolean recipeAcceptsCoalFuel = recipe.fuelMaterial() == Material.COAL && (recipe.fuelSpecialItem() == null || recipe.fuelSpecialItem().isBlank());
+        if (usesPerItem <= 1 || !recipeAcceptsCoalFuel || fuel == null || fuel.getType().isAir()) {
+            runtime.consumeRecipeFuel(recipe.fuelAmount());
+            return;
+        }
+        ItemStack copy = fuel.clone();
+        ItemMeta meta = copy.getItemMeta();
+        if (meta == null) {
+            runtime.consumeRecipeFuel(recipe.fuelAmount());
+            return;
+        }
+        int stackAmount = Math.max(0, copy.getAmount());
+        int remainingUses = meta.getPersistentDataContainer().getOrDefault(recipeFuelUsesKey, PersistentDataType.INTEGER, usesPerItem);
+        int cost = Math.max(1, recipe.fuelAmount());
+        while (cost > 0 && stackAmount > 0) {
+            if (remainingUses > cost) {
+                remainingUses -= cost;
+                cost = 0;
+            } else {
+                cost -= remainingUses;
+                stackAmount--;
+                remainingUses = usesPerItem;
+            }
+        }
+        if (stackAmount <= 0) {
+            runtime.fuel(null);
+            return;
+        }
+        copy.setAmount(stackAmount);
+        if (remainingUses >= usesPerItem) meta.getPersistentDataContainer().remove(recipeFuelUsesKey);
+        else meta.getPersistentDataContainer().set(recipeFuelUsesKey, PersistentDataType.INTEGER, remainingUses);
+        copy.setItemMeta(meta);
+        runtime.fuel(copy);
+    }
+
     private FuelValue fuelValue(MachineDefinition machine, ItemStack item, boolean generatorFuel) {
         if (item == null || item.getType().isAir()) return new FuelValue(0, 0);
         String specialId = minions.specialItems().readSpecialItemId(item).orElse("");
@@ -657,15 +1334,103 @@ public final class MachineService {
             syncToInventory(machine, runtime, inv);
             inv.setItem(machine.arrowSlot(), progressItem(machine, runtime));
             inv.setItem(4, machineInfoItem(machine, runtime));
+            applyMenuGuides(machine, inv);
         }
     }
 
+    public void sanitizeMenuGuides(Inventory inv) {
+        if (inv == null) return;
+        for (int slot = 0; slot < inv.getSize(); slot++) {
+            if (isMenuGuide(inv.getItem(slot))) {
+                inv.setItem(slot, null);
+            }
+        }
+    }
+
+    public void applyMenuGuides(MachineDefinition machine, Inventory inv) {
+        if (machine == null || inv == null) return;
+        for (int inputSlot : machine.inputSlots()) {
+            setGuide(inv, inputSlot, Material.GREEN_STAINED_GLASS_PANE, "§aInput materiału", "§7Włóż tutaj materiał do przetworzenia.");
+        }
+        if (machine.hasSecondarySlot()) {
+            setGuide(inv, machine.secondarySlot(), Material.GREEN_STAINED_GLASS_PANE, "§aDrugi input", "§7Włóż tutaj drugi składnik receptury.");
+        }
+        for (int outputSlot : machine.outputSlots()) {
+            setGuide(inv, outputSlot, Material.YELLOW_STAINED_GLASS_PANE, "§eRezultat", "§7Tutaj pojawi się wynik pracy maszyny.");
+        }
+        if (machine.energy().enabled() || machine.hasRecipeFuelSlot()) {
+            boolean emergencyPower = machine.energy().enabled() && !machine.energy().generator() && !machine.hasRecipeFuelSlot();
+            if (emergencyPower) {
+                setGuide(inv, machine.fuelSlot(), Material.RED_STAINED_GLASS_PANE, "§cAwaryjne zasilanie", "§7Włóż redstone lub inne awaryjne paliwo EU.");
+            } else {
+                setGuide(inv, machine.fuelSlot(), Material.BLUE_STAINED_GLASS_PANE, "§9Paliwo", "§7Włóż tutaj paliwo, np. węgiel dla generatora lub pieca.");
+            }
+        }
+    }
+
+    private void setGuide(Inventory inv, int slot, Material material, String name, String lore) {
+        if (slot < 0 || slot >= inv.getSize()) return;
+        ItemStack current = inv.getItem(slot);
+        if (current != null && !current.getType().isAir() && !isMenuGuide(current)) return;
+        inv.setItem(slot, guide(material, name, lore));
+    }
+
+    private ItemStack guide(Material material, String name, String lore) {
+        ItemStack item = named(material, name, lore);
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            meta.getPersistentDataContainer().set(machineMenuGuideKey, PersistentDataType.BYTE, (byte) 1);
+            item.setItemMeta(meta);
+        }
+        return item;
+    }
+
+    private boolean isMenuGuide(ItemStack item) {
+        if (item == null || item.getType().isAir()) return false;
+        ItemMeta meta = item.getItemMeta();
+        return meta != null && meta.getPersistentDataContainer().has(machineMenuGuideKey, PersistentDataType.BYTE);
+    }
+
     private ItemStack progressItem(MachineDefinition machine, MachineRuntime runtime) {
+        if (isElectricFurnace(machine)) return electricFurnaceProgressItem(machine, runtime);
+        if (isExternalOutputProcessor(machine)) return externalOutputProgressItem(machine, runtime);
         MachineRecipe recipe = match(machine, runtime);
         if (recipe == null) return named(Material.ARROW, "§ePostęp", "§7Brak pasującej receptury albo pełny output.");
         int percent = Math.min(100, runtime.progressSeconds() * 100 / Math.max(1, recipe.timeSeconds()));
         String eu = machine.energy().enabled() ? "\n§7Energia: §f" + runtime.energy() + "§7/§f" + runtime.capacity(machine) + " EU" : "";
         return named(Material.ARROW, "§ePostęp: §f" + percent + "%", "§7Czas: §f" + runtime.progressSeconds() + "§7/§f" + recipe.timeSeconds() + "s" + eu);
+    }
+
+    private ItemStack externalOutputProgressItem(MachineDefinition machine, MachineRuntime runtime) {
+        String eu = "§7Energia: §f" + runtime.energy() + "§7/§f" + runtime.capacity(machine) + " EU";
+        String recipeId = runtime.recipeId();
+        if (recipeId == null || recipeId.isBlank()) {
+            return named(Material.ARROW, "§ePostęp", eu + "\n§7Status: §8oczekuje na poprawny input, miejsce na output albo energię\n§7Zużycie przy pracy: §f" + machine.energy().euPerSecond() + " EU/s");
+        }
+        int total = machine.recipes().stream()
+                .filter(recipe -> recipeId.startsWith(recipe.id() + "@"))
+                .findFirst()
+                .map(MachineRecipe::timeSeconds)
+                .orElse(30);
+        int progress = Math.min(total, runtime.progressSeconds());
+        int percent = Math.min(100, progress * 100 / Math.max(1, total));
+        return named(Material.ARROW, "§ePostęp: §f" + percent + "%", eu + "\n§7Czas: §f" + progress + "§7/§f" + total + "s\n§7Zużycie przy pracy: §f" + machine.energy().euPerSecond() + " EU/s");
+    }
+
+    private ItemStack electricFurnaceProgressItem(MachineDefinition machine, MachineRuntime runtime) {
+        String eu = "§7Energia: §f" + runtime.energy() + "§7/§f" + runtime.capacity(machine) + " EU";
+        String slot1 = electricProgressLine(runtime, 0);
+        String slot2 = electricProgressLine(runtime, 1);
+        return named(Material.ARROW, "§ePostęp pieca elektrycznego", eu + "\n" + slot1 + "\n" + slot2 + "\n§7Zużycie przy pracy: §f" + machine.energy().euPerSecond() + " EU/s");
+    }
+
+    private String electricProgressLine(MachineRuntime runtime, int slot) {
+        String recipe = runtime.recipeIdAt(slot);
+        if (recipe == null || recipe.isBlank()) return "§7Slot " + (slot + 1) + ": §8oczekuje";
+        int total = electricFurnaceDefaultTimeSeconds();
+        int progress = Math.min(total, runtime.progressSecondsAt(slot));
+        int percent = Math.min(100, progress * 100 / Math.max(1, total));
+        return "§7Slot " + (slot + 1) + ": §f" + percent + "% §8(" + progress + "/" + total + "s)";
     }
 
     private ItemStack machineInfoItem(MachineDefinition machine, MachineRuntime runtime) {
@@ -682,13 +1447,29 @@ public final class MachineService {
                             "§7Spalanie: §f" + runtime.burnRemainingSeconds() + "s\n" +
                             "§7Zasila: §flewo, potem prawo");
         }
+        if ("ELECTRIC_FURNACE".equalsIgnoreCase(machine.type())) {
+            return named(Material.FURNACE, machine.displayName(),
+                    "§7Bufor: §f" + runtime.energy() + "§7/§f" + runtime.capacity(machine) + " EU\n" +
+                            "§7Zużycie: §f" + machine.energy().euPerSecond() + " EU/s tylko podczas przepalania\n" +
+                            "§7Inputy: §f2 niezależne sloty jak dwa piece\n" +
+                            "§7Outputy: §f2 sloty + priorytet skrzyni pod piecem\n" +
+                            "§7Paliwo awaryjne: §fredstone/blok redstone");
+        }
         if ("ELECTRIC_MILL".equalsIgnoreCase(machine.type())) {
             return named(Material.COMPOSTER, machine.displayName(),
                     "§7Bufor: §f" + runtime.energy() + "§7/§f" + runtime.capacity(machine) + " EU\n" +
-                            "§7Zużycie: §f" + machine.energy().euPerSecond() + " EU/s\n" +
-                            "§7Inputy: §f3 sloty, od lewej do prawej\n" +
-                            "§7Proces: §f4 min na item, szansa wg machines.yml\n" +
-                            "§7Port EU: §ftył i dół; awaryjnie redstone/blok redstone");
+                            "§7Zużycie: §f" + machine.energy().euPerSecond() + " EU/s podczas pracy\n" +
+                            "§7Input: §f1 slot + opcjonalna skrzynia nad kompostorem\n" +
+                            "§7Output: §f1 slot + priorytet skrzyni pod kompostorem\n" +
+                            "§7Procesy i szanse: §fmachines.yml");
+        }
+        if ("MEAT_REFINERY".equalsIgnoreCase(machine.type())) {
+            return named(Material.STONECUTTER, machine.displayName(),
+                    "§7Bufor: §f" + runtime.energy() + "§7/§f" + runtime.capacity(machine) + " EU\n" +
+                            "§7Zużycie: §f" + machine.energy().euPerSecond() + " EU/s podczas pracy\n" +
+                            "§7Input: §f1 slot + opcjonalna skrzynia nad rafinatorem\n" +
+                            "§7Output: §f1 slot + priorytet skrzyni pod rafinatorem\n" +
+                            "§7Procesy i szanse: §fmachines.yml");
         }
         return named(Material.REDSTONE, machine.displayName(),
                 "§7Bufor: §f" + runtime.energy() + "§7/§f" + runtime.capacity(machine) + " EU\n" +
@@ -719,6 +1500,148 @@ public final class MachineService {
         if (runtime == null) return false;
         MachineDefinition machine = registry.machines().get(runtime.machineId());
         return machine != null && machine.energy().enabled() && (machine.energy().generator() || isAccumulator(machine));
+    }
+
+    public Optional<String> validateEnergyMachinePlacement(Block block, MachineDefinition machine) {
+        if (block == null || machine == null || !machine.energy().enabled()) return Optional.empty();
+        Optional<hex.towns.model.Town> town = minions.towns().townAt(block.getLocation());
+        if (town.isEmpty()) return Optional.empty();
+        EnergyDeviceCounts counts = energyDeviceCounts(town.get().id());
+        int generators = counts.generators() + (machine.energy().generator() ? 1 : 0);
+        int consumers = counts.consumers() + (isEnergyConsumer(machine) ? 1 : 0);
+        int devices = counts.devices() + 1;
+        if (maxGeneratorsPerTown > 0 && generators > maxGeneratorsPerTown) {
+            return Optional.of("Limit generatorów w mieście: " + maxGeneratorsPerTown + ".");
+        }
+        if (maxEnergyMachinesPerTown > 0 && consumers > maxEnergyMachinesPerTown) {
+            return Optional.of("Limit maszyn energetycznych w mieście: " + maxEnergyMachinesPerTown + ".");
+        }
+        if (maxEnergyDevicesPerTown > 0 && devices > maxEnergyDevicesPerTown) {
+            return Optional.of("Łączny limit urządzeń energetycznych w mieście: " + maxEnergyDevicesPerTown + ".");
+        }
+        return Optional.empty();
+    }
+
+    private EnergyDeviceCounts energyDeviceCounts(UUID townId) {
+        int generators = 0;
+        int consumers = 0;
+        int devices = 0;
+        for (MachineRuntime runtime : runtimes.values()) {
+            if (runtime == null || runtime.blockKey() == null) continue;
+            MachineDefinition machine = registry.machines().get(runtime.machineId());
+            if (machine == null || !machine.energy().enabled()) continue;
+            Block block = blockFromKey(runtime.blockKey());
+            if (block == null) continue;
+            Optional<hex.towns.model.Town> town = minions.towns().townAt(block.getLocation());
+            if (town.isEmpty() || !town.get().id().equals(townId)) continue;
+            devices++;
+            if (machine.energy().generator()) generators++;
+            else if (isEnergyConsumer(machine)) consumers++;
+        }
+        return new EnergyDeviceCounts(generators, consumers, devices);
+    }
+
+    private boolean isEnergyConsumer(MachineDefinition machine) {
+        return machine != null && machine.energy().enabled() && !machine.energy().generator() && !isAccumulator(machine);
+    }
+
+    private List<String> loadedRuntimeKeysForBucket(int secondSlot) {
+        List<String> keys = new ArrayList<>();
+        for (Map.Entry<String, Set<String>> entry : runtimeKeysByChunk.entrySet()) {
+            ChunkKeyParts chunk = ChunkKeyParts.parse(entry.getKey());
+            if (chunk == null || !isChunkLoaded(chunk.world(), chunk.x(), chunk.z())) continue;
+            for (String key : new ArrayList<>(entry.getValue())) {
+                if (Math.floorMod(key.hashCode(), 10) == secondSlot) keys.add(key);
+            }
+        }
+        return keys;
+    }
+
+    private void enqueueOfflineCatchup(Block block, MachineDefinition machine, MachineRuntime runtime) {
+        if (!offlineEnabled || block == null || machine == null || runtime == null) return;
+        String key = runtime.blockKey();
+        if (!queuedOfflineCatchupKeys.add(key)) return;
+        offlineCatchupQueue.addLast(new OfflineCatchupJob(block.getLocation(), machine.id(), key));
+    }
+
+    private void drainOfflineCatchupQueue() {
+        if (offlineCatchupQueue.isEmpty()) return;
+        int processed = 0;
+        while (processed++ < offlineMaxMachinesPerTick && !offlineCatchupQueue.isEmpty()) {
+            OfflineCatchupJob job = offlineCatchupQueue.removeFirst();
+            queuedOfflineCatchupKeys.remove(job.blockKey());
+            Block block = job.location().getBlock();
+            if (!isBlockLoaded(block)) continue;
+            MachineRuntime runtime = runtimes.get(job.blockKey());
+            MachineDefinition machine = runtime == null ? null : machineAt(block);
+            if (runtime == null || machine == null) continue;
+            runtime.machineId(machine.id());
+            applyOfflineCatchup(block, machine, runtime);
+        }
+    }
+
+    private void indexRuntime(MachineRuntime runtime) {
+        LocationParts parts = LocationParts.parse(runtime == null ? null : runtime.blockKey());
+        if (parts == null) return;
+        runtimeKeysByChunk.computeIfAbsent(chunkKey(parts.world(), Math.floorDiv(parts.x(), 16), Math.floorDiv(parts.z(), 16)), ignored -> new HashSet<>()).add(runtime.blockKey());
+    }
+
+    private void deindexRuntime(MachineRuntime runtime) {
+        LocationParts parts = LocationParts.parse(runtime == null ? null : runtime.blockKey());
+        if (parts == null) return;
+        String chunkKey = chunkKey(parts.world(), Math.floorDiv(parts.x(), 16), Math.floorDiv(parts.z(), 16));
+        Set<String> keys = runtimeKeysByChunk.get(chunkKey);
+        if (keys == null) return;
+        keys.remove(runtime.blockKey());
+        if (keys.isEmpty()) runtimeKeysByChunk.remove(chunkKey);
+    }
+
+    private boolean isChunkLoaded(String worldName, int chunkX, int chunkZ) {
+        World world = Bukkit.getWorld(worldName);
+        return world != null && world.isChunkLoaded(chunkX, chunkZ);
+    }
+
+    private boolean isBlockLoaded(Block block) {
+        return block != null && block.getWorld() != null && block.getWorld().isChunkLoaded(block.getX() >> 4, block.getZ() >> 4);
+    }
+
+    private static String chunkKey(String world, int chunkX, int chunkZ) {
+        return world + ":" + chunkX + ":" + chunkZ;
+    }
+
+    private static ConfigurationSection energySection(org.bukkit.configuration.file.FileConfiguration config) {
+        if (config == null) return null;
+        ConfigurationSection s = config.getConfigurationSection("energy");
+        if (s != null) return s;
+        return config.getConfigurationSection("minions.energy");
+    }
+
+    private static int getInt(org.bukkit.configuration.file.FileConfiguration config, ConfigurationSection section, int def, String... keys) {
+        if (section != null) {
+            for (String key : keys) {
+                if (!key.contains(".") && section.contains(key)) return section.getInt(key, def);
+            }
+        }
+        if (config != null) {
+            for (String key : keys) {
+                if (config.contains(key)) return config.getInt(key, def);
+            }
+        }
+        return def;
+    }
+
+    private static boolean getBoolean(org.bukkit.configuration.file.FileConfiguration config, ConfigurationSection section, boolean def, String... keys) {
+        if (section != null) {
+            for (String key : keys) {
+                if (!key.contains(".") && section.contains(key)) return section.getBoolean(key, def);
+            }
+        }
+        if (config != null) {
+            for (String key : keys) {
+                if (config.contains(key)) return config.getBoolean(key, def);
+            }
+        }
+        return def;
     }
 
     private boolean isRuntimeInChunk(MachineRuntime runtime, String worldName, int chunkX, int chunkZ) {
@@ -834,9 +1757,11 @@ public final class MachineService {
             return repository.loadAll();
         }).thenAccept(loaded -> Bukkit.getScheduler().runTask(plugin, () -> {
             runtimes.clear();
+            runtimeKeysByChunk.clear();
             for (MachineRuntime runtime : loaded) {
                 if (runtime != null && runtime.blockKey() != null && !runtime.blockKey().isBlank()) {
                     runtimes.put(runtime.blockKey(), runtime);
+                    indexRuntime(runtime);
                 }
             }
             dirtyRuntimeKeys.clear();
@@ -913,6 +1838,21 @@ public final class MachineService {
     }
 
     private record Match(MachineRecipe recipe, int inputIndex) {}
+    private record ElectricFurnaceJob(String recipeId, int processSlot, int primaryInputSlot, int secondaryInputSlot, int primaryAmount, int secondaryAmount, ItemStack output, int timeSeconds, int preferredOutputIndex) {}
+    private record ElectricVanillaRecipe(String key, ItemStack output, int timeSeconds) {}
+    private record EnergyDeviceCounts(int generators, int consumers, int devices) {}
+    private record OfflineCatchupJob(Location location, String machineId, String blockKey) {}
+
+    private record ChunkKeyParts(String world, int x, int z) {
+        static ChunkKeyParts parse(String key) {
+            try {
+                if (key == null || key.isBlank()) return null;
+                String[] parts = key.split(":");
+                if (parts.length != 3) return null;
+                return new ChunkKeyParts(parts[0], Integer.parseInt(parts[1]), Integer.parseInt(parts[2]));
+            } catch (Exception ignored) { return null; }
+        }
+    }
 
     private record LocationParts(String world, int x, int y, int z) {
         static LocationParts parse(String blockKey) {

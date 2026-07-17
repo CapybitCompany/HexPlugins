@@ -10,9 +10,9 @@ machines:
       input-slot: 20
       output-slot: 24
       upgrade-slots:
-      - 38
-      - 40
-      - 42
+        - 38
+        - 40
+        - 42
     storage:
       slots: 5
       output-stack-size: 16
@@ -62,9 +62,9 @@ machines:
       arrow-slot: 23
       output-slot: 24
       upgrade-slots:
-      - 38
-      - 40
-      - 42
+        - 38
+        - 40
+        - 42
     storage:
       slots: 5
       output-stack-size: 64
@@ -251,6 +251,44 @@ machines:
           amount: 1
         success-chance: 1.0
         time-seconds: 30
+  electric_furnace:
+    enabled: true
+    type: ELECTRIC_FURNACE
+    display-name: <gold>Piec elektryczny</gold>
+    base-block: FURNACE
+    special-item: electric_furnace
+    station-id: ELECTRIC_FURNACE
+    menu:
+      input-slots:
+        - 20
+        - 21
+      fuel-slot: 29
+      arrow-slot: 23
+      output-slots:
+        - 24
+        - 25
+      upgrade-slots:
+        - 38
+        - 42
+    storage:
+      slots: 0
+      output-stack-size: 64
+    energy:
+      enabled: true
+      generator: false
+      buffer-capacity: 1000
+      eu-per-second: 30
+      transfer-per-second: 250
+      battery-slot: -1
+      battery-extra-capacity: 0
+      fallback-fuel-eu:
+        REDSTONE: 30
+        REDSTONE_BLOCK: 150
+      fallback-fuel-burn-seconds:
+        REDSTONE: 1
+        REDSTONE_BLOCK: 5
+    recipes: {}
+
   coal_generator:
     enabled: true
     type: COAL_GENERATOR
@@ -261,7 +299,7 @@ machines:
     menu:
       fuel-slot: 22
       upgrade-slots:
-      - 40
+        - 40
     energy:
       enabled: true
       generator: true
@@ -274,11 +312,13 @@ machines:
         COAL_BLOCK: 4000
         combustion_fuel: 16000
         compressed_coal: 51200
+        biofuel: 12800
       fuel-burn-seconds:
         COAL: 8
         COAL_BLOCK: 80
         combustion_fuel: 320
         compressed_coal: 1024
+        biofuel: 256
     recipes: {}
   solar_panel_generator:
     enabled: true
@@ -290,7 +330,7 @@ machines:
     menu:
       fuel-slot: 22
       upgrade-slots:
-      - 40
+        - 40
     energy:
       enabled: true
       generator: true
@@ -310,13 +350,13 @@ machines:
     menu:
       fuel-slot: 22
       upgrade-slots:
-      - 40
+        - 40
     energy:
       enabled: true
       generator: false
       buffer-capacity: 250000
       eu-per-second: 0
-      transfer-per-second: 250
+      transfer-per-second: 32
       battery-slot: 40
       battery-extra-capacity: 0
     recipes: {}
@@ -332,7 +372,7 @@ machines:
       fuel-slot: 22
       output-slot: 24
       upgrade-slots:
-      - 40
+        - 40
     energy:
       enabled: true
       generator: false
@@ -525,7 +565,7 @@ machines:
       arrow-slot: 23
       output-slot: 24
       upgrade-slots:
-      - 40
+        - 40
     storage:
       slots: 5
       output-stack-size: 16
@@ -558,48 +598,167 @@ machines:
   electric_mill:
     enabled: true
     type: ELECTRIC_MILL
-    display-name: <green>Elektryczny młyn</green>
-    base-block: COMPOSTER
+    display-name: <green>Elektryczny kompostor</green>
+    base-block: BARREL
     special-item: electric_mill
     station-id: ELECTRIC_MILL
     menu:
-      input-slots:
-      - 19
-      - 20
-      - 21
+      input-slot: 20
       fuel-slot: 31
       arrow-slot: 23
-      output-slot: 25
+      output-slot: 24
       upgrade-slots:
-      - 37
-      - 38
-      - 39
+        - 38
+        - 42
     storage:
-      slots: 3
+      slots: 0
       output-stack-size: 64
     energy:
       enabled: true
       generator: false
       buffer-capacity: 1000
-      eu-per-second: 20
-      battery-slot: 40
+      eu-per-second: 30
+      battery-slot: -1
       battery-extra-capacity: 0
       fallback-fuel-eu:
-        REDSTONE: 20
-        REDSTONE_BLOCK: 100
+        REDSTONE: 30
+        REDSTONE_BLOCK: 150
       fallback-fuel-burn-seconds:
         REDSTONE: 1
         REDSTONE_BLOCK: 5
     recipes:
-      wheat_to_feed:
+      wheat_to_refined_wheat:
         input:
           material: WHEAT
           amount: 1
         output:
-          special-item: feed
+          special-item: refined_wheat
+          amount: 1
+        success-chance: 0.005
+        time-seconds: 30
+
+  meat_refinery:
+    enabled: true
+    type: MEAT_REFINERY
+    display-name: <red>Rafinator mięsa</red>
+    base-block: DISPENSER
+    special-item: meat_refinery
+    station-id: MEAT_REFINERY
+    menu:
+      input-slot: 20
+      fuel-slot: 31
+      arrow-slot: 23
+      output-slot: 24
+      upgrade-slots:
+        - 38
+        - 42
+    storage:
+      slots: 0
+      output-stack-size: 64
+    energy:
+      enabled: true
+      generator: false
+      buffer-capacity: 1500
+      eu-per-second: 50
+      battery-slot: -1
+      battery-extra-capacity: 0
+      fallback-fuel-eu:
+        REDSTONE: 50
+        REDSTONE_BLOCK: 250
+      fallback-fuel-burn-seconds:
+        REDSTONE: 1
+        REDSTONE_BLOCK: 5
+    recipes:
+      porkchop_to_refined_meat:
+        input:
+          material: PORKCHOP
+          amount: 1
+        output:
+          special-item: refined_meat
           amount: 1
         success-chance: 0.02
-        time-seconds: 240
+        time-seconds: 32
+      beef_to_refined_meat:
+        input:
+          material: BEEF
+          amount: 1
+        output:
+          special-item: refined_meat
+          amount: 1
+        success-chance: 0.02
+        time-seconds: 32
+      chicken_to_refined_meat:
+        input:
+          material: CHICKEN
+          amount: 1
+        output:
+          special-item: refined_meat
+          amount: 1
+        success-chance: 0.02
+        time-seconds: 32
+      mutton_to_refined_meat:
+        input:
+          material: MUTTON
+          amount: 1
+        output:
+          special-item: refined_meat
+          amount: 1
+        success-chance: 0.02
+        time-seconds: 32
+      rabbit_to_refined_meat:
+        input:
+          material: RABBIT
+          amount: 1
+        output:
+          special-item: refined_meat
+          amount: 1
+        success-chance: 0.02
+        time-seconds: 32
+      cooked_porkchop_to_refined_meat:
+        input:
+          material: COOKED_PORKCHOP
+          amount: 1
+        output:
+          special-item: refined_meat
+          amount: 1
+        success-chance: 0.02
+        time-seconds: 32
+      cooked_beef_to_refined_meat:
+        input:
+          material: COOKED_BEEF
+          amount: 1
+        output:
+          special-item: refined_meat
+          amount: 1
+        success-chance: 0.02
+        time-seconds: 32
+      cooked_chicken_to_refined_meat:
+        input:
+          material: COOKED_CHICKEN
+          amount: 1
+        output:
+          special-item: refined_meat
+          amount: 1
+        success-chance: 0.02
+        time-seconds: 32
+      cooked_mutton_to_refined_meat:
+        input:
+          material: COOKED_MUTTON
+          amount: 1
+        output:
+          special-item: refined_meat
+          amount: 1
+        success-chance: 0.02
+        time-seconds: 32
+      cooked_rabbit_to_refined_meat:
+        input:
+          material: COOKED_RABBIT
+          amount: 1
+        output:
+          special-item: refined_meat
+          amount: 1
+        success-chance: 0.02
+        time-seconds: 32
 
   compressor:
     enabled: true
@@ -614,7 +773,7 @@ machines:
       fuel-slot: 22
       output-slot: 24
       upgrade-slots:
-      - 40
+        - 40
     energy:
       enabled: true
       generator: false
@@ -656,3 +815,43 @@ machines:
           amount: 1
         time-seconds: 90
         success-chance: 1.0
+  advanced_accumulator:
+    enabled: true
+    type: ACCUMULATOR
+    display-name: <gray>Zaawansowany Akumulator</gray>
+    base-block: BARREL
+    special-item: advanced_accumulator
+    station-id: ADVANCED_ACCUMULATOR
+    menu:
+      fuel-slot: 22
+      upgrade-slots:
+        - 40
+    energy:
+      enabled: true
+      generator: false
+      buffer-capacity: 2500000
+      eu-per-second: 0
+      transfer-per-second: 128
+      battery-slot: 40
+      battery-extra-capacity: 0
+    recipes: {}
+  super_capacitor:
+    enabled: true
+    type: ACCUMULATOR
+    display-name: <aqua>Akumulator Super Kondensator</aqua>
+    base-block: BARREL
+    special-item: super_capacitor
+    station-id: SUPER_CAPACITOR
+    menu:
+      fuel-slot: 22
+      upgrade-slots:
+        - 40
+    energy:
+      enabled: true
+      generator: false
+      buffer-capacity: 20000000
+      eu-per-second: 0
+      transfer-per-second: 256
+      battery-slot: 40
+      battery-extra-capacity: 0
+    recipes: {}

@@ -181,7 +181,9 @@ public final class VisualCheckService implements Listener {
         if (config.visualVerticalEdgeWalls()) {
             addVerticalEdgeDisplays(player, displays, minX, minZ, maxX, maxZ, topY, bottomY, budget);
         }
-        addTopFrameDisplays(player, displays, minX, minZ, maxX, maxZ, topY, budget);
+        if (config.visualShowTopFrame()) {
+            addTopFrameDisplays(player, displays, minX, minZ, maxX, maxZ, topY, budget);
+        }
         addBottomFrameDisplays(player, displays, minX, minZ, maxX, maxZ, bottomY, budget);
         addCenterSpark(player, chunkX, chunkZ, topY);
     }

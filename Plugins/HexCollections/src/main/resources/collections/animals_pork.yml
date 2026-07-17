@@ -19,6 +19,7 @@ tracked_items:
     amount_value: 1
 valid_sources:
 - MINION_COLLECT
+- NATURAL_MOB_DROP
 - CUSTOM_PLUGIN_GRANTED
 sources:
 - trigger: minions.resource.generated
@@ -32,31 +33,39 @@ sources:
     collectionId: animals.pork
     resourceId: porkchop
 source_rules:
+  NATURAL_MOB_DROP:
+    allowed_worlds:
+    - world
+    - resource_world
+    - mining_world
+    blocked_worlds:
+    - spawn
+    allow_in_town_claims: true
   MINION_COLLECT:
     allow_in_town_claims: true
   CUSTOM_PLUGIN_GRANTED:
     allow_in_town_claims: true
 levels:
   1:
-    required: 75
+    required: 38
     display_name: '&dMięso świni I'
   2:
-    required: 1000
+    required: 500
     display_name: '&dMięso świni II'
   3:
-    required: 5000
+    required: 2500
     display_name: '&dMięso świni III'
   4:
-    required: 25000
+    required: 12500
     display_name: '&dMięso świni IV'
   5:
-    required: 50000
+    required: 25000
     display_name: '&dMięso świni V'
   6:
-    required: 250000
+    required: 125000
     display_name: '&dMięso świni VI'
   7:
-    required: 500000
+    required: 250000
     display_name: '&dMięso świni VII'
 reward_claim_mode: AUTO
 placeholder:

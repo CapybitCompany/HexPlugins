@@ -36,25 +36,25 @@ source_rules:
     allow_in_town_claims: true
 levels:
   1:
-    required: 50
+    required: 25
     display_name: '&8Netherit I'
   2:
-    required: 1000
+    required: 500
     display_name: '&8Netherit II'
   3:
-    required: 2500
+    required: 1250
     display_name: '&8Netherit III'
   4:
-    required: 25000
+    required: 12500
     display_name: '&8Netherit IV'
   5:
-    required: 50000
+    required: 25000
     display_name: '&8Netherit V'
   6:
-    required: 250000
+    required: 125000
     display_name: '&8Netherit VI'
   7:
-    required: 500000
+    required: 250000
     display_name: '&8Netherit VII'
 reward_claim_mode: AUTO
 placeholder:

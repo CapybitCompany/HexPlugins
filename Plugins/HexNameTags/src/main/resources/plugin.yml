@@ -1,0 +1,16 @@
+name: HexNameTags
+version: '${version}'
+main: pl.hexnetwork.hexnametags.HexNameTagsPlugin
+api-version: '1.21'
+author: HexNetwork
+depend:
+  - HexCore
+  - packetevents
+commands:
+  hexnametag:
+    description: Packetowe etykiety HexNameTags
+    usage: /hexnametag <help|test|set|self|clear|show|reload>
+    permission: hexnametags.admin
+permissions:
+  hexnametags.admin:
+    default: op

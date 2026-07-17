@@ -11,10 +11,13 @@ public final class MachineRuntime {
     private ItemStack secondary;
     private ItemStack fuel;
     private ItemStack output;
+    private ItemStack output2;
     private final ItemStack[] upgrades = new ItemStack[3];
     private int energy;
     private String recipeId = "";
+    private final String[] extraRecipeIds = new String[]{""};
     private int progressSeconds;
+    private final int[] extraProgressSeconds = new int[1];
     private int lastFuelSeconds;
     private int burnRemainingSeconds;
     private int burnEuRemaining;
@@ -47,6 +50,15 @@ public final class MachineRuntime {
     public void fuel(ItemStack fuel) { this.fuel = clone(fuel); }
     public ItemStack output() { return clone(output); }
     public void output(ItemStack output) { this.output = clone(output); }
+    public ItemStack output2() { return clone(output2); }
+    public void output2(ItemStack output2) { this.output2 = clone(output2); }
+    public ItemStack outputAt(int index) {
+        return index <= 0 ? output() : output2();
+    }
+    public void outputAt(int index, ItemStack item) {
+        if (index <= 0) output(item);
+        else output2(item);
+    }
     public ItemStack upgrade(int index) { return index >= 0 && index < upgrades.length ? clone(upgrades[index]) : null; }
     public void upgrade(int index, ItemStack item) { if (index >= 0 && index < upgrades.length) upgrades[index] = clone(item); }
     public ItemStack[] upgradesCopy() {
@@ -66,7 +78,9 @@ public final class MachineRuntime {
     }
 
     public String recipeId() { return recipeId; }
+    public String recipeIdAt(int index) { return index <= 0 ? recipeId : extraRecipeIds[Math.min(index - 1, extraRecipeIds.length - 1)]; }
     public int progressSeconds() { return progressSeconds; }
+    public int progressSecondsAt(int index) { return index <= 0 ? progressSeconds : extraProgressSeconds[Math.min(index - 1, extraProgressSeconds.length - 1)]; }
     public int lastFuelSeconds() { return lastFuelSeconds; }
     public int burnRemainingSeconds() { return burnRemainingSeconds; }
     public int burnEuRemaining() { return burnEuRemaining; }
@@ -76,22 +90,47 @@ public final class MachineRuntime {
     public String accumulatorInputFace() { return accumulatorInputFace; }
     public void accumulatorInputFace(String face) { this.accumulatorInputFace = face == null ? "" : face.toUpperCase(java.util.Locale.ROOT); }
 
-    public void resetProcess() {
-        recipeId = "";
-        progressSeconds = 0;
+    public void resetProcess() { resetProcessAt(0); }
+
+    public void resetProcessAt(int index) {
+        if (index <= 0) {
+            recipeId = "";
+            progressSeconds = 0;
+        } else if (index - 1 < extraRecipeIds.length) {
+            extraRecipeIds[index - 1] = "";
+            extraProgressSeconds[index - 1] = 0;
+        }
     }
 
-    public void startProcess(String recipeId) {
-        this.recipeId = recipeId == null ? "" : recipeId;
-        this.progressSeconds = 0;
+    public void startProcess(String recipeId) { startProcessAt(0, recipeId); }
+
+    public void startProcessAt(int index, String recipeId) {
+        if (index <= 0) {
+            this.recipeId = recipeId == null ? "" : recipeId;
+            this.progressSeconds = 0;
+        } else if (index - 1 < extraRecipeIds.length) {
+            extraRecipeIds[index - 1] = recipeId == null ? "" : recipeId;
+            extraProgressSeconds[index - 1] = 0;
+        }
     }
 
-    public void restoreProcess(String recipeId, int progressSeconds) {
-        this.recipeId = recipeId == null ? "" : recipeId;
-        this.progressSeconds = Math.max(0, progressSeconds);
+    public void restoreProcess(String recipeId, int progressSeconds) { restoreProcessAt(0, recipeId, progressSeconds); }
+
+    public void restoreProcessAt(int index, String recipeId, int progressSeconds) {
+        if (index <= 0) {
+            this.recipeId = recipeId == null ? "" : recipeId;
+            this.progressSeconds = Math.max(0, progressSeconds);
+        } else if (index - 1 < extraRecipeIds.length) {
+            extraRecipeIds[index - 1] = recipeId == null ? "" : recipeId;
+            extraProgressSeconds[index - 1] = Math.max(0, progressSeconds);
+        }
     }
 
-    public void addProgressSecond() { progressSeconds++; }
+    public void addProgressSecond() { addProgressSecondAt(0); }
+    public void addProgressSecondAt(int index) {
+        if (index <= 0) progressSeconds++;
+        else if (index - 1 < extraProgressSeconds.length) extraProgressSeconds[index - 1]++;
+    }
 
     public void startBurn(int eu, int seconds) {
         this.burnEuRemaining = Math.max(0, eu);
@@ -145,7 +184,7 @@ public final class MachineRuntime {
 
     public void drop(Location loc) {
         if (loc == null || loc.getWorld() == null) return;
-        for (ItemStack item : new ItemStack[]{input, extraInputs[0], extraInputs[1], secondary, fuel, output, upgrades[0], upgrades[1], upgrades[2]}) {
+        for (ItemStack item : new ItemStack[]{input, extraInputs[0], extraInputs[1], secondary, fuel, output, output2, upgrades[0], upgrades[1], upgrades[2]}) {
             if (item != null && !item.getType().isAir()) loc.getWorld().dropItemNaturally(loc, item);
         }
     }

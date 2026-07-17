@@ -35,7 +35,7 @@ public record MachineEnergyDefinition(
                 loadBurnMap(section.getConfigurationSection("fuel-burn-seconds")),
                 loadIntMap(section.getConfigurationSection("fallback-fuel-eu")),
                 loadBurnMap(section.getConfigurationSection("fallback-fuel-burn-seconds")),
-                Math.max(0, section.getInt("battery-slot", 40)),
+                Math.max(-1, section.getInt("battery-slot", 40)),
                 Math.max(0, section.getInt("battery-extra-capacity", 0))
         );
     }

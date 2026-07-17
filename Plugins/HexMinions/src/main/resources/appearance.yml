@@ -795,6 +795,55 @@ appearances:
         <storage_bar>'
       shadowed: true
       see-through: false
+  netherrack_default:
+    base:
+      type: ARMOR_STAND
+      marker: false
+      small: true
+      invisible: false
+      invulnerable: true
+      no-gravity: true
+      arms: true
+      equipment-locked: true
+      equipment:
+        helmet:
+          material: PLAYER_HEAD
+          texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNmZlNjk1NTM1ZGY4OWExM2I2MTgzNzgwYTk1ZWQxMDU5ODJlZTFmMDdhYjY0NGUwNjc2OWJkOTE2N2UxNjgxZiJ9fX0=
+        chestplate:
+          material: LEATHER_CHESTPLATE
+          color: '#4A0E16'
+        leggings:
+          material: LEATHER_LEGGINGS
+          color: '#3A0810'
+        boots:
+          material: LEATHER_BOOTS
+          color: '#240409'
+        main-hand:
+          material: NETHERRACK
+    attachments:
+    - id: block_backpack
+      type: BLOCK_DISPLAY
+      material: NETHERRACK
+      offset:
+      - 0.0
+      - 0.65
+      - -0.25
+      scale:
+      - 0.45
+      - 0.45
+      - 0.45
+    label:
+      type: TEXT_DISPLAY
+      offset:
+      - 0.0
+      - 1.65
+      - 0.0
+      billboard: CENTER
+      text: '<dark_red><name></dark_red> <gray>Tier <tier></gray>
+
+        <storage_bar>'
+      shadowed: true
+      see-through: false
   stone_default:
     base:
       type: ARMOR_STAND

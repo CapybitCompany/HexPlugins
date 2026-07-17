@@ -13,7 +13,7 @@ softdepend:
 
 commands:
   minion:
-    usage: "/minion <help|give|list|pickup|move|select|select-index|action|reload|admin addlimit>"
+    usage: "/minion <help|give|list|wiki|robots|pickup|move|select|select-index|action|reload|admin addlimit>"
     description: Miniony miast Hex SMP
     permission: hexminions.use
 

@@ -16,6 +16,7 @@ tracked_items:
     amount_value: 1
 valid_sources:
 - MINION_COLLECT
+- NATURAL_CROP_HARVEST
 - CUSTOM_PLUGIN_GRANTED
 sources:
 - trigger: minions.resource.generated
@@ -29,31 +30,43 @@ sources:
     collectionId: farming.beetroot
     resourceId: beetroot
 source_rules:
+  NATURAL_CROP_HARVEST:
+    allowed_materials:
+    - BEETROOTS
+    allowed_worlds:
+    - world
+    - resource_world
+    - mining_world
+    blocked_worlds:
+    - spawn
+    allow_in_town_claims: false
+    deny_player_placed_blocks: false
+    deny_recently_broken_blocks: false
   MINION_COLLECT:
     allow_in_town_claims: true
   CUSTOM_PLUGIN_GRANTED:
     allow_in_town_claims: true
 levels:
   1:
-    required: 50
+    required: 25
     display_name: '&4Burak I'
   2:
-    required: 1000
+    required: 500
     display_name: '&4Burak II'
   3:
-    required: 2500
+    required: 1250
     display_name: '&4Burak III'
   4:
-    required: 25000
+    required: 12500
     display_name: '&4Burak IV'
   5:
-    required: 50000
+    required: 25000
     display_name: '&4Burak V'
   6:
-    required: 250000
+    required: 125000
     display_name: '&4Burak VI'
   7:
-    required: 500000
+    required: 250000
     display_name: '&4Burak VII'
 reward_claim_mode: AUTO
 placeholder:

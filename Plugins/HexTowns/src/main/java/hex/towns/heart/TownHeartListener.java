@@ -4,6 +4,7 @@ import hex.core.api.HexApi;
 import hex.core.api.compat.SoundCompatibility;
 import hex.core.api.ui.UiTokens;
 import hex.towns.api.event.TownRenamedEvent;
+import hex.towns.api.event.TownDestroyedEvent;
 import hex.towns.config.TownsConfig;
 import hex.towns.model.Town;
 import hex.towns.service.TownsService;
@@ -83,6 +84,11 @@ public final class TownHeartListener implements Listener {
     @EventHandler
     public void onTownRenamed(TownRenamedEvent event) {
         heartService.updateName(event.town());
+    }
+
+    @EventHandler
+    public void onTownDestroyed(TownDestroyedEvent event) {
+        heartService.removeHeartCompletely(event.town());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

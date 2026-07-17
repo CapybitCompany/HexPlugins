@@ -80,7 +80,7 @@ items:
           output: 'false'
 
   back:
-    material: ARROW
+    material: BARRIER
     slot: 36
     display_name: '&ePowrót'
     left_click_commands:

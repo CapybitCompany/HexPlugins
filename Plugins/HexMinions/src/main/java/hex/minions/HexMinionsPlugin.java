@@ -13,6 +13,7 @@ import hex.minions.config.StorageChestRegistry;
 import hex.minions.crafting.SpecialItemRegistry;
 import hex.minions.customdrops.CustomResourceDropEngine;
 import hex.minions.listener.SpecialCraftingListener;
+import hex.minions.listener.BioFuelListener;
 import hex.minions.listener.MachineListener;
 import hex.minions.listener.EnderChestExpansionListener;
 import hex.minions.machine.MachineService;
@@ -22,10 +23,12 @@ import hex.minions.database.MinionRepository;
 import hex.minions.listener.MinionInteractionListener;
 import hex.minions.listener.MinionMenuListener;
 import hex.minions.listener.MinionWorldListener;
+import hex.minions.listener.MusketListener;
 import hex.minions.listener.TownLifecycleListener;
 import hex.minions.menu.MinionMenu;
 import hex.minions.placeholder.MinionsPlaceholderExpansion;
 import hex.minions.render.MinionRenderer;
+import hex.minions.robot.MiningRobotManager;
 import hex.minions.service.MinionItemFactory;
 import hex.minions.service.MinionService;
 import hex.minions.service.MinionsApiImpl;
@@ -45,6 +48,8 @@ public final class HexMinionsPlugin extends JavaPlugin {
     private CableService cableService;
     private CustomResourceDropEngine customResourceDropEngine;
     private MinionAdvancementService advancementService;
+    private MusketListener musketListener;
+    private MiningRobotManager robotManager;
     private MinionsApi api;
     private MinionsPlaceholderExpansion placeholderExpansion;
 
@@ -62,6 +67,7 @@ public final class HexMinionsPlugin extends JavaPlugin {
         saveResourceIfMissing("special-items.yml");
         saveResourceIfMissing("machines.yml");
         saveResourceIfMissing("minion-advancements.yml");
+        saveResourceIfMissing("robots.yml");
 
         var hexReg = Bukkit.getServicesManager().getRegistration(HexApi.class);
         if (hexReg == null) {
@@ -102,11 +108,15 @@ public final class HexMinionsPlugin extends JavaPlugin {
         specialItems.registerVanillaRecipes(itemFactory, storageChests, definitions);
         this.renderer = new MinionRenderer(this, definitions);
         this.service = new MinionService(this, hex, towns, collections, repository, renderer, itemFactory, config, definitions, storageChests, specialItems);
+        this.musketListener = new MusketListener(this, service);
         this.machineService = new MachineService(this, hex, service);
         this.cableService = new CableService(this, hex, towns, service);
         this.cableService.attachMachines(machineService);
         this.machineService.attachCableService(cableService);
         this.customResourceDropEngine = new CustomResourceDropEngine(this, hex, towns, service);
+        this.robotManager = new MiningRobotManager(this, hex, towns, service);
+        this.robotManager.load();
+        this.robotManager.start();
         this.customResourceDropEngine.start();
         this.machineService.start();
         this.advancementService = new MinionAdvancementService(this, towns, collections, service);
@@ -119,7 +129,7 @@ public final class HexMinionsPlugin extends JavaPlugin {
         registerPlaceholderExpansion();
 
         MinionMenu menu = new MinionMenu(hex, service, itemFactory);
-        MinionCommand command = new MinionCommand(this, hex, service, itemFactory, menu, this::reloadRuntimeConfig);
+        MinionCommand command = new MinionCommand(this, hex, service, itemFactory, menu, robotManager, this::reloadRuntimeConfig);
         PluginCommand pluginCommand = getCommand("minion");
         if (pluginCommand != null) {
             pluginCommand.setExecutor(command);
@@ -128,7 +138,7 @@ public final class HexMinionsPlugin extends JavaPlugin {
 
         getServer().getPluginManager().registerEvents(new MinionInteractionListener(this, hex, service, itemFactory, renderer, menu), this);
         getServer().getPluginManager().registerEvents(new MinionMenuListener(this, hex, service, menu), this);
-        getServer().getPluginManager().registerEvents(new SpecialCraftingListener(this, hex, towns, service, menu), this);
+        getServer().getPluginManager().registerEvents(new SpecialCraftingListener(this, hex, towns, service, menu, machineService), this);
         getServer().getPluginManager().registerEvents(new MachineListener(this, hex, towns, machineService), this);
         getServer().getPluginManager().registerEvents(cableService, this);
         getServer().getPluginManager().registerEvents(customResourceDropEngine, this);
@@ -136,6 +146,9 @@ public final class HexMinionsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new TownLifecycleListener(service, machineService), this);
         getServer().getPluginManager().registerEvents(new MinionWorldListener(this, service, machineService), this);
         getServer().getPluginManager().registerEvents(new EnderChestExpansionListener(this, towns, service), this);
+        getServer().getPluginManager().registerEvents(new BioFuelListener(this, service), this);
+        getServer().getPluginManager().registerEvents(robotManager, this);
+        getServer().getPluginManager().registerEvents(musketListener, this);
         getServer().getPluginManager().registerEvents(advancementService, this);
 
         hex.db().async(() -> {
@@ -213,6 +226,8 @@ public final class HexMinionsPlugin extends JavaPlugin {
     @Override
     public void onDisable() {
         if (advancementService != null) advancementService.shutdown();
+        if (musketListener != null) musketListener.shutdown();
+        if (robotManager != null) robotManager.shutdown();
         if (machineService != null) machineService.shutdown();
         if (cableService != null) cableService.shutdown();
         if (customResourceDropEngine != null) customResourceDropEngine.shutdown();
@@ -257,6 +272,8 @@ public final class HexMinionsPlugin extends JavaPlugin {
         service.reload(MinionsConfig.load(getConfig()), definitions, storageChests, specialItems);
         if (customResourceDropEngine != null) customResourceDropEngine.reload();
         if (advancementService != null) advancementService.reload();
+        if (musketListener != null) musketListener.reload();
+        if (robotManager != null) robotManager.reload();
     }
 
     private void saveResourceIfMissing(String name) {
@@ -266,7 +283,7 @@ public final class HexMinionsPlugin extends JavaPlugin {
     private void registerUiDefaults() {
         try {
             hex.ui().registerDefaults("minions", Map.ofEntries(
-                    Map.entry("help", "<gray>/minion give, list, wiki, pickup, move, select-index, action, reload</gray>"),
+                    Map.entry("help", "<gray>/minion give, list, wiki, robots, pickup, move, select-index, action, reload</gray>"),
                     Map.entry("error.player-only", "<red>Ta komenda jest tylko dla gracza.</red>"),
                     Map.entry("error.no-permission", "<red>Brak uprawnien.</red>"),
                     Map.entry("error.player-not-found", "<red>Nie znaleziono gracza <white><player></white>.</red>"),
@@ -329,6 +346,7 @@ public final class HexMinionsPlugin extends JavaPlugin {
                     Map.entry("cable.remove.not-town", "<red>Mozesz usuwac kable tylko w swoim miescie.</red>"),
                     Map.entry("cable.info", "<gray>Kabel:</gray> <white><cable></white> <dark_gray>|</dark_gray> <gray>dlugosc:</gray> <white><length>m</white> <dark_gray>|</dark_gray> <gray>limit:</gray> <white><limit> EU/s</white> <dark_gray>|</dark_gray> <gray>strata:</gray> <white><loss> EU/m</white>"),
                     Map.entry("cable.remove.success", "<yellow>Usunieto caly segment kabla, nie pojedynczy metr.</yellow>"),
+                    Map.entry("energy.limit-reached", "<red>Nie mozna postawic elementu energii: <white><error></white></red>"),
                     Map.entry("machine.error.not-town", "<red>Mozesz obslugiwac te maszyne tylko w swoim miescie.</red>"),
                     Map.entry("machine.accumulator.input-face-required", "<red>Kliknij konkretny bok akumulatora, ktory ma zostac wejsciem EU.</red>"),
                     Map.entry("machine.accumulator.input-face-same", "<yellow>Ten bok jest juz wejsciem EU akumulatora.</yellow>"),

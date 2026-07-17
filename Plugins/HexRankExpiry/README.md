@@ -19,7 +19,7 @@ Wpisy permanentne LuckyPerms (`expiry = 0`) nie są traktowane jako rangi czasow
 
 ## Wymagania
 
-- Paper/Spigot API `1.21.x`
+- Purpur/Paper API `1.21.11` (Java 21)
 - `HexCore` — plugin korzysta z połączenia DB wystawianego przez `HexCore`
 - LuckyPerms z tabelą SQL `luckperms_user_permissions`
 - Opcjonalnie `PlaceholderAPI`, jeśli chcesz używać placeholderów w innych pluginach

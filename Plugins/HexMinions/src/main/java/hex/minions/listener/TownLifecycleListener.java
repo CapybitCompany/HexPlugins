@@ -19,6 +19,6 @@ public final class TownLifecycleListener implements Listener {
     public void onTownDestroyed(TownDestroyedEvent event) {
         service.cleanupTownWorld(event.town(), event.chunks());
         machines.forgetMachinesInChunks(event.town().world(), event.chunks());
-        service.purgeTown(event.town().id());
+        service.purgeTown(event.town());
     }
 }

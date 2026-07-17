@@ -1,0 +1,6 @@
+-proc:none
+-Xlint:none
+-cp
+build/classes/java/main:../HexCollections/build/classes/java/main:../HexTowns/build/classes/java/main
+src/main/java/hex/minions/machine/MachineService.java
+src/main/java/hex/minions/listener/MachineListener.java

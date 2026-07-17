@@ -201,7 +201,80 @@ public final class TownRepository {
         db.update("DELETE FROM " + db.t("town_members") + " WHERE uuid=?", UuidBytes.toBytes(playerId));
     }
 
+    /**
+     * Czyści dane dostępu pojedynczego gracza odpinanego od miasta.
+     * Nie usuwa danych globalnych miasta, takich jak kolekcje czy statystyki minionów całego miasta.
+     */
+    public void purgeDepartedMemberData(Town town, UUID playerId) {
+        if (playerId == null) return;
+        long townId = town == null ? -1L : town.internalId();
+        UUID townUuid = town == null ? null : town.id();
+        byte[] playerBytes = UuidBytes.toBytes(playerId);
+
+        db.tx(tx -> {
+            tx.update("DELETE FROM " + tx.t("town_members") + " WHERE uuid=?", playerBytes);
+            tx.update("DELETE FROM " + tx.t("town_coop_requests") + " WHERE requester=?", playerBytes);
+            if (townId > 0) {
+                tx.update("DELETE FROM " + tx.t("town_coop_requests") + " WHERE town_id=? AND requester=?", townId, playerBytes);
+            }
+            return null;
+        });
+
+        // Starsze/alternatywne tabele oraz dane per-gracz z pluginów pobocznych.
+        bestEffortUpdate("DELETE FROM " + db.t("town_ccop_requests") + " WHERE requester=?", playerBytes);
+        bestEffortUpdate("DELETE FROM " + db.t("town_ccop_requests") + " WHERE requester=?", playerId.toString());
+        bestEffortUpdate("DELETE FROM " + db.t("town_data_namespace") + " WHERE player_uuid=?", playerBytes);
+        bestEffortUpdate("DELETE FROM " + db.t("town_data_namespace") + " WHERE player_uuid=?", playerId.toString());
+        bestEffortUpdate("DELETE FROM " + db.t("town_data_namespace") + " WHERE uuid=?", playerBytes);
+        bestEffortUpdate("DELETE FROM " + db.t("town_data_namespace") + " WHERE uuid=?", playerId.toString());
+        if (townId > 0) {
+            bestEffortUpdate("DELETE FROM " + db.t("town_ccop_requests") + " WHERE town_id=? AND requester=?", townId, playerBytes);
+            bestEffortUpdate("DELETE FROM " + db.t("town_ccop_requests") + " WHERE town_id=? AND requester=?", townId, playerId.toString());
+            bestEffortUpdate("DELETE FROM " + db.t("town_meta") + " WHERE town_id=? AND (k LIKE ? OR v LIKE ?)", townId, "%" + playerId + "%", "%" + playerId + "%");
+            bestEffortUpdate("DELETE FROM " + db.t("minion_audit_log") + " WHERE town_id=? AND actor_uuid=?", townId, playerBytes);
+        }
+        if (townUuid != null) {
+            bestEffortUpdate("DELETE FROM " + db.t("collection_events") + " WHERE town_id=? AND player_uuid=?", townUuid.toString(), playerId.toString());
+        }
+    }
+
+    public void destroyTown(Town town) {
+        long townId = town.internalId();
+        int worldId = town.worldId();
+        UUID townUuid = town.id();
+
+        // Dane własnościowe miasta muszą zniknąć atomowo z podstawowych tabel HexTowns.
+        // Dodatkowe tabele pluginów/modułów czyścimy best-effort, bo mogą nie istnieć
+        // w każdej paczce albo mieć starszą nazwę z poprzednich wersji.
+        purgeKnownExternalTownData(townId, townUuid);
+
+        db.tx(tx -> {
+            tx.update("DELETE FROM " + tx.t("town_coop_requests") + " WHERE town_id=?", townId);
+            tx.update("DELETE FROM " + tx.t("town_meta") + " WHERE town_id=?", townId);
+            tx.update("DELETE FROM " + tx.t("town_members") + " WHERE town_id=?", townId);
+            tx.update("DELETE FROM " + tx.t("town_chunks") + " WHERE town_id=?", townId);
+            tx.update("DELETE FROM " + tx.t("towns") + " WHERE id=?", townId);
+            tx.update("DELETE FROM " + tx.t("town_worlds") + " WHERE id=? AND NOT EXISTS (SELECT 1 FROM " + tx.t("towns") + " WHERE world_id=?)", worldId, worldId);
+            return null;
+        });
+    }
+
     public void destroyTown(long townId) {
+        Optional<Town> town = db.queryOne(
+                "SELECT t.id, t.uuid, t.owner_uuid, t.name, t.world_id, w.name AS world_name, " +
+                        "t.heart_cx, t.heart_cz, t.growth_points, t.status, t.created_at " +
+                        "FROM " + db.t("towns") + " t JOIN " + db.t("town_worlds") + " w ON w.id=t.world_id WHERE t.id=?",
+                rs -> new Town(
+                        rs.getLong("id"), UuidBytes.fromBytes(rs.getBytes("uuid")), UuidBytes.fromBytes(rs.getBytes("owner_uuid")),
+                        rs.getString("name"), rs.getString("world_name"), rs.getInt("world_id"),
+                        new ChunkPos(rs.getInt("heart_cx"), rs.getInt("heart_cz")), rs.getInt("growth_points"),
+                        Instant.ofEpochMilli(rs.getLong("created_at")), TownStatus.valueOf(rs.getString("status"))),
+                townId);
+        if (town.isPresent()) {
+            destroyTown(town.get());
+            return;
+        }
+        purgeKnownExternalTownData(townId, null);
         db.tx(tx -> {
             tx.update("DELETE FROM " + tx.t("town_coop_requests") + " WHERE town_id=?", townId);
             tx.update("DELETE FROM " + tx.t("town_meta") + " WHERE town_id=?", townId);
@@ -210,6 +283,26 @@ public final class TownRepository {
             tx.update("DELETE FROM " + tx.t("towns") + " WHERE id=?", townId);
             return null;
         });
+    }
+
+    private void purgeKnownExternalTownData(long townId, UUID townUuid) {
+        bestEffortUpdate("DELETE FROM " + db.t("town_minion_stats") + " WHERE town_id=?", townId);
+        bestEffortUpdate("DELETE FROM " + db.t("minion_audit_log") + " WHERE town_id=?", townId);
+        bestEffortUpdate("DELETE FROM " + db.t("town_ccop_requests") + " WHERE town_id=?", townId);
+        bestEffortUpdate("DELETE FROM " + db.t("town_data_namespace") + " WHERE town_id=?", townId);
+        bestEffortUpdate("DELETE FROM " + db.t("town_data_namespaces") + " WHERE town_id=?", townId);
+        if (townUuid != null) {
+            bestEffortUpdate("DELETE FROM " + db.t("collection_progress") + " WHERE town_id=?", townUuid.toString());
+            bestEffortUpdate("DELETE FROM " + db.t("collection_events") + " WHERE town_id=?", townUuid.toString());
+        }
+    }
+
+    private void bestEffortUpdate(String sql, Object... args) {
+        try {
+            db.update(sql, args);
+        } catch (RuntimeException ignored) {
+            // Tabela/kolumna może należeć do opcjonalnego pluginu albo starszej wersji schematu.
+        }
     }
 
     public void updateTownStatus(long townId, TownStatus status) {

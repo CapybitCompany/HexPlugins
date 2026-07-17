@@ -19,7 +19,9 @@ include 'plugins:HexQuests'
 include 'plugins:HexCollections'
 include 'plugins:HexEconomy'
 include 'plugins:HexRankExpiry'
+include 'plugins:HexNameTags'
 include 'plugins:VishopBroadcast'
+include 'plugins:VishopBroadcastProxy'
 include 'statsapi'
 
 // Physical folder is 'Plugins/...' (capital P), keep logical Gradle path consistent.
@@ -41,5 +43,7 @@ project(':plugins:HexQuests').projectDir = file('Plugins/HexQuests')
 project(':plugins:HexCollections').projectDir = file('Plugins/HexCollections')
 project(':plugins:HexEconomy').projectDir = file('Plugins/HexEconomy')
 project(':plugins:HexRankExpiry').projectDir = file('Plugins/HexRankExpiry')
+project(':plugins:HexNameTags').projectDir = file('Plugins/HexNameTags')
 project(':plugins:VishopBroadcast').projectDir = file('Plugins/VishopBroadcast')
+project(':plugins:VishopBroadcastProxy').projectDir = file('Plugins/VishopBroadcastProxy')
 project(':statsapi').projectDir = file('StatsApi')

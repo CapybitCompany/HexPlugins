@@ -21,7 +21,10 @@ public record MinionsConfig(
         int offlineMaxActionsPerMinion,
         int labelRefreshTicks,
         int selectedContextTtlSeconds,
-        boolean wikiTestMode
+        boolean wikiTestMode,
+        boolean auditLogEnabled,
+        int auditRetentionDays,
+        int auditCleanupIntervalHours
 ) {
     public static MinionsConfig load(FileConfiguration config) {
         return new MinionsConfig(
@@ -43,7 +46,10 @@ public record MinionsConfig(
                 Math.max(0, config.getInt("minions.engine.offline.max-actions-per-minion", 10000)),
                 Math.max(20, config.getInt("minions.rendering.label-refresh-ticks", 40)),
                 Math.max(10, config.getInt("minions.deluxemenus.selected-context.ttl-seconds", 120)),
-                config.getBoolean("minions.testing.wiki-copy-items", false)
+                config.getBoolean("minions.testing.wiki-copy-items", false),
+                config.getBoolean("minions.safety.audit-log", true),
+                Math.max(1, config.getInt("minions.safety.audit-retention-days", 14)),
+                Math.max(1, config.getInt("minions.safety.audit-cleanup-interval-hours", 24))
         );
     }
 }

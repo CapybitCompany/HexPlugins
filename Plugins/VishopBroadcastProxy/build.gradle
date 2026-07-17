@@ -1,0 +1,50 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
+}
+
+group = 'hex.vishopbroadcast'
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+    maven { url = 'https://repo.papermc.io/repository/maven-public/' }
+}
+
+dependencies {
+    compileOnly 'com.velocitypowered:velocity-api:3.3.0-SNAPSHOT'
+    annotationProcessor 'com.velocitypowered:velocity-api:3.3.0-SNAPSHOT'
+
+    implementation 'com.zaxxer:HikariCP:5.1.0'
+    implementation 'org.yaml:snakeyaml:2.2'
+    runtimeOnly 'com.mysql:mysql-connector-j:9.1.0'
+    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client:3.5.1'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+tasks.shadowJar {
+    archiveBaseName.set('VishopBroadcastProxy')
+    archiveVersion.set('')
+    archiveClassifier.set('')
+    mergeServiceFiles()
+    exclude('META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA')
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+tasks.jar {
+    archiveBaseName.set('VishopBroadcastProxy')
+    archiveClassifier.set('plain')
+}
+
+tasks.assemble {
+    dependsOn tasks.shadowJar
+}
+
+tasks.build {
+    dependsOn tasks.shadowJar
+}

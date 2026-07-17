@@ -45,11 +45,12 @@ public final class SpecialItemRegistry {
     private final Map<String, CraftingStationDefinition> stations;
     private final Map<Integer, BoosterDefinition> boosters;
     private final Map<String, BoosterDefinition> boostersByItemId;
+    private final Map<String, ProductionUpdateDefinition> productionUpdatesByItemId;
     private final int compressedUnitValue;
     private final int superCompressedUnitValue;
     private final MiniMessage miniMessage = MiniMessage.miniMessage();
 
-    private SpecialItemRegistry(Plugin plugin, Map<String, SpecialItemDefinition> items, Map<String, SpecialRecipeDefinition> recipes, Map<String, CraftingStationDefinition> stations, Map<Integer, BoosterDefinition> boosters, int compressedUnitValue, int superCompressedUnitValue) {
+    private SpecialItemRegistry(Plugin plugin, Map<String, SpecialItemDefinition> items, Map<String, SpecialRecipeDefinition> recipes, Map<String, CraftingStationDefinition> stations, Map<Integer, BoosterDefinition> boosters, Map<String, ProductionUpdateDefinition> productionUpdatesByItemId, int compressedUnitValue, int superCompressedUnitValue) {
         this.plugin = plugin;
         this.kindKey = new NamespacedKey(plugin, "item_kind");
         this.specialItemIdKey = new NamespacedKey(plugin, "special_item_id");
@@ -59,6 +60,7 @@ public final class SpecialItemRegistry {
         this.recipes = Map.copyOf(recipes);
         this.stations = Map.copyOf(stations);
         this.boosters = Map.copyOf(boosters);
+        this.productionUpdatesByItemId = Map.copyOf(productionUpdatesByItemId);
         Map<String, BoosterDefinition> byItem = new LinkedHashMap<>();
         boosters.values().forEach(booster -> byItem.put(booster.specialItemId().toLowerCase(java.util.Locale.ROOT), booster));
         this.boostersByItemId = Map.copyOf(byItem);
@@ -97,9 +99,10 @@ public final class SpecialItemRegistry {
             if (station.enabled()) stations.put(station.id(), station);
         }
         Map<Integer, BoosterDefinition> boosters = loadBoosters(yaml);
+        Map<String, ProductionUpdateDefinition> productionUpdatesByItemId = loadProductionUpdates(yaml);
         int compressedUnitValue = Math.max(1, yaml.getInt("compression.defaults.compressed.value", 160));
         int superCompressedUnitValue = Math.max(compressedUnitValue, yaml.getInt("compression.defaults.super.value", compressedUnitValue * 32 * 5));
-        return new SpecialItemRegistry(plugin, items, recipes, stations, boosters, compressedUnitValue, superCompressedUnitValue);
+        return new SpecialItemRegistry(plugin, items, recipes, stations, boosters, productionUpdatesByItemId, compressedUnitValue, superCompressedUnitValue);
     }
 
 
@@ -124,8 +127,28 @@ public final class SpecialItemRegistry {
                     particle,
                     Math.max(1, s.getInt("particle-count", 8)),
                     Math.max(0.1D, s.getDouble("particle-radius", 0.65D)),
-                    s.getDouble("particle-y-offset", 1.15D)
+                    s.getDouble("particle-y-offset", 1.15D),
+                    List.copyOf(s.getStringList("target-categories"))
             ));
+        }
+        return result;
+    }
+
+    private static Map<String, ProductionUpdateDefinition> loadProductionUpdates(YamlConfiguration yaml) {
+        Map<String, ProductionUpdateDefinition> result = new LinkedHashMap<>();
+        ConfigurationSection root = yaml.getConfigurationSection("production-updates");
+        if (root == null) return result;
+        for (String id : root.getKeys(false)) {
+            ConfigurationSection s = root.getConfigurationSection(id);
+            if (s == null || !s.getBoolean("enabled", true)) continue;
+            String itemId = s.getString("special-item", id);
+            ProductionUpdateDefinition update = new ProductionUpdateDefinition(
+                    id,
+                    itemId,
+                    Math.max(0.0D, s.getDouble("speed-boost-percent", 10.0D)),
+                    List.copyOf(s.getStringList("target-categories"))
+            );
+            if (!update.specialItemId().isBlank()) result.put(update.specialItemId(), update);
         }
         return result;
     }
@@ -218,6 +241,8 @@ public final class SpecialItemRegistry {
     public Optional<BoosterDefinition> booster(int tier) { return Optional.ofNullable(boosters.get(tier)); }
     public Optional<BoosterDefinition> boosterBySpecialItemId(String id) { return Optional.ofNullable(boostersByItemId.get(id == null ? "" : id.toLowerCase(java.util.Locale.ROOT))); }
     public Optional<BoosterDefinition> boosterByItem(ItemStack item) { return readSpecialItemId(item).flatMap(this::boosterBySpecialItemId); }
+    public Optional<ProductionUpdateDefinition> productionUpdateBySpecialItemId(String id) { return Optional.ofNullable(productionUpdatesByItemId.get(id == null ? "" : id.toLowerCase(java.util.Locale.ROOT))); }
+    public Optional<ProductionUpdateDefinition> productionUpdateByItem(ItemStack item) { return readSpecialItemId(item).flatMap(this::productionUpdateBySpecialItemId); }
     public Optional<SpecialItemDefinition> item(String id) { return Optional.ofNullable(items.get(id == null ? "" : id.toLowerCase(java.util.Locale.ROOT))); }
     public Optional<SpecialRecipeDefinition> recipe(String id) { return Optional.ofNullable(recipes.get(id == null ? "" : id.toLowerCase(java.util.Locale.ROOT))); }
     public Optional<CraftingStationDefinition> station(String id) { return Optional.ofNullable(stations.get(id == null ? "" : id)); }
@@ -245,6 +270,7 @@ public final class SpecialItemRegistry {
         if (id == null) return false;
         String lower = id.toLowerCase(java.util.Locale.ROOT);
         if (lower.contains("booster")) return false;
+        if (lower.equals("musket") || lower.equals("miner_robot")) return true;
         return lower.contains("update") || lower.equals("auto_smelter");
     }
 

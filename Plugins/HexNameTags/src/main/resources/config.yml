@@ -1,0 +1,83 @@
+# Co ile ticków plugin sprawdza widoczność, dystans, świat i ewentualną zmianę tekstu.
+# To NIE jest częstotliwość ruchu napisu. Ruch jest w sekcji rendering.*.
+refresh-interval-ticks: 10
+
+# Zasięg renderowania etykiet. Fake TextDisplay jest wysyłany tylko viewerom w tym zasięgu.
+view-distance: 48.0
+
+# Czy gracz ma widzieć własną etykietę w F5.
+show-own-tag: true
+
+rendering:
+  # Domyślny tryb: packet-only TextDisplay, który podąża za graczem przez rzadkie pakiety teleportu
+  # z client-side interpolation. To nie jest ArmorStand i nie jest mount/passenger.
+  # Daje płynny efekt podobny do vanilla, bo display ma ustawione teleport-duration-ticks.
+  #
+  # Dostępne wartości:
+  # - interpolated-follow          <- zalecane, bez mounta
+  # - packet-text-display-passenger <- awaryjnie, jeżeli chcesz wrócić do passenger/mount
+  mode: interpolated-follow
+
+  # Co ile ticków wysyłać pozycję fake TextDisplay do viewerów.
+  # 1 = najdokładniej, ale więcej pakietów.
+  # 2 = dobry kompromis: płynnie, ale bez tickowania/teleportowania co tick.
+  # 3-4 = mniej pakietów, może być lekko bardziej miękko/opóźnione.
+  movement-update-interval-ticks: 2
+
+  # Client-side interpolation dla Display Entity.
+  # 0 = natychmiastowy skok.
+  # 1-3 = płynne doganianie pozycji.
+  # Max vanilla/Paper: 59.
+  # Najlepiej ustawić na movement-update-interval-ticks lub +1.
+  teleport-duration-ticks: 2
+
+  # Minimalny ruch targetu, zanim wyślemy kolejny packet pozycji.
+  # 0.02 = 2 cm bloku. Ustaw 0.0, jeśli chcesz śledzić absolutnie każdy drobny ruch.
+  min-move-distance: 0.02
+
+  # Tylko dla mode: packet-text-display-passenger.
+  # 0 = nigdy nie ponawiaj SetPassengers cyklicznie.
+  # W trybie interpolated-follow ignorowane.
+  reassert-passenger-interval-ticks: 0
+
+# Persistencja przez HexCore -> HexApi -> DatabaseService.
+# Dotyczy tylko tagów graczy. Tagi zwykłych entity zostają runtime-only, bo ich UUID zwykle nie jest stabilnym
+# identyfikatorem gameplayowym po restartach/chunk unloadach.
+database:
+  enabled: true
+  create-table: true
+  save-player-tags: true
+  load-online-on-start: true
+
+  # Nazwa bez prefixu. Finalna tabela = HexCore Db.tablePrefix() + table-name.
+  table-name: hex_nametags
+
+  # Cache odczytów z DB dla join/reload/API. 10 sekund to domyślny bezpieczny kompromis.
+  # 0 wyłącza cache odczytu. Większa wartość = rzadsze zapytania do DB.
+  cache-ttl-seconds: 10
+
+style:
+  # Offset lokalny tekstu względem anchor pointu.
+  # W trybie interpolated-follow anchor point jest na górze hitboxa gracza/entity.
+  translation-x: 0.0
+  translation-z: 0.0
+
+  # Odległość dolnej krawędzi napisu nad górą hitboxa gracza/entity.
+  # Dla gracza: 0.2 oznacza ok. 20 cm nad głową.
+  bottom-offset-y: 0.2
+
+  scale: 1.0
+  billboard: center
+  line-width: 220
+  text-opacity: -1
+
+  # ARGB. 0x40000000 to półprzezroczyste vanilla tło. 0x00000000 praktycznie przezroczyste.
+  background-color: 0x40000000
+
+  shadow: true
+  see-through: false
+  default-background: false
+  alignment: center
+
+  # Display metadata view range. Zostawiamy trochę powyżej zasięgu logicznego.
+  display-view-range: 64.0

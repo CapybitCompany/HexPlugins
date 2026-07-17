@@ -86,8 +86,12 @@ public final class MinionRenderer {
     }
 
     public void updateLabel(MinionInstance minion, MinionTypeDefinition type) {
+        updateLabel(minion, type, minion.storageUsed(), minion.storageLimit());
+    }
+
+    public void updateLabel(MinionInstance minion, MinionTypeDefinition type, int storageUsed, int storageLimit) {
         if (!Bukkit.isPrimaryThread()) {
-            Bukkit.getScheduler().runTask(plugin, () -> updateLabel(minion, type));
+            Bukkit.getScheduler().runTask(plugin, () -> updateLabel(minion, type, storageUsed, storageLimit));
             return;
         }
         Set<UUID> ids = entityIdsByMinion.get(minion.id());
@@ -95,7 +99,7 @@ public final class MinionRenderer {
         for (UUID id : ids) {
             Entity entity = Bukkit.getEntity(id);
             if (entity instanceof TextDisplay display) {
-                display.text(labelText(minion, type));
+                display.text(labelText(minion, type, storageUsed, storageLimit));
             }
         }
     }
@@ -133,7 +137,11 @@ public final class MinionRenderer {
     }
 
     private net.kyori.adventure.text.Component labelText(MinionInstance minion, MinionTypeDefinition type) {
-        int percent = minion.storageLimit() <= 0 ? 0 : (int) Math.min(100, Math.round(minion.storageUsed() * 100.0 / minion.storageLimit()));
+        return labelText(minion, type, minion.storageUsed(), minion.storageLimit());
+    }
+
+    private net.kyori.adventure.text.Component labelText(MinionInstance minion, MinionTypeDefinition type, int storageUsed, int storageLimit) {
+        int percent = storageLimit <= 0 ? 0 : (int) Math.min(100, Math.round(storageUsed * 100.0 / storageLimit));
         String tierLabel = tierLabel(minion.tier());
         String tierNumber = tierNumber(minion.tier());
         String text = definitions.appearance(type.appearanceId()).labelText()
@@ -141,8 +149,8 @@ public final class MinionRenderer {
                 .replace("Tier <tier>", tierLabel)
                 .replace("<tier_label>", tierLabel)
                 .replace("<tier>", tierNumber)
-                .replace("<storage_used>", String.valueOf(minion.storageUsed()))
-                .replace("<storage_limit>", String.valueOf(minion.storageLimit()))
+                .replace("<storage_used>", String.valueOf(storageUsed))
+                .replace("<storage_limit>", String.valueOf(storageLimit))
                 .replace("<storage_percent>", String.valueOf(percent))
                 .replace("<storage_bar>", "<gray>Storage: <white>" + percent + "%</white></gray>");
         return miniMessage.deserialize(text);

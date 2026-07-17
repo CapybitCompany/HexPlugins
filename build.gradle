@@ -18,6 +18,8 @@ allprojects {
     repositories {
         mavenCentral()
         maven { url = 'https://repo.papermc.io/repository/maven-public/' }
+        maven { url = 'https://repo.codemc.io/repository/maven-releases/' }
+        maven { url = 'https://repo.codemc.io/repository/maven-snapshots/' }
     }
 }
 
@@ -33,6 +35,16 @@ subprojects {
     tasks.withType(JavaCompile).configureEach {
         options.encoding = 'UTF-8'
     }
+
+    if (path.startsWith(':plugins:')) {
+        apply from: rootProject.file('gradle/plugin-generated-jars.gradle')
+    }
+}
+
+tasks.register('copyPluginJarsToGenerated') {
+    group = 'build'
+    description = 'Builds plugin JARs and copies them to the root Generated directory.'
+    dependsOn(subprojects.findAll { it.path.startsWith(':plugins:') }.collect { it.tasks.named('copyPluginArtifactToGenerated') })
 }
 
 test {

@@ -48,6 +48,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -76,10 +77,22 @@ public final class CableService implements Listener {
     private final Map<BlockPos, UUID> occupancyByBlock = new LinkedHashMap<>();
     private final Map<Long, Set<UUID>> segmentsByChunk = new LinkedHashMap<>();
     private final Map<BlockPos, List<EnergyRoute>> routeCacheByProducer = new ConcurrentHashMap<>();
+    private final Map<UUID, Set<UUID>> displayEntitiesBySegment = new HashMap<>();
+    private final Map<Long, Set<UUID>> displayEntitiesByChunk = new HashMap<>();
     private final Set<UUID> displayedSegments = new HashSet<>();
+    private final ArrayDeque<UUID> displayRefreshQueue = new ArrayDeque<>();
+    private final Set<UUID> queuedDisplayRefreshes = new HashSet<>();
+    private final Map<BlockPos, Long> overloadedProducers = new ConcurrentHashMap<>();
 
     private final int maxSegmentsPerNetwork;
     private final int maxRoutesPerNetwork;
+    private final int maxNetworkRebuildsPerTick;
+    private final int maxDisplayEntitiesPerChunk;
+    private final int maxDisplayRefreshesPerTick;
+    private final int overloadedNetworkRetryTicks;
+    private final int maxCablesPerTown;
+    private int routeRebuildsThisTick;
+    private int maintenanceTaskId = -1;
     private volatile boolean dbReady;
 
     public CableService(Plugin plugin, HexApi hex, TownsApi towns, MinionService minions) {
@@ -94,6 +107,12 @@ public final class CableService implements Listener {
         ConfigurationSection energy = energySection();
         this.maxSegmentsPerNetwork = Math.max(1, energy == null ? 256 : energy.getInt("max-segments-per-network", energy.getInt("max_segments_per_network", 256)));
         this.maxRoutesPerNetwork = Math.max(1, energy == null ? 512 : energy.getInt("max-routes-per-network", energy.getInt("max_routes_per_network", 512)));
+        this.maxNetworkRebuildsPerTick = Math.max(1, energy == null ? 4 : energy.getInt("max-network-rebuilds-per-tick", energy.getInt("max_network_rebuilds_per_tick", 4)));
+        this.maxDisplayEntitiesPerChunk = Math.max(1, energy == null ? 64 : energy.getInt("max-display-entities-per-chunk", energy.getInt("max_display_entities_per_chunk", 64)));
+        this.maxDisplayRefreshesPerTick = Math.max(1, energy == null ? 64 : energy.getInt("max-display-refreshes-per-tick", energy.getInt("max_display_refreshes_per_tick", 64)));
+        this.overloadedNetworkRetryTicks = Math.max(20, 20 * (energy == null ? 30 : energy.getInt("overloaded-network-retry-seconds", energy.getInt("overloaded_network_retry_seconds", 30))));
+        this.maxCablesPerTown = Math.max(0, energy == null ? 256 : energy.getInt("max-cables-per-town", energy.getInt("max_cables_per_town", 256)));
+        this.maintenanceTaskId = Bukkit.getScheduler().runTaskTimer(plugin, this::maintenanceTick, 1L, 1L).getTaskId();
         loadPersistedAsync();
     }
 
@@ -101,16 +120,28 @@ public final class CableService implements Listener {
 
     public void clearRouteCache() {
         routeCacheByProducer.clear();
+        overloadedProducers.clear();
     }
 
     public void refreshVisuals() {
-        routeCacheByProducer.clear();
+        clearRouteCache();
         if (!dbReady) return;
-        refreshLoadedDisplays();
+        for (UUID id : new ArrayList<>(segmentsById.keySet())) enqueueDisplayRefresh(id);
+    }
+
+    public void refreshVisualsNear(Location location) {
+        if (location == null) return;
+        BlockPos center = BlockPos.of(location);
+        // Zmiana maszyny/generatora obok kabla potrafi zmienić poprawność wcześniej zapamiętanej pustej trasy.
+        // Najbezpieczniej wyczyścić cache tras, bo topologia EU zmienia się rzadko, a cache odbuduje się leniwie przy ticku generatora.
+        clearRouteCache();
+        refreshSegmentsNear(center);
     }
 
 
     public void shutdown() {
+        if (maintenanceTaskId != -1) Bukkit.getScheduler().cancelTask(maintenanceTaskId);
+        maintenanceTaskId = -1;
         writeQueue.flushAsync();
         cleanupAllDisplays();
     }
@@ -151,9 +182,9 @@ public final class CableService implements Listener {
                 if (segment == null) continue;
                 if (canLoadSegment(segment)) addSegmentToMemory(segment);
             }
-            routeCacheByProducer.clear();
+            clearRouteCache();
             dbReady = true;
-            respawnLoadedDisplays();
+            queueLoadedDisplays();
             plugin.getLogger().info("HexMinions energy cables loaded=" + segmentsById.size());
         })).exceptionally(ex -> {
             plugin.getLogger().warning("Nie udało się wczytać kabli EU: " + rootMessage(ex));
@@ -208,15 +239,22 @@ public final class CableService implements Listener {
             hex.ui().send(player, "minions.cable.validation-error", UiTokens.of("error", error));
             return;
         }
-        if (towns.townAt(startBlock.getLocation()).filter(t -> towns.isMember(player.getUniqueId(), t.id())).isEmpty()) {
+        Optional<hex.towns.model.Town> town = towns.townAt(startBlock.getLocation()).filter(t -> towns.isMember(player.getUniqueId(), t.id()));
+        if (town.isEmpty()) {
             hex.ui().send(player, "minions.cable.place.not-town");
+            return;
+        }
+        if (maxCablesPerTown > 0 && cableCount(town.get().id()) + 1 > maxCablesPerTown) {
+            hex.ui().send(player, "minions.energy.limit-reached", UiTokens.of("error", "Limit kabli w mieście: " + maxCablesPerTown + "."));
             return;
         }
         CableSegment segment = createSegment(placement.start(), placement.end(), placement.axis(), type);
         addSegmentToMemory(segment);
         consumeOne(player, event.getItemInHand());
-        routeCacheByProducer.clear();
-        refreshLoadedDisplays();
+        // Nowy kabel może połączyć wcześniej rozdzielone fragmenty sieci albo generator z odbiornikiem,
+        // również wtedy, gdy generator miał w cache pustą trasę. Czyścimy cały cache tras na zmianę topologii.
+        clearRouteCache();
+        refreshSegmentAndNeighbors(segment);
         writeQueue.enqueueInsertCable(segment);
         writeQueue.flushAsync();
         hex.ui().send(player, "minions.cable.place.success", UiTokens.of("cable", configs.get(type).displayName()).put("length", String.valueOf(segment.length())));
@@ -315,21 +353,152 @@ public final class CableService implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onChunkLoad(ChunkLoadEvent event) {
         Bukkit.getScheduler().runTask(plugin, () -> {
-            routeCacheByProducer.clear();
+            invalidateRouteCacheInChunk(event.getChunk().getWorld().getName(), event.getChunk().getX(), event.getChunk().getZ());
             long chunkKey = CableSegment.chunkKey(event.getChunk().getX(), event.getChunk().getZ());
             Set<UUID> ids = segmentsByChunk.get(chunkKey);
             if (ids == null || ids.isEmpty()) return;
-            refreshLoadedDisplays();
+            for (UUID id : new ArrayList<>(ids)) enqueueDisplayRefresh(id);
         });
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onChunkUnload(ChunkUnloadEvent event) {
-        routeCacheByProducer.clear();
+        invalidateRouteCacheInChunk(event.getChunk().getWorld().getName(), event.getChunk().getX(), event.getChunk().getZ());
         long chunkKey = CableSegment.chunkKey(event.getChunk().getX(), event.getChunk().getZ());
         Set<UUID> ids = segmentsByChunk.get(chunkKey);
-        if (ids == null || ids.isEmpty()) return;
-        for (UUID id : ids) cleanupDisplay(id);
+        if (ids != null) for (UUID id : new ArrayList<>(ids)) cleanupDisplay(id);
+        cleanupDisplaysInChunk(chunkKey);
+    }
+
+
+    private void maintenanceTick() {
+        routeRebuildsThisTick = 0;
+        processDisplayRefreshQueue();
+    }
+
+    private void processDisplayRefreshQueue() {
+        int processed = 0;
+        while (processed++ < maxDisplayRefreshesPerTick && !displayRefreshQueue.isEmpty()) {
+            UUID id = displayRefreshQueue.removeFirst();
+            queuedDisplayRefreshes.remove(id);
+            CableSegment segment = segmentsById.get(id);
+            cleanupDisplay(id);
+            if (segment != null) spawnDisplayIfLoaded(segment);
+        }
+    }
+
+    private void enqueueDisplayRefresh(UUID id) {
+        if (id == null || !segmentsById.containsKey(id)) return;
+        if (queuedDisplayRefreshes.add(id)) displayRefreshQueue.addLast(id);
+    }
+
+    private void refreshSegmentAndNeighbors(CableSegment segment) {
+        if (segment == null) return;
+        enqueueDisplayRefresh(segment.id());
+        refreshSegmentNeighborsOnly(segment);
+    }
+
+    private void refreshSegmentNeighborsOnly(CableSegment segment) {
+        if (segment == null) return;
+        for (UUID id : neighboringSegmentIds(segment)) enqueueDisplayRefresh(id);
+    }
+
+    private void refreshSegmentsNear(BlockPos center) {
+        if (center == null) return;
+        for (BlockFace face : faces()) {
+            UUID id = occupancyByBlock.get(center.relative(face));
+            if (id != null) enqueueDisplayRefresh(id);
+        }
+        UUID direct = occupancyByBlock.get(center);
+        if (direct != null) enqueueDisplayRefresh(direct);
+    }
+
+    private Set<UUID> neighboringSegmentIds(CableSegment segment) {
+        Set<UUID> ids = new HashSet<>();
+        for (BlockPos pos : line(segment.start(), segment.end())) {
+            for (BlockFace face : faces()) {
+                UUID id = occupancyByBlock.get(pos.relative(face));
+                if (id != null && !id.equals(segment.id())) ids.add(id);
+            }
+        }
+        return ids;
+    }
+
+    private void invalidateRouteCacheForSegment(CableSegment segment) {
+        if (segment == null) return;
+        Set<BlockPos> affected = new HashSet<>(line(segment.start(), segment.end()));
+        routeCacheByProducer.entrySet().removeIf(entry -> routeTouches(entry.getKey(), entry.getValue(), affected));
+        overloadedProducers.keySet().removeIf(affected::contains);
+    }
+
+    private void invalidateRouteCacheNear(BlockPos center) {
+        if (center == null) return;
+        Set<BlockPos> affected = new HashSet<>();
+        affected.add(center);
+        for (BlockFace face : faces()) affected.add(center.relative(face));
+        routeCacheByProducer.entrySet().removeIf(entry -> routeTouches(entry.getKey(), entry.getValue(), affected));
+        overloadedProducers.keySet().removeIf(affected::contains);
+    }
+
+    private void invalidateRouteCacheInChunk(String world, int chunkX, int chunkZ) {
+        routeCacheByProducer.entrySet().removeIf(entry -> blockInChunk(entry.getKey(), world, chunkX, chunkZ)
+                || entry.getValue().stream().anyMatch(route -> route.consumerPos() != null && blockInChunk(route.consumerPos(), world, chunkX, chunkZ)
+                || route.cablePath().stream().anyMatch(pos -> blockInChunk(pos, world, chunkX, chunkZ))));
+        overloadedProducers.keySet().removeIf(pos -> blockInChunk(pos, world, chunkX, chunkZ));
+    }
+
+    private boolean routeTouches(BlockPos producer, List<EnergyRoute> routes, Set<BlockPos> affected) {
+        if (affected.contains(producer)) return true;
+        if (routes == null) return false;
+        for (EnergyRoute route : routes) {
+            if (route == null) continue;
+            if (affected.contains(route.consumerPos())) return true;
+            for (BlockPos pos : route.cablePath()) if (affected.contains(pos)) return true;
+        }
+        return false;
+    }
+
+    private boolean blockInChunk(BlockPos pos, String world, int chunkX, int chunkZ) {
+        return pos != null && pos.world().equals(world) && Math.floorDiv(pos.x(), 16) == chunkX && Math.floorDiv(pos.z(), 16) == chunkZ;
+    }
+
+    private int cableCount(UUID townId) {
+        if (townId == null) return 0;
+        int count = 0;
+        for (CableSegment segment : segmentsById.values()) {
+            World world = Bukkit.getWorld(segment.world());
+            if (world == null) continue;
+            Location location = segment.start().block(world).getLocation();
+            Optional<hex.towns.model.Town> town = towns.townAt(location);
+            if (town.isPresent() && town.get().id().equals(townId)) count++;
+        }
+        return count;
+    }
+
+    private boolean canSpawnDisplayAt(Location location) {
+        if (location == null) return false;
+        long chunkKey = CableSegment.chunkKey(location.getBlockX() >> 4, location.getBlockZ() >> 4);
+        return displayEntitiesByChunk.getOrDefault(chunkKey, Set.of()).size() < maxDisplayEntitiesPerChunk;
+    }
+
+    private void registerDisplay(CableSegment segment, BlockDisplay display) {
+        if (segment == null || display == null) return;
+        UUID entityId = display.getUniqueId();
+        displayEntitiesBySegment.computeIfAbsent(segment.id(), ignored -> new HashSet<>()).add(entityId);
+        long chunkKey = CableSegment.chunkKey(display.getLocation().getBlockX() >> 4, display.getLocation().getBlockZ() >> 4);
+        displayEntitiesByChunk.computeIfAbsent(chunkKey, ignored -> new HashSet<>()).add(entityId);
+    }
+
+    private void cleanupDisplaysInChunk(long chunkKey) {
+        Set<UUID> entityIds = displayEntitiesByChunk.remove(chunkKey);
+        if (entityIds == null || entityIds.isEmpty()) return;
+        for (UUID entityId : new ArrayList<>(entityIds)) {
+            Entity entity = Bukkit.getEntity(entityId);
+            if (entity != null) entity.remove();
+            for (Map.Entry<UUID, Set<UUID>> entry : displayEntitiesBySegment.entrySet()) entry.getValue().remove(entityId);
+        }
+        displayEntitiesBySegment.entrySet().removeIf(entry -> entry.getValue().isEmpty());
+        displayedSegments.removeIf(id -> !displayEntitiesBySegment.containsKey(id));
     }
 
 
@@ -515,7 +684,7 @@ public final class CableService implements Listener {
         segmentsById.put(segment.id(), segment);
         for (BlockPos p : line(segment.start(), segment.end())) occupancyByBlock.put(p, segment.id());
         for (long chunkKey : segment.chunkKeys()) segmentsByChunk.computeIfAbsent(chunkKey, k -> new HashSet<>()).add(segment.id());
-        routeCacheByProducer.clear();
+        invalidateRouteCacheForSegment(segment);
     }
 
     private void removeCablesObstructedBy(Iterable<Block> blocks) {
@@ -548,6 +717,8 @@ public final class CableService implements Listener {
             CableSegment segment = segmentsById.remove(id);
             if (segment == null) continue;
             changed = true;
+            invalidateRouteCacheForSegment(segment);
+            refreshSegmentNeighborsOnly(segment);
             for (BlockPos p : line(segment.start(), segment.end())) occupancyByBlock.remove(p);
             for (long chunkKey : segment.chunkKeys()) {
                 Set<UUID> set = segmentsByChunk.get(chunkKey);
@@ -567,8 +738,8 @@ public final class CableService implements Listener {
             }
         }
         if (!changed) return;
-        routeCacheByProducer.clear();
-        refreshLoadedDisplays();
+        // Usunięcie kabla może rozciąć sieć albo zmienić najlepsze trasy w wielu segmentach.
+        clearRouteCache();
         writeQueue.flushAsync();
         if (player != null) hex.ui().send(player, "minions.cable.remove.success");
     }
@@ -579,7 +750,16 @@ public final class CableService implements Listener {
         // Nie force-loadujemy chunków i nie wysyłamy EU do maszyn/akumulatorów w niezaładowanym chunku.
         if (!isBlockLoaded(generatorBlock)) return 0;
         BlockPos producer = BlockPos.of(generatorBlock);
-        List<EnergyRoute> routes = routeCacheByProducer.computeIfAbsent(producer, p -> buildRoutes(generatorBlock, generator));
+        Long overloadedUntil = overloadedProducers.get(producer);
+        if (overloadedUntil != null && overloadedUntil > System.currentTimeMillis()) return 0;
+        if (overloadedUntil != null) overloadedProducers.remove(producer);
+        List<EnergyRoute> routes = routeCacheByProducer.get(producer);
+        if (routes == null) {
+            if (routeRebuildsThisTick >= maxNetworkRebuildsPerTick) return 0;
+            routeRebuildsThisTick++;
+            routes = buildRoutes(generatorBlock, generator);
+            routeCacheByProducer.put(producer, routes);
+        }
         int movedTotal = 0;
         for (EnergyRoute route : routes) {
             if (generatorRuntime.energy() <= 0) break;
@@ -626,6 +806,7 @@ public final class CableService implements Listener {
             queue.add(new PathNode(cable, List.of(cable), cfg.lossEuPerMeter(), cfg.maxEuPerSecond()));
             visited.add(cable);
         }
+        boolean overloaded = false;
         while (!queue.isEmpty() && visited.size() <= maxSegmentsPerNetwork && routes.size() < maxRoutesPerNetwork) {
             PathNode node = queue.removeFirst();
             for (BlockFace face : faces()) {
@@ -648,6 +829,13 @@ public final class CableService implements Listener {
                     routes.add(new EnergyRoute(next, node.path(), node.loss(), node.bottleneck()));
                 }
             }
+        }
+        if (!queue.isEmpty() && (visited.size() > maxSegmentsPerNetwork || routes.size() >= maxRoutesPerNetwork)) {
+            overloaded = true;
+        }
+        if (overloaded) {
+            overloadedProducers.put(BlockPos.of(generatorBlock), System.currentTimeMillis() + overloadedNetworkRetryTicks * 50L);
+            return List.of();
         }
         return routes;
     }
@@ -723,12 +911,15 @@ public final class CableService implements Listener {
     }
 
     private void refreshLoadedDisplays() {
-        cleanupAllDisplays();
-        respawnLoadedDisplays();
+        queueLoadedDisplays();
     }
 
     private void respawnLoadedDisplays() {
-        for (CableSegment segment : segmentsById.values()) spawnDisplayIfLoaded(segment);
+        queueLoadedDisplays();
+    }
+
+    private void queueLoadedDisplays() {
+        for (CableSegment segment : segmentsById.values()) enqueueDisplayRefresh(segment.id());
     }
 
     private void spawnDisplay(CableSegment segment) {
@@ -761,6 +952,7 @@ public final class CableService implements Listener {
         int minY = Math.min(segment.start().y(), segment.end().y());
         int minZ = Math.min(segment.start().z(), segment.end().z());
         Location base = new Location(world, minX, minY, minZ);
+        if (!canSpawnDisplayAt(base)) return;
         float a = Math.max(0.03f, crossA);
         float b = Math.max(0.03f, crossB);
         Vector3f scale = switch (segment.axis()) {
@@ -781,6 +973,7 @@ public final class CableService implements Listener {
         display.setViewRange(viewRange);
         display.setPersistent(false);
         display.getPersistentDataContainer().set(cableVisualKey, PersistentDataType.STRING, segment.id().toString());
+        registerDisplay(segment, display);
     }
 
     private void spawnCableConnectors(CableSegment segment, CableTypeConfig cfg) {
@@ -794,6 +987,7 @@ public final class CableService implements Listener {
             int degree = cableDegree(pos);
             if (degree <= 2 && !touchesMachinePort(pos)) continue;
             Location base = pos.block(world).getLocation();
+            if (!canSpawnDisplayAt(base)) continue;
             BlockDisplay display = (BlockDisplay) world.spawnEntity(base, EntityType.BLOCK_DISPLAY);
             display.setBlock(material.createBlockData());
             display.setTransformation(new Transformation(new Vector3f(0.30f, 0.30f, 0.30f), new AxisAngle4f(), new Vector3f(0.40f, 0.40f, 0.40f), new AxisAngle4f()));
@@ -802,6 +996,7 @@ public final class CableService implements Listener {
             display.setViewRange(cfg.viewRange());
             display.setPersistent(false);
             display.getPersistentDataContainer().set(cableVisualKey, PersistentDataType.STRING, segment.id().toString());
+            registerDisplay(segment, display);
         }
     }
 
@@ -869,6 +1064,7 @@ public final class CableService implements Listener {
             default -> new Vector3f(0.50f - t / 2f, 0.50f - t / 2f, 0.50f - t / 2f);
         };
         Location base = pos.block(world).getLocation();
+        if (!canSpawnDisplayAt(base)) return;
         BlockDisplay display = (BlockDisplay) world.spawnEntity(base, EntityType.BLOCK_DISPLAY);
         display.setBlock(material.createBlockData());
         display.setTransformation(new Transformation(translation, new AxisAngle4f(), scale, new AxisAngle4f()));
@@ -877,6 +1073,7 @@ public final class CableService implements Listener {
         display.setViewRange(viewRange);
         display.setPersistent(false);
         display.getPersistentDataContainer().set(cableVisualKey, PersistentDataType.STRING, segment.id().toString());
+        registerDisplay(segment, display);
     }
 
     private boolean touchesMachinePortOnFace(BlockPos pos, BlockFace face) {
@@ -975,21 +1172,28 @@ public final class CableService implements Listener {
 
     private void cleanupDisplay(UUID segmentId) {
         if (segmentId == null) return;
-        String id = segmentId.toString();
-        for (World world : Bukkit.getWorlds()) {
-            for (Entity e : world.getEntities()) {
-                if (id.equals(e.getPersistentDataContainer().get(cableVisualKey, PersistentDataType.STRING))) e.remove();
+        Set<UUID> entities = displayEntitiesBySegment.remove(segmentId);
+        if (entities != null) {
+            for (UUID entityId : entities) {
+                Entity entity = Bukkit.getEntity(entityId);
+                if (entity != null) entity.remove();
+                for (Set<UUID> chunkEntities : displayEntitiesByChunk.values()) chunkEntities.remove(entityId);
             }
+            displayEntitiesByChunk.entrySet().removeIf(entry -> entry.getValue().isEmpty());
         }
         displayedSegments.remove(segmentId);
     }
 
     private void cleanupAllDisplays() {
+        for (UUID segmentId : new ArrayList<>(displayEntitiesBySegment.keySet())) cleanupDisplay(segmentId);
+        // Jednorazowy fallback na start/reload pluginu: usuwa stare Displaye bez wpisu w runtime rejestrze.
         for (World world : Bukkit.getWorlds()) {
             for (Entity e : world.getEntities()) {
                 if (e.getPersistentDataContainer().has(cableVisualKey, PersistentDataType.STRING)) e.remove();
             }
         }
+        displayEntitiesBySegment.clear();
+        displayEntitiesByChunk.clear();
         displayedSegments.clear();
     }
 

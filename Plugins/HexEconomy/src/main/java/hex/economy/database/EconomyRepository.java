@@ -1,8 +1,10 @@
 package hex.economy.database;
 
 import hex.core.api.db.Db;
+import hex.economy.model.EconomyTopEntry;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -28,6 +30,20 @@ public final class EconomyRepository {
     public Optional<BigDecimal> getBalance(UUID playerUuid) {
         return db.queryOne("SELECT balance FROM " + db.t("smp_economy") + " WHERE player_uuid=?",
                 rs -> rs.getBigDecimal("balance"), playerUuid.toString());
+    }
+
+    public List<EconomyTopEntry> getTopBalances(int limit) {
+        if (limit <= 0) {
+            return List.of();
+        }
+        return db.query("SELECT player_uuid, player_name, balance FROM " + db.t("smp_economy")
+                        + " ORDER BY balance DESC, player_name ASC, player_uuid ASC LIMIT ?",
+                rs -> new EconomyTopEntry(
+                        UUID.fromString(rs.getString("player_uuid")),
+                        rs.getString("player_name"),
+                        rs.getBigDecimal("balance")
+                ),
+                limit);
     }
 
     public BigDecimal getOrCreateBalance(UUID playerUuid, String playerName, BigDecimal defaultBalance) {

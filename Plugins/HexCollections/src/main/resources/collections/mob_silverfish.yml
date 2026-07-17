@@ -33,25 +33,25 @@ source_rules:
     allow_in_town_claims: true
 levels:
   1:
-    required: 15
+    required: 8
     display_name: '&7Zabite silverfishe I'
   2:
-    required: 200
+    required: 100
     display_name: '&7Zabite silverfishe II'
   3:
-    required: 1000
+    required: 500
     display_name: '&7Zabite silverfishe III'
   4:
-    required: 5000
+    required: 2500
     display_name: '&7Zabite silverfishe IV'
   5:
-    required: 10000
+    required: 5000
     display_name: '&7Zabite silverfishe V'
   6:
-    required: 50000
+    required: 25000
     display_name: '&7Zabite silverfishe VI'
   7:
-    required: 100000
+    required: 50000
     display_name: '&7Zabite silverfishe VII'
 reward_claim_mode: AUTO
 placeholder:

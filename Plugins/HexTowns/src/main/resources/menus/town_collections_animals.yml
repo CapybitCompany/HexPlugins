@@ -77,7 +77,7 @@ items:
       - ''
       - '&a%hexcollections_progress_bar_animals_wool%'
   back:
-    material: ARROW
+    material: BARRIER
     slot: 45
     display_name: '&ePowrót'
     left_click_commands:

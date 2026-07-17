@@ -55,7 +55,12 @@ minions:
   safety:
     protect-armor-stands: true
     remove-orphan-entities-on-startup: true
+    # Audit log zapisuje tylko istotne operacje administracyjno-rozliczeniowe miniona:
+    # PLACE, MOVE, UPGRADE oraz PICKUP/REMOVE. Nie logujemy collect/withdraw/offline catch-up,
+    # bo przy wielu miastach generowało to tysiące zbędnych rekordów.
     audit-log: true
+    audit-retention-days: 14
+    audit-cleanup-interval-hours: 24
 
 
   machines:
@@ -93,8 +98,10 @@ minions:
       # Transfer kablami w offline catch-up działa tylko przez aktualnie załadowaną trasę;
       # generator nie ładuje zdalnie maszyn/akumulatorów w niezaładowanych chunkach.
       enabled: true
-      max-seconds-per-machine: 86400
+      max-seconds-per-machine: 21600
       max-machines-per-chunk: 512
+      max-operations-per-machine: 256
+      max-machines-per-tick: 16
 
   database:
     write-behind: true
@@ -119,12 +126,30 @@ minions:
 # Jeżeli segment przechodzi przez kilka chunków, jest aktywną trasą/renderowany dopiero, gdy wszystkie te chunki są załadowane.
 energy:
   tick_interval_ticks: 20
+
+  # Twarde limity wydajnościowe na jedno miasto. Istniejące miasta powyżej limitu nie są czyszczone,
+  # ale nie mogą dokładać nowych urządzeń/kabli, dopóki nie zejdą poniżej limitu.
+  max_generators_per_town: 16
+  max_energy_machines_per_town: 32
+  max_cables_per_town: 256
+  max_energy_devices_per_town: 64
+
   max_segments_per_network: 256
   max_machines_per_network: 64
   max_routes_per_network: 512
   max_network_rebuilds_per_tick: 4
   max_display_entities_per_chunk: 64
+  max_display_refreshes_per_tick: 64
   overloaded_network_policy: DISABLE_UNTIL_FIXED
+  overloaded_network_retry_seconds: 30
+  collection_progress_flush_seconds: 5
+
+  offline_catchup:
+    enabled: true
+    max_seconds_per_machine: 21600
+    max_operations_per_machine: 256
+    max_machines_per_tick: 16
+
   cables:
     copper:
       display_name: "Miedziany Kabel"

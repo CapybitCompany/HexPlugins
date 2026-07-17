@@ -5,9 +5,9 @@ aliases:
 - netherack
 enabled: true
 display:
-  name: '&4Netherack'
+  name: '&4Netherrack'
   category: mining
-  menu_slot: 0
+  menu_slot: 22
   icon:
     material: NETHERRACK
 tracked_items:
@@ -37,6 +37,8 @@ source_rules:
     - world
     - resource_world
     - mining_world
+    - world_nether
+    - resource_nether
     blocked_worlds:
     - spawn
     allow_in_town_claims: false
@@ -48,26 +50,26 @@ source_rules:
     allow_in_town_claims: true
 levels:
   1:
-    required: 50
-    display_name: '&4Netherack I'
+    required: 400
+    display_name: '&4Netherrack I'
   2:
-    required: 500
-    display_name: '&4Netherack II'
+    required: 4000
+    display_name: '&4Netherrack II'
   3:
-    required: 2500
-    display_name: '&4Netherack III'
+    required: 20000
+    display_name: '&4Netherrack III'
   4:
-    required: 10000
-    display_name: '&4Netherack IV'
+    required: 80000
+    display_name: '&4Netherrack IV'
   5:
-    required: 50000
-    display_name: '&4Netherack V'
+    required: 400000
+    display_name: '&4Netherrack V'
   6:
-    required: 100000
-    display_name: '&4Netherack VI'
+    required: 800000
+    display_name: '&4Netherrack VI'
   7:
-    required: 250000
-    display_name: '&4Netherack VII'
+    required: 2000000
+    display_name: '&4Netherrack VII'
 reward_claim_mode: AUTO
 placeholder:
   progress_bar:

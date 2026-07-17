@@ -7,6 +7,7 @@ import hex.collections.config.CollectionRegistry;
 import hex.collections.config.CollectionsSettings;
 import hex.collections.database.CollectionRepository;
 import hex.collections.listener.CollectionEventListener;
+import hex.collections.listener.MobKillCollectionListener;
 import hex.collections.model.CollectionDefinition;
 import hex.collections.model.CollectionSource;
 import hex.collections.model.TriggerData;
@@ -75,6 +76,7 @@ public final class HexCollectionsPlugin extends JavaPlugin implements TabExecuto
 		reloadCollections();
 		Bukkit.getServicesManager().register(HexCollectionsApi.class, progressService, this, ServicePriority.Normal);
 		getServer().getPluginManager().registerEvents(new CollectionEventListener(towns, progressService, antiExploit), this);
+		getServer().getPluginManager().registerEvents(new MobKillCollectionListener(towns, progressService), this);
 		registerPlaceholderExpansion();
 		var command = getCommand("hexcollections");
 		if (command != null) {

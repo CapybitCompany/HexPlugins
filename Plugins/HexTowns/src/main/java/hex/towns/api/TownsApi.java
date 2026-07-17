@@ -30,6 +30,8 @@ public interface TownsApi {
 
     boolean canBuild(Player player, Location loc);
 
+    boolean isPvpAllowed(Location loc);
+
     void forEachTown(Consumer<Town> visitor, int batchSize);
 
     Page<Town> listPage(String afterTownId, int limit);

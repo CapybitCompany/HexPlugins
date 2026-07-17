@@ -71,7 +71,7 @@ public final class MachineListener implements Listener {
                 runtime.touchActiveNow();
                 machines.markRuntimeDirty(runtime);
                 ensureVisual(event.getBlockPlaced(), machine);
-                machines.refreshCableVisuals();
+                machines.refreshCableVisualsNear(event.getBlockPlaced());
                 machines.recordEnergyGeneratorPlaced(event.getBlockPlaced(), machine);
                 machines.saveSoon();
             });
@@ -102,9 +102,10 @@ public final class MachineListener implements Listener {
         if (machine == null) return;
         String key = machines.key(event.getBlock().getLocation());
         machines.removeGeneratorTopStorage(event.getBlock(), event.getBlock().getLocation());
+        machines.removeElectricFurnaceStorage(event.getBlock(), event.getBlock().getLocation());
         machines.remove(key, event.getBlock().getLocation());
         cleanupVisuals(event.getBlock().getLocation());
-        Bukkit.getScheduler().runTask(plugin, machines::refreshCableVisuals);
+        Bukkit.getScheduler().runTask(plugin, () -> machines.refreshCableVisualsNear(event.getBlock()));
     }
 
     @EventHandler
@@ -115,22 +116,50 @@ public final class MachineListener implements Listener {
         MachineDefinition machine = machines.registry().machines().get(holder.machineId());
         if (machine == null) { event.setCancelled(true); return; }
         MachineRuntime runtime = machines.runtime(holder.blockKey(), machine.id());
-        if (event.getClickedInventory() != null && event.getClickedInventory().equals(top)) {
-            int slot = event.getSlot();
-            if (slot == machine.outputSlot()) {
+        boolean clickedTop = event.getClickedInventory() != null && event.getClickedInventory().equals(top);
+        int clickedSlot = clickedTop ? event.getSlot() : -1;
+        machines.sanitizeMenuGuides(top);
+        if (clickedTop && clickedSlot >= 0 && clickedSlot < top.getSize() && top.getItem(clickedSlot) == null) {
+            event.setCurrentItem(null);
+        }
+        if (clickedTop) {
+            int slot = clickedSlot;
+            int outputIndex = machine.outputSlots().indexOf(slot);
+            if (outputIndex >= 0) {
                 machines.syncFromInventory(machine, runtime, top);
-                machines.collectOutput(runtime, player);
+                machines.collectOutput(runtime, outputIndex, player);
                 machines.syncToInventory(machine, runtime, top);
                 top.setItem(machine.arrowSlot(), progressItem(machine, runtime));
+                top.setItem(4, machineInfoItem(machine, runtime));
+                machines.applyMenuGuides(machine, top);
                 event.setCancelled(true);
                 return;
             }
-            if (!machines.isEditableSlot(machine, slot)) event.setCancelled(true);
+            if (!machines.isEditableSlot(machine, slot)) {
+                event.setCancelled(true);
+            } else if (machines.isExternalStorageUpgradeSlot(machine, slot)) {
+                ItemStack cursor = event.getCursor();
+                ItemStack current = event.getCurrentItem();
+                boolean puttingStorage = cursor != null && !cursor.getType().isAir();
+                boolean takingOrClearing = cursor == null || cursor.getType().isAir();
+                if (puttingStorage) {
+                    Block machineBlock = machines.blockFromKey(holder.blockKey());
+                    if (!machines.canInstallExternalStorageAt(machineBlock, machine, slot, cursor)) {
+                        event.setCancelled(true);
+                        hex.ui().send(player, "minions.storage-chest.error.no-space-left");
+                        return;
+                    }
+                } else if (takingOrClearing && current != null && !current.getType().isAir() && machines.isValidExternalStorageItem(current)) {
+                    // Wyjęcie rozszerzenia jest dozwolone. Skrzynia zostanie usunięta i wysypana przy następnym cyklu/niszczeniu maszyny.
+                }
+            }
         }
         Bukkit.getScheduler().runTask(plugin, () -> {
             machines.syncFromInventory(machine, runtime, top);
+            machines.ensureExternalStorage(machines.blockFromKey(holder.blockKey()), machine, runtime);
             top.setItem(machine.arrowSlot(), progressItem(machine, runtime));
             top.setItem(4, machineInfoItem(machine, runtime));
+            machines.applyMenuGuides(machine, top);
             machines.saveSoon();
         });
     }
@@ -142,6 +171,7 @@ public final class MachineListener implements Listener {
         MachineDefinition machine = machines.registry().machines().get(holder.machineId());
         if (machine == null) return;
         MachineRuntime runtime = machines.runtime(holder.blockKey(), machine.id());
+        machines.sanitizeMenuGuides(top);
         machines.syncFromInventory(machine, runtime, top);
         machines.saveSoon();
     }
@@ -161,7 +191,7 @@ public final class MachineListener implements Listener {
             machines.setAccumulatorInputFace(block, clickedFace);
             cleanupVisuals(block.getLocation());
             ensureVisual(block, machine);
-            machines.refreshCableVisuals();
+            machines.refreshCableVisualsNear(block);
             SoundCompatibility.play(player, block.getLocation(), "BLOCK_ANVIL_USE", 0.7f, 1.35f);
             hex.ui().send(player, "minions.machine.accumulator.input-face-changed", UiTokens.of("face", clickedFace.name()));
             return;
@@ -171,6 +201,7 @@ public final class MachineListener implements Listener {
             Location drop = block.getLocation().add(0.5, 0.5, 0.5);
             ItemStack machineItem = machines.createMachineItem(machine);
             machines.removeGeneratorTopStorage(block, drop);
+            machines.removeElectricFurnaceStorage(block, drop);
             machines.remove(machines.key(block.getLocation()), drop);
             cleanupVisuals(block.getLocation());
             block.setType(Material.AIR, false);
@@ -186,22 +217,23 @@ public final class MachineListener implements Listener {
         machines.applyOfflineCatchup(block, machine, runtime);
         Inventory inv = Bukkit.createInventory(new MachineMenuHolder(machine.id(), key), 54, mini.deserialize(machine.displayName()));
         fill(inv, machine);
+        decorateMachineLayout(inv, machine);
         machines.syncToInventory(machine, runtime, inv);
         inv.setItem(machine.arrowSlot(), progressItem(machine, runtime));
         inv.setItem(4, machineInfoItem(machine, runtime));
+        machines.applyMenuGuides(machine, inv);
         player.openInventory(inv);
     }
 
     private void fill(Inventory inv, MachineDefinition machine) {
         ItemStack filler = named(Material.BLACK_STAINED_GLASS_PANE, " ", "");
         for (int i = 0; i < inv.getSize(); i++) inv.setItem(i, filler);
-        if (!machine.recipes().isEmpty()) for (int inputSlot : machine.inputSlots()) inv.setItem(inputSlot, null);
+        if (!machine.recipes().isEmpty() || "ELECTRIC_FURNACE".equalsIgnoreCase(machine.type())) for (int inputSlot : machine.inputSlots()) inv.setItem(inputSlot, null);
         if (machine.hasSecondarySlot()) inv.setItem(machine.secondarySlot(), null);
         if (machine.energy().enabled() || machine.hasRecipeFuelSlot()) inv.setItem(machine.fuelSlot(), null);
-        inv.setItem(machine.outputSlot(), null);
+        for (int outputSlot : machine.outputSlots()) inv.setItem(outputSlot, null);
         for (int slot : machines.upgradeSlots(machine)) inv.setItem(slot, null);
         if (machine.energy().batterySlot() >= 0 && machine.energy().batterySlot() < inv.getSize()) inv.setItem(machine.energy().batterySlot(), null);
-        decorateMachineLayout(inv, machine);
     }
 
     private void decorateMachineLayout(Inventory inv, MachineDefinition machine) {
@@ -211,6 +243,27 @@ public final class MachineListener implements Listener {
             inv.setItem(12, named(Material.ORANGE_STAINED_GLASS_PANE, "§6Sloty wsadu", "§7Drugi składnik/wsad jest obok pierwszego."));
             inv.setItem(30, named(Material.YELLOW_STAINED_GLASS_PANE, "§eSlot paliwa", "§7Paliwo wkładaj w pusty slot po lewej od tej ikonki, pod wsadem."));
             inv.setItem(25, named(Material.GREEN_STAINED_GLASS_PANE, "§aRezultat", "§7Wynik pojawi się w pustym slocie po lewej."));
+            return;
+        }
+        if ("ELECTRIC_FURNACE".equalsIgnoreCase(machine.type())) {
+            inv.setItem(11, named(Material.ORANGE_STAINED_GLASS_PANE, "§6Dwa sloty wsadu", "§7Działa jak dwa niezależne piece. Stal: żelazo + 8 węgla."));
+            inv.setItem(12, named(Material.ORANGE_STAINED_GLASS_PANE, "§6Uzupełnianie z góry", "§7Rozszerzenie w lewym slocie tworzy skrzynię wejściową nad piecem."));
+            inv.setItem(30, named(Material.RED_STAINED_GLASS_PANE, "§cRedstone awaryjny", "§7Redstone zasila piec awaryjnie, gdy brakuje EU."));
+            inv.setItem(26, named(Material.GREEN_STAINED_GLASS_PANE, "§aSkrzynia wyjściowa", "§7Rozszerzenie w prawym slocie tworzy skrzynię pod piecem."));
+            return;
+        }
+        if ("ELECTRIC_MILL".equalsIgnoreCase(machine.type())) {
+            inv.setItem(11, named(Material.ORANGE_STAINED_GLASS_PANE, "§6Wsad kompostora", "§7Włóż pszenicę albo inne skonfigurowane inputy z machines.yml."));
+            inv.setItem(12, named(Material.ORANGE_STAINED_GLASS_PANE, "§6Skrzynia wejściowa", "§7Rozszerzenie w lewym slocie tworzy skrzynię wejściową nad kompostorem."));
+            inv.setItem(30, named(Material.RED_STAINED_GLASS_PANE, "§cRedstone awaryjny", "§7Redstone zasila kompostor awaryjnie, gdy brakuje EU."));
+            inv.setItem(25, named(Material.GREEN_STAINED_GLASS_PANE, "§aSkrzynia wyjściowa", "§7Rozszerzenie w prawym slocie tworzy skrzynię pod kompostorem."));
+            return;
+        }
+        if ("MEAT_REFINERY".equalsIgnoreCase(machine.type())) {
+            inv.setItem(11, named(Material.ORANGE_STAINED_GLASS_PANE, "§6Wsad rafinatora", "§7Włóż dowolne mięso skonfigurowane w machines.yml."));
+            inv.setItem(12, named(Material.ORANGE_STAINED_GLASS_PANE, "§6Skrzynia wejściowa", "§7Rozszerzenie w lewym slocie tworzy skrzynię wejściową nad rafinatorem."));
+            inv.setItem(30, named(Material.RED_STAINED_GLASS_PANE, "§cRedstone awaryjny", "§7Redstone zasila rafinator awaryjnie, gdy brakuje EU."));
+            inv.setItem(25, named(Material.GREEN_STAINED_GLASS_PANE, "§aSkrzynia wyjściowa", "§7Rozszerzenie w prawym slocie tworzy skrzynię pod rafinatorem."));
             return;
         }
         if (!machine.recipes().isEmpty()) {
@@ -223,6 +276,9 @@ public final class MachineListener implements Listener {
     }
 
     private ItemStack progressItem(MachineDefinition machine, MachineRuntime runtime) {
+        if ("ELECTRIC_FURNACE".equalsIgnoreCase(machine.type())) return electricFurnaceProgressItem(machine, runtime);
+        if ("ELECTRIC_MILL".equalsIgnoreCase(machine.type())) return externalMachineProgressItem(machine, runtime, "kompostora");
+        if ("MEAT_REFINERY".equalsIgnoreCase(machine.type())) return externalMachineProgressItem(machine, runtime, "rafinatora mięsa");
         MachineRecipe recipe = machines.match(machine, runtime);
         if (recipe == null) return named(Material.ARROW, "§ePostęp", "§7Brak pasującej receptury albo pełny output.");
         int percent = Math.min(100, runtime.progressSeconds() * 100 / Math.max(1, recipe.timeSeconds()));
@@ -230,8 +286,46 @@ public final class MachineListener implements Listener {
         return named(Material.ARROW, "§ePostęp: §f" + percent + "%", "§7Czas: §f" + runtime.progressSeconds() + "§7/§f" + recipe.timeSeconds() + "s" + eu);
     }
 
+    private ItemStack electricFurnaceProgressItem(MachineDefinition machine, MachineRuntime runtime) {
+        String eu = "§7Energia: §f" + runtime.energy() + "§7/§f" + runtime.capacity(machine) + " EU";
+        return named(Material.ARROW, "§ePostęp pieca elektrycznego", eu + "\n" + electricProgressLine(runtime, 0) + "\n" + electricProgressLine(runtime, 1) + "\n§7Zużycie przy pracy: §f" + machine.energy().euPerSecond() + " EU/s");
+    }
+
+    private ItemStack externalMachineProgressItem(MachineDefinition machine, MachineRuntime runtime, String label) {
+        String eu = "§7Energia: §f" + runtime.energy() + "§7/§f" + runtime.capacity(machine) + " EU";
+        String recipe = runtime.recipeId();
+        if (recipe == null || recipe.isBlank()) {
+            return named(Material.ARROW, "§ePostęp " + label, eu + "\n§7Status: §8oczekuje na poprawny input, miejsce na output albo energię\n§7Zużycie przy pracy: §f" + machine.energy().euPerSecond() + " EU/s");
+        }
+        int total = machine.recipes().stream()
+                .filter(r -> recipe.startsWith(r.id() + "@"))
+                .findFirst()
+                .map(MachineRecipe::timeSeconds)
+                .orElse(30);
+        int progress = Math.min(total, runtime.progressSeconds());
+        int percent = Math.min(100, progress * 100 / Math.max(1, total));
+        return named(Material.ARROW, "§ePostęp " + label + ": §f" + percent + "%", eu + "\n§7Czas: §f" + progress + "§7/§f" + total + "s\n§7Zużycie przy pracy: §f" + machine.energy().euPerSecond() + " EU/s");
+    }
+
+    private String electricProgressLine(MachineRuntime runtime, int slot) {
+        String recipe = runtime.recipeIdAt(slot);
+        if (recipe == null || recipe.isBlank()) return "§7Slot " + (slot + 1) + ": §8oczekuje";
+        int total = 9;
+        int progress = Math.min(total, runtime.progressSecondsAt(slot));
+        int percent = Math.min(100, progress * 100 / Math.max(1, total));
+        return "§7Slot " + (slot + 1) + ": §f" + percent + "% §8(" + progress + "/" + total + "s)";
+    }
+
     private ItemStack machineInfoItem(MachineDefinition machine, MachineRuntime runtime) {
         if (!machine.energy().enabled()) return named(Material.BOOK, machine.displayName(), "§7Maszyna konfigurowalna w machines.yml");
+        if ("ACCUMULATOR".equalsIgnoreCase(machine.type())) {
+            return named(accumulatorInfoIconMaterial(machine), machine.displayName(),
+                    "§7Bufor: §f" + runtime.energy() + "§7/§f" + runtime.capacity(machine) + " EU\n" +
+                            "§7Maks. wyjście: §f" + machine.energy().transferPerSecond() + " EU/s\n" +
+                            "§7Wejście: §f" + machines.accumulatorInputFace(machines.blockFromKey(runtime.blockKey())).name() + "\n" +
+                            "§7Wyjście: §fpozostałe strony\n" +
+                            "§8Kluczem z brązu kliknij port wyjściowy, aby przenieść wejście.");
+        }
         if (machine.energy().generator()) {
             if ("SOLAR_PANEL_GENERATOR".equalsIgnoreCase(machine.type()) || "SOLAR_GENERATOR".equalsIgnoreCase(machine.type())) {
                 return named(Material.DAYLIGHT_DETECTOR, machine.displayName(),
@@ -251,6 +345,14 @@ public final class MachineListener implements Listener {
                             "§7Spalanie: §f" + runtime.burnRemainingSeconds() + "s\n" +
                             "§7Zasila: §flewo, potem prawo");
         }
+        if ("ELECTRIC_FURNACE".equalsIgnoreCase(machine.type())) {
+            return named(Material.FURNACE, machine.displayName(),
+                    "§7Bufor: §f" + runtime.energy() + "§7/§f" + runtime.capacity(machine) + " EU\n" +
+                            "§7Zużycie: §f" + machine.energy().euPerSecond() + " EU/s tylko podczas przepalania\n" +
+                            "§7Inputy: §f2 niezależne sloty jak dwa piece\n" +
+                            "§7Outputy: §f2 sloty + priorytet skrzyni pod piecem\n" +
+                            "§7Paliwo awaryjne: §fredstone/blok redstone");
+        }
         if ("EXTRACTOR".equalsIgnoreCase(machine.type())) {
             return named(Material.DISPENSER, machine.displayName(),
                     "§7Bufor: §f" + runtime.energy() + "§7/§f" + runtime.capacity(machine) + " EU\n" +
@@ -261,10 +363,18 @@ public final class MachineListener implements Listener {
         if ("ELECTRIC_MILL".equalsIgnoreCase(machine.type())) {
             return named(Material.COMPOSTER, machine.displayName(),
                     "§7Bufor: §f" + runtime.energy() + "§7/§f" + runtime.capacity(machine) + " EU\n" +
-                            "§7Zużycie: §f" + machine.energy().euPerSecond() + " EU/s\n" +
-                            "§7Inputy: §f3 sloty, od lewej do prawej\n" +
-                            "§7Pszenica: §f2% na paszę w 4 min\n" +
-                            "§7Port EU: §ftył i dół, paliwo awaryjne: redstone/blok redstone");
+                            "§7Zużycie: §f" + machine.energy().euPerSecond() + " EU/s podczas pracy\n" +
+                            "§7Input: §f1 slot + opcjonalna skrzynia nad kompostorem\n" +
+                            "§7Output: §f1 slot + priorytet skrzyni pod kompostorem\n" +
+                            "§7Procesy i szanse: §fmachines.yml");
+        }
+        if ("MEAT_REFINERY".equalsIgnoreCase(machine.type())) {
+            return named(Material.STONECUTTER, machine.displayName(),
+                    "§7Bufor: §f" + runtime.energy() + "§7/§f" + runtime.capacity(machine) + " EU\n" +
+                            "§7Zużycie: §f" + machine.energy().euPerSecond() + " EU/s podczas pracy\n" +
+                            "§7Input: §f1 slot + opcjonalna skrzynia nad rafinatorem\n" +
+                            "§7Output: §f1 slot + priorytet skrzyni pod rafinatorem\n" +
+                            "§7Procesy i szanse: §fmachines.yml");
         }
         return named(Material.REDSTONE, machine.displayName(),
                 "§7Bufor: §f" + runtime.energy() + "§7/§f" + runtime.capacity(machine) + " EU\n" +
@@ -295,8 +405,12 @@ public final class MachineListener implements Listener {
             spawnCompressorVisual(block);
         } else if ("EXTRACTOR".equalsIgnoreCase(machine.type())) {
             spawnExtractorVisual(block);
+        } else if ("ELECTRIC_FURNACE".equalsIgnoreCase(machine.type())) {
+            spawnElectricFurnaceVisual(block);
         } else if ("ELECTRIC_MILL".equalsIgnoreCase(machine.type())) {
             spawnElectricMillVisual(block);
+        } else if ("MEAT_REFINERY".equalsIgnoreCase(machine.type())) {
+            spawnMeatRefineryVisual(block);
         }
         spawnEnergyPorts(block, machine);
     }
@@ -368,9 +482,15 @@ public final class MachineListener implements Listener {
 
     private void spawnElectricMillVisual(Block block) {
         Location base = block.getLocation();
+        BlockFace front = machines.facing(block);
+        // Blok bazowy to BARREL, bo COMPOSTER nie zapisuje PDC. Wizualnie urządzenie nadal jest kompostownikiem.
         spawnDisplay(base, base, Material.COMPOSTER, new Vector3f(-0.02f, -0.02f, -0.02f), new Vector3f(1.04f, 1.04f, 1.04f));
-        // Kamienna podstawa: dolne 0.3 bloku, szersza o 0.1 w każdym kierunku.
-        spawnDisplay(base, base, Material.COBBLESTONE, new Vector3f(-0.10f, -0.02f, -0.10f), new Vector3f(1.20f, 0.30f, 1.20f));
+        // Miedziane płyty o grubości 0.1 bloku otaczają boki, z frontem zostawionym dla czytelności.
+        panel(base, Material.COPPER_BLOCK, -0.06f, -0.02f, -0.06f, 0.10f, 1.04f, 1.12f, front != BlockFace.WEST);
+        panel(base, Material.COPPER_BLOCK, 0.96f, -0.02f, -0.06f, 0.10f, 1.04f, 1.12f, front != BlockFace.EAST);
+        panel(base, Material.COPPER_BLOCK, -0.06f, -0.02f, -0.06f, 1.12f, 1.04f, 0.10f, front != BlockFace.NORTH);
+        panel(base, Material.COPPER_BLOCK, -0.06f, -0.02f, 0.96f, 1.12f, 1.04f, 0.10f, front != BlockFace.SOUTH);
+        panel(base, Material.COPPER_BLOCK, -0.06f, -0.06f, -0.06f, 1.12f, 0.10f, 1.12f, true);
     }
 
     private void spawnExtractorVisual(Block block) {
@@ -381,9 +501,26 @@ public final class MachineListener implements Listener {
         spawnDisplay(base, base, Material.LIGHT_BLUE_CONCRETE, new Vector3f(0.98f, 0.10f, 0.45f), new Vector3f(0.10f, 0.80f, 0.10f));
     }
 
+    private Material accumulatorBodyMaterial(MachineDefinition machine) {
+        if (machine == null) return Material.OAK_WOOD;
+        if ("advanced_accumulator".equalsIgnoreCase(machine.id())) return Material.IRON_BLOCK;
+        if ("super_capacitor".equalsIgnoreCase(machine.id())) return Material.DIAMOND_BLOCK;
+        return Material.OAK_WOOD;
+    }
+
+    private Material accumulatorInfoIconMaterial(MachineDefinition machine) {
+        if (machine == null) return Material.OAK_WOOD;
+        if ("advanced_accumulator".equalsIgnoreCase(machine.id())) return Material.IRON_BLOCK;
+        if ("super_capacitor".equalsIgnoreCase(machine.id())) return Material.DIAMOND_BLOCK;
+        return Material.OAK_WOOD;
+    }
+
     private void spawnAccumulatorVisual(Block block, MachineDefinition machine, MachineRuntime runtime) {
         Location base = block.getLocation();
-        spawnDisplay(base, base, Material.OAK_WOOD, new Vector3f(-0.02f, -0.02f, -0.02f), new Vector3f(1.04f, 1.04f, 1.04f));
+        BlockDisplay body = spawnDisplay(base, base, accumulatorBodyMaterial(machine), new Vector3f(-0.02f, -0.02f, -0.02f), new Vector3f(1.04f, 1.04f, 1.04f));
+        if ("advanced_accumulator".equalsIgnoreCase(machine.id())) {
+            body.setBrightness(new Display.Brightness(5, 5));
+        }
         BlockFace input = machines.accumulatorInputFace(block);
         port(base, input, Material.ORANGE_CONCRETE, true);
         for (BlockFace face : List.of(BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST, BlockFace.UP)) {
@@ -442,6 +579,33 @@ public final class MachineListener implements Listener {
         panel(base, Material.IRON_BLOCK, -0.035f, -0.035f, 0.985f, 1.07f, 1.07f, 0.05f, front != BlockFace.SOUTH);
         panel(base, Material.IRON_BLOCK, -0.035f, 0.985f, -0.035f, 1.07f, 0.05f, 1.07f, true);
         spawnDisplay(base, base.clone().add(0.20, 1.02, 0.20), Material.OBSIDIAN, new Vector3f(0f, 0f, 0f), new Vector3f(0.60f, 0.05f, 0.60f));
+    }
+
+    private void spawnMeatRefineryVisual(Block block) {
+        Location base = block.getLocation();
+        // Bazowym blokiem jest DISPENSER ze względu na PDC, a wizualnie w środku stoi piła.
+        spawnDisplay(base, base, Material.STONECUTTER, new Vector3f(-0.01f, -0.01f, -0.01f), new Vector3f(1.02f, 1.02f, 1.02f));
+        brightPanel(base, Material.IRON_BLOCK, -0.05f, -0.05f, -0.05f, 0.10f, 1.05f, 1.10f, 4);
+        brightPanel(base, Material.IRON_BLOCK, 0.95f, -0.05f, -0.05f, 0.10f, 1.05f, 1.10f, 4);
+        brightPanel(base, Material.IRON_BLOCK, -0.05f, -0.05f, -0.05f, 1.10f, 1.05f, 0.10f, 4);
+        brightPanel(base, Material.IRON_BLOCK, -0.05f, -0.05f, 0.95f, 1.10f, 1.05f, 0.10f, 4);
+        brightPanel(base, Material.IRON_BLOCK, -0.05f, -0.05f, -0.05f, 1.10f, 0.10f, 1.10f, 4);
+    }
+
+    private void brightPanel(Location base, Material material, float x, float y, float z, float sx, float sy, float sz, int brightness) {
+        BlockDisplay display = spawnDisplay(base, base, material, new Vector3f(x, y, z), new Vector3f(sx, sy, sz));
+        display.setBrightness(new Display.Brightness(clampLight(brightness), clampLight(brightness)));
+    }
+
+    private void spawnElectricFurnaceVisual(Block block) {
+        Location base = block.getLocation();
+        BlockFace front = machines.facing(block);
+        // Piec zostaje właściwym blokiem z widocznym frontem, a netherrackowe ściany są cienkimi panelami DisplayBlock.
+        panel(base, Material.NETHERRACK, -0.035f, -0.035f, -0.035f, 0.05f, 1.07f, 1.07f, front != BlockFace.WEST);
+        panel(base, Material.NETHERRACK, 0.985f, -0.035f, -0.035f, 0.05f, 1.07f, 1.07f, front != BlockFace.EAST);
+        panel(base, Material.NETHERRACK, -0.035f, -0.035f, -0.035f, 1.07f, 1.07f, 0.05f, front != BlockFace.NORTH);
+        panel(base, Material.NETHERRACK, -0.035f, -0.035f, 0.985f, 1.07f, 1.07f, 0.05f, front != BlockFace.SOUTH);
+        panel(base, Material.NETHERRACK, -0.035f, 0.985f, -0.035f, 1.07f, 0.05f, 1.07f, true);
     }
 
     private void panel(Location base, Material material, float x, float y, float z, float sx, float sy, float sz, boolean enabled) {

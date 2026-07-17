@@ -1,0 +1,65 @@
+def isPluginProject = project.projectDir.parentFile?.name == 'Plugins' || project.path.startsWith(':plugins:')
+
+if (!isPluginProject) {
+    return
+}
+
+def generatedBaseDir = project.projectDir.parentFile?.name == 'Plugins'
+        ? project.projectDir.parentFile.parentFile
+        : rootProject.projectDir
+
+def generatedDir = new File(generatedBaseDir, 'Generated')
+def jarTask = tasks.named('jar', Jar)
+
+def copyJarToGenerated = tasks.register('copyJarToGenerated', Copy) {
+    group = 'build'
+    description = "Copies the generated ${project.name} plain JAR to the root Generated directory."
+    into(generatedDir)
+    onlyIf {
+        gradle.startParameter.taskNames.any { requestedTask ->
+            requestedTask == 'jar' || requestedTask == "${project.path}:jar"
+        }
+    }
+}
+
+def copyPluginArtifactToGenerated = tasks.register('copyPluginArtifactToGenerated', Copy) {
+    group = 'build'
+    description = "Copies the generated ${project.name} plugin artifact to the root Generated directory."
+    into(generatedDir)
+}
+
+afterEvaluate {
+    copyJarToGenerated.configure {
+        dependsOn(jarTask)
+        from(jarTask.flatMap { it.archiveFile })
+    }
+
+    def hasShadowJar = pluginManager.hasPlugin('com.github.johnrengelman.shadow') && tasks.names.contains('shadowJar')
+    def preferredArchiveTask = hasShadowJar
+            ? tasks.named('shadowJar', Jar)
+            : jarTask
+
+    copyPluginArtifactToGenerated.configure {
+        dependsOn(preferredArchiveTask)
+        from(preferredArchiveTask.flatMap { it.archiveFile })
+    }
+
+    jarTask.configure {
+        finalizedBy(copyJarToGenerated)
+    }
+
+    if (hasShadowJar) {
+        preferredArchiveTask.configure {
+            finalizedBy(copyPluginArtifactToGenerated)
+        }
+    }
+
+    tasks.named('assemble') {
+        finalizedBy(copyPluginArtifactToGenerated)
+    }
+
+    tasks.named('build') {
+        finalizedBy(copyPluginArtifactToGenerated)
+    }
+}
+

@@ -210,8 +210,14 @@ public final class DefinitionLoader {
                     }
                 }
             }
-            List<Integer> supportedBoosters = s.getIntegerList("boosters.supported-tiers");
-            if (supportedBoosters.isEmpty()) supportedBoosters = defaultSupportedBoosters;
+            List<Integer> supportedBoosters = new ArrayList<>(s.getIntegerList("boosters.supported-tiers"));
+            if (supportedBoosters.isEmpty()) {
+                supportedBoosters = new ArrayList<>(defaultSupportedBoosters);
+            } else {
+                for (int boosterTier : defaultSupportedBoosters) {
+                    if (!supportedBoosters.contains(boosterTier)) supportedBoosters.add(boosterTier);
+                }
+            }
             result.put(id, new MinionTypeDefinition(
                     id,
                     s.getBoolean("enabled", true),

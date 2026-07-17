@@ -18,6 +18,7 @@ tracked_items:
     amount_value: 1
 valid_sources:
 - MINION_COLLECT
+- NATURAL_MOB_DROP
 - CUSTOM_PLUGIN_GRANTED
 sources:
 - trigger: minions.resource.generated
@@ -31,31 +32,39 @@ sources:
     collectionId: animals.chicken_meat
     resourceId: chicken_meat
 source_rules:
+  NATURAL_MOB_DROP:
+    allowed_worlds:
+    - world
+    - resource_world
+    - mining_world
+    blocked_worlds:
+    - spawn
+    allow_in_town_claims: true
   MINION_COLLECT:
     allow_in_town_claims: true
   CUSTOM_PLUGIN_GRANTED:
     allow_in_town_claims: true
 levels:
   1:
-    required: 15
+    required: 8
     display_name: '&fMięso kurczaka I'
   2:
-    required: 200
+    required: 100
     display_name: '&fMięso kurczaka II'
   3:
-    required: 1000
+    required: 500
     display_name: '&fMięso kurczaka III'
   4:
-    required: 5000
+    required: 2500
     display_name: '&fMięso kurczaka IV'
   5:
-    required: 10000
+    required: 5000
     display_name: '&fMięso kurczaka V'
   6:
-    required: 50000
+    required: 25000
     display_name: '&fMięso kurczaka VI'
   7:
-    required: 100000
+    required: 50000
     display_name: '&fMięso kurczaka VII'
 reward_claim_mode: AUTO
 placeholder:

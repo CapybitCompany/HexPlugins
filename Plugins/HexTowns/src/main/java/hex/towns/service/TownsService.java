@@ -162,8 +162,12 @@ public final class TownsService {
         if (playerIndex.containsKey(player.getUniqueId())) {
             return OperationResult.fail("towns.create.already-member");
         }
+        List<ChunkPos> initialChunks = initialChunks(player.getChunk().getX(), player.getChunk().getZ());
+        if (initialChunks.stream().anyMatch(chunk -> config.isCreationBlocked(player.getWorld().getName(), chunk.x(), chunk.z()))) {
+            return OperationResult.fail("towns.create.blocked-area");
+        }
         Integer worldId = worldIds.get(player.getWorld().getName());
-        if (worldId != null && isTooClose(worldId, initialChunks(player.getChunk().getX(), player.getChunk().getZ()), config.minDistanceChunks())) {
+        if (worldId != null && isTooClose(worldId, initialChunks, config.minDistanceChunks())) {
             return OperationResult.fail("towns.create.too-close", UiTokens.of("distance", String.valueOf(config.minDistanceChunks())));
         }
         return OperationResult.ok("towns.create.confirm", UiTokens.of("town", previewName));
@@ -192,6 +196,9 @@ public final class TownsService {
                 worldNames.put(worldId, worldName);
 
                 List<ChunkPos> initialChunks = initialChunks(centerX, centerZ);
+                if (initialChunks.stream().anyMatch(chunk -> config.isCreationBlocked(worldName, chunk.x(), chunk.z()))) {
+                    return OperationResult.fail("towns.create.blocked-area");
+                }
                 if (isTooClose(worldId, initialChunks, config.minDistanceChunks())) {
                     return OperationResult.fail("towns.create.too-close", UiTokens.of("distance", String.valueOf(config.minDistanceChunks())));
                 }
@@ -201,6 +208,7 @@ public final class TownsService {
                 Town town = new Town(internalId, townUuid, ownerId, townName, worldName, worldId,
                         new ChunkPos(centerX, centerZ), config.startingGrowthPoints(), Instant.now(), TownStatus.ACTIVE);
                 repository.createTown(town, initialChunks, ownerId, config.bucketSize());
+                repository.deleteAllCoopRequestsForRequester(ownerId);
                 indexTown(town, initialChunks, ownerId);
                 publishCreated(town, ownerId);
                 return OperationResult.ok("towns.create.success", UiTokens.of("town", town.name()));
@@ -364,12 +372,13 @@ public final class TownsService {
                 if (targetMembership.role() == TownRole.OWNER || targetId.equals(town.ownerId())) {
                     return OperationResult.fail("towns.kick.owner");
                 }
-                repository.removeMember(targetId);
+                repository.purgeDepartedMemberData(town, targetId);
                 playerIndex.remove(targetId);
                 membersByTown.getOrDefault(town.internalId(), Set.of()).remove(targetId);
                 publishCoopLeft(town, targetId, "KICK");
                 publishReset(List.of(targetId), "coop_kick");
                 clearOnlinePlayerData(targetId);
+                notifyKickedMember(town, targetId);
                 return OperationResult.ok("towns.kick.success", UiTokens.of("player", safePlayerName(targetId, targetName)));
             }
         });
@@ -384,7 +393,12 @@ public final class TownsService {
                     return OperationResult.fail("towns.endcoop.not-coop");
                 }
                 Town town = townsByInternalId.get(membership.townId());
-                repository.removeMember(playerId);
+                if (town != null) {
+                    repository.purgeDepartedMemberData(town, playerId);
+                } else {
+                    repository.removeMember(playerId);
+                    repository.deleteAllCoopRequestsForRequester(playerId);
+                }
                 playerIndex.remove(playerId);
                 membersByTown.getOrDefault(membership.townId(), Set.of()).remove(playerId);
                 if (town != null) {
@@ -412,13 +426,18 @@ public final class TownsService {
                 repository.updateTownStatus(town.internalId(), TownStatus.DESTROYING);
 
                 List<UUID> members = new ArrayList<>(membersByTown.getOrDefault(town.internalId(), Set.of()));
+                if (!members.contains(town.ownerId())) {
+                    members.add(town.ownerId());
+                }
+                List<UUID> coopMembers = members.stream().filter(member -> !member.equals(town.ownerId())).toList();
                 List<ChunkPos> destroyedChunks = new ArrayList<>(chunksByTown.getOrDefault(town.internalId(), Set.of()));
                 removeTownAccessIndexes(town);
+                notifyTownDestroyedMembers(town, coopMembers);
                 publishDestroyed(town, playerId, members, destroyedChunks);
                 publishReset(members, "destroy");
                 publishDataPurge(town);
                 dataRegistry.purgeTown(town.id(), members).join();
-                repository.destroyTown(town.internalId());
+                repository.destroyTown(town);
                 removeTownCaches(town);
                 return OperationResult.ok("towns.destroy.success", UiTokens.of("town", town.name()));
             }
@@ -516,6 +535,10 @@ public final class TownsService {
     public boolean canBuild(Player player, Location loc) {
         Optional<Town> town = townAt(loc);
         return town.isEmpty() || isMember(player.getUniqueId(), town.get().id());
+    }
+
+    public boolean isPvpAllowed(Location loc) {
+        return townAt(loc).isEmpty() || config.protectionPvp();
     }
 
     public void forEachTown(Consumer<Town> visitor, int batchSize) {
@@ -810,10 +833,35 @@ public final class TownsService {
                 .build());
     }
 
+    private void notifyTownDestroyedMembers(Town town, List<UUID> coopMembers) {
+        if (coopMembers == null || coopMembers.isEmpty()) {
+            return;
+        }
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            for (UUID memberId : coopMembers) {
+                Player online = Bukkit.getPlayer(memberId);
+                if (online != null) {
+                    api.ui().send(online, "towns.destroy.member-removed", UiTokens.of("town", town.name()));
+                }
+            }
+        });
+    }
+
+    private void notifyKickedMember(Town town, UUID playerId) {
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            Player online = Bukkit.getPlayer(playerId);
+            if (online != null) {
+                online.closeInventory();
+                api.ui().send(online, "towns.kick.target", UiTokens.of("town", town.name()));
+            }
+        });
+    }
+
     private void clearOnlinePlayerData(UUID playerId) {
         Bukkit.getScheduler().runTask(plugin, () -> {
             Player online = Bukkit.getPlayer(playerId);
             if (online == null) return;
+            online.closeInventory();
             online.getInventory().clear();
             online.getEnderChest().clear();
             online.setLevel(0);

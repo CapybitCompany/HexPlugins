@@ -16,6 +16,7 @@ tracked_items:
     amount_value: 1
 valid_sources:
 - MINION_COLLECT
+- NATURAL_MOB_DROP
 - CUSTOM_PLUGIN_GRANTED
 sources:
 - trigger: minions.resource.generated
@@ -29,31 +30,39 @@ sources:
     collectionId: animals.leather
     resourceId: leather
 source_rules:
+  NATURAL_MOB_DROP:
+    allowed_worlds:
+    - world
+    - resource_world
+    - mining_world
+    blocked_worlds:
+    - spawn
+    allow_in_town_claims: true
   MINION_COLLECT:
     allow_in_town_claims: true
   CUSTOM_PLUGIN_GRANTED:
     allow_in_town_claims: true
 levels:
   1:
-    required: 10
+    required: 5
     display_name: '&6Skóra I'
   2:
-    required: 125
+    required: 63
     display_name: '&6Skóra II'
   3:
-    required: 500
+    required: 250
     display_name: '&6Skóra III'
   4:
-    required: 5000
+    required: 2500
     display_name: '&6Skóra IV'
   5:
-    required: 10000
+    required: 5000
     display_name: '&6Skóra V'
   6:
-    required: 50000
+    required: 25000
     display_name: '&6Skóra VI'
   7:
-    required: 100000
+    required: 50000
     display_name: '&6Skóra VII'
 reward_claim_mode: AUTO
 placeholder:

@@ -34,12 +34,16 @@ import java.util.Set;
 import java.util.UUID;
 
 public final class MinionMenu {
-    public static final int[] STORAGE_SLOTS = {19, 20, 21, 28, 29, 30, 37, 38, 39};
-    public static final int ADDON_SLOT_1 = 24;
-    public static final int ADDON_SLOT_2 = 25;
-    public static final int STORAGE_CHEST_SLOT = 43;
-    public static final int MINION_WIKI_SLOT = 47;
-    public static final int ELECTRONICS_WIKI_SLOT = 46;
+    public static final int[] STORAGE_SLOTS = {12, 13, 14, 21, 22, 23, 30, 31, 32};
+    public static final int ADDON_SLOT_1 = 10;
+    public static final int ADDON_SLOT_2 = 19;
+    public static final int STORAGE_CHEST_SLOT = 28;
+    public static final int UPGRADE_SLOT = 37;
+    public static final int MOVE_SLOT = 45;
+    public static final int COLLECT_SLOT = 48;
+    public static final int MINION_WIKI_SLOT = 49;
+    public static final int ELECTRONICS_WIKI_SLOT = 50;
+    public static final int PICKUP_SLOT = 53;
     private static final int[] WIKI_INDEX_SLOTS = {10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33, 34};
     private static final int[] WIKI_TIER_SLOTS = {10, 11, 12, 13, 14, 15, 16};
     private static final int[] WIKI_SPECIAL_SLOTS = {19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33, 34};
@@ -87,7 +91,7 @@ public final class MinionMenu {
 
     private void renderDynamicAddonSlots(Inventory inv, MinionMenuData d) {
         inv.setItem(ADDON_SLOT_1, boosterSlotItem(d));
-        inv.setItem(ADDON_SLOT_2, addonItem(d, "addon_2", Material.CHEST, "<green>Slot update / rozszerzenia</green>"));
+        inv.setItem(ADDON_SLOT_2, addonItem(d, "addon_2", Material.ORANGE_STAINED_GLASS_PANE, "<gold>Slot update'u produkcyjnego</gold>"));
     }
 
     private void renderStaticMinionMenuItems(Inventory inv, MinionMenuData d) {
@@ -110,19 +114,19 @@ public final class MinionMenu {
         )));
         renderStorage(inv, d);
         inv.setItem(STORAGE_CHEST_SLOT, storageChestStatus(d));
-        inv.setItem(45, item(Material.ENDER_PEARL, "<aqua>Przenieś tutaj</aqua>", List.of("<gray>Przenieś do pozycji, w której stoisz.</gray>")));
+        inv.setItem(UPGRADE_SLOT, item(Material.LIME_STAINED_GLASS_PANE, "<green>Update miniona</green>", upgradeButtonLore(d, type)));
+        inv.setItem(MOVE_SLOT, item(Material.ENDER_PEARL, "<aqua>Przenieś tutaj</aqua>", List.of("<gray>Przenieś do pozycji, w której stoisz.</gray>")));
         inv.setItem(ELECTRONICS_WIKI_SLOT, item(Material.REDSTONE, "<aqua>Wiki elektroniki</aqua>", List.of(
                 "<gray>Generatory, urządzenia, kable i akumulatory EU.</gray>",
                 "<gray>Bez mieszania ich z wiki pojedynczych minionów.</gray>",
                 "<yellow>Kliknij, aby zobaczyć receptury i procesy maszyn.</yellow>"
         )));
         inv.setItem(MINION_WIKI_SLOT, item(Material.BOOK, "<aqua>Wiki minionów</aqua>", List.of("<gray>Zobacz wszystkie skonfigurowane typy minionów.</gray>")));
-        inv.setItem(48, item(Material.CHEST, "<green>Odbierz wszystko</green>", List.of(
+        inv.setItem(COLLECT_SLOT, item(Material.CHEST, "<green>Odbierz wszystko</green>", List.of(
                 "<gray>Przenosi całe storage do ekwipunku jako zwykłe itemy.</gray>",
                 "<yellow>Kliknij pojedynczy surowiec w storage, aby odebrać tylko ten stack.</yellow>"
         )));
-        inv.setItem(50, item(Material.ANVIL, "<gold>Ulepsz</gold>", upgradeButtonLore(d, type)));
-        inv.setItem(53, item(Material.BARRIER, "<red>Podnieś miniona</red>", List.of("<gray>Zwraca item miniona.</gray>")));
+        inv.setItem(PICKUP_SLOT, item(Material.BARRIER, "<red>Podnieś miniona</red>", List.of("<gray>Zwraca item miniona.</gray>")));
     }
 
     private List<String> upgradeButtonLore(MinionMenuData data, MinionTypeDefinition type) {
@@ -173,7 +177,7 @@ public final class MinionMenu {
                     "<gray>Przełącz widok na wszystko albo odblokuj pierwsze receptury EU.</gray>"
             )));
         }
-        inv.setItem(45, item(Material.ARROW, "<yellow>Zamknij</yellow>", List.of("<gray>Wróć do poprzedniego menu.</gray>")));
+        inv.setItem(45, item(Material.BARRIER, "<yellow>Zamknij</yellow>", List.of("<gray>Wróć do poprzedniego menu.</gray>")));
         inv.setItem(53, wikiViewToggleItem(player));
         player.openInventory(inv);
     }
@@ -217,7 +221,7 @@ public final class MinionMenu {
         if (safePage + 1 < totalPages) {
             inv.setItem(50, item(Material.ARROW, "<yellow>Następna karta</yellow>", List.of("<gray>Przejdź do: <white>" + wikiCategoryName(safePage + 1) + "</white>.</gray>")));
         }
-        inv.setItem(45, item(Material.ARROW, "<yellow>Powrót</yellow>", List.of("<gray>Zamknij i wróć do menu miasta.</gray>")));
+        inv.setItem(45, item(Material.BARRIER, "<yellow>Powrót</yellow>", List.of("<gray>Zamknij i wróć do menu miasta.</gray>")));
         inv.setItem(53, wikiViewToggleItem(player));
         player.openInventory(inv);
     }
@@ -252,7 +256,7 @@ public final class MinionMenu {
                     "<yellow>Kliknij, aby zobaczyć procesy, EU i receptury.</yellow>"
             )));
         }
-        inv.setItem(45, item(Material.ARROW, "<yellow>Powrót do listy</yellow>", List.of("<gray>Kliknij, aby wrócić do wiki minionów.</gray>")));
+        inv.setItem(45, item(Material.BARRIER, "<yellow>Powrót do listy</yellow>", List.of("<gray>Kliknij, aby wrócić do wiki minionów.</gray>")));
         if (safePage > 0) {
             inv.setItem(48, item(Material.ARROW, "<yellow>Poprzednia strona itemów</yellow>", List.of("<gray>Przejdź do strony <white>" + safePage + "</white>.</gray>")));
         }
@@ -284,7 +288,7 @@ public final class MinionMenu {
         inv.setItem(16, item(Material.ARROW, "<yellow>Wynik</yellow>", List.of("<gray>Przedmiot po prawej to output receptury.</gray>")));
         inv.setItem(25, service.recipeOutput(recipe));
         inv.setItem(43, stationIcon(recipe));
-        inv.setItem(45, item(Material.ARROW, "<yellow>Powrót</yellow>", List.of("<gray>Wróć do wiki miniona.</gray>")));
+        inv.setItem(45, item(Material.BARRIER, "<yellow>Powrót</yellow>", List.of("<gray>Wróć do wiki miniona.</gray>")));
         inv.setItem(53, wikiViewToggleItem(player));
         player.openInventory(inv);
     }
@@ -320,7 +324,7 @@ public final class MinionMenu {
                     "<dark_gray>Sprawdź special-items.yml → recipes → unlock.</dark_gray>"
             )));
         }
-        inv.setItem(45, item(Material.ARROW, "<yellow>Powrót do miniona</yellow>", List.of("<gray>Wróć do wiki tego miniona.</gray>")));
+        inv.setItem(45, item(Material.BARRIER, "<yellow>Powrót do miniona</yellow>", List.of("<gray>Wróć do wiki tego miniona.</gray>")));
         inv.setItem(53, wikiViewToggleItem(player));
         player.openInventory(inv);
     }
@@ -347,7 +351,7 @@ public final class MinionMenu {
             )));
         }
         inv.setItem(40, machineCraftingRecipeIcon(machine));
-        inv.setItem(45, item(Material.ARROW, "<yellow>Powrót do urządzeń</yellow>", List.of("<gray>Wróć do listy maszyn tego miniona.</gray>")));
+        inv.setItem(45, item(Material.BARRIER, "<yellow>Powrót do urządzeń</yellow>", List.of("<gray>Wróć do listy maszyn tego miniona.</gray>")));
         inv.setItem(53, wikiViewToggleItem(player));
         player.openInventory(inv);
     }
@@ -372,7 +376,7 @@ public final class MinionMenu {
             }
             renderMachineRecipe(inv, machine, recipe);
         }
-        inv.setItem(45, item(Material.ARROW, "<yellow>Powrót do maszyny</yellow>", List.of("<gray>Wróć do listy procesów tej maszyny.</gray>")));
+        inv.setItem(45, item(Material.BARRIER, "<yellow>Powrót do maszyny</yellow>", List.of("<gray>Wróć do listy procesów tej maszyny.</gray>")));
         inv.setItem(53, wikiViewToggleItem(player));
         player.openInventory(inv);
     }
@@ -1013,7 +1017,11 @@ public final class MinionMenu {
             lore.add("<gray>Kolekcja <white>" + entry.getKey() + "</white>: <green>" + entry.getValue() + "</green></gray>");
         }
         for (ItemRequirement item : tier.upgradeRequirements().items()) {
-            lore.add("<gray>Item <white>" + item.displayName() + "</white>: <green>" + item.amount() + "x</green> <dark_gray>(" + (item.consume() ? "zużywa" : "nie zużywa") + ")</dark_gray></gray>");
+            String label = item.displayName();
+            if (item.specialItemId() != null && !item.specialItemId().isBlank() && service.specialItems() != null) {
+                label = service.specialItems().item(item.specialItemId()).map(def -> def.displayName()).orElse(label);
+            }
+            lore.add("<gray>Item <white>" + label + "</white>: <green>" + item.amount() + "x</green> <dark_gray>(" + (item.consume() ? "zużywa" : "nie zużywa") + ")</dark_gray></gray>");
         }
         return lore;
     }
@@ -1092,7 +1100,7 @@ public final class MinionMenu {
         for (int i = usableSlots; i < size; i++) {
             inv.setItem(i, item(Material.RED_STAINED_GLASS_PANE, "<red>Zablokowany slot</red>", List.of("<gray>Ta skrzynka ma pojemność: <white>" + usableSlots + "</white> sloty.</gray>")));
         }
-        inv.setItem(size - 5, item(Material.ARROW, "<yellow>Powrót do miniona</yellow>", List.of("<gray>Zapisuje podgląd skrzynki i wraca do menu miniona.</gray>")));
+        inv.setItem(size - 5, item(Material.BARRIER, "<yellow>Powrót do miniona</yellow>", List.of("<gray>Zapisuje podgląd skrzynki i wraca do menu miniona.</gray>")));
         player.openInventory(inv);
     }
 
@@ -1336,7 +1344,7 @@ public final class MinionMenu {
     private boolean isBatterySpecialItem(String id) {
         if (id == null || id.isBlank()) return false;
         String normalized = id.toLowerCase(java.util.Locale.ROOT);
-        return normalized.equals("battery") || normalized.endsWith("_battery");
+        return normalized.equals("battery") || normalized.equals("energy_diamond") || normalized.endsWith("_battery");
     }
 
     private boolean typeSupportsCompression(MinionTypeDefinition type) {
@@ -1411,7 +1419,7 @@ public final class MinionMenu {
                     int stackSize = def == null ? 64 : Math.max(1, Math.min(64, def.stackSize()));
                     while (remaining > 0 && result.size() < STORAGE_SLOTS.length) {
                         int amount = (int) Math.max(1, Math.min(stackSize, remaining));
-                        result.add(storageStack(material, amount, def == null ? 0 : def.customModelData()));
+                        result.add(storageStack(def, material, amount, def == null ? 0 : def.customModelData()));
                         remaining -= amount;
                     }
                 });
@@ -1431,14 +1439,14 @@ public final class MinionMenu {
         return 10;
     }
 
-    private ItemStack storageStack(Material material, int amount, int customModelData) {
+    private ItemStack storageStack(ResourceDefinition resource, Material material, int amount, int customModelData) {
         ItemStack stack = new ItemStack(material, Math.max(1, Math.min(64, amount)));
-        if (customModelData > 0) {
-            ItemMeta meta = stack.getItemMeta();
-            if (meta != null) {
-                meta.setCustomModelData(customModelData);
-                stack.setItemMeta(meta);
-            }
+        ItemMeta meta = stack.getItemMeta();
+        if (meta != null) {
+            if (customModelData > 0) meta.setCustomModelData(customModelData);
+            if (resource != null && resource.displayName() != null && !resource.displayName().isBlank()) meta.displayName(component(resource.displayName()));
+            if (resource != null && "spruce_resin".equalsIgnoreCase(resource.id())) meta.setEnchantmentGlintOverride(true);
+            stack.setItemMeta(meta);
         }
         return stack;
     }
@@ -1471,7 +1479,7 @@ public final class MinionMenu {
             }
             return copy;
         }
-        return item(Material.BLAZE_POWDER, "<gold>Slot boostera miniona</gold>", List.of(
+        return item(Material.RED_STAINED_GLASS_PANE, "<red>Booster</red>", List.of(
                 "<gray>Włóż tutaj <white>Minion Booster Tier I</white>.</gray>",
                 "<gray>Tier I: <green>+10%</green> szybkości przez <white>30s</white>.</gray>",
                 "<gray>Boostery można stackować.</gray>",
@@ -1502,7 +1510,7 @@ public final class MinionMenu {
             if (meta != null) {
                 List<String> lore = new ArrayList<>();
                 lore.add("<gray>Update aktywny w tym slocie.</gray>");
-                lore.add("<yellow>PPM: wyjmij boostery z kolejki.</yellow>");
+                lore.add("<yellow>PPM: wyjmij ten update.</yellow>");
                 applyLore(meta, lore);
                 hideAttributes(meta);
                 copy.setItemMeta(meta);
@@ -1512,8 +1520,8 @@ public final class MinionMenu {
         return item(placeholder, name, List.of(
                 "<gray>Włóż tutaj specjalny item update'u.</gray>",
                 "<gray>np. Auto Smelter albo inny dodatek produkcji.</gray>",
-                "<yellow>PPM na slocie: wyjmij boostery z kolejki.</yellow>",
-                "<dark_gray>Skrzynkę storage wkłada się w osobny slot na dole menu.</dark_gray>"
+                "<yellow>PPM na slocie: wyjmij ten update.</yellow>",
+                "<dark_gray>Skrzynkę storage wkłada się w osobny, żółty slot po lewej.</dark_gray>"
         ));
     }
 
@@ -1527,12 +1535,12 @@ public final class MinionMenu {
                     "<dark_gray>Zawartość skrzynki wypadnie obok miniona.</dark_gray>"
             ));
         }
-        return item(Material.ENDER_CHEST, "<yellow>Slot Minion Storage</yellow>", List.of(
+        return item(Material.YELLOW_STAINED_GLASS_PANE, "<yellow>Slot rozszerzenia storage</yellow>", List.of(
                 "<gray>Włóż tu <gold>Rozszerzenie storage miniona</gold>.</gray>",
-                "<gray>Po kliknięciu itemem skrzynka pojawi się po lewej stronie miniona.</gray>",
+                "<gray>Po kliknięciu itemem skrzynka pojawi się za plecami miniona.</gray>",
                 "<yellow>PPM: odłącz aktualną skrzynkę, jeśli istnieje.</yellow>",
                 "<gray>Podstawowa skrzynka ma <white>3</white> sloty.</gray>",
-                "<red>Jeśli po lewej nie ma miejsca, dostaniesz komunikat.</red>"
+                "<red>Jeśli za minionem nie ma miejsca, dostaniesz komunikat.</red>"
         ));
     }
 

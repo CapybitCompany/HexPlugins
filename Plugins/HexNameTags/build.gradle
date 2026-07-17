@@ -1,0 +1,41 @@
+plugins {
+    id 'java'
+}
+
+group = 'pl.hexnetwork'
+version = '1.2.3'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+compileJava {
+    options.encoding = 'UTF-8'
+    options.release.set(21)
+}
+
+processResources {
+    filteringCharset = 'UTF-8'
+    filesMatching('plugin.yml') {
+        expand(version: project.version)
+    }
+}
+
+dependencies {
+    compileOnly 'io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT'
+    compileOnly 'com.github.retrooper:packetevents-spigot:2.13.0'
+
+    if (findProject(':plugins:HexCore') != null) {
+        compileOnly project(':plugins:HexCore')
+    } else if (file('../HexCore/build/libs/HexCore.jar').exists()) {
+        compileOnly files('../HexCore/build/libs/HexCore.jar')
+    } else if (file('libs/HexCore.jar').exists()) {
+        compileOnly files('libs/HexCore.jar')
+    } else {
+        // W standalone ZIP skopiuj HexCore.jar do HexNameTags/libs/HexCore.jar
+        // albo buduj w monorepo, gdzie istnieje projekt :plugins:HexCore.
+        compileOnly files('libs/HexCore.jar')
+    }
+}

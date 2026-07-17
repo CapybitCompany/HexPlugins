@@ -41,22 +41,22 @@ levels:
     required: 1
     display_name: '&dRzadkie pierwiastki I'
   2:
-    required: 2
+    required: 1
     display_name: '&dRzadkie pierwiastki II'
   3:
-    required: 4
+    required: 2
     display_name: '&dRzadkie pierwiastki III'
   4:
-    required: 15
+    required: 8
     display_name: '&dRzadkie pierwiastki IV'
   5:
-    required: 35
+    required: 18
     display_name: '&dRzadkie pierwiastki V'
   6:
-    required: 100
+    required: 50
     display_name: '&dRzadkie pierwiastki VI'
   7:
-    required: 250
+    required: 125
     display_name: '&dRzadkie pierwiastki VII'
 reward_claim_mode: AUTO
 placeholder:

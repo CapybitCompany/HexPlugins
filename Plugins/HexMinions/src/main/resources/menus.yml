@@ -22,9 +22,9 @@ menus:
         name: "<green>Odbierz surowce</green>"
         action: COLLECT_STORAGE
       upgrade:
-        slot: 50
-        material: ANVIL
-        name: "<gold>Ulepsz do Tier <next_tier></gold>"
+        slot: 37
+        material: LIME_STAINED_GLASS_PANE
+        name: "<green>Update miniona do Tier <next_tier></green>"
         action: UPGRADE_TIER
       move-here:
         slot: 45

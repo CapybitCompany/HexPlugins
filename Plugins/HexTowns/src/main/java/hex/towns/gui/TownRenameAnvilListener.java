@@ -59,7 +59,7 @@ public final class TownRenameAnvilListener implements Listener {
         if (!(event.getInventory() instanceof AnvilInventory inventory) || !(event.getView().getPlayer() instanceof Player player)) {
             return;
         }
-        if (active.get(player.getUniqueId()) != inventory) {
+        if (!isActiveSession(player, event.getView().getTopInventory())) {
             return;
         }
         inventory.setRepairCost(0);
@@ -73,18 +73,18 @@ public final class TownRenameAnvilListener implements Listener {
         if (!(event.getWhoClicked() instanceof Player player)) {
             return;
         }
-        Inventory inventory = active.get(player.getUniqueId());
-        if (inventory == null || event.getInventory() != inventory) {
+        Inventory top = event.getView().getTopInventory();
+        if (!isActiveSession(player, top)) {
             return;
         }
         event.setCancelled(true);
         if (event.getRawSlot() != RESULT_SLOT) {
             return;
         }
-        if (!(event.getInventory() instanceof AnvilInventory anvil)) {
+        if (!(top instanceof AnvilInventory anvil)) {
             return;
         }
-        String name = anvil.getRenameText();
+        String name = submittedName(anvil, event.getCurrentItem());
         if (name == null || name.isBlank()) {
             api.ui().send(player, "towns.rename.invalid", UiTokens.of("max", String.valueOf(config.maxNameLength())));
             return;
@@ -113,6 +113,32 @@ public final class TownRenameAnvilListener implements Listener {
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         active.remove(event.getPlayer().getUniqueId());
+    }
+
+
+    private boolean isActiveSession(Player player, Inventory topInventory) {
+        if (player == null || topInventory == null) return false;
+        Inventory expected = active.get(player.getUniqueId());
+        // Na części wersji Paper/Spigot InventoryClickEvent/PrepareAnvilEvent potrafią zwrócić inny wrapper
+        // AnvilInventory niż obiekt zapisany przy openInventory. Sesja jest i tak per gracz, więc akceptujemy
+        // aktywne okno kowadła zamiast polegać wyłącznie na referencji obiektu.
+        return expected != null && (expected == topInventory || topInventory instanceof AnvilInventory);
+    }
+
+    private String submittedName(AnvilInventory anvil, ItemStack clickedResult) {
+        String raw = anvil == null ? null : anvil.getRenameText();
+        if (raw != null && !raw.isBlank() && !"Nazwa miasta".equalsIgnoreCase(raw.trim())) {
+            return raw.trim();
+        }
+        ItemStack result = clickedResult;
+        if ((result == null || result.getType().isAir()) && anvil != null) result = anvil.getItem(RESULT_SLOT);
+        if (result != null && result.hasItemMeta() && result.getItemMeta().hasDisplayName()) {
+            String displayName = result.getItemMeta().getDisplayName();
+            if (displayName != null && !displayName.isBlank() && !"Nazwa miasta".equalsIgnoreCase(displayName.trim())) {
+                return displayName.trim();
+            }
+        }
+        return raw == null ? "" : raw.trim();
     }
 
     private void send(Player player, OperationResult result) {

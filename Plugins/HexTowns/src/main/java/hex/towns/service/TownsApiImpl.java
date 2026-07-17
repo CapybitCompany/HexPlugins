@@ -34,6 +34,7 @@ public final class TownsApiImpl implements TownsApi {
     @Override public boolean isOwner(UUID playerId, UUID townId) { return service.isOwner(playerId, townId); }
     @Override public boolean isProtected(Location loc) { return service.townAt(loc).isPresent(); }
     @Override public boolean canBuild(Player player, Location loc) { return service.canBuild(player, loc); }
+    @Override public boolean isPvpAllowed(Location loc) { return service.isPvpAllowed(loc); }
     @Override public void forEachTown(Consumer<Town> visitor, int batchSize) { service.forEachTown(visitor, batchSize); }
     @Override public Page<Town> listPage(String afterTownId, int limit) { return service.listPage(afterTownId, limit); }
     @Override public int countTowns() { return service.countTowns(); }

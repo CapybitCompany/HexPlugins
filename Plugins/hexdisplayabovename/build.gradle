@@ -2,6 +2,8 @@ plugins {
     id 'java'
 }
 
+apply from: rootProject.file('../../gradle/plugin-generated-jars.gradle')
+
 group = 'pl.minecrafthex'
 version = '1.0'
 

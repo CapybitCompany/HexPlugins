@@ -18,9 +18,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 public final class MinionRepository {
+    private static final Set<String> AUDITED_ACTIONS = Set.of("PLACE", "MOVE", "UPGRADE", "PICKUP", "REMOVE");
+
     private final Db db;
 
     public MinionRepository(Db db) {
@@ -293,17 +296,34 @@ public final class MinionRepository {
             }
             tx.update("DELETE FROM " + tx.t("minions") + " WHERE town_id=?", townId);
             tx.update("DELETE FROM " + tx.t("town_minion_stats") + " WHERE town_id=?", townId);
+            tx.update("DELETE FROM " + tx.t("minion_audit_log") + " WHERE town_id=?", townId);
             return null;
         });
     }
 
     public Optional<Long> findInternalTownId(UUID townUuid) {
-        return db.queryOne("SELECT town_id FROM " + db.t("minions") + " WHERE town_uuid=? LIMIT 1", rs -> rs.getLong("town_id"), UuidBytes.toBytes(townUuid));
+        Optional<Long> fromMinions = db.queryOne("SELECT town_id FROM " + db.t("minions") + " WHERE town_uuid=? LIMIT 1", rs -> rs.getLong("town_id"), UuidBytes.toBytes(townUuid));
+        if (fromMinions.isPresent()) {
+            return fromMinions;
+        }
+        try {
+            return db.queryOne("SELECT id FROM " + db.t("towns") + " WHERE uuid=? LIMIT 1", rs -> rs.getLong("id"), UuidBytes.toBytes(townUuid));
+        } catch (RuntimeException ignored) {
+            return Optional.empty();
+        }
     }
 
     public void audit(UUID minionId, long townId, UUID actor, String action, String data) {
+        String normalizedAction = action == null ? "" : action.trim().toUpperCase(java.util.Locale.ROOT);
+        if (!AUDITED_ACTIONS.contains(normalizedAction)) {
+            return;
+        }
         db.update("INSERT INTO " + db.t("minion_audit_log") + " (minion_id, town_id, actor_uuid, action, data_json, created_at) VALUES (?, ?, ?, ?, ?, ?)",
-                minionId == null ? null : UuidBytes.toBytes(minionId), townId, actor == null ? null : UuidBytes.toBytes(actor), action, data, System.currentTimeMillis());
+                minionId == null ? null : UuidBytes.toBytes(minionId), townId, actor == null ? null : UuidBytes.toBytes(actor), normalizedAction, data, System.currentTimeMillis());
+    }
+
+    public int purgeAuditOlderThan(long cutoffMillis) {
+        return db.update("DELETE FROM " + db.t("minion_audit_log") + " WHERE created_at < ?", cutoffMillis);
     }
 
     private String serializeItem(ItemStack item) {

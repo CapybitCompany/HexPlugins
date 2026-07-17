@@ -20,6 +20,7 @@ public record MachineDefinition(
         int fuelSlot,
         int arrowSlot,
         int outputSlot,
+        List<Integer> outputSlots,
         List<Integer> upgradeSlots,
         List<MachineRecipe> recipes,
         int defaultStorageSlots,
@@ -50,7 +51,8 @@ public record MachineDefinition(
                 section.getInt("menu.secondary-slot", 21),
                 section.getInt("menu.fuel-slot", 22),
                 section.getInt("menu.arrow-slot", 23),
-                section.getInt("menu.output-slot", 24),
+                firstOutputSlot(section),
+                outputSlots(section),
                 section.getIntegerList("menu.upgrade-slots"),
                 recipes,
                 Math.max(0, section.getInt("storage.slots", 0)),
@@ -67,6 +69,17 @@ public record MachineDefinition(
     private static List<Integer> inputSlots(ConfigurationSection section) {
         List<Integer> slots = section.getIntegerList("menu.input-slots");
         if (slots == null || slots.isEmpty()) return List.of(section.getInt("menu.input-slot", 20));
+        return List.copyOf(slots.stream().filter(slot -> slot >= 0 && slot < 54).distinct().toList());
+    }
+
+    private static int firstOutputSlot(ConfigurationSection section) {
+        List<Integer> slots = outputSlots(section);
+        return slots.isEmpty() ? section.getInt("menu.output-slot", 24) : slots.get(0);
+    }
+
+    private static List<Integer> outputSlots(ConfigurationSection section) {
+        List<Integer> slots = section.getIntegerList("menu.output-slots");
+        if (slots == null || slots.isEmpty()) return List.of(section.getInt("menu.output-slot", 24));
         return List.copyOf(slots.stream().filter(slot -> slot >= 0 && slot < 54).distinct().toList());
     }
 

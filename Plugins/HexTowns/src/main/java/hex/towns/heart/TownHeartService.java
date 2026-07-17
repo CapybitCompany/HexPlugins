@@ -121,6 +121,20 @@ public final class TownHeartService {
         renderer.remove(townId);
     }
 
+    public void removeHeartCompletely(Town town) {
+        if (town == null) {
+            return;
+        }
+        TownHeartLocation cached = hearts.get(town.id());
+        Optional<TownHeartLocation> heart = cached == null ? loadHeart(town) : Optional.of(cached);
+        renderer.remove(town.id());
+        hearts.remove(town.id());
+        heart.ifPresent(location -> {
+            removePhysicalHeartBlock(location);
+            removeBedrockFoundation(location);
+        });
+    }
+
     private void ensureBedrockFoundation(TownHeartLocation heart) {
         World world = Bukkit.getWorld(heart.world());
         if (world == null) return;
@@ -132,6 +146,24 @@ public final class TownHeartService {
         for (int x = minX; x <= maxX; x++) {
             for (int z = minZ; z <= maxZ; z++) {
                 world.getBlockAt(x, foundationY, z).setType(Material.BEDROCK, false);
+            }
+        }
+    }
+
+    private void removeBedrockFoundation(TownHeartLocation heart) {
+        World world = Bukkit.getWorld(heart.world());
+        if (world == null) return;
+        int foundationY = Math.max(world.getMinHeight(), heart.y() - 2);
+        int minX = heart.x() - 4;
+        int maxX = heart.x() + 4;
+        int minZ = heart.z() - 4;
+        int maxZ = heart.z() + 4;
+        for (int x = minX; x <= maxX; x++) {
+            for (int z = minZ; z <= maxZ; z++) {
+                Block block = world.getBlockAt(x, foundationY, z);
+                if (block.getType() == Material.BEDROCK) {
+                    block.setType(Material.AIR, false);
+                }
             }
         }
     }

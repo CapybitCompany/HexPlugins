@@ -116,16 +116,16 @@ public final class MinionMenuListener implements Listener {
             return;
         }
         CompletableFuture<OperationResult> future = switch (event.getSlot()) {
-            case 45 -> service.move(player, id, player.getLocation());
-            case 48 -> service.collect(player, id);
-            case 50 -> service.upgrade(player, id);
-            case 53 -> service.pickup(player, id);
+            case MinionMenu.MOVE_SLOT -> service.move(player, id, player.getLocation());
+            case MinionMenu.COLLECT_SLOT -> service.collect(player, id);
+            case MinionMenu.UPGRADE_SLOT -> service.upgrade(player, id);
+            case MinionMenu.PICKUP_SLOT -> service.pickup(player, id);
             default -> null;
         };
         if (future == null) return;
         future.thenAccept(result -> Bukkit.getScheduler().runTask(plugin, () -> {
             hex.ui().send(player, result.messageKey(), result.tokens());
-            if (event.getSlot() == 53 && result.success()) {
+            if (event.getSlot() == MinionMenu.PICKUP_SLOT && result.success()) {
                 player.closeInventory();
             } else if (result.success()) {
                 menu.open(player, id);
@@ -265,7 +265,7 @@ public final class MinionMenuListener implements Listener {
         ItemStack item = top.getItem(event.getSlot());
         if (item == null || item.getType().isAir()) return false;
         switch (item.getType()) {
-            case BLACK_STAINED_GLASS_PANE, GRAY_STAINED_GLASS_PANE, RED_STAINED_GLASS_PANE, ARROW, BARRIER -> { return false; }
+            case BLACK_STAINED_GLASS_PANE, GRAY_STAINED_GLASS_PANE, RED_STAINED_GLASS_PANE, ORANGE_STAINED_GLASS_PANE, YELLOW_STAINED_GLASS_PANE, LIME_STAINED_GLASS_PANE, GREEN_STAINED_GLASS_PANE, ARROW, BARRIER -> { return false; }
             default -> { }
         }
         ItemStack copy = item.clone();

@@ -1,12 +1,15 @@
 package hex.minions.listener;
 
 import hex.core.api.HexApi;
+import hex.core.api.ui.UiTokens;
 import hex.minions.crafting.SpecialIngredient;
 import hex.minions.crafting.SpecialItemDefinition;
 import hex.minions.crafting.SpecialItemRegistry;
 import hex.minions.crafting.SpecialRecipeDefinition;
 import hex.minions.menu.EnchantedCraftingMenuHolder;
 import hex.minions.menu.MinionMenu;
+import hex.minions.machine.MachineDefinition;
+import hex.minions.machine.MachineService;
 import hex.minions.service.MinionService;
 import hex.towns.api.TownsApi;
 import org.bukkit.Bukkit;
@@ -43,9 +46,10 @@ public final class SpecialCraftingListener implements Listener {
     private final TownsApi towns;
     private final MinionService service;
     private final MinionMenu menu;
+    private final MachineService machines;
 
-    public SpecialCraftingListener(Plugin plugin, HexApi hex, TownsApi towns, MinionService service, MinionMenu menu) {
-        this.plugin = plugin; this.hex = hex; this.towns = towns; this.service = service; this.menu = menu;
+    public SpecialCraftingListener(Plugin plugin, HexApi hex, TownsApi towns, MinionService service, MinionMenu menu, MachineService machines) {
+        this.plugin = plugin; this.hex = hex; this.towns = towns; this.service = service; this.menu = menu; this.machines = machines;
     }
 
     private org.bukkit.block.BlockFace defaultFacingFor(String blockKind, Player player) {
@@ -65,12 +69,22 @@ public final class SpecialCraftingListener implements Listener {
             hex.ui().send(event.getPlayer(), "minions.special-crafting.error.not-placeable");
             return;
         }
-        if (towns.townAt(event.getBlockPlaced().getLocation()).filter(t -> towns.isMember(event.getPlayer().getUniqueId(), t.id())).isEmpty()) {
+        String blockKind = def.blockKind().isBlank() ? specialId.get() : def.blockKind();
+        boolean robotBlock = blockKind.toUpperCase(java.util.Locale.ROOT).startsWith("ROBOT_");
+        if (!robotBlock && towns.townAt(event.getBlockPlaced().getLocation()).filter(t -> towns.isMember(event.getPlayer().getUniqueId(), t.id())).isEmpty()) {
             event.setCancelled(true);
             hex.ui().send(event.getPlayer(), "minions.special-crafting.error.place-town");
             return;
         }
-        String blockKind = def.blockKind().isBlank() ? specialId.get() : def.blockKind();
+        MachineDefinition machine = machines == null ? null : machines.registry().byStation(blockKind).orElse(null);
+        if (machine != null) {
+            Optional<String> limitError = machines.validateEnergyMachinePlacement(event.getBlockPlaced(), machine);
+            if (limitError.isPresent()) {
+                event.setCancelled(true);
+                hex.ui().send(event.getPlayer(), "minions.energy.limit-reached", UiTokens.of("error", limitError.get()));
+                return;
+            }
+        }
         Material placedMaterial = registry.station(blockKind).map(station -> station.block()).orElse(def.material());
         event.getBlockPlaced().setType(placedMaterial);
         if (event.getBlockPlaced().getBlockData() instanceof Directional) {
@@ -88,6 +102,7 @@ public final class SpecialCraftingListener implements Listener {
         SpecialItemRegistry registry = service.specialItems();
         Optional<String> station = registry.readSpecialBlockId(event.getBlock());
         if (station.isEmpty()) return;
+        if (station.get().toUpperCase(java.util.Locale.ROOT).startsWith("ROBOT_")) return;
         event.setDropItems(false);
         registry.stations().values().stream()
                 .filter(s -> s.id().equalsIgnoreCase(station.get()))
@@ -102,7 +117,8 @@ public final class SpecialCraftingListener implements Listener {
         Block block = event.getClickedBlock();
         Optional<String> stationId = service.specialItems().readSpecialBlockId(block);
         if (stationId.isEmpty()) return;
-        if (stationId.get().toUpperCase(java.util.Locale.ROOT).startsWith("CABLE_")) return;
+        String stationUpper = stationId.get().toUpperCase(java.util.Locale.ROOT);
+        if (stationUpper.startsWith("CABLE_") || stationUpper.startsWith("ROBOT_")) return;
         event.setCancelled(true);
         if (towns.townAt(block.getLocation()).filter(t -> towns.isMember(event.getPlayer().getUniqueId(), t.id())).isEmpty()) {
             hex.ui().send(event.getPlayer(), "minions.special-crafting.error.place-town");

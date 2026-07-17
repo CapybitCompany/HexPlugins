@@ -48,14 +48,14 @@ storage-chests:
       ingredients: {}
   large:
     enabled: true
-    slots: 15
+    slots: 7
     item:
       material: TRAPPED_CHEST
       custom-model-data: 14102
       display-name: <gold>Duży Minion Storage</gold>
       lore:
       - <gray>Duża skrzynka rozszerzeń dla miniona.</gray>
-      - '<gray>Sloty storage: <white>15</white></gray>'
+      - '<gray>Sloty storage: <white>7</white></gray>'
       - <dark_gray>Wymaga średniego storage i Compressor Update.</dark_gray>
     recipe:
       enabled: false

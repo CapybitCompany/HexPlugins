@@ -261,7 +261,7 @@ public final class CustomResourceDropEngine implements Listener {
                     .townId(townId.get())
                     .collectionId("mining.tin")
                     .amount(1L)
-                    .source(CollectionSource.CUSTOM_PLUGIN_GRANTED)
+                    .source(CollectionSource.NATURAL_BLOCK_BREAK)
                     .location(location)
                     .reason("custom-resource-drop:tin"));
         } catch (Throwable ignored) {

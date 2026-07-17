@@ -12,15 +12,7 @@ public final class VishopSettings {
     private final int fetchLimit;
     private final boolean skipExistingLogsOnStartup;
     private final int minChatOnlyIntervalSeconds;
-    private final boolean cleanupEnabled;
-    private final int cleanupHour;
-    private final int cleanupMinute;
-    private final int retentionDays;
-    private final boolean dedupeEnabled;
-    private final int dedupeWindowSeconds;
-    private final String playerTotalsTable;
     private final String purchaseLogsTable;
-    private final String purchaseDedupeTable;
     private final Map<String, String> messages;
     private final DateTimeFormatter dateFormatter;
     private final int priceDecimals;
@@ -31,15 +23,7 @@ public final class VishopSettings {
             int fetchLimit,
             boolean skipExistingLogsOnStartup,
             int minChatOnlyIntervalSeconds,
-            boolean cleanupEnabled,
-            int cleanupHour,
-            int cleanupMinute,
-            int retentionDays,
-            boolean dedupeEnabled,
-            int dedupeWindowSeconds,
-            String playerTotalsTable,
             String purchaseLogsTable,
-            String purchaseDedupeTable,
             Map<String, String> messages,
             String datePattern,
             int priceDecimals,
@@ -49,15 +33,7 @@ public final class VishopSettings {
         this.fetchLimit = Math.max(1, fetchLimit);
         this.skipExistingLogsOnStartup = skipExistingLogsOnStartup;
         this.minChatOnlyIntervalSeconds = Math.max(1, minChatOnlyIntervalSeconds);
-        this.cleanupEnabled = cleanupEnabled;
-        this.cleanupHour = Math.max(0, Math.min(23, cleanupHour));
-        this.cleanupMinute = Math.max(0, Math.min(59, cleanupMinute));
-        this.retentionDays = Math.max(1, retentionDays);
-        this.dedupeEnabled = dedupeEnabled;
-        this.dedupeWindowSeconds = Math.max(1, dedupeWindowSeconds);
-        this.playerTotalsTable = playerTotalsTable;
         this.purchaseLogsTable = purchaseLogsTable;
-        this.purchaseDedupeTable = purchaseDedupeTable;
         this.messages = Map.copyOf(messages);
         this.dateFormatter = DateTimeFormatter.ofPattern(datePattern == null || datePattern.isBlank() ? "yyyy-MM-dd HH:mm:ss" : datePattern);
         this.priceDecimals = Math.max(0, priceDecimals);
@@ -80,40 +56,8 @@ public final class VishopSettings {
         return minChatOnlyIntervalSeconds;
     }
 
-    public boolean cleanupEnabled() {
-        return cleanupEnabled;
-    }
-
-    public int cleanupHour() {
-        return cleanupHour;
-    }
-
-    public int cleanupMinute() {
-        return cleanupMinute;
-    }
-
-    public int retentionDays() {
-        return retentionDays;
-    }
-
-    public boolean dedupeEnabled() {
-        return dedupeEnabled;
-    }
-
-    public int dedupeWindowSeconds() {
-        return dedupeWindowSeconds;
-    }
-
-    public String playerTotalsTable() {
-        return playerTotalsTable;
-    }
-
     public String purchaseLogsTable() {
         return purchaseLogsTable;
-    }
-
-    public String purchaseDedupeTable() {
-        return purchaseDedupeTable;
     }
 
     public DateTimeFormatter dateFormatter() {

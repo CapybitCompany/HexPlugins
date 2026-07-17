@@ -10,6 +10,10 @@ towns:
     min-distance-chunks: 10
     cost-coins: 0
     confirm-required: true
+    # Obszary, na ktorych nie wolno zakladac miasta. Format 2D: [x1, z1, x2, z2].
+    # Opcjonalnie mozna dodac swiat jako pierwszy element: [world, x1, z1, x2, z2].
+    # Przyklad spawn 201x201: [[-100, -100, 100, 100]]
+    blocked-areas: []
 
   naming:
     # Domyślna nazwa miasta, gdy gracz użyje /town create bez nazwy.
@@ -76,6 +80,8 @@ towns:
     # Rysuj dodatkowe waskie slupki 0.15x0.15 wzdluz krawedzi chunka od min Y do gornego poziomu ramki.
     # Kod nie tworzy juz pelnych scian 16xH, tylko pojedyncze cienkie slupki na linii granicy.
     vertical-edge-walls: true
+    # Czy rysować poziomą górną ramkę chunka. Domyślnie false, żeby /town check nie zasłaniał widoku od góry.
+    show-top-frame: false
     # Co ile blokow na obwodzie chunka rysowac pionowy slupek gora-dol.
     # 4 = lzejszy widok; 1 = pelniejsza, niemal ciagla krawedz kosztem wiekszej liczby BlockDisplayow.
     edge-step: 4

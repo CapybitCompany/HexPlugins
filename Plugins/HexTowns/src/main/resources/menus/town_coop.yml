@@ -448,7 +448,7 @@ items:
       - '[openguimenu] town_leave_confirm'
 
   back_existing:
-    material: ARROW
+    material: BARRIER
     slot: 45
     priority: 2
     display_name: '&ePowrót'
@@ -462,7 +462,7 @@ items:
       - '[openguimenu] town_manage'
 
   back_main:
-    material: ARROW
+    material: BARRIER
     slot: 45
     priority: 1
     display_name: '&ePowrót'

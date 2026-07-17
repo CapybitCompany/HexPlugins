@@ -33,22 +33,22 @@ levels:
     required: 1
     display_name: Wzbogacony uran I
   2:
-    required: 8
+    required: 4
     display_name: Wzbogacony uran II
   3:
-    required: 20
+    required: 10
     display_name: Wzbogacony uran III
   4:
-    required: 50
+    required: 25
     display_name: Wzbogacony uran IV
   5:
-    required: 100
+    required: 50
     display_name: Wzbogacony uran V
   6:
-    required: 200
+    required: 100
     display_name: Wzbogacony uran VI
   7:
-    required: 500
+    required: 250
     display_name: Wzbogacony uran VII
 reward_claim_mode: AUTO
 placeholder:

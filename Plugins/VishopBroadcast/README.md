@@ -1,92 +1,61 @@
-# VishopBroadcast
+# VishopBroadcast 1.21.11
 
-Plugin Paper/Spigot do zapisywania zakupów z vishop w bazie HexCore i emitowania skonfigurowanych komunikatów na każdym serwerze, na którym działa plugin.
+VishopBroadcast działa w dwóch warstwach:
 
-## Komenda
+- `VishopBroadcastProxy.jar` na **jednym proxy Velocity** przyjmuje komendę ViShop i zapisuje zakup do bazy dokładnie raz;
+- `VishopBroadcast-1.0.0.jar` na każdym podserwerze **tylko odczytuje** nowe logi przez HexCore i pokazuje skonfigurowany komunikat graczom.
 
-```text
-/vishopbroadcast <nick> <usluga> [liczba] [kwota]
-```
+Podserwery nie tworzą tabel, nie zapisują zakupów, nie aktualizują sum i nie czyszczą logów. Polling pozostaje niezależny na każdym podserwerze i domyślnie odbywa się co 15 sekund. Kursor po `id` gwarantuje, że wszystkie rekordy pobrane w jednym cyklu trafią do lokalnej kolejki komunikatów.
 
-Przykłady:
+## Wdrożenie
 
-```text
-/vishopbroadcast HaViX Elita - 49.99
-/vishopbroadcast HaViX Vip - 19.99
-/vishopbroadcast HaViX Coins 1000 19.99
-/vishopbroadcast HaViX Dar 50
-```
-
-Plugin nie wymaga ID zakupu z ViShop. Jeżeli ViShop wykona tę samą komendę na kilku serwerach naraz, plugin użyje automatycznej deduplikacji po zestawie: gracz + usługa + liczba + kwota. Domyślne okno deduplikacji to 10 sekund (`settings.dedupe.window-seconds`). Dzięki temu zakup za `19.99` nie zmieni się w `99.95` przy pięciu serwerach.
-
-Jeżeli usługa nie ma ilości, ale chcesz przekazać kwotę, użyj `-` jako pustej ilości, np.:
-
-```text
-/vishopbroadcast {nick} Vip - 19.99
-/vishopbroadcast {nick} SVIP - 29.99
-/vishopbroadcast {nick} Elita - 49.99
-```
-
-Jeżeli kiedyś używana integracja ViShop udostępni stabilny identyfikator transakcji, można nadal podać go jako ostatni argument:
-
-```text
-/vishopbroadcast {nick} Vip - 19.99 {transaction_id}
-```
-
-Wtedy duplikaty są rozpoznawane dokładnie po tym ID. Bez ID działa deduplikacja czasowa.
-
-## Najważniejsze funkcje
-
-- konfigurowalne usługi (`Vip`, `SVIP`, `Elita`, `Coins`, `Dar` i kolejne dodane w `config.yml`),
-- domyślnie wszystkie komunikaty zakupów wyświetlają się tylko na czacie (`CHAT`),
-- kolejka RAM, która nie pomija zakupów nawet przy wielu logach w jednym odpytywaniu,
-- automatyczna deduplikacja bez ID zakupu, zabezpieczająca przed wielokrotnym naliczeniem tej samej komendy z kilku serwerów,
-- odpytywanie tabeli logów domyślnie co 15 sekund na każdym serwerze niezależnie,
-- minimalny odstęp 1 sekundy dla komunikatów wyłącznie czatowych,
-- nocne czyszczenie logów starszych niż skonfigurowana liczba dni,
-- tabela sum wydatków gracza oraz tabela logów zakupów.
-
-## Tabele
-
-Domyślne nazwy tabel:
-
-- `vishop_player_totals` — `uuid`, `player_name`, `total_spent`, `updated_at`,
-- `vishop_purchase_logs` — opcjonalne `external_id`, data zakupu, usługa, gracz, ilość, kwota, treść logu, wykonawca,
-- `vishop_purchase_dedupe` — techniczna tabela krótkich blokad deduplikacji, czyszczona automatycznie.
-
-Nazwy tabel można zmienić w `config.yml` w sekcji `tables`.
-
-## Placeholdery w wiadomościach
-
-Dostępne placeholdery:
-
-- `{player}` — nick kupującego,
-- `{uuid}` — UUID kupującego,
-- `{service}` — sformatowana nazwa usługi z konfiguracji,
-- `{service_raw}` — klucz usługi z konfiguracji,
-- `{amount}` — liczba/ilość,
-- `{price}` — kwota,
-- `{amount_part}` — opcjonalny, gotowy fragment z ilością,
-- `{price_part}` — opcjonalny, gotowy fragment z ceną,
-- `{info}` — informacja zapisana w logu,
-- `{date}` — data zakupu,
-- `{server}` — nazwa serwera Bukkit.
-
-Wiadomości obsługują MiniMessage, np. `<gold>VIP</gold>`, oraz proste legacy kolory `&`, jeśli tekst nie zawiera tagów MiniMessage.
-
-## Build
-
-Z katalogu głównego repozytorium:
+1. Zbuduj oba artefakty:
 
 ```powershell
-.\gradlew.bat :plugins:VishopBroadcast:build
+.\gradlew.bat :plugins:VishopBroadcast:build :plugins:VishopBroadcastProxy:build
 ```
 
-Wynikowy plik JAR znajdziesz w:
+2. Na proxy Velocity umieść:
+
+```text
+Plugins/VishopBroadcastProxy/build/libs/VishopBroadcastProxy.jar
+```
+
+3. Uruchom proxy raz, uzupełnij dane wspólnej bazy w `plugins/vishopbroadcastproxy/config.yml` i zrestartuj proxy. Writer utworzy lub zmigruje tabele.
+
+4. Na każdym podserwerze Purpur 1.21.11 umieść:
 
 ```text
 Plugins/VishopBroadcast/build/libs/VishopBroadcast-1.0.0.jar
 ```
 
-Plugin wymaga działającego `HexCore` z poprawnie skonfigurowaną bazą danych.
+Podserwery wymagają HexCore połączonego z tą samą bazą. Nazwa `tables.purchase-logs` w ich `config.yml` musi odpowiadać `tables.purchase-logs` na proxy.
 
+5. Integrację ViShop skieruj wyłącznie do konsoli proxy:
+
+```text
+/vishopbroadcast {nick} Vip - 19.99
+/vishopbroadcast {nick} SVIP - 29.99
+/vishopbroadcast {nick} Elita - 49.99
+/vishopbroadcast {nick} Coins 1000 19.99
+/vishopbroadcast {nick} Dar 50
+```
+
+Opcjonalny piąty argument jest stabilnym ID transakcji:
+
+```text
+/vishopbroadcast {nick} Vip - 19.99 {transaction_id}
+```
+
+Bez ID writer zachowuje krótkie okno deduplikacji, które chroni przed ponowieniem tej samej komendy przez ViShop. Nie służy ono już do maskowania pięciu zapisów z podserwerów.
+
+## Konfiguracja
+
+- konfiguracja proxy zawiera połączenie DB, usługi, deduplikację i nocne czyszczenie;
+- konfiguracja podserwera zawiera polling i wygląd komunikatów;
+- klucze usług (`Vip`, `SVIP`, `Elita`, `Coins`, `Dar`) powinny być takie same po obu stronach;
+- `/vishopbroadcast reload` na proxy przeładowuje writer, a na podserwerze przeładowuje wyłącznie lokalny reader i format komunikatów.
+
+## Zachowanie po restarcie
+
+Przy domyślnym `settings.skip-existing-logs-on-startup: true` podserwer ustawia kursor na najnowszym istniejącym logu i pokazuje dopiero kolejne zakupy. Ustawienie `false` odtwarza logi od początku tabeli; zwykle nie jest zalecane na produkcji.

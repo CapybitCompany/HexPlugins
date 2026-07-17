@@ -49,7 +49,7 @@ public final class TownCoopDecisionMenu implements Listener {
         )));
         inv.setItem(ACCEPT_SLOT, item(Material.LIME_CONCRETE, "<green>Przyjmij do miasta</green>", List.of("<gray>Gracz dołączy jako COOP.</gray>")));
         inv.setItem(REJECT_SLOT, item(Material.RED_CONCRETE, "<red>Odrzuć prośbę</red>", List.of("<gray>Prośba zostanie usunięta.</gray>")));
-        inv.setItem(BACK_SLOT, item(Material.ARROW, "<yellow>Powrót</yellow>", List.of("<gray>Wróć do menu COOP.</gray>")));
+        inv.setItem(BACK_SLOT, item(Material.BARRIER, "<yellow>Powrót</yellow>", List.of("<gray>Wróć do menu COOP.</gray>")));
         owner.openInventory(inv);
     }
 
@@ -65,7 +65,7 @@ public final class TownCoopDecisionMenu implements Listener {
         )));
         inv.setItem(REJECT_SLOT, item(Material.RED_CONCRETE, "<red>Usuń gracza z miasta</red>", List.of("<gray>Gracz straci dostęp do miasta.</gray>")));
         inv.setItem(ACCEPT_SLOT, item(Material.LIME_CONCRETE, "<green>Zostaw gracza</green>", List.of("<gray>Anuluj i wróć do menu COOP.</gray>")));
-        inv.setItem(BACK_SLOT, item(Material.ARROW, "<yellow>Powrót</yellow>", List.of("<gray>Wróć do menu COOP.</gray>")));
+        inv.setItem(BACK_SLOT, item(Material.BARRIER, "<yellow>Powrót</yellow>", List.of("<gray>Wróć do menu COOP.</gray>")));
         owner.openInventory(inv);
     }
 

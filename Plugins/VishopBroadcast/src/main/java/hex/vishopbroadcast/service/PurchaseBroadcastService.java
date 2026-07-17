@@ -16,9 +16,6 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -37,7 +34,6 @@ public final class PurchaseBroadcastService {
     private final AtomicBoolean polling = new AtomicBoolean(false);
 
     private BukkitTask pollTask;
-    private BukkitTask cleanupTask;
     private volatile long lastSeenId;
 
     public PurchaseBroadcastService(
@@ -60,17 +56,12 @@ public final class PurchaseBroadcastService {
         VishopSettings settings = settingsSupplier.get();
         long pollTicks = Math.max(20L, settings.pollIntervalSeconds() * 20L);
         this.pollTask = Bukkit.getScheduler().runTaskTimer(plugin, this::poll, pollTicks, pollTicks);
-        scheduleCleanup();
     }
 
     public void stop() {
         if (pollTask != null) {
             pollTask.cancel();
             pollTask = null;
-        }
-        if (cleanupTask != null) {
-            cleanupTask.cancel();
-            cleanupTask = null;
         }
         displaying.set(false);
         polling.set(false);
@@ -186,40 +177,9 @@ public final class PurchaseBroadcastService {
         }
     }
 
-    private void scheduleCleanup() {
-        VishopSettings settings = settingsSupplier.get();
-        if (!settings.cleanupEnabled()) {
-            return;
-        }
-        long delayTicks = ticksUntilCleanup(settings.cleanupHour(), settings.cleanupMinute()) * 20L;
-        this.cleanupTask = Bukkit.getScheduler().runTaskTimer(plugin, this::runCleanup, delayTicks, 24L * 60L * 60L * 20L);
-    }
-
-    private void runCleanup() {
-        VishopSettings settings = settingsSupplier.get();
-        api.db().async(() -> repository.cleanupOlderThanDays(settings.retentionDays()))
-                .thenAccept(deleted -> {
-                    if (deleted != null && deleted > 0) {
-                        plugin.getLogger().info("Deleted " + deleted + " old vishop purchase logs.");
-                    }
-                })
-                .exceptionally(ex -> {
-                    plugin.getLogger().warning("Could not cleanup old vishop purchase logs: " + ex.getMessage());
-                    return null;
-                });
-    }
-
     private static Duration ticks(int ticks) {
         return Duration.ofMillis(Math.max(0L, ticks) * 50L);
     }
 
-    private static long ticksUntilCleanup(int hour, int minute) {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime target = now.with(LocalTime.of(hour, minute)).truncatedTo(ChronoUnit.MINUTES);
-        if (!target.isAfter(now)) {
-            target = target.plusDays(1);
-        }
-        return Math.max(1L, Duration.between(now, target).toSeconds());
-    }
 }
 

@@ -1,9 +1,6 @@
 # VishopBroadcast
-# Komenda: /vishopbroadcast <nick> <usluga> [liczba] [kwota] [opcjonalneId]
-# Przykłady:
-#   /vishopbroadcast HaViX Elita - 49.99
-#   /vishopbroadcast HaViX Coins 1000 19.99
-#   /vishopbroadcast HaViX Dar 50
+# Ten jar działa na podserwerze wyłącznie jako czytnik. Komendę zakupu
+# /vishopbroadcast wykonuje VishopBroadcastProxy na Velocity.
 #
 # Format wiadomości obsługuje MiniMessage oraz placeholdery:
 # {player}, {uuid}, {service}, {service_raw}, {amount}, {price}, {amount_part}, {price_part}, {info}, {date}, {server}
@@ -15,26 +12,12 @@ settings:
   skip-existing-logs-on-startup: true
   # Minimalna przerwa między kolejnymi wiadomościami, jeśli dana usługa pokazuje się wyłącznie na czacie.
   min-chat-only-interval-seconds: 1
-  cleanup:
-    enabled: true
-    hour: 3
-    minute: 0
-    retention-days: 30
-  # Zabezpiecza przed sytuacją, w której ViShop wykona tę samą komendę na kilku serwerach naraz.
-  # Bez ID zakupu plugin uznaje za duplikat taki sam zakup: gracz + usługa + liczba + kwota,
-  # wykonany w tym krótkim oknie czasu. Jeśli ViShop kiedyś udostępni stabilne ID transakcji,
-  # możesz je podać jako ostatni argument komendy i wtedy deduplikacja jest dokładna po ID.
-  dedupe:
-    enabled: true
-    window-seconds: 10
-
 tables:
-  player-totals: "vishop_player_totals"
   purchase-logs: "vishop_purchase_logs"
-  purchase-dedupe: "vishop_purchase_dedupe"
 
 messages:
   no-permission: "<red>Nie masz uprawnień do tej komendy."
+  reader-only: "<yellow>Ten podserwer tylko odczytuje zakupy. Komendę zakupu wykonaj na proxy Velocity."
   usage: "<red>Użycie: <white>/vishopbroadcast [nick] [usluga] [liczba] [kwota]"
   unknown-service: "<red>Nieznana lub wyłączona usługa: <white>{service}</white>."
   amount-required: "<red>Ta usługa wymaga podania liczby: <white>/vishopbroadcast [nick] {service} [liczba] [kwota]"

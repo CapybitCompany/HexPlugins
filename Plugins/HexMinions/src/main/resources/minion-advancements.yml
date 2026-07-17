@@ -2893,8 +2893,8 @@ advancements:
     collection_level_mining_netherrack_1:
       path: collections/levels/mining_netherrack/1
       parent: collections/first_level
-      title: Netherack I
-      description: Osiągnij poziom I kolekcji Netherack.
+      title: Netherrack I
+      description: Osiągnij poziom I kolekcji Netherrack.
       icon: NETHERRACK
       frame: task
       show-toast: true
@@ -2907,8 +2907,8 @@ advancements:
     collection_level_mining_netherrack_2:
       path: collections/levels/mining_netherrack/2
       parent: collections/levels/mining_netherrack/1
-      title: Netherack II
-      description: Osiągnij poziom II kolekcji Netherack.
+      title: Netherrack II
+      description: Osiągnij poziom II kolekcji Netherrack.
       icon: NETHERRACK
       frame: task
       show-toast: true
@@ -2921,8 +2921,8 @@ advancements:
     collection_level_mining_netherrack_3:
       path: collections/levels/mining_netherrack/3
       parent: collections/levels/mining_netherrack/2
-      title: Netherack III
-      description: Osiągnij poziom III kolekcji Netherack.
+      title: Netherrack III
+      description: Osiągnij poziom III kolekcji Netherrack.
       icon: NETHERRACK
       frame: task
       show-toast: true
@@ -2935,8 +2935,8 @@ advancements:
     collection_level_mining_netherrack_4:
       path: collections/levels/mining_netherrack/4
       parent: collections/levels/mining_netherrack/3
-      title: Netherack IV
-      description: Osiągnij poziom IV kolekcji Netherack.
+      title: Netherrack IV
+      description: Osiągnij poziom IV kolekcji Netherrack.
       icon: NETHERRACK
       frame: task
       show-toast: true
@@ -2949,8 +2949,8 @@ advancements:
     collection_level_mining_netherrack_5:
       path: collections/levels/mining_netherrack/5
       parent: collections/levels/mining_netherrack/4
-      title: Netherack V
-      description: Osiągnij poziom V kolekcji Netherack.
+      title: Netherrack V
+      description: Osiągnij poziom V kolekcji Netherrack.
       icon: NETHERRACK
       frame: goal
       show-toast: true
@@ -2963,8 +2963,8 @@ advancements:
     collection_level_mining_netherrack_6:
       path: collections/levels/mining_netherrack/6
       parent: collections/levels/mining_netherrack/5
-      title: Netherack VI
-      description: Osiągnij poziom VI kolekcji Netherack.
+      title: Netherrack VI
+      description: Osiągnij poziom VI kolekcji Netherrack.
       icon: NETHERRACK
       frame: goal
       show-toast: true
@@ -2977,8 +2977,8 @@ advancements:
     collection_level_mining_netherrack_7:
       path: collections/levels/mining_netherrack/7
       parent: collections/levels/mining_netherrack/6
-      title: Netherack VII
-      description: Osiągnij poziom VII kolekcji Netherack.
+      title: Netherrack VII
+      description: Osiągnij poziom VII kolekcji Netherrack.
       icon: NETHERRACK
       frame: goal
       show-toast: true
@@ -2991,8 +2991,8 @@ advancements:
     collection_complete_mining_netherrack:
       path: collections/complete/mining_netherrack
       parent: collections/levels/mining_netherrack/7
-      title: 'Mistrz kolekcji: Netherack'
-      description: 'Osiągnij aktualnie najwyższy poziom kolekcji Netherack. Nagroda: +1 Growth Point miasta.'
+      title: 'Mistrz kolekcji: Netherrack'
+      description: 'Osiągnij aktualnie najwyższy poziom kolekcji Netherrack. Nagroda: +1 Growth Point miasta.'
       icon: NETHERRACK
       frame: challenge
       show-toast: true

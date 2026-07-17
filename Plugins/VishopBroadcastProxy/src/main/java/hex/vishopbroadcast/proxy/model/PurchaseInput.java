@@ -1,4 +1,4 @@
-package hex.vishopbroadcast.model;
+package hex.vishopbroadcast.proxy.model;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -15,4 +15,3 @@ public record PurchaseInput(
         String createdBy
 ) {
 }
-

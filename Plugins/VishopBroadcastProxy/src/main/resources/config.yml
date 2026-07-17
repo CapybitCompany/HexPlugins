@@ -1,0 +1,87 @@
+# VishopBroadcastProxy — jedyny writer zakupów na całej sieci.
+# Ten plik trafia wyłącznie na proxy Velocity. Wszystkie podserwery mają
+# zwykły VishopBroadcast i tylko czytają tabelę purchase-logs przez HexCore.
+
+database:
+  type: "mysql" # mysql albo mariadb
+  host: "127.0.0.1"
+  port: 3306
+  name: "minecraft"
+  username: "root"
+  password: "change-me"
+  pool-size: 3
+
+tables:
+  player-totals: "vishop_player_totals"
+  purchase-logs: "vishop_purchase_logs"
+  purchase-dedupe: "vishop_purchase_dedupe"
+
+dedupe:
+  enabled: true
+  window-seconds: 10
+
+cleanup:
+  enabled: true
+  hour: 3
+  minute: 0
+  retention-days: 30
+
+format:
+  amount-part: " <dark_gray>x</dark_gray><white>{amount}</white>"
+  price-part: " <gray>za</gray> <green>{price} zł</green>"
+  log-info: "{player} kupił {service}{amount_part}{price_part}"
+  price-decimals: 2
+
+messages:
+  no-permission: "<red>Nie masz uprawnień do tej komendy."
+  usage: "<red>Użycie: <white>/vishopbroadcast [nick] [usluga] [liczba] [kwota] [opcjonalneId]"
+  unknown-service: "<red>Nieznana lub wyłączona usługa: <white>{service}</white>."
+  amount-required: "<red>Ta usługa wymaga podania liczby."
+  price-required: "<red>Ta usługa wymaga podania kwoty."
+  invalid-price: "<red>Kwota musi być liczbą, np. <white>19.99</white>."
+  queued: "<green>Zapisano zakup <white>{service}</white> dla gracza <white>{player}</white>."
+  duplicate: "<yellow>Pominięto duplikat zakupu <white>{purchase_id}</white>."
+  duplicate-auto: "<yellow>Pominięto automatycznie wykryty duplikat zakupu."
+  reloaded: "<green>Przeładowano VishopBroadcastProxy."
+  db-error: "<red>Nie udało się zapisać zakupu. Sprawdź konsolę proxy."
+  not-ready: "<yellow>Połączenie VishopBroadcastProxy z bazą nie jest jeszcze gotowe."
+
+services:
+  Vip:
+    enabled: true
+    aliases: ["vip", "VIP"]
+    display-name: "VIP"
+    amount-required: false
+    price-required: false
+    price-from-amount-when-price-missing: false
+  SVIP:
+    enabled: true
+    aliases: ["svip", "SVIP"]
+    display-name: "SVIP"
+    amount-required: false
+    price-required: false
+    price-from-amount-when-price-missing: false
+  Elita:
+    enabled: true
+    aliases: ["elita", "Elita", "ELITA"]
+    display-name: "ELITA"
+    amount-required: false
+    price-required: false
+    price-from-amount-when-price-missing: false
+  Coins:
+    enabled: true
+    aliases: ["coins", "monety", "Monety", "COINS"]
+    display-name: "monety"
+    amount-required: true
+    price-required: false
+    price-from-amount-when-price-missing: false
+    amount-part: " w liczbie {amount}"
+  Dar:
+    enabled: true
+    aliases: ["dar", "donate", "darowizna", "Dar"]
+    display-name: "darowiznę"
+    amount-required: true
+    price-required: false
+    price-from-amount-when-price-missing: true
+    amount-part: " w kwocie {amount} zł"
+    price-part: ""

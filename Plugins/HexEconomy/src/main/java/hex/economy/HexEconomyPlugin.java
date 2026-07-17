@@ -6,6 +6,7 @@ import hex.economy.api.HexEconomyApi;
 import hex.economy.command.EconomyCommand;
 import hex.economy.config.EconomyConfig;
 import hex.economy.database.EconomyRepository;
+import hex.economy.placeholder.EconomyPlaceholderExpansion;
 import hex.economy.service.EconomyService;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -17,6 +18,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 public final class HexEconomyPlugin extends JavaPlugin {
     private HexApi hexApi;
     private EconomyService economyService;
+    private EconomyPlaceholderExpansion placeholderExpansion;
 
     @Override
     public void onEnable() {
@@ -41,6 +43,7 @@ public final class HexEconomyPlugin extends JavaPlugin {
 
         registerCommands();
         Bukkit.getServicesManager().register(HexEconomyApi.class, economyService, this, ServicePriority.Normal);
+        registerPlaceholderExpansion();
 
         hexApi.db().async(() -> {
             repository.ensureTables();
@@ -107,6 +110,10 @@ public final class HexEconomyPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (placeholderExpansion != null) {
+            placeholderExpansion.unregister();
+            placeholderExpansion = null;
+        }
         if (economyService != null) {
             Bukkit.getServicesManager().unregister(HexEconomyApi.class, economyService);
         }
@@ -143,6 +150,25 @@ public final class HexEconomyPlugin extends JavaPlugin {
             money.setTabCompleter(executor);
         } else {
             getLogger().severe("Command 'money' is missing from plugin.yml.");
+        }
+    }
+
+    private void registerPlaceholderExpansion() {
+        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") == null) {
+            getLogger().info("PlaceholderAPI not found; skipping HexEconomy placeholders.");
+            return;
+        }
+        try {
+            this.placeholderExpansion = new EconomyPlaceholderExpansion(this, economyService);
+            if (placeholderExpansion.register()) {
+                getLogger().info("Registered PlaceholderAPI expansion %hexeconomy_%.");
+            } else {
+                getLogger().warning("Could not register PlaceholderAPI expansion %hexeconomy_%.");
+                this.placeholderExpansion = null;
+            }
+        } catch (Throwable throwable) {
+            getLogger().warning("Could not register HexEconomy placeholders: " + rootMessage(throwable));
+            this.placeholderExpansion = null;
         }
     }
 

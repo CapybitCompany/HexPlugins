@@ -23,25 +23,25 @@ source_rules:
     allow_in_town_claims: true
 levels:
   1:
-    required: 5
+    required: 3
     display_name: '&aUran I'
   2:
-    required: 75
+    required: 38
     display_name: '&aUran II'
   3:
-    required: 250
+    required: 125
     display_name: '&aUran III'
   4:
-    required: 2500
+    required: 1250
     display_name: '&aUran IV'
   5:
-    required: 5000
+    required: 2500
     display_name: '&aUran V'
   6:
-    required: 25000
+    required: 12500
     display_name: '&aUran VI'
   7:
-    required: 50000
+    required: 25000
     display_name: '&aUran VII'
 reward_claim_mode: AUTO
 sources:

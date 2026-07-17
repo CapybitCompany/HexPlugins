@@ -156,7 +156,7 @@ resources:
       compressed-material: EMERALD_BLOCK
       unlock-minion-level: 3
   iron_ore:
-    display-name: <white>Ruda żelaza</white>
+    display-name: <white>Surowe żelazo</white>
     material: RAW_IRON
     collection-id: mining.iron
     worth: 2.0
@@ -168,7 +168,7 @@ resources:
       enabled: false
       block-convertible: false
   gold_ore:
-    display-name: <gold>Ruda złota</gold>
+    display-name: <gold>Surowe złoto</gold>
     material: RAW_GOLD
     collection-id: mining.gold
     worth: 3.0
@@ -398,6 +398,21 @@ resources:
     compression:
       enabled: false
       block-convertible: false
+  silverfish_armor:
+    display-name: <gray>Pancerz silverfish</gray>
+    material: IRON_CHESTPLATE
+    custom-model-data: 15110
+    collection-id: ''
+    worth: 250.0
+    stack-size: 1
+    tags:
+    - mob
+    - silverfish
+    - armor
+    - special
+    compression:
+      enabled: false
+      block-convertible: false
   bow:
     display-name: <yellow>Łuk</yellow>
     material: BOW
@@ -487,8 +502,8 @@ resources:
       compressed-material: SPRUCE_LOG
       unlock-minion-level: 5
   copper:
-    display-name: <color:#b87333>Ruda miedzi</color>
-    material: COPPER_ORE
+    display-name: <color:#b87333>Surowa miedź</color>
+    material: RAW_COPPER
     collection-id: mining.copper
     worth: 2.0
     stack-size: 64
@@ -498,7 +513,7 @@ resources:
     compression:
       enabled: true
       block-convertible: true
-      compressed-material: COPPER_BLOCK
+      compressed-material: RAW_COPPER_BLOCK
       unlock-minion-level: 3
   rare_elements:
     display-name: <light_purple>Rzadkie pierwiastki</light_purple>
@@ -643,7 +658,7 @@ resources:
       enabled: false
       block-convertible: false
   tin_ore:
-    display-name: <gray>Ruda cyny</gray>
+    display-name: <gray>Surowa cyna</gray>
     material: RAW_IRON
     custom-model-data: 14001
     collection-id: mining.tin
@@ -750,7 +765,7 @@ resources:
       enabled: false
       block-convertible: false
   netherrack:
-    display-name: <dark_red>Netherack</dark_red>
+    display-name: <dark_red>Netherrack</dark_red>
     material: NETHERRACK
     collection-id: mining.netherrack
     worth: 1.0
@@ -760,8 +775,10 @@ resources:
     - nether
     - block
     compression:
-      enabled: false
-      block-convertible: false
+      enabled: true
+      block-convertible: true
+      compressed-material: NETHERRACK
+      unlock-minion-level: 3
   enriched_uranium:
     material: EMERALD
     custom-model-data: 12003

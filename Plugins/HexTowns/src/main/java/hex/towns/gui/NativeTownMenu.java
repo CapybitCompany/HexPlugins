@@ -202,13 +202,19 @@ public final class NativeTownMenu implements Listener, CommandExecutor, TabCompl
                 "",
                 "§eKliknij: /town check"
         )));
+        inv.setItem(26, item(Material.DIAMOND_PICKAXE, "§bRoboty górnicze", List.of(
+                "§7Osobna zakładka twoich robotów.",
+                "§7Limit startowy: §f2 roboty na gracza§7.",
+                "",
+                "§eKliknij: /minion robots"
+        )));
         inv.setItem(53, item(owner ? Material.TNT : Material.RED_BED, owner ? "§cStrefa ryzyka" : "§cOpuść COOP", List.of(
                 owner ? "§7Akcje właściciela miasta." : "§7Akcje członka COOP.",
                 owner ? "§cZniszczenie miasta resetuje dane SMP/COOP." : "§cOdejście z COOP resetuje twoje dane SMP.",
                 "",
                 "§eKliknij, aby otworzyć."
         )));
-        inv.setItem(45, item(Material.ARROW, "§ePowrót", List.of()));
+        inv.setItem(45, item(Material.BARRIER, "§ePowrót", List.of()));
         inv.setItem(49, item(Material.BARRIER, "§cZamknij", List.of()));
         player.openInventory(inv);
     }
@@ -239,7 +245,7 @@ public final class NativeTownMenu implements Listener, CommandExecutor, TabCompl
         inv.setItem(30, item(Material.LIME_STAINED_GLASS, "§aWizualizacja granic", List.of("§7Przełącza /town check.", "", "§eKliknij.")));
         inv.setItem(32, item(Material.EXPERIENCE_BOTTLE, "§aGrowth points", List.of("§7Aktualnie: §a" + (town == null ? 0 : town.growthPoints()) + " GP", "§7Rozwój miasta jest używany do claimów.", "", "§eKliknij: /town growth")));
         inv.setItem(34, item(Material.PAPER, "§fInfo miasta", List.of("§7Pełna linia informacji w czacie.", "", "§eKliknij: /town info")));
-        inv.setItem(45, item(Material.ARROW, "§ePowrót", List.of()));
+        inv.setItem(45, item(Material.BARRIER, "§ePowrót", List.of()));
         inv.setItem(49, item(Material.BARRIER, "§cZamknij", List.of()));
         player.openInventory(inv);
     }
@@ -249,9 +255,22 @@ public final class NativeTownMenu implements Listener, CommandExecutor, TabCompl
         Inventory inv = inventory(player, NativeTownMenuHolder.Page.COOP, 54, "§8Miasto §7- COOP");
         fill(inv);
         if (town == null) {
-            inv.setItem(4, item(Material.WRITABLE_BOOK, "§dCOOP miasta", List.of("§7Nie należysz jeszcze do miasta.", "§7Stań na terenie miasta i poproś o dołączenie.")));
-            inv.setItem(31, item(Material.OAK_DOOR, "§bPoproś o dołączenie", List.of("§7Wysyła prośbę do miasta pod twoimi nogami.", "", "§eKliknij: /town coop")));
-            inv.setItem(45, item(Material.ARROW, "§ePowrót", List.of()));
+            Optional<Town> target = service.townAt(player.getLocation());
+            boolean canRequest = target.isPresent() && !target.get().ownerId().equals(player.getUniqueId()) && !service.isMember(player.getUniqueId(), target.get().id());
+            inv.setItem(4, item(Material.WRITABLE_BOOK, "§dCOOP miasta", List.of(
+                    "§7Nie należysz jeszcze do miasta.",
+                    "§7Aktualny teren: §f" + target.map(Town::name).orElse("Dzicz"),
+                    target.isPresent() ? "§7Właściciel: §f" + playerName(target.get().ownerId()) : "§8Stań na terenie cudzego miasta.",
+                    "",
+                    canRequest ? "§eMożesz wysłać prośbę z tego menu." : "§8Brak miasta pod nogami albo już jesteś członkiem."
+            )));
+            inv.setItem(31, item(canRequest ? Material.OAK_DOOR : Material.GRAY_STAINED_GLASS_PANE, canRequest ? "§bPoproś o dołączenie" : "§7Brak miasta do zgłoszenia", List.of(
+                    canRequest ? "§7Wyśle prośbę do miasta: §f" + target.get().name() : "§7Stań na terenie cudzego miasta,",
+                    canRequest ? "§7Właściciel zobaczy ją w tym menu COOP." : "§7żeby aktywować przycisk prośby.",
+                    "",
+                    canRequest ? "§eKliknij, aby wysłać request." : "§8Brak akcji."
+            )));
+            inv.setItem(45, item(Material.BARRIER, "§ePowrót", List.of()));
             inv.setItem(53, item(Material.BARRIER, "§cZamknij", List.of()));
             player.openInventory(inv);
             return;
@@ -294,7 +313,7 @@ public final class NativeTownMenu implements Listener, CommandExecutor, TabCompl
         } else {
             inv.setItem(49, item(Material.RED_BED, "§cOpuść COOP", List.of("§cOdejście resetuje twoje dane SMP.", "", "§eKliknij.")));
         }
-        inv.setItem(45, item(Material.ARROW, "§ePowrót", List.of()));
+        inv.setItem(45, item(Material.BARRIER, "§ePowrót", List.of()));
         inv.setItem(53, item(Material.BARRIER, "§cZamknij", List.of()));
         player.openInventory(inv);
     }
@@ -315,7 +334,7 @@ public final class NativeTownMenu implements Listener, CommandExecutor, TabCompl
             CollectionItem def = items.get(i);
             inv.setItem(slots[i], collectionItem(collections, town.id(), def));
         }
-        inv.setItem(45, item(Material.ARROW, "§ePowrót", List.of("§7Wróć do zarządzania miastem.")));
+        inv.setItem(45, item(Material.BARRIER, "§ePowrót", List.of("§7Wróć do zarządzania miastem.")));
         if (page != NativeTownMenuHolder.Page.COLLECTIONS_RESOURCES) {
             inv.setItem(48, item(Material.ARROW, "§ePoprzednia strona", List.of()));
         }
@@ -369,7 +388,7 @@ public final class NativeTownMenu implements Listener, CommandExecutor, TabCompl
         if (visibleSlots == 0) {
             inv.setItem(22, item(Material.LIGHT_GRAY_STAINED_GLASS_PANE, "§7Brak dostępnych slotów", List.of("§8Miasto nie ma jeszcze odblokowanej możliwości stawiania minionów.")));
         }
-        inv.setItem(45, item(Material.ARROW, "§ePowrót", List.of()));
+        inv.setItem(45, item(Material.BARRIER, "§ePowrót", List.of()));
         inv.setItem(47, item(Material.BOOK, "§bWiki minionów", List.of("§7Lista typów minionów i receptur.", "", "§eKliknij: /minion wiki")));
         player.openInventory(inv);
     }
@@ -399,7 +418,7 @@ public final class NativeTownMenu implements Listener, CommandExecutor, TabCompl
                     "§eKliknij: /town endcoop"
             )));
         }
-        inv.setItem(36, item(Material.ARROW, "§ePowrót", List.of()));
+        inv.setItem(36, item(Material.BARRIER, "§ePowrót", List.of()));
         inv.setItem(40, item(Material.BARRIER, "§cZamknij", List.of()));
         player.openInventory(inv);
     }
@@ -461,6 +480,7 @@ public final class NativeTownMenu implements Listener, CommandExecutor, TabCompl
         if (slot == 23) { openCollections(player, NativeTownMenuHolder.Page.COLLECTIONS_RESOURCES); return; }
         if (slot == 24) { openMinions(player); return; }
         if (slot == 25) { toggleCheck(player); return; }
+        if (slot == 26) { run(player, "minion robots"); return; }
         if (slot == 53) { openDanger(player); }
     }
 

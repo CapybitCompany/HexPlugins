@@ -55,25 +55,25 @@ source_rules:
     allow_in_town_claims: true
 levels:
   1:
-    required: 500
+    required: 250
     display_name: '&6Drewno dębowe I'
   2:
-    required: 10000
+    required: 5000
     display_name: '&6Drewno dębowe II'
   3:
-    required: 25000
+    required: 12500
     display_name: '&6Drewno dębowe III'
   4:
-    required: 250000
+    required: 125000
     display_name: '&6Drewno dębowe IV'
   5:
-    required: 500000
+    required: 250000
     display_name: '&6Drewno dębowe V'
   6:
-    required: 2500000
+    required: 1250000
     display_name: '&6Drewno dębowe VI'
   7:
-    required: 5000000
+    required: 2500000
     display_name: '&6Drewno dębowe VII'
 reward_claim_mode: AUTO
 placeholder:

@@ -1,0 +1,22 @@
+robots:
+  miner:
+    enabled: true
+    # Architektura robotów jest osobna od zwykłych minionów i gotowa pod kolejne typy botów.
+    robot-item-id: miner_robot
+    station-id: ROBOT_MINER
+    max-per-player: 2
+
+    # Storage robota: startowo 6 slotów, maksymalnie 12 po własnym rozszerzeniu storage.
+    base-storage-slots: 6
+    max-storage-slots: 12
+    storage-upgrade-slots: 6
+    storage-upgrade-item-id: miner_robot_storage
+
+    # Praca: 1 blok na sekundę przy domyślnym 20 tickach.
+    block-interval-ticks: 20
+    tick-batch-size: 50
+    protected-town-only: false
+
+    # Paliwo: 1 kostka cukru = 60 sekund pracy.
+    fuel-item-id: sugar_cube
+    fuel-seconds-per-item: 60

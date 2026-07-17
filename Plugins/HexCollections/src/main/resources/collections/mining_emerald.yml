@@ -48,25 +48,25 @@ source_rules:
     allow_in_town_claims: true
 levels:
   1:
-    required: 50
+    required: 25
     display_name: '&aEmerald I'
   2:
-    required: 500
+    required: 250
     display_name: '&aEmerald II'
   3:
-    required: 2500
+    required: 1250
     display_name: '&aEmerald III'
   4:
-    required: 10000
+    required: 5000
     display_name: '&aEmerald IV'
   5:
-    required: 50000
+    required: 25000
     display_name: '&aEmerald V'
   6:
-    required: 100000
+    required: 50000
     display_name: '&aEmerald VI'
   7:
-    required: 250000
+    required: 125000
     display_name: '&aEmerald VII'
 reward_claim_mode: AUTO
 placeholder:

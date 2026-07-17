@@ -64,25 +64,25 @@ source_rules:
     allow_in_town_claims: true
 levels:
   1:
-    required: 250
+    required: 125
     display_name: '&6Miedź I'
   2:
-    required: 5000
+    required: 2500
     display_name: '&6Miedź II'
   3:
-    required: 25000
+    required: 12500
     display_name: '&6Miedź III'
   4:
-    required: 100000
+    required: 50000
     display_name: '&6Miedź IV'
   5:
-    required: 250000
+    required: 125000
     display_name: '&6Miedź V'
   6:
-    required: 1000000
+    required: 500000
     display_name: '&6Miedź VI'
   7:
-    required: 2500000
+    required: 1250000
     display_name: '&6Miedź VII'
 reward_claim_mode: AUTO
 placeholder:

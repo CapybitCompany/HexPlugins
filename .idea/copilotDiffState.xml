@@ -3,15 +3,6 @@
   <component name="CopilotDiffPersistence">
     <option name="pendingDiffs">
       <map>
-        <entry key="$PROJECT_DIR$/Plugins/HexTowns/build.gradle">
-          <value>
-            <PendingDiffInfo>
-              <option name="filePath" value="$PROJECT_DIR$/Plugins/HexTowns/build.gradle" />
-              <option name="originalContent" value="plugins {&#10;    id &quot;java&quot;&#10;}&#10;&#10;group = &quot;hex&quot;&#10;version = &quot;1.0.1&quot;&#10;&#10;repositories {&#10;    mavenCentral()&#10;    maven { url = &quot;https://repo.papermc.io/repository/maven-public/&quot; }&#10;    maven { url = &quot;https://repo.purpurmc.org/snapshots&quot; }&#10;    maven { url = &quot;https://repo.extendedclip.com/content/repositories/placeholderapi/&quot; }&#10;}&#10;&#10;dependencies {&#10;    compileOnly project(&quot;:plugins:HexCore&quot;)&#10;    compileOnly &quot;org.purpurmc.purpur:purpur-api:1.21.11-R0.1-SNAPSHOT&quot;&#10;    compileOnly &quot;me.clip:placeholderapi:2.11.6&quot;&#10;}&#10;&#10;java {&#10;    toolchain {&#10;        languageVersion = JavaLanguageVersion.of(21)&#10;    }&#10;}&#10;&#10;tasks.jar {&#10;    archiveBaseName = &quot;HexTowns&quot;&#10;}" />
-              <option name="updatedContent" value="plugins {&#10;    id &quot;java&quot;&#10;}&#10;&#10;group = &quot;hex&quot;&#10;version = &quot;1.0.2&quot;&#10;&#10;repositories {&#10;    mavenCentral()&#10;    maven { url = &quot;https://repo.papermc.io/repository/maven-public/&quot; }&#10;    maven { url = &quot;https://repo.purpurmc.org/snapshots&quot; }&#10;    maven { url = &quot;https://repo.extendedclip.com/content/repositories/placeholderapi/&quot; }&#10;}&#10;&#10;dependencies {&#10;    compileOnly project(&quot;:plugins:HexCore&quot;)&#10;    compileOnly &quot;org.purpurmc.purpur:purpur-api:1.21.11-R0.1-SNAPSHOT&quot;&#10;    compileOnly &quot;me.clip:placeholderapi:2.11.6&quot;&#10;}&#10;&#10;java {&#10;    toolchain {&#10;        languageVersion = JavaLanguageVersion.of(21)&#10;    }&#10;}&#10;&#10;tasks.jar {&#10;    archiveBaseName = &quot;HexTowns&quot;&#10;}" />
-            </PendingDiffInfo>
-          </value>
-        </entry>
         <entry key="$PROJECT_DIR$/Plugins/HexTowns/src/main/resources/plugin.yml">
           <value>
             <PendingDiffInfo>
