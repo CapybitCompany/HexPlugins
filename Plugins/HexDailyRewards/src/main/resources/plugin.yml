@@ -1,0 +1,22 @@
+name: HexDailyRewards
+version: '1.0.0'
+main: hexdailyrewards.HexDailyRewardsPlugin
+api-version: '1.21.11'
+description: Daily reward GUI opened from HexNPC actions or command.
+authors: [HexDevTeam]
+softdepend: [HexNPC]
+
+commands:
+  hexdailyrewards:
+    description: Opens or reloads HexDailyRewards.
+    usage: /hexdailyrewards [open|reload]
+    aliases: [hdr, dailyrewards]
+
+permissions:
+  hexdailyrewards.use:
+    description: Allows opening daily rewards.
+    default: true
+  hexdailyrewards.admin:
+    description: Allows reloading HexDailyRewards.
+    default: op
+

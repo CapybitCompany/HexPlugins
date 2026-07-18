@@ -1,0 +1,247 @@
+# ==========================================================
+# HexDailyRewards
+# ==========================================================
+
+enabled: true
+
+daily-reset:
+  # Nagroda resetuje sie po zmianie dnia w tej strefie czasowej.
+  # Przyklad: odbior w poniedzialek 23:59 pozwala odebrac kolejna nagrode we wtorek 00:00.
+  time-zone: "Europe/Warsaw"
+
+hexnpc:
+  # HexDailyRewards nie zmienia HexNPC. Rejestruje tylko typ akcji w ServicesManager.
+  # W NPC ustaw akcje o takim typie, np. hexdailyrewards.
+  enabled: true
+  action-id: "hexdailyrewards"
+
+time-format:
+  now: "teraz"
+  hour: "h"
+  minute: "m"
+  second: "s"
+  reset-time-pattern: "HH:mm"
+  date-pattern: "dd.MM.yyyy"
+
+messages:
+  prefix: "&6&lDaily Rewards &8> "
+  no-permission: "&cNie masz permisji."
+  player-only: "&cTa komenda jest tylko dla gracza."
+  usage: "&7Uzycie: &f/hexdailyrewards reload"
+  reload-success: "&aPrzeladowano konfiguracje."
+  reload-failed: "&cNie udalo sie przeladowac konfiguracji. Sprawdz konsole."
+  disabled: "&cDaily Rewards sa obecnie wylaczone."
+  reward-claimed-chat: "&aOdebrales dzisiejsza nagrode."
+  reward-claimed-actionbar: "&aOdebrano codzienna nagrode!"
+  already-claimed-actionbar: "&eDzisiejsza nagroda zostala juz odebrana. Wroc za &6{time}&e."
+  claim-error: "&cNie udalo sie zapisac odbioru nagrody. Zglos to administracji."
+  no-reward-configured: "&cBrak skonfigurowanej nagrody na dzisiaj."
+
+sounds:
+  open:
+    enabled: true
+    name: "minecraft:ui.button.click"
+    volume: 0.6
+    pitch: 1.2
+  claim:
+    enabled: true
+    name: "minecraft:entity.player.levelup"
+    volume: 0.8
+    pitch: 1.0
+  unavailable:
+    enabled: true
+    name: "minecraft:block.note_block.bass"
+    volume: 0.6
+    pitch: 0.8
+
+reward:
+  close-gui-after-claim: false
+  refresh-gui-after-claim: true
+
+rewards-calendar:
+  # Cykl startuje od tej daty. day-1 przypada na start-date.
+  start-date: "2026-07-20"
+  # 14 dni = dwa tygodnie. Po day-14 plugin wraca do day-1.
+  cycle-days: 14
+
+  # Placeholdery w komendach:
+  # {player}, {uuid}, {date}, {last_date}, {time}, {reset_time},
+  # {reward_id}, {reward_day}, {reward_name}
+  days:
+    day-1:
+      display-name: "&bDiamentowy start"
+      material: "DIAMOND"
+      lore:
+        - "&7Nagroda dnia: &f1x Diament"
+      commands:
+        - "give {player} diamond 1"
+    day-2:
+      display-name: "&aSzmaragdowy bonus"
+      material: "EMERALD"
+      lore:
+        - "&7Nagroda dnia: &f3x Szmaragd"
+      commands:
+        - "give {player} emerald 3"
+    day-3:
+      display-name: "&6Zlote wsparcie"
+      material: "GOLD_INGOT"
+      lore:
+        - "&7Nagroda dnia: &f8x Zloto"
+      commands:
+        - "give {player} gold_ingot 8"
+    day-4:
+      display-name: "&9Lapisowy pakiet"
+      material: "LAPIS_LAZULI"
+      lore:
+        - "&7Nagroda dnia: &f16x Lapis"
+      commands:
+        - "give {player} lapis_lazuli 16"
+    day-5:
+      display-name: "&eDoswiadczenie"
+      material: "EXPERIENCE_BOTTLE"
+      lore:
+        - "&7Nagroda dnia: &f16x Butelka expa"
+      commands:
+        - "give {player} experience_bottle 16"
+    day-6:
+      display-name: "&dKrysztalowy drop"
+      material: "AMETHYST_SHARD"
+      lore:
+        - "&7Nagroda dnia: &f12x Ametyst"
+      commands:
+        - "give {player} amethyst_shard 12"
+    day-7:
+      display-name: "&6Tygodniowa skrzynia"
+      material: "CHEST"
+      lore:
+        - "&7Nagroda dnia: &f1x Skrzynia"
+      commands:
+        - "give {player} chest 1"
+    day-8:
+      display-name: "&fZelazny zapas"
+      material: "IRON_INGOT"
+      lore:
+        - "&7Nagroda dnia: &f16x Zelazo"
+      commands:
+        - "give {player} iron_ingot 16"
+    day-9:
+      display-name: "&2Rolniczy pakiet"
+      material: "HAY_BLOCK"
+      lore:
+        - "&7Nagroda dnia: &f8x Siano"
+      commands:
+        - "give {player} hay_block 8"
+    day-10:
+      display-name: "&cPyl redstone"
+      material: "REDSTONE"
+      lore:
+        - "&7Nagroda dnia: &f24x Redstone"
+      commands:
+        - "give {player} redstone 24"
+    day-11:
+      display-name: "&3Morski pakiet"
+      material: "PRISMARINE_SHARD"
+      lore:
+        - "&7Nagroda dnia: &f12x Pryzmaryn"
+      commands:
+        - "give {player} prismarine_shard 12"
+    day-12:
+      display-name: "&5Endowy dodatek"
+      material: "ENDER_PEARL"
+      lore:
+        - "&7Nagroda dnia: &f4x Perla endu"
+      commands:
+        - "give {player} ender_pearl 4"
+    day-13:
+      display-name: "&eTNT zabawa"
+      material: "TNT"
+      lore:
+        - "&7Nagroda dnia: &f4x TNT"
+      commands:
+        - "give {player} tnt 4"
+    day-14:
+      display-name: "&bFinał cyklu"
+      material: "NETHERITE_SCRAP"
+      lore:
+        - "&7Nagroda dnia: &f1x Netherite Scrap"
+      commands:
+        - "give {player} netherite_scrap 1"
+
+  # Specjalne nagrody na konkretne daty. Maja priorytet nad cyklem day-1..day-14.
+  date-overrides:
+    "2026-12-24":
+      display-name: "&cSwiateczna nagroda"
+      material: "CHEST"
+      lore:
+        - "&7Nagroda specjalna za dzisiejszy dzien."
+      commands:
+        - "give {player} diamond 5"
+
+gui:
+  title: "&6Daily Rewards"
+  size: 27
+
+  filler:
+    material: "BLACK_STAINED_GLASS_PANE"
+    name: ""
+    lore: []
+    hide-tooltip: true
+
+  items:
+    available:
+      enabled: true
+      slot: 13
+      material: "CHEST"
+      use-reward-material: true
+      name: "&a&l{reward_name}"
+      lore:
+        - "&7Dzisiejsza nagroda jest gotowa."
+        - "&7Dzien cyklu: &f{reward_day}"
+        - ""
+        - "{reward_lore}"
+        - ""
+        - "&eKliknij, aby odebrac."
+    claimed:
+      enabled: true
+      slot: 13
+      material: "MINECART"
+      use-reward-material: true
+      name: "&c&l{reward_name}"
+      lore:
+        - "&7Odebrales juz dzisiejsza nagrode."
+        - "&7Dzien cyklu: &f{reward_day}"
+        - ""
+        - "{reward_lore}"
+        - ""
+        - "&7Nastepna za: &f{time}"
+        - "&7Reset o: &f{reset_time}"
+    status-available:
+      enabled: true
+      slot: 11
+      material: "LIME_DYE"
+      name: "&aStatus: Dostepna"
+      lore:
+        - "&7Mozesz odebrac nagrode dzisiaj."
+    status-claimed:
+      enabled: true
+      slot: 11
+      material: "RED_DYE"
+      name: "&cStatus: Odebrana"
+      lore:
+        - "&7Wroc po zmianie dnia."
+        - "&7Pozostalo: &f{time}"
+    info:
+      enabled: true
+      slot: 15
+      material: "CLOCK"
+      name: "&6Dzisiejsza nagroda"
+      lore:
+        - "&7Reset dzienny: &f{reset_time}"
+        - "&7Dzisiejsza data: &f{date}"
+        - "&7Dzien cyklu: &f{reward_day}"
+    close:
+      enabled: true
+      slot: 22
+      material: "BARRIER"
+      name: "&cZamknij"
+      lore: []
