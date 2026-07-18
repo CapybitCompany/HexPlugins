@@ -128,8 +128,23 @@ class RegionAndProtectionTest {
     @Test
     void allRegionsReturnsSpawnAndNoBuildZones() {
         List<?> all = plugin.protectionService().allRegions();
-        // 1 spawn + 1 no-build zone == 2
-        assertEquals(2, all.size());
+        // 1 spawn + 4 no-build ring zones (north/south/east/west) == 5
+        assertEquals(5, all.size());
+    }
+
+    @Test
+    void multipleNoBuildRingZonesAllProtect() {
+        ProtectionService service = plugin.protectionService();
+        // One representative point inside each of the four ring zones.
+        assertTrue(service.isBuildProtected("world", 0, 64, -150), "north ring builds blocked");
+        assertTrue(service.isBuildProtected("world", 0, 64, 150), "south ring builds blocked");
+        assertTrue(service.isBuildProtected("world", 150, 64, 0), "east ring builds blocked");
+        assertTrue(service.isBuildProtected("world", -150, 64, 0), "west ring builds blocked");
+        // None of the ring zones block PvP (they are NO_BUILD, not safezones).
+        assertFalse(service.isPvpProtected("world", 0, 64, -150));
+        assertFalse(service.isPvpProtected("world", 150, 64, 0));
+        // The corner gap outside the ring is wilderness.
+        assertFalse(service.isBuildProtected("world", 500, 64, 500));
     }
 
     @Test

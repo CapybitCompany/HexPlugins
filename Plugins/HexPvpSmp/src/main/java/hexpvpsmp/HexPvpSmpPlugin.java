@@ -7,13 +7,15 @@ import hexpvpsmp.combat.CombatTagService;
 import hexpvpsmp.command.HexPvpCommand;
 import hexpvpsmp.config.HexPvpConfig;
 import hexpvpsmp.config.HexPvpConfigLoader;
+import hexpvpsmp.movement.SafezoneInfoListener;
 import hexpvpsmp.movement.SafezoneMovementListener;
 import hexpvpsmp.protection.ConfigRegionProtectionProvider;
+import hexpvpsmp.protection.InteractionProtectionListener;
 import hexpvpsmp.protection.ProtectionProvider;
 import hexpvpsmp.protection.ProtectionService;
 import hexpvpsmp.protection.PublicChestRegistry;
 import hexpvpsmp.protection.SpawnProtectionListener;
-import hexpvpsmp.redline.RedLineService;
+import hexpvpsmp.redline.BarrierService;
 import hexpvpsmp.ui.ActionBarService;
 import hexpvpsmp.ui.MessageService;
 import org.bukkit.command.PluginCommand;
@@ -31,6 +33,7 @@ public class HexPvpSmpPlugin extends JavaPlugin {
     private CombatTagService combatTagService;
     private MessageService messageService;
     private PublicChestRegistry publicChestRegistry;
+    private BarrierService barrierService;
 
     // Rebuilt on reload.
     private ProtectionService protectionService;
@@ -43,6 +46,7 @@ public class HexPvpSmpPlugin extends JavaPlugin {
         this.messageService = new MessageService(getServer(), configRef::get);
         this.combatTagService = new CombatTagService(getServer(), configRef::get);
         this.publicChestRegistry = new PublicChestRegistry(configRef::get);
+        this.barrierService = new BarrierService(this);
 
         if (!initializeRuntime()) {
             getLogger().severe("Failed to initialize HexPvpSmp. Disabling plugin.");
@@ -60,8 +64,9 @@ public class HexPvpSmpPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new CombatCommandListener(this), this);
         getServer().getPluginManager().registerEvents(new CombatLogListener(this), this);
         getServer().getPluginManager().registerEvents(new SafezoneMovementListener(this), this);
+        getServer().getPluginManager().registerEvents(new SafezoneInfoListener(this), this);
         getServer().getPluginManager().registerEvents(new SpawnProtectionListener(this), this);
-        getServer().getPluginManager().registerEvents(new RedLineService(this), this);
+        getServer().getPluginManager().registerEvents(new InteractionProtectionListener(this), this);
 
         getLogger().info("HexPvpSmp enabled.");
     }
@@ -75,6 +80,7 @@ public class HexPvpSmpPlugin extends JavaPlugin {
         }
         messageService = null;
         publicChestRegistry = null;
+        barrierService = null;
         getLogger().info("HexPvpSmp disabled.");
     }
 
@@ -104,6 +110,10 @@ public class HexPvpSmpPlugin extends JavaPlugin {
         return publicChestRegistry;
     }
 
+    public BarrierService barrierService() {
+        return barrierService;
+    }
+
     public ActionBarService actionBarService() {
         return actionBarService;
     }
@@ -128,7 +138,7 @@ public class HexPvpSmpPlugin extends JavaPlugin {
         configRef.set(new HexPvpConfig(
                 current.enabled(), enabled,
                 current.combat(), current.safezones(),
-                current.messages(), current.worlds()
+                current.protection(), current.messages(), current.worlds()
         ));
     }
 

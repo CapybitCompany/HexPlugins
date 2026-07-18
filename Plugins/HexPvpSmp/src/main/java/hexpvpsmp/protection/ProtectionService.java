@@ -1,11 +1,13 @@
 package hexpvpsmp.protection;
 
 import hexpvpsmp.region.ProtectedRegion;
+import hexpvpsmp.region.RegionType;
 import org.bukkit.Location;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Aggregates one or more {@link ProtectionProvider}s. Always queries every
@@ -83,6 +85,28 @@ public final class ProtectionService {
 
     public boolean isBuildProtected(String worldName, double x, double y, double z) {
         return !regionsAt(worldName, x, y, z).isEmpty();
+    }
+
+    /** True if the location is inside a spawn safezone (highest-priority region). */
+    public boolean isSpawnSafezone(Location location) {
+        return isPvpProtected(location);
+    }
+
+    /**
+     * The effective (highest-priority) region type at a location, with
+     * {@code SPAWN_SAFEZONE} always winning over {@code NO_BUILD} when regions
+     * overlap. Empty when the location is unprotected. This is the single source
+     * of truth for "which ruleset applies here".
+     */
+    public Optional<RegionType> effectiveType(Location location) {
+        RegionType best = null;
+        for (ProtectedRegion r : regionsAt(location)) {
+            if (r.type() == RegionType.SPAWN_SAFEZONE) {
+                return Optional.of(RegionType.SPAWN_SAFEZONE);
+            }
+            best = RegionType.NO_BUILD;
+        }
+        return Optional.ofNullable(best);
     }
 
     public List<ProtectedRegion> allRegions() {

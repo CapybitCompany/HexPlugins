@@ -3,9 +3,11 @@ package hexpvpsmp.ui;
 import hexpvpsmp.config.HexPvpConfig;
 import hexpvpsmp.util.LegacyFormat;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.title.Title;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -55,6 +57,23 @@ public final class MessageService {
             return;
         }
         player.sendActionBar(LegacyFormat.component(legacyText));
+    }
+
+    private static final Title.Times TITLE_TIMES = Title.Times.times(
+            Duration.ofMillis(250), Duration.ofMillis(2000), Duration.ofMillis(500));
+
+    /**
+     * Shows a title + subtitle. Either part may be empty. Used for safezone
+     * entry (title + subtitle) and exit (subtitle-focused) info — never a
+     * bossbar. Unthrottled; callers apply their own transition cooldown.
+     */
+    public void showTitle(Player player, String titleText, String subtitleText) {
+        if (player == null) {
+            return;
+        }
+        Component title = titleText == null ? Component.empty() : LegacyFormat.component(titleText);
+        Component subtitle = subtitleText == null ? Component.empty() : LegacyFormat.component(subtitleText);
+        player.showTitle(Title.title(title, subtitle, TITLE_TIMES));
     }
 
     public void broadcast(String legacyText) {

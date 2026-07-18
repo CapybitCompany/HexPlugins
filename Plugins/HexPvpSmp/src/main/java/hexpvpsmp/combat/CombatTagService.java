@@ -44,6 +44,18 @@ public final class CombatTagService {
         return state;
     }
 
+    /**
+     * Tags the victim and records the attacker for kill credit if the victim
+     * later combat-logs. Refreshes the tag like {@link #tag(Player)}.
+     */
+    public CombatState tagVictim(Player victim, Player attacker) {
+        CombatState state = tag(victim);
+        if (attacker != null) {
+            state.setLastAttacker(attacker.getUniqueId());
+        }
+        return state;
+    }
+
     public boolean isTagged(Player player) {
         return player != null && isTagged(player.getUniqueId());
     }

@@ -20,7 +20,9 @@ combat:
     - help
   # Punishment applied when a combat-tagged player quits.
   # Implemented manually — we do NOT trigger vanilla PlayerDeathEvent,
-  # to avoid timing races and duplicate item drops.
+  # to avoid timing races and duplicate item drops. The quitter is still
+  # counted as having died (death stat), the last attacker is credited with
+  # the kill, and the quitter respawns at the world spawn on next join.
   combat-log:
     # Master switch. false = only clear the combat tag, do not drop anything.
     enabled: true
@@ -30,27 +32,73 @@ combat:
     drop-exp: true
     broadcast: "&c<player> wylogował się podczas walki i zginął."
 
+# Data-driven block/interaction/item protection for spawn + no-build regions.
+protection:
+  # Whether OP / hexpvpsmp.bypass players are exempt from each rule group.
+  # Set any switch to false to enforce that rule even for OP/bypass.
+  bypass:
+    build: true
+    interact: true
+    items: true
+  interactions:
+    # Whether buttons count as protected interactables. Default false so players
+    # can press buttons (e.g. a spawn door). Set true to also block buttons.
+    # Doors, trapdoors, gates and levers are always blocked regardless.
+    block-buttons: false
+  items:
+    # Terrain/always-blocked items (boats, minecarts, bone meal, eggs, ender
+    # pearls, eye of ender, goat horn) are ALWAYS blocked in every protected
+    # region, even for OP/bypass. This switch only controls PvP/mobility items
+    # (snowballs, wind charges, fireworks, splash/lingering potions, bows/
+    # crossbows) inside NO_BUILD zones; a valid bypass.items may still relax
+    # those there. Spawn safezones always block everything regardless.
+    block-pvp-in-no-build: false
+
 # All user-facing messages. <command> and <seconds> are placeholders.
 messages:
   no-permission: "&cNie masz uprawnień."
   pvp-denied: "&cPvP jest tutaj wyłączone."
-  safezone-entry-denied: "&cNie możesz wejść na spawn podczas walki."
+  safezone-entry-denied: "&cNie możesz wejść do spawnu podczas walki."
   command-blocked: "&cNie możesz użyć &f/<command> &cpodczas walki."
   combat-actionbar: "&cWalka: &f<seconds>s"
-  leaving-spawn: "&eOpuszczasz ochronę spawnu."
   build-denied: "&cNie możesz tutaj budować."
+  interact-denied: "&cNie możesz tego tutaj używać."
+  item-denied: "&cNie możesz używać tego przedmiotu w tej strefie."
   reload-success: "&aHexPvpSmp przeładowany."
   reload-failed: "&cPrzeładowanie nie powiodło się. Sprawdź konsolę."
+  # Shown as a title + subtitle when entering the spawn safezone.
+  safezone-enter-title: "&aBezpieczna strefa"
+  safezone-enter-subtitle: "&7PvP jest tutaj wyłączone."
+  # Shown as a title + subtitle when leaving the spawn safezone (no bossbar).
+  safezone-exit-title: "&cOpuszczasz bezpieczną strefę"
+  safezone-exit-subtitle: "&7PvP jest teraz aktywne."
 
 safezones:
   block-entry-while-combat: true
   # Rate-limit per-player warning chat/actionbar messages.
   warning-cooldown-ticks: 20
+  # Rate-limit the safezone enter/exit title+subtitle so skimming the border
+  # does not spam the player.
+  info-cooldown-ticks: 40
+  # Temporary client-side wall shown when a combat-tagged player is blocked
+  # from entering spawn. Fake blocks only — no real blocks are ever placed.
+  entry-barrier:
+    enabled: true
+    material: RED_STAINED_GLASS
+    duration-ticks: 40
+    # Blocks to each side of the player along the wall (line length = 2*radius+1).
+    radius: 4
+    # Wall height in blocks, starting at the player's feet.
+    height: 3
 
 # Regions are horizontal X/Z areas and protect EVERY height automatically
 # (from world bottom to top). Only min-x/max-x/min-z/max-z are used; there is
 # no min-y/max-y. This stops players bypassing spawn protection by building
 # above or tunnelling below the box. (Legacy min-y/max-y are ignored + warned.)
+#
+# Region priority: SPAWN_SAFEZONE always wins over NO_BUILD where they overlap.
+#   - spawn:     no PvP, no build, no combat entry, no interaction, no hunger loss.
+#   - no-build:  PvP + combat allowed, but no build/interaction (and terrain items).
 worlds:
   world:
     enabled: true
@@ -59,32 +107,58 @@ worlds:
     spawn:
       enabled: true
       block-mob-spawns: true
+      # Prevent hunger loss for players standing in the spawn safezone.
+      disable-hunger-loss: true
       region:
         type: CUBOID
         min-x: -100
         max-x: 100
         min-z: -100
         max-z: 100
-      red-line:
-        enabled: true
-        # Blocks from spawn boundary that trigger the "leaving spawn" warning.
-        warning-distance: 5
 
     # NO_BUILD: PvP allowed, combat allowed, but building/breaking is denied.
-    # Keeps the area in front of spawn clean without being a PvP safe haven.
+    # Four cuboids forming a ring around the spawn box (-100..100 / -100..100),
+    # so the whole spawn perimeter stays clean without being a PvP safe haven and
+    # without overlapping the spawn safezone. Outer radius is 180. The north/south
+    # strips span the full width (incl. corners); east/west fill the sides.
+    # Spawn priority still wins if an admin later configures overlapping regions.
     no-build-zones:
-      front_spawn:
+      north_spawn:
         enabled: true
         region:
           type: CUBOID
-          min-x: -150
-          max-x: 150
+          min-x: -180
+          max-x: 180
+          min-z: -180
+          max-z: -101
+      south_spawn:
+        enabled: true
+        region:
+          type: CUBOID
+          min-x: -180
+          max-x: 180
           min-z: 101
           max-z: 180
+      east_spawn:
+        enabled: true
+        region:
+          type: CUBOID
+          min-x: 101
+          max-x: 180
+          min-z: -100
+          max-z: 100
+      west_spawn:
+        enabled: true
+        region:
+          type: CUBOID
+          min-x: -180
+          max-x: -101
+          min-z: -100
+          max-z: 100
 
     # Public chests: block coordinates players may open/use inside spawn.
-    # They are protected from being broken/exploded. List each half of a
-    # double chest separately.
+    # They are protected from being broken/exploded/moved. For a double chest
+    # you only need to list ONE half — the other half is resolved automatically.
     public-chests:
       spawn_public:
         world: world

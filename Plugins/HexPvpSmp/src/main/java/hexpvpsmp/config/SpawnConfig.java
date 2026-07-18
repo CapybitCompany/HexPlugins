@@ -6,7 +6,8 @@ public record SpawnConfig(
         boolean enabled,
         Cuboid region,
         RedLineConfig redLine,
-        boolean blockMobSpawns
+        boolean blockMobSpawns,
+        boolean disableHungerLoss
 ) {
     public SpawnConfig {
         if (enabled && region == null) {
@@ -18,6 +19,6 @@ public record SpawnConfig(
     }
 
     public static SpawnConfig disabled() {
-        return new SpawnConfig(false, null, RedLineConfig.disabled(), false);
+        return new SpawnConfig(false, null, RedLineConfig.disabled(), false, false);
     }
 }

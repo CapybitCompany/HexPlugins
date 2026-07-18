@@ -76,6 +76,10 @@ public final class SafezoneMovementListener implements Listener {
         // Cancellation is enough for ordinary movement; record + notify.
         event.setCancelled(true);
         plugin.messageService().sendChat(player, config.messages().safezoneEntryDenied());
+        // Client-side visual wall along the edge the player ran into.
+        if (plugin.barrierService() != null) {
+            plugin.barrierService().showBarrier(player, safezonesAtTo.get(0).cuboid(), from);
+        }
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)

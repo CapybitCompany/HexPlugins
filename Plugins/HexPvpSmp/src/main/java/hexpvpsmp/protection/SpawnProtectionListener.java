@@ -8,7 +8,6 @@ import hexpvpsmp.config.WorldConfig;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.BlockState;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -25,10 +24,9 @@ import org.bukkit.event.block.BlockSpreadEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.InventoryHolder;
 
 import java.util.List;
 import java.util.Objects;
@@ -44,14 +42,14 @@ import java.util.Objects;
  *
  * <p>Public chests are an explicit per-block allowlist: players may open/use
  * them even inside the safezone, but they can never be broken, blown up or
- * shoved by a piston.
+ * shoved by a piston. Right-click interaction (containers, doors, items, ...)
+ * is handled by {@link InteractionProtectionListener}; this listener owns
+ * building, environment griefing, mob spawns and hunger.
  *
- * <p><b>Entity interaction:</b> this listener only inspects block interaction
- * ({@link PlayerInteractEvent} on containers). It never blocks entity
- * interaction, so NPC clicks (HexNPC drives those via PacketEvents
- * {@code INTERACT_ENTITY}, not Bukkit events) are unaffected. Plugin-spawned
- * entities also survive here because {@code SpawnReason.CUSTOM} is exempt from
- * the mob-spawn block.
+ * <p><b>Entity interaction:</b> this listener never blocks entity interaction,
+ * so NPC clicks (HexNPC drives those via PacketEvents {@code INTERACT_ENTITY},
+ * not Bukkit events) are unaffected. Plugin-spawned entities also survive here
+ * because {@code SpawnReason.CUSTOM} is exempt from the mob-spawn block.
  */
 public final class SpawnProtectionListener implements Listener {
 
@@ -65,7 +63,7 @@ public final class SpawnProtectionListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void onBlockPlace(BlockPlaceEvent event) {
-        if (!isEnabled() || PermissionGate.bypasses(event.getPlayer())) {
+        if (!isEnabled() || bypassesBuild(event.getPlayer())) {
             return;
         }
         if (isBuildProtected(event.getBlock().getLocation())) {
@@ -76,11 +74,21 @@ public final class SpawnProtectionListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
-        if (!isEnabled() || PermissionGate.bypasses(event.getPlayer())) {
+        if (!isEnabled()) {
             return;
         }
         Block block = event.getBlock();
-        if (isBuildProtected(block.getLocation()) || isPublicChest(block)) {
+        // Public chests are indestructible for EVERYONE, including OP / bypass:
+        // this check must come before the bypass gate.
+        if (isPublicChest(block)) {
+            event.setCancelled(true);
+            denyBuild(event.getPlayer(), "break-public-chest");
+            return;
+        }
+        if (bypassesBuild(event.getPlayer())) {
+            return;
+        }
+        if (isBuildProtected(block.getLocation())) {
             event.setCancelled(true);
             denyBuild(event.getPlayer(), "break");
         }
@@ -97,7 +105,7 @@ public final class SpawnProtectionListener implements Listener {
     }
 
     private void handleBucket(Player player, Location target, org.bukkit.event.Cancellable event) {
-        if (!isEnabled() || PermissionGate.bypasses(player)) {
+        if (!isEnabled() || bypassesBuild(player)) {
             return;
         }
         if (isBuildProtected(target)) {
@@ -106,29 +114,24 @@ public final class SpawnProtectionListener implements Listener {
         }
     }
 
-    // ---- Container interaction (public-chest allowlist) ------------------
+    // ---- Hunger ----------------------------------------------------------
 
+    /**
+     * Suppresses hunger loss for players standing in a spawn safezone with
+     * {@code disable-hunger-loss} enabled. Only decreases are cancelled so
+     * eating (an increase) still works; no-build zones and wilderness are
+     * unaffected unless configured otherwise per world.
+     */
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
-    public void onInteract(PlayerInteractEvent event) {
-        if (event.getAction() != org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK) {
+    public void onFoodLevelChange(FoodLevelChangeEvent event) {
+        if (!isEnabled() || !(event.getEntity() instanceof Player player)) {
             return;
         }
-        Block block = event.getClickedBlock();
-        if (block == null || !isEnabled() || PermissionGate.bypasses(event.getPlayer())) {
-            return;
+        if (event.getFoodLevel() >= player.getFoodLevel()) {
+            return; // an increase (eating) or no change -> never blocked
         }
-        if (isPublicChest(block)) {
-            return; // explicitly allowed, even inside spawn
-        }
-        if (!isBuildProtected(block.getLocation())) {
-            return;
-        }
-        // Block container access inside protected regions so the spawn can't be
-        // used as private/shared storage that bypasses the build protection.
-        BlockState state = block.getState();
-        if (state instanceof InventoryHolder) {
+        if (isHungerDisabledAt(player.getLocation())) {
             event.setCancelled(true);
-            denyBuild(event.getPlayer(), "interact");
         }
     }
 
@@ -161,9 +164,18 @@ public final class SpawnProtectionListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void onIgnite(BlockIgniteEvent event) {
-        if (isEnabled() && isBuildProtected(event.getBlock().getLocation())) {
-            event.setCancelled(true);
+        if (!isEnabled() || !isBuildProtected(event.getBlock().getLocation())) {
+            return;
         }
+        // Player-driven ignition (flint & steel, incl. lighting candles) respects
+        // the interact bypass, so an OP/bypass player may still light things when
+        // protection.bypass.interact=true. Environmental ignition (spread, lava,
+        // lightning) has no player and is always cancelled.
+        Player igniter = event.getPlayer();
+        if (igniter != null && bypassesInteract(igniter)) {
+            return;
+        }
+        event.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
@@ -260,6 +272,34 @@ public final class SpawnProtectionListener implements Listener {
         return config != null && config.enabled();
     }
 
+    /** Bypass build only if the player bypasses AND config lets bypass cover building. */
+    private boolean bypassesBuild(Player player) {
+        HexPvpConfig config = plugin.config();
+        return PermissionGate.bypasses(player)
+                && (config == null || config.protection().bypassBuild());
+    }
+
+    /** Bypass interaction only if the player bypasses AND config lets bypass cover interaction. */
+    private boolean bypassesInteract(Player player) {
+        HexPvpConfig config = plugin.config();
+        return PermissionGate.bypasses(player)
+                && (config == null || config.protection().bypassInteract());
+    }
+
+    private boolean isHungerDisabledAt(Location loc) {
+        HexPvpConfig config = plugin.config();
+        if (config == null || loc == null || loc.getWorld() == null) {
+            return false;
+        }
+        WorldConfig world = config.world(loc.getWorld().getName()).orElse(null);
+        if (world == null || !world.enabled()) {
+            return false;
+        }
+        SpawnConfig spawn = world.spawn();
+        return spawn.enabled() && spawn.disableHungerLoss() && spawn.region() != null
+                && spawn.region().contains(loc.getX(), loc.getZ());
+    }
+
     private boolean isBuildProtected(Location location) {
         ProtectionService protection = plugin.protectionService();
         return protection != null && protection.isBuildProtected(location);
@@ -270,8 +310,7 @@ public final class SpawnProtectionListener implements Listener {
             return false;
         }
         PublicChestRegistry registry = plugin.publicChestRegistry();
-        return registry != null && registry.isPublicChest(
-                block.getWorld().getName(), block.getX(), block.getY(), block.getZ());
+        return registry != null && registry.isPublicChest(block);
     }
 
     private boolean isMobSpawnBlocked(Location loc) {

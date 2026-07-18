@@ -64,7 +64,8 @@ public final class CombatListener implements Listener {
             tagger.tag(attacker);
         }
         if (!PermissionGate.bypasses(victim)) {
-            tagger.tag(victim);
+            // Record the attacker so a combat-log by the victim credits the kill.
+            tagger.tagVictim(victim, attacker);
         }
     }
 

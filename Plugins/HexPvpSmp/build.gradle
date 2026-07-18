@@ -18,6 +18,9 @@ dependencies {
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.11.0'
     testImplementation 'org.mockbukkit.mockbukkit:mockbukkit-v1.21:4.0.0'
+    // Mockito is used for lightweight projectile/potion/item-frame entity stubs,
+    // avoiding MockBukkit's flaky live entity spawning in unit tests.
+    testImplementation 'org.mockito:mockito-core:5.14.2'
 }
 
 java {

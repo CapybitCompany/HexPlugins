@@ -5,6 +5,7 @@ import hexpvpsmp.region.ProtectedRegion;
 import hexpvpsmp.region.PublicChest;
 import hexpvpsmp.region.RegionId;
 import hexpvpsmp.region.RegionType;
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
@@ -22,11 +23,22 @@ public final class HexPvpConfigLoader {
         boolean debug = config.getBoolean("debug", false);
 
         CombatConfig combat = loadCombat(config);
-        SafezoneConfig safezones = loadSafezones(config);
+        SafezoneConfig safezones = loadSafezones(config, logger);
+        ProtectionConfig protection = loadProtection(config);
         MessagesConfig messages = loadMessages(config.getConfigurationSection("messages"));
         Map<String, WorldConfig> worlds = loadWorlds(config.getConfigurationSection("worlds"), logger);
 
-        return new HexPvpConfig(enabled, debug, combat, safezones, messages, worlds);
+        return new HexPvpConfig(enabled, debug, combat, safezones, protection, messages, worlds);
+    }
+
+    private ProtectionConfig loadProtection(FileConfiguration config) {
+        return new ProtectionConfig(
+                config.getBoolean("protection.bypass.build", true),
+                config.getBoolean("protection.bypass.interact", true),
+                config.getBoolean("protection.bypass.items", true),
+                config.getBoolean("protection.interactions.block-buttons", false),
+                config.getBoolean("protection.items.block-pvp-in-no-build", false)
+        );
     }
 
     private CombatConfig loadCombat(FileConfiguration config) {
@@ -49,10 +61,37 @@ public final class HexPvpConfigLoader {
         return CombatConfig.fromList(durationSeconds, actionbar, actionbarTicks, allowed, combatLog);
     }
 
-    private SafezoneConfig loadSafezones(FileConfiguration config) {
+    private SafezoneConfig loadSafezones(FileConfiguration config, Logger logger) {
+        BarrierConfig barrier = loadBarrier(config.getConfigurationSection("safezones.entry-barrier"), logger);
         return new SafezoneConfig(
                 config.getBoolean("safezones.block-entry-while-combat", true),
-                config.getInt("safezones.warning-cooldown-ticks", 20)
+                config.getInt("safezones.warning-cooldown-ticks", 20),
+                config.getInt("safezones.info-cooldown-ticks", 40),
+                barrier
+        );
+    }
+
+    private BarrierConfig loadBarrier(ConfigurationSection section, Logger logger) {
+        if (section == null) {
+            return BarrierConfig.defaults();
+        }
+        Material material = Material.RED_STAINED_GLASS;
+        String raw = section.getString("material", "RED_STAINED_GLASS");
+        if (raw != null) {
+            Material parsed = Material.matchMaterial(raw.trim().toUpperCase(Locale.ROOT));
+            if (parsed == null || !parsed.isBlock()) {
+                logger.warning("HexPvpSmp: invalid safezones.entry-barrier.material '" + raw
+                        + "' — falling back to RED_STAINED_GLASS.");
+            } else {
+                material = parsed;
+            }
+        }
+        return new BarrierConfig(
+                section.getBoolean("enabled", true),
+                material,
+                section.getInt("duration-ticks", 40),
+                section.getInt("radius", 4),
+                section.getInt("height", 3)
         );
     }
 
@@ -68,8 +107,14 @@ public final class HexPvpConfigLoader {
                 section.getString("combat-actionbar"),
                 section.getString("leaving-spawn"),
                 section.getString("build-denied"),
+                section.getString("interact-denied"),
+                section.getString("item-denied"),
                 section.getString("reload-success"),
-                section.getString("reload-failed")
+                section.getString("reload-failed"),
+                section.getString("safezone-enter-title"),
+                section.getString("safezone-enter-subtitle"),
+                section.getString("safezone-exit-title"),
+                section.getString("safezone-exit-subtitle")
         );
     }
 
@@ -109,7 +154,8 @@ public final class HexPvpConfigLoader {
         }
         RedLineConfig redLine = loadRedLine(section.getConfigurationSection("red-line"));
         boolean blockMobSpawns = section.getBoolean("block-mob-spawns", true);
-        return new SpawnConfig(enabled, cuboid, redLine, blockMobSpawns);
+        boolean disableHungerLoss = section.getBoolean("disable-hunger-loss", true);
+        return new SpawnConfig(enabled, cuboid, redLine, blockMobSpawns, disableHungerLoss);
     }
 
     private RedLineConfig loadRedLine(ConfigurationSection section) {

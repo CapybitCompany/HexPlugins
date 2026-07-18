@@ -90,7 +90,10 @@ class SafezoneFallbackTest {
         Location to = inside();
         Location chosen = listener.computeFallback(player, from, to, protection);
         assertNotNull(chosen);
-        assertTrue(protection.regionsAt(chosen).isEmpty(),
+        // Must be outside every spawn safezone. With the default no-build ring
+        // hugging the spawn box, the pushed point may land in a NO_BUILD zone —
+        // that is fine: no-build is not a safezone, so a tagged player may be there.
+        assertTrue(protection.safezonesAt(chosen).isEmpty(),
                 "push-to-boundary result must be OUTSIDE every safezone");
     }
 
