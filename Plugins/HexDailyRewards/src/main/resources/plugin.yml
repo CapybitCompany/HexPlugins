@@ -4,7 +4,7 @@ main: hexdailyrewards.HexDailyRewardsPlugin
 api-version: '1.21.11'
 description: Daily reward GUI opened from HexNPC actions or command.
 authors: [HexDevTeam]
-softdepend: [HexNPC]
+softdepend: [HexNPC, PlaceholderAPI]
 
 commands:
   hexdailyrewards:
@@ -19,4 +19,3 @@ permissions:
   hexdailyrewards.admin:
     description: Allows reloading HexDailyRewards.
     default: op
-

@@ -13,6 +13,7 @@ public record DailyRewardsConfig(
         HexNpc hexNpc,
         TimeFormat timeFormat,
         Messages messages,
+        PlaceholderTexts placeholderTexts,
         Sounds sounds,
         Reward reward,
         RewardsCalendar rewardsCalendar,
@@ -43,6 +44,18 @@ public record DailyRewardsConfig(
         public String withPrefix(String message) {
             return prefix + message;
         }
+    }
+
+    public record PlaceholderTexts(
+            String noPlayer,
+            String noReward,
+            String available,
+            String unavailable,
+            String statusAvailable,
+            String statusClaimed,
+            String playerStatusAvailable,
+            String playerStatusClaimed
+    ) {
     }
 
     public record Sounds(SoundSetting open, SoundSetting claim, SoundSetting unavailable) {

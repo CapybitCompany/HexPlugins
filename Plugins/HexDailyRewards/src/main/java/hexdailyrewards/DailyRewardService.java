@@ -99,20 +99,33 @@ public final class DailyRewardService {
     }
 
     public Map<String, String> placeholders(Player player, ClaimState state) {
+        return placeholders(player.getUniqueId(), player.getName(), state);
+    }
+
+    public Map<String, String> placeholders(UUID playerId, String playerName, ClaimState state) {
         DailyRewardsConfig config = configSupplier.get();
+        DailyRewardsConfig.PlaceholderTexts placeholderTexts = config.placeholderTexts();
         Map<String, String> values = new LinkedHashMap<>();
-        values.put("player", player.getName());
-        values.put("uuid", player.getUniqueId().toString());
+        values.put("player", playerName == null || playerName.isBlank() ? placeholderTexts.noPlayer() : playerName);
+        values.put("uuid", playerId.toString());
         values.put("date", state.today().format(DateTimeFormatter.ofPattern(config.timeFormat().datePattern())));
         values.put("last_date", state.lastClaimDate() == null
                 ? "-"
                 : state.lastClaimDate().format(DateTimeFormatter.ofPattern(config.timeFormat().datePattern())));
         values.put("time", formatRemaining(state.remaining(), config.timeFormat()));
+        long totalMinutes = roundedMinutes(state.remaining());
+        values.put("hours", Long.toString(totalMinutes / 60L));
+        values.put("minutes", Long.toString(totalMinutes % 60L));
+        values.put("available", state.available() ? placeholderTexts.available() : placeholderTexts.unavailable());
+        values.put("status", state.available() ? placeholderTexts.statusAvailable() : placeholderTexts.statusClaimed());
+        values.put("player_status", state.available()
+                ? placeholderTexts.playerStatusAvailable()
+                : placeholderTexts.playerStatusClaimed());
         values.put("reset_time", resetTime(state.nextReset(), config));
         Optional<ResolvedDailyReward> reward = currentReward(state);
         values.put("reward_id", reward.map(value -> value.definition().id()).orElse("-"));
         values.put("reward_day", reward.map(value -> Integer.toString(value.cycleDay())).orElse("-"));
-        values.put("reward_name", reward.map(value -> value.definition().displayName()).orElse("-"));
+        values.put("reward_name", reward.map(value -> value.definition().displayName()).orElse(placeholderTexts.noReward()));
         values.put("reward_source", reward.map(value -> value.dateOverride() ? "date-override" : "cycle").orElse("-"));
         return values;
     }
@@ -146,22 +159,22 @@ public final class DailyRewardService {
     }
 
     private String formatRemaining(Duration duration, DailyRewardsConfig.TimeFormat format) {
-        long seconds = Math.max(0L, duration.toSeconds());
-        if (seconds <= 0L) {
+        long minutesTotal = roundedMinutes(duration);
+        if (minutesTotal <= 0L) {
             return format.now();
         }
 
-        long hours = seconds / 3600L;
-        long minutes = (seconds % 3600L) / 60L;
-        long secs = seconds % 60L;
+        long hours = minutesTotal / 60L;
+        long minutes = minutesTotal % 60L;
+        return hours + format.hour() + " " + minutes + format.minute();
+    }
 
-        if (hours > 0L) {
-            return hours + format.hour() + " " + minutes + format.minute();
+    private long roundedMinutes(Duration duration) {
+        long seconds = Math.max(0L, duration.toSeconds());
+        if (seconds <= 0L) {
+            return 0L;
         }
-        if (minutes > 0L) {
-            return minutes + format.minute() + " " + secs + format.second();
-        }
-        return secs + format.second();
+        return (seconds + 59L) / 60L;
     }
 
     private static Duration positive(Duration duration) {

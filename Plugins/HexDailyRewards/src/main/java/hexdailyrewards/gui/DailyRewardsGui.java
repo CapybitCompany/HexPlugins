@@ -14,7 +14,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -158,10 +157,9 @@ public final class DailyRewardsGui {
     private void hideTooltip(ItemMeta meta) {
         meta.addItemFlags(ItemFlag.values());
         try {
-            Method method = meta.getClass().getMethod("setHideTooltip", boolean.class);
-            method.invoke(meta, true);
-        } catch (ReflectiveOperationException ignored) {
-            // Older Paper APIs do not expose a full tooltip hide flag.
+            meta.setHideTooltip(true);
+        } catch (Throwable ignored) {
+            // Keeps test/runtime compatibility if an older API is used accidentally.
         }
     }
 

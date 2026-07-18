@@ -28,25 +28,36 @@ public final class DailyRewardsConfigLoader {
         DailyRewardsConfig.TimeFormat timeFormat = new DailyRewardsConfig.TimeFormat(
                 config.getString("time-format.now", "teraz"),
                 config.getString("time-format.hour", "h"),
-                config.getString("time-format.minute", "m"),
+                config.getString("time-format.minute", "min"),
                 config.getString("time-format.second", "s"),
                 validPattern(config.getString("time-format.reset-time-pattern", "HH:mm"), "HH:mm", logger),
                 validPattern(config.getString("time-format.date-pattern", "dd.MM.yyyy"), "dd.MM.yyyy", logger)
         );
 
         DailyRewardsConfig.Messages messages = new DailyRewardsConfig.Messages(
-                config.getString("messages.prefix", "&6&lDaily Rewards &8> "),
-                config.getString("messages.no-permission", "&cNie masz permisji."),
-                config.getString("messages.player-only", "&cTa komenda jest tylko dla gracza."),
-                config.getString("messages.usage", "&7Uzycie: &f/hexdailyrewards reload"),
-                config.getString("messages.reload-success", "&aPrzeladowano konfiguracje."),
-                config.getString("messages.reload-failed", "&cNie udalo sie przeladowac konfiguracji. Sprawdz konsole."),
-                config.getString("messages.disabled", "&cDaily Rewards sa obecnie wylaczone."),
-                config.getString("messages.reward-claimed-chat", "&aOdebrales dzisiejsza nagrode."),
-                config.getString("messages.reward-claimed-actionbar", "&aOdebrano codzienna nagrode!"),
-                config.getString("messages.already-claimed-actionbar", "&eDzisiejsza nagroda zostala juz odebrana. Wroc za &6{time}&e."),
-                config.getString("messages.claim-error", "&cNie udalo sie zapisac odbioru nagrody. Zglos to administracji."),
+                config.getString("messages.prefix", "&c&lDaily Rewards &8> "),
+                config.getString("messages.no-permission", "&cNie masz uprawnień."),
+                config.getString("messages.player-only", "&cTa komenda jest dostępna tylko dla gracza."),
+                config.getString("messages.usage", "&7Użycie: &f/hexdailyrewards reload"),
+                config.getString("messages.reload-success", "&aPrzeładowano konfigurację."),
+                config.getString("messages.reload-failed", "&cNie udało się przeładować konfiguracji. Sprawdź konsolę."),
+                config.getString("messages.disabled", "&cDaily Rewards są obecnie wyłączone."),
+                config.getString("messages.reward-claimed-chat", "&aOdebrałeś dzisiejszą nagrodę."),
+                config.getString("messages.reward-claimed-actionbar", "&aOdebrano codzienną nagrodę!"),
+                config.getString("messages.already-claimed-actionbar", "&eDzisiejsza nagroda została już odebrana. Wróć za &6{time}&e."),
+                config.getString("messages.claim-error", "&cNie udało się zapisać odbioru nagrody. Zgłoś to administracji."),
                 config.getString("messages.no-reward-configured", "&cBrak skonfigurowanej nagrody na dzisiaj.")
+        );
+
+        DailyRewardsConfig.PlaceholderTexts placeholderTexts = new DailyRewardsConfig.PlaceholderTexts(
+                config.getString("placeholders.no-player", "-"),
+                config.getString("placeholders.no-reward", "-"),
+                config.getString("placeholders.available", "true"),
+                config.getString("placeholders.unavailable", "false"),
+                config.getString("placeholders.status-available", "Do odebrania"),
+                config.getString("placeholders.status-claimed", "Odebrane"),
+                config.getString("placeholders.player-status-available", "&aDo odebrania"),
+                config.getString("placeholders.player-status-claimed", "&cOdebrany")
         );
 
         DailyRewardsConfig.Sounds sounds = new DailyRewardsConfig.Sounds(
@@ -62,7 +73,7 @@ public final class DailyRewardsConfigLoader {
 
         DailyRewardsConfig.RewardsCalendar rewardsCalendar = calendar(config, logger);
         DailyRewardsConfig.Gui gui = gui(config, logger);
-        return new DailyRewardsConfig(enabled, zone, hexNpc, timeFormat, messages, sounds, reward, rewardsCalendar, gui);
+        return new DailyRewardsConfig(enabled, zone, hexNpc, timeFormat, messages, placeholderTexts, sounds, reward, rewardsCalendar, gui);
     }
 
     private DailyRewardsConfig.RewardsCalendar calendar(FileConfiguration config, Logger logger) {
@@ -75,6 +86,10 @@ public final class DailyRewardsConfigLoader {
             cycleDays = 14;
         }
 
+        List<String> defaultLore = config.contains("rewards-calendar.default-lore")
+                ? config.getStringList("rewards-calendar.default-lore")
+                : List.of("&7Nagroda dnia: &f{reward_name}");
+
         Map<Integer, DailyRewardsConfig.RewardDefinition> days = new LinkedHashMap<>();
         ConfigurationSection daysSection = config.getConfigurationSection("rewards-calendar.days");
         if (daysSection != null) {
@@ -83,7 +98,7 @@ public final class DailyRewardsConfigLoader {
                 if (day < 1) {
                     continue;
                 }
-                days.put(day, rewardDefinition(key, daysSection.getConfigurationSection(key), logger));
+                days.put(day, rewardDefinition(key, daysSection.getConfigurationSection(key), defaultLore, logger));
             }
         }
 
@@ -95,7 +110,7 @@ public final class DailyRewardsConfigLoader {
                 if (date == null) {
                     continue;
                 }
-                overrides.put(date, rewardDefinition(key, overridesSection.getConfigurationSection(key), logger));
+                overrides.put(date, rewardDefinition(key, overridesSection.getConfigurationSection(key), defaultLore, logger));
             }
         }
 
@@ -104,17 +119,22 @@ public final class DailyRewardsConfigLoader {
 
     private DailyRewardsConfig.RewardDefinition rewardDefinition(String id,
                                                                 ConfigurationSection section,
+                                                                List<String> defaultLore,
                                                                 Logger logger) {
         if (section == null) {
-            return new DailyRewardsConfig.RewardDefinition(id, "&cBrak nagrody", Material.BARRIER, List.of(), List.of());
+            return new DailyRewardsConfig.RewardDefinition(id, "&cBrak nagrody", Material.BARRIER, defaultLore, List.of());
         }
         Material material = material(section.getString("material", "CHEST"), Material.CHEST, logger);
         List<String> commands = section.contains("commands") ? section.getStringList("commands") : List.of();
+        List<String> lore = section.contains("lore") ? section.getStringList("lore") : defaultLore;
+        if (isBlank(lore)) {
+            lore = defaultLore;
+        }
         return new DailyRewardsConfig.RewardDefinition(
                 id,
                 section.getString("display-name", "&6Daily Reward"),
                 material,
-                section.contains("lore") ? section.getStringList("lore") : List.of(),
+                List.copyOf(lore),
                 List.copyOf(commands)
         );
     }
@@ -129,19 +149,19 @@ public final class DailyRewardsConfigLoader {
                 true, 0, Material.BLACK_STAINED_GLASS_PANE, false, "", List.of(), true, logger);
         DailyRewardsConfig.GuiItems items = new DailyRewardsConfig.GuiItems(
                 item(config.getConfigurationSection("gui.items.available"), true, 13, Material.CHEST, true,
-                        "&a&l{reward_name}", List.of("&7Kliknij, aby odebrac."), false, logger),
+                        "{reward_name}", List.of("{reward_lore}"), false, logger),
                 item(config.getConfigurationSection("gui.items.claimed"), true, 13, Material.MINECART, true,
-                        "&c&l{reward_name}", List.of("&7Nastepna za: &f{time}"), false, logger),
-                item(config.getConfigurationSection("gui.items.status-available"), true, 11, Material.LIME_DYE, false,
-                        "&aStatus: Dostepna", List.of(), false, logger),
-                item(config.getConfigurationSection("gui.items.status-claimed"), true, 11, Material.RED_DYE, false,
-                        "&cStatus: Odebrana", List.of("&7Pozostalo: &f{time}"), false, logger),
-                item(config.getConfigurationSection("gui.items.info"), true, 15, Material.CLOCK, false,
+                        "{reward_name}", List.of("{reward_lore}"), false, logger),
+                item(config.getConfigurationSection("gui.items.status-available"), true, 26, Material.LIME_DYE, false,
+                        "&fStatus: &aDo odebrania", List.of("&7Do następnej nagrody: &f{time}"), false, logger),
+                item(config.getConfigurationSection("gui.items.status-claimed"), true, 26, Material.RED_DYE, false,
+                        "&fStatus: &cOdebrane", List.of("&7Do następnej nagrody: &f{time}"), false, logger),
+                item(config.getConfigurationSection("gui.items.info"), false, 15, Material.CLOCK, false,
                         "&6Dzisiejsza nagroda", List.of("&7Reset: &f{reset_time}"), false, logger),
-                item(config.getConfigurationSection("gui.items.close"), true, 22, Material.BARRIER, false,
+                item(config.getConfigurationSection("gui.items.close"), true, 18, Material.BARRIER, false,
                         "&cZamknij", List.of(), false, logger)
         );
-        return new DailyRewardsConfig.Gui(size, config.getString("gui.title", "&6Daily Rewards"), filler, items);
+        return new DailyRewardsConfig.Gui(size, config.getString("gui.title", "&cDaily Rewards"), filler, items);
     }
 
     private DailyRewardsConfig.GuiItem item(ConfigurationSection section,
@@ -163,8 +183,20 @@ public final class DailyRewardsConfigLoader {
                 section.getBoolean("use-reward-material", useRewardMaterial),
                 section.getString("name", name),
                 section.contains("lore") ? section.getStringList("lore") : lore,
-                section.getBoolean("hide-tooltip", hideTooltip)
+                section.getBoolean("hide_tooltip", section.getBoolean("hide-tooltip", hideTooltip))
         );
+    }
+
+    private boolean isBlank(List<String> lines) {
+        if (lines == null || lines.isEmpty()) {
+            return true;
+        }
+        for (String line : lines) {
+            if (line != null && !line.isBlank()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private DailyRewardsConfig.SoundSetting sound(ConfigurationSection section, String fallback) {
@@ -229,4 +261,3 @@ public final class DailyRewardsConfigLoader {
         }
     }
 }
-

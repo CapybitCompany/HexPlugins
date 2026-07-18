@@ -5,18 +5,23 @@ import hexdailyrewards.config.DailyRewardsConfig;
 import hexdailyrewards.config.DailyRewardsConfigLoader;
 import hexdailyrewards.gui.DailyRewardsGui;
 import hexdailyrewards.gui.DailyRewardsInventoryListener;
+import hexdailyrewards.integration.HexDailyRewardsPlaceholderExpansion;
 import hexdailyrewards.integration.HexNpcActionBridge;
 import hexdailyrewards.storage.YamlRewardStorage;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.time.Clock;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class HexDailyRewardsPlugin extends JavaPlugin {
+
+    private static final int CONFIG_VERSION = 2;
 
     private final DailyRewardsConfigLoader configLoader = new DailyRewardsConfigLoader();
     private final AtomicReference<DailyRewardsConfig> configRef = new AtomicReference<>();
@@ -26,10 +31,12 @@ public class HexDailyRewardsPlugin extends JavaPlugin {
     private DailyRewardsGui gui;
     private DailyRewardsInventoryListener inventoryListener;
     private HexNpcActionBridge hexNpcActionBridge;
+    private Object placeholderExpansion;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
+        applyConfigMaintenance();
 
         this.storage = new YamlRewardStorage(new File(getDataFolder(), "claims.yml"));
         storage.load();
@@ -58,6 +65,8 @@ public class HexDailyRewardsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(hexNpcActionBridge, this);
         hexNpcActionBridge.refresh();
 
+        registerPlaceholderExpansion();
+
         getLogger().info("HexDailyRewards enabled.");
     }
 
@@ -71,6 +80,7 @@ public class HexDailyRewardsPlugin extends JavaPlugin {
             HandlerList.unregisterAll(inventoryListener);
             inventoryListener = null;
         }
+        unregisterPlaceholderExpansion();
         gui = null;
         rewardService = null;
         storage = null;
@@ -79,6 +89,7 @@ public class HexDailyRewardsPlugin extends JavaPlugin {
 
     public boolean reloadPluginRuntime() {
         reloadConfig();
+        applyConfigMaintenance();
         boolean loaded = reloadPluginConfig();
         if (loaded && hexNpcActionBridge != null) {
             hexNpcActionBridge.refresh();
@@ -124,6 +135,87 @@ public class HexDailyRewardsPlugin extends JavaPlugin {
         } catch (RuntimeException ex) {
             getLogger().severe("Failed to load HexDailyRewards config: " + ex.getMessage());
             return false;
+        }
+    }
+
+    private void applyConfigMaintenance() {
+        FileConfiguration config = getConfig();
+        int version = config.isSet("config-version") ? config.getInt("config-version") : 1;
+
+        config.options().copyDefaults(true);
+        if (version < 2) {
+            migrateVisualDefaults(config);
+            getLogger().info("Migrated HexDailyRewards config visuals to version 2.");
+        }
+        config.set("config-version", CONFIG_VERSION);
+
+        saveConfig();
+        reloadConfig();
+    }
+
+    private void migrateVisualDefaults(FileConfiguration config) {
+        config.set("gui.title", "&cDaily Rewards");
+        config.set("gui.filler.material", "BLACK_STAINED_GLASS_PANE");
+        config.set("gui.filler.name", "");
+        config.set("gui.filler.lore", List.of());
+        config.set("gui.filler.hide_tooltip", true);
+
+        config.set("gui.items.available.slot", 13);
+        config.set("gui.items.available.use-reward-material", true);
+        config.set("gui.items.available.name", "{reward_name}");
+        config.set("gui.items.available.lore", List.of("{reward_lore}"));
+
+        config.set("gui.items.claimed.slot", 13);
+        config.set("gui.items.claimed.use-reward-material", true);
+        config.set("gui.items.claimed.name", "{reward_name}");
+        config.set("gui.items.claimed.lore", List.of("{reward_lore}"));
+
+        config.set("gui.items.status-available.slot", 26);
+        config.set("gui.items.status-available.material", "LIME_DYE");
+        config.set("gui.items.status-available.name", "&fStatus: &aDo odebrania");
+        config.set("gui.items.status-available.lore", List.of("&7Do następnej nagrody: &f{time}"));
+
+        config.set("gui.items.status-claimed.slot", 26);
+        config.set("gui.items.status-claimed.material", "RED_DYE");
+        config.set("gui.items.status-claimed.name", "&fStatus: &cOdebrane");
+        config.set("gui.items.status-claimed.lore", List.of("&7Do następnej nagrody: &f{time}"));
+
+        config.set("gui.items.info.enabled", false);
+
+        config.set("gui.items.close.slot", 18);
+        config.set("gui.items.close.material", "BARRIER");
+        config.set("gui.items.close.name", "&cZamknij");
+        config.set("gui.items.close.lore", List.of());
+    }
+
+    private void registerPlaceholderExpansion() {
+        if (!getServer().getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            getLogger().info("PlaceholderAPI not detected. HexDailyRewards placeholders are disabled.");
+            return;
+        }
+        try {
+            HexDailyRewardsPlaceholderExpansion expansion = new HexDailyRewardsPlaceholderExpansion(this);
+            if (expansion.register()) {
+                placeholderExpansion = expansion;
+                getLogger().info("Registered PlaceholderAPI placeholders.");
+            } else {
+                getLogger().warning("Failed to register PlaceholderAPI placeholders.");
+            }
+        } catch (NoClassDefFoundError ex) {
+            getLogger().info("PlaceholderAPI classes are unavailable. HexDailyRewards placeholders are disabled.");
+        }
+    }
+
+    private void unregisterPlaceholderExpansion() {
+        if (placeholderExpansion == null) {
+            return;
+        }
+        try {
+            placeholderExpansion.getClass().getMethod("unregister").invoke(placeholderExpansion);
+        } catch (ReflectiveOperationException ex) {
+            getLogger().warning("Failed to unregister PlaceholderAPI placeholders: " + ex.getMessage());
+        } finally {
+            placeholderExpansion = null;
         }
     }
 }
