@@ -1,0 +1,143 @@
+# ==========================================================
+# HexAfkZone
+# ==========================================================
+
+enabled: true
+
+region:
+  world: "world"
+  corner-1:
+    x: 2786
+    y: 72
+    z: 952
+  corner-2:
+    x: 2782
+    y: 81
+    z: 965
+
+messages:
+  prefix: "&6&lAFK Zone &8> "
+  no-permission: "&cNie masz uprawnien."
+  usage: "&7Uzycie: &f/hexafkzone reload"
+  reload-success: "&aPrzeladowano konfiguracje."
+  reload-failed: "&cNie udalo sie przeladowac konfiguracji. Sprawdz konsole."
+  zone-subtitle: "{color}STREFA AFK"
+  timer-actionbar: "{color}Jesteś AFK od: &f{time}"
+  reward-actionbar: "{color}Otrzymano: &f{reward_name} x{amount}"
+
+reward-message-seconds: 3
+
+sounds:
+  reward:
+    enabled: true
+    name: "minecraft:ui.toast.challenge_complete"
+    volume: 0.8
+    pitch: 1.0
+
+# Profile decyduja o kolorze komunikatow oraz o tym, z ktorej grupy nagrod korzysta gracz.
+# Operatorzy oraz osoby z hexafkzone.admin przyjmuja profil elite.
+rank-profiles:
+  default:
+    display-name: "Default"
+    color: "&7"
+    reward-group: "default"
+    priority: 0
+    fallback-access: true
+    operator-access: false
+    permissions:
+      - "hexafkzone.rank.default"
+      - "group.default"
+  media:
+    display-name: "Media"
+    color: "&d"
+    reward-group: "default"
+    priority: 10
+    fallback-access: false
+    operator-access: false
+    permissions:
+      - "hexafkzone.rank.media"
+      - "group.media"
+  vip:
+    display-name: "VIP"
+    color: "&e"
+    reward-group: "vip"
+    priority: 20
+    fallback-access: false
+    operator-access: false
+    permissions:
+      - "hexafkzone.rank.vip"
+      - "group.vip"
+  svip:
+    display-name: "SVIP"
+    color: "&6"
+    reward-group: "svip"
+    priority: 30
+    fallback-access: false
+    operator-access: false
+    permissions:
+      - "hexafkzone.rank.svip"
+      - "group.svip"
+  elite:
+    display-name: "Elita"
+    color: "&b"
+    reward-group: "elite"
+    priority: 40
+    fallback-access: false
+    operator-access: true
+    permissions:
+      - "hexafkzone.rank.elita"
+      - "hexafkzone.rank.elite"
+      - "group.elita"
+      - "group.elite"
+
+# Milestone'y wpisujesz jako dowolne klucze czasu: 5m, 20m, 1h, 01:30:00.
+# commands wykonuja realna nagrode, a display-name/amount buduja komunikat actionbar.
+reward-groups:
+  default:
+    milestones:
+      5m:
+        display-name: "Diament"
+        amount: 1
+        commands:
+          - "give {player} diamond 1"
+      20m:
+        display-name: "Zloto"
+        amount: 8
+        commands:
+          - "give {player} gold_ingot 8"
+  vip:
+    milestones:
+      5m:
+        display-name: "Diament"
+        amount: 2
+        commands:
+          - "give {player} diamond 2"
+      20m:
+        display-name: "Zloto"
+        amount: 16
+        commands:
+          - "give {player} gold_ingot 16"
+  svip:
+    milestones:
+      5m:
+        display-name: "Diament"
+        amount: 3
+        commands:
+          - "give {player} diamond 3"
+      20m:
+        display-name: "Zloto"
+        amount: 24
+        commands:
+          - "give {player} gold_ingot 24"
+  elite:
+    milestones:
+      5m:
+        display-name: "Blok diamentu"
+        amount: 1
+        commands:
+          - "give {player} diamond_block 1"
+      20m:
+        display-name: "Netherite Scrap"
+        amount: 1
+        commands:
+          - "give {player} netherite_scrap 1"

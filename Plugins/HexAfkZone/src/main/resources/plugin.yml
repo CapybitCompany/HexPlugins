@@ -1,0 +1,35 @@
+name: HexAfkZone
+version: '1.0.0'
+main: hexafkzone.HexAfkZonePlugin
+api-version: '1.21.11'
+description: AFK zone milestones and rewards.
+authors: [HexDevTeam]
+
+commands:
+  hexafkzone:
+    description: Reloads HexAfkZone.
+    usage: /hexafkzone reload
+    aliases: [hafkzone, afkzone]
+
+permissions:
+  hexafkzone.admin:
+    description: Allows reloading HexAfkZone and uses elite AFK profile.
+    default: op
+  hexafkzone.rank.default:
+    description: Access marker for default AFK profile.
+    default: false
+  hexafkzone.rank.media:
+    description: Access marker for media AFK profile.
+    default: false
+  hexafkzone.rank.vip:
+    description: Access marker for VIP AFK profile.
+    default: false
+  hexafkzone.rank.svip:
+    description: Access marker for SVIP AFK profile.
+    default: false
+  hexafkzone.rank.elita:
+    description: Access marker for Elita AFK profile.
+    default: false
+  hexafkzone.rank.elite:
+    description: Access marker for Elite AFK profile.
+    default: false
