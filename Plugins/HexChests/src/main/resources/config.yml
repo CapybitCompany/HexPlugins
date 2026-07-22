@@ -1,0 +1,345 @@
+# ==========================================================
+# HexChests
+# ==========================================================
+
+enabled: true
+
+messages:
+  prefix: "&6&lHexChests &8> "
+  no-permission: "&cNie masz uprawnien."
+  player-only: "&cTa komenda jest dostepna tylko dla gracza."
+  usage: "&7Uzycie: &f/hexchests <reload|afkkey|epickey|premiumkey>"
+  reload-success: "&aPrzeladowano konfiguracje."
+  reload-failed: "&cNie udalo sie przeladowac konfiguracji. Sprawdz konsole."
+  key-given: "&aOtrzymales klucz: &f{key_name}"
+  wrong-key-actionbar: "&cTen klucz nie pasuje do tej skrzyni."
+  opening-started-actionbar: "&6Trwa losowanie..."
+  reward-actionbar: "&6Otrzymano: &f{reward_name} x{amount}"
+  inventory-full: "&eNie wszystko zmiescilo sie w ekwipunku."
+
+sounds:
+  preview:
+    enabled: true
+    name: "minecraft:ui.button.click"
+    volume: 0.5
+    pitch: 1.2
+  wrong-key:
+    enabled: true
+    name: "minecraft:block.note_block.bass"
+    volume: 0.6
+    pitch: 0.7
+  opening-tick:
+    enabled: true
+    name: "minecraft:block.note_block.hat"
+    volume: 0.35
+    pitch: 1.4
+  reward:
+    enabled: true
+    name: "minecraft:ui.toast.challenge_complete"
+    volume: 0.8
+    pitch: 1.0
+
+gui:
+  size: 27
+  preview-title: "{chest_name} &8- Podglad"
+  opening-title: "{chest_name} &8- Losowanie"
+  filler:
+    material: "BLACK_STAINED_GLASS_PANE"
+    name: ""
+    lore: []
+    hide-tooltip: true
+  reward-slots: [10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25]
+  info-slot: -1
+  opening:
+    duration-ticks: 70
+    tick-interval-ticks: 2
+    rolling-slot: 13
+    result-slot: 13
+    side-slots: [10, 11, 12, 14, 15, 16]
+    indicator-slots: [4, 22]
+    indicator-item:
+      material: "LIME_STAINED_GLASS_PANE"
+      name: ""
+      lore: []
+      hide-tooltip: true
+    rolling-filler:
+      material: "YELLOW_STAINED_GLASS_PANE"
+      name: ""
+      lore: []
+      hide-tooltip: true
+
+# TODO PO PODPIECIU CUSTOM ITEMOW:
+# Ta sekcja jest tylko tymczasowa do testow. Gdy bedzie gotowy docelowy plugin custom itemow:
+# - podmienic rozpoznawanie kluczy w KeyService na realne custom itemy,
+# - usunac albo wylaczyc test-keys,
+# - usunac tymczasowe komendy wydawania kluczy, jesli docelowy plugin bedzie wydawal je sam,
+# - zostawic required-key przy skrzyniach jako logiczne ID klucza, jezeli pasuje do docelowego systemu.
+# Obecnie testowe klucze sa zabezpieczone ukrytym tagiem PersistentDataContainer,
+# wiec nazwa z kowadla nie wystarczy.
+test-keys:
+  enabled: true
+  keys:
+    afk:
+      command: "afkkey"
+      material: "TRIPWIRE_HOOK"
+      custom-model-data: 1001
+      display-name: "&eKlucz AFK"
+      lore:
+        - "&7Testowy klucz do Skrzyni AFK."
+        - "&8hexchests:test-key"
+    epic:
+      command: "epickey"
+      material: "TRIPWIRE_HOOK"
+      custom-model-data: 1002
+      display-name: "&5Epicki Klucz"
+      lore:
+        - "&7Testowy klucz do Epickiej Skrzyni."
+        - "&8hexchests:test-key"
+    premium:
+      command: "premiumkey"
+      material: "TRIPWIRE_HOOK"
+      custom-model-data: 1003
+      display-name: "&cKlucz Premium"
+      lore:
+        - "&7Testowy klucz do Skrzyni Premium."
+        - "&8hexchests:test-key"
+
+chests:
+  afk:
+    display-name: "&eSkrzynia AFK"
+    location:
+      world: "world"
+      x: 2772
+      y: 75
+      z: 939
+    block-material: "YELLOW_SHULKER_BOX"
+    required-key: "afk"
+    preview-material: "YELLOW_SHULKER_BOX"
+    rewards:
+      diamonds:
+        material: "DIAMOND"
+        display-name: "&bDiamenty"
+        amount: 2
+        chance: 18.0
+        commands:
+          - "give {player} diamond 2"
+      iron_ingots:
+        material: "IRON_INGOT"
+        display-name: "&fZelazo"
+        amount: 24
+        chance: 18.0
+        commands:
+          - "give {player} iron_ingot 24"
+      gold_ingots:
+        material: "GOLD_INGOT"
+        display-name: "&6Zloto"
+        amount: 16
+        chance: 14.0
+        commands:
+          - "give {player} gold_ingot 16"
+      emeralds:
+        material: "EMERALD"
+        display-name: "&aSzmaragdy"
+        amount: 8
+        chance: 12.0
+        commands:
+          - "give {player} emerald 8"
+      experience:
+        material: "EXPERIENCE_BOTTLE"
+        display-name: "&aButelki expa"
+        amount: 24
+        chance: 14.0
+        commands:
+          - "give {player} experience_bottle 24"
+      lapis:
+        material: "LAPIS_LAZULI"
+        display-name: "&9Lapis"
+        amount: 32
+        chance: 8.0
+        commands:
+          - "give {player} lapis_lazuli 32"
+      redstone:
+        material: "REDSTONE"
+        display-name: "&cRedstone"
+        amount: 48
+        chance: 6.0
+        commands:
+          - "give {player} redstone 48"
+      golden_carrots:
+        material: "GOLDEN_CARROT"
+        display-name: "&6Zlote marchewki"
+        amount: 16
+        chance: 5.0
+        commands:
+          - "give {player} golden_carrot 16"
+      copper_ingots:
+        material: "COPPER_INGOT"
+        display-name: "&6Miedz"
+        amount: 32
+        chance: 5.0
+        commands:
+          - "give {player} copper_ingot 32"
+
+  epic:
+    display-name: "&5Epicka Skrzynia"
+    location:
+      world: "world"
+      x: 2775
+      y: 75
+      z: 940
+    block-material: "PURPLE_SHULKER_BOX"
+    required-key: "epic"
+    preview-material: "PURPLE_SHULKER_BOX"
+    rewards:
+      diamond_block:
+        material: "DIAMOND_BLOCK"
+        display-name: "&bBlok diamentu"
+        amount: 1
+        chance: 14.0
+        commands:
+          - "give {player} diamond_block 1"
+      emeralds:
+        material: "EMERALD"
+        display-name: "&aSzmaragdy"
+        amount: 16
+        chance: 18.0
+        commands:
+          - "give {player} emerald 16"
+      golden_apples:
+        material: "GOLDEN_APPLE"
+        display-name: "&6Zlote jablka"
+        amount: 3
+        chance: 14.0
+        commands:
+          - "give {player} golden_apple 3"
+      ender_pearls:
+        material: "ENDER_PEARL"
+        display-name: "&5Perly Endu"
+        amount: 8
+        chance: 12.0
+        commands:
+          - "give {player} ender_pearl 8"
+      experience:
+        material: "EXPERIENCE_BOTTLE"
+        display-name: "&aWiekszy pakiet expa"
+        amount: 32
+        chance: 12.0
+        commands:
+          - "give {player} experience_bottle 32"
+      gold_blocks:
+        material: "GOLD_BLOCK"
+        display-name: "&6Bloki zlota"
+        amount: 3
+        chance: 11.0
+        commands:
+          - "give {player} gold_block 3"
+      netherite_scrap:
+        material: "NETHERITE_SCRAP"
+        display-name: "&8Netherite Scrap"
+        amount: 1
+        chance: 6.0
+        commands:
+          - "give {player} netherite_scrap 1"
+      ancient_debris:
+        material: "ANCIENT_DEBRIS"
+        display-name: "&8Ancient Debris"
+        amount: 1
+        chance: 5.0
+        commands:
+          - "give {player} ancient_debris 1"
+      shulker_shells:
+        material: "SHULKER_SHELL"
+        display-name: "&5Shulker Shell"
+        amount: 2
+        chance: 5.0
+        commands:
+          - "give {player} shulker_shell 2"
+      totem:
+        material: "TOTEM_OF_UNDYING"
+        display-name: "&eTotem niesmiertelnosci"
+        amount: 1
+        chance: 3.0
+        commands:
+          - "give {player} totem_of_undying 1"
+
+  premium:
+    display-name: "&cSkrzynia Premium"
+    location:
+      world: "world"
+      x: 2776
+      y: 75
+      z: 943
+    block-material: "RED_SHULKER_BOX"
+    required-key: "premium"
+    preview-material: "RED_SHULKER_BOX"
+    rewards:
+      netherite_scrap:
+        material: "NETHERITE_SCRAP"
+        display-name: "&8Netherite Scrap"
+        amount: 2
+        chance: 16.0
+        commands:
+          - "give {player} netherite_scrap 2"
+      diamond_blocks:
+        material: "DIAMOND_BLOCK"
+        display-name: "&bBloki diamentu"
+        amount: 2
+        chance: 18.0
+        commands:
+          - "give {player} diamond_block 2"
+      emerald_blocks:
+        material: "EMERALD_BLOCK"
+        display-name: "&aBloki szmaragdu"
+        amount: 3
+        chance: 18.0
+        commands:
+          - "give {player} emerald_block 3"
+      shulker_shells:
+        material: "SHULKER_SHELL"
+        display-name: "&5Shulker Shell"
+        amount: 4
+        chance: 12.0
+        commands:
+          - "give {player} shulker_shell 4"
+      golden_carrots:
+        material: "GOLDEN_CARROT"
+        display-name: "&6Zlote marchewki"
+        amount: 32
+        chance: 10.0
+        commands:
+          - "give {player} golden_carrot 32"
+      enchanted_apple:
+        material: "ENCHANTED_GOLDEN_APPLE"
+        display-name: "&6Kox"
+        amount: 1
+        chance: 8.0
+        commands:
+          - "give {player} enchanted_golden_apple 1"
+      totem:
+        material: "TOTEM_OF_UNDYING"
+        display-name: "&eTotem niesmiertelnosci"
+        amount: 1
+        chance: 7.0
+        commands:
+          - "give {player} totem_of_undying 1"
+      netherite_ingot:
+        material: "NETHERITE_INGOT"
+        display-name: "&8Sztabka netherite"
+        amount: 1
+        chance: 5.0
+        commands:
+          - "give {player} netherite_ingot 1"
+      elytra:
+        material: "ELYTRA"
+        display-name: "&dElytra"
+        amount: 1
+        chance: 3.0
+        commands:
+          - "give {player} elytra 1"
+      beacon:
+        material: "BEACON"
+        display-name: "&bBeacon"
+        amount: 1
+        chance: 3.0
+        commands:
+          - "give {player} beacon 1"

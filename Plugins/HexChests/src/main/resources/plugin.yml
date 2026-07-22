@@ -1,0 +1,17 @@
+name: HexChests
+version: '1.0.0'
+main: hexchests.HexChestsPlugin
+api-version: '1.21.11'
+description: Spawn chest previews and key-based reward openings.
+authors: [HexDevTeam]
+
+commands:
+  hexchests:
+    description: Reloads HexChests or gives test keys.
+    usage: /hexchests <reload|afkkey|epickey|premiumkey>
+    aliases: [hchests]
+
+permissions:
+  hexchests.admin:
+    description: Allows reloading HexChests and giving test keys.
+    default: op
