@@ -37,28 +37,48 @@ public final class DailyRewardsGui {
 
     public void open(Player player) {
         DailyRewardsConfig config = configSupplier.get();
-        ClaimState state = rewardService.state(player);
-        Map<String, String> placeholders = rewardService.placeholders(player, state);
-        Optional<ResolvedDailyReward> reward = rewardService.currentReward(state);
+        ClaimState primaryState = rewardService.state(player);
+        Map<String, String> primaryPlaceholders = rewardService.placeholders(player, primaryState);
+        Optional<ResolvedDailyReward> primaryReward = rewardService.currentReward(primaryState);
         DailyRewardsGuiHolder holder = new DailyRewardsGuiHolder(player.getUniqueId());
         Inventory inventory = Bukkit.createInventory(holder, config.gui().size(),
-                Text.legacy(config.gui().title(), placeholders));
+                Text.legacy(config.gui().title(), primaryPlaceholders));
         holder.setInventory(inventory);
 
-        ItemStack filler = item(config.gui().filler(), placeholders, reward);
+        ItemStack filler = item(config.gui().filler(), primaryPlaceholders, primaryReward);
         for (int slot = 0; slot < inventory.getSize(); slot++) {
             inventory.setItem(slot, filler.clone());
         }
 
-        if (state.available()) {
-            set(inventory, config.gui().items().available(), placeholders, reward);
-            set(inventory, config.gui().items().statusAvailable(), placeholders, reward);
-        } else {
-            set(inventory, config.gui().items().claimed(), placeholders, reward);
-            set(inventory, config.gui().items().statusClaimed(), placeholders, reward);
+        for (DailyRewardsConfig.RewardGroup group : rewardService.rewardGroups()) {
+            ClaimState groupState = rewardService.state(player, group.id());
+            Map<String, String> placeholders = rewardService.placeholders(player, groupState);
+            Optional<ResolvedDailyReward> reward = rewardService.currentReward(group.id(), groupState.today());
+            fillFrame(inventory, group, placeholders, reward);
         }
-        set(inventory, config.gui().items().info(), placeholders, reward);
-        set(inventory, config.gui().items().close(), placeholders, reward);
+
+        for (DailyRewardsConfig.RewardGroup group : rewardService.rewardGroups()) {
+            ClaimState groupState = rewardService.state(player, group.id());
+            Map<String, String> placeholders = rewardService.placeholders(player, groupState);
+            Optional<ResolvedDailyReward> reward = rewardService.currentReward(group.id(), groupState.today());
+            DailyRewardsConfig.GuiItem template;
+            if (!rewardService.canAccess(player, group)) {
+                template = config.gui().items().locked();
+            } else if (groupState.available()) {
+                template = config.gui().items().available();
+            } else {
+                template = config.gui().items().claimed();
+            }
+            set(inventory, template, group.slot(), placeholders, reward);
+        }
+
+        if (primaryState.available()) {
+            set(inventory, config.gui().items().statusAvailable(), primaryPlaceholders, primaryReward);
+        } else {
+            set(inventory, config.gui().items().statusClaimed(), primaryPlaceholders, primaryReward);
+        }
+        set(inventory, config.gui().items().info(), primaryPlaceholders, primaryReward);
+        set(inventory, config.gui().items().close(), primaryPlaceholders, primaryReward);
 
         player.openInventory(inventory);
         play(player, config.sounds().open());
@@ -66,16 +86,19 @@ public final class DailyRewardsGui {
 
     public void handleClick(Player player, int rawSlot) {
         DailyRewardsConfig config = configSupplier.get();
-        if (rawSlot == config.gui().items().close().slot()) {
+        if (config.gui().items().close().enabled() && rawSlot == config.gui().items().close().slot()) {
             player.closeInventory();
             return;
         }
-        if (rawSlot != config.gui().items().available().slot()
-                && rawSlot != config.gui().items().claimed().slot()) {
+
+        Optional<DailyRewardsConfig.RewardGroup> clickedGroup = rewardService.rewardGroups().stream()
+                .filter(group -> group.slot() == rawSlot)
+                .findFirst();
+        if (clickedGroup.isEmpty()) {
             return;
         }
 
-        ClaimResult result = rewardService.claim(player);
+        ClaimResult result = rewardService.claim(player, clickedGroup.get().id());
         switch (result.status()) {
             case CLAIMED -> {
                 Map<String, String> placeholders = rewardService.placeholders(player, result.state());
@@ -93,6 +116,11 @@ public final class DailyRewardsGui {
                 player.sendActionBar(Text.component(config.messages().alreadyClaimedActionbar(), placeholders));
                 play(player, config.sounds().unavailable());
             }
+            case LOCKED -> {
+                Map<String, String> placeholders = rewardService.placeholders(player, result.state());
+                player.sendActionBar(Text.component(config.messages().rewardLockedActionbar(), placeholders));
+                play(player, config.sounds().unavailable());
+            }
             case DISABLED -> player.sendMessage(Text.component(config.messages().withPrefix(config.messages().disabled())));
             case NO_REWARD -> {
                 player.sendMessage(Text.component(config.messages().withPrefix(config.messages().noRewardConfigured())));
@@ -102,14 +130,48 @@ public final class DailyRewardsGui {
         }
     }
 
+    private void fillFrame(Inventory inventory,
+                           DailyRewardsConfig.RewardGroup group,
+                           Map<String, String> placeholders,
+                           Optional<ResolvedDailyReward> reward) {
+        DailyRewardsConfig.GuiItem frame = new DailyRewardsConfig.GuiItem(
+                true,
+                0,
+                group.frameMaterial(),
+                false,
+                group.frameName(),
+                group.frameLore(),
+                group.frameHideTooltip()
+        );
+        ItemStack stack = item(frame, placeholders, reward);
+        int rows = inventory.getSize() / 9;
+        for (int column : group.frameColumns()) {
+            if (column < 1 || column > 9) {
+                continue;
+            }
+            int columnIndex = column - 1;
+            for (int row = 0; row < rows; row++) {
+                inventory.setItem((row * 9) + columnIndex, stack.clone());
+            }
+        }
+    }
+
     private void set(Inventory inventory,
                      DailyRewardsConfig.GuiItem item,
                      Map<String, String> placeholders,
                      Optional<ResolvedDailyReward> reward) {
-        if (!item.enabled() || item.slot() < 0 || item.slot() >= inventory.getSize()) {
+        set(inventory, item, item.slot(), placeholders, reward);
+    }
+
+    private void set(Inventory inventory,
+                     DailyRewardsConfig.GuiItem item,
+                     int slot,
+                     Map<String, String> placeholders,
+                     Optional<ResolvedDailyReward> reward) {
+        if (!item.enabled() || slot < 0 || slot >= inventory.getSize()) {
             return;
         }
-        inventory.setItem(item.slot(), item(item, placeholders, reward));
+        inventory.setItem(slot, item(item, placeholders, reward));
     }
 
     private ItemStack item(DailyRewardsConfig.GuiItem config,

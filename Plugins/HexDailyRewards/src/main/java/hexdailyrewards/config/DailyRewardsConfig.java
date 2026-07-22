@@ -17,6 +17,7 @@ public record DailyRewardsConfig(
         Sounds sounds,
         Reward reward,
         RewardsCalendar rewardsCalendar,
+        Map<String, RewardGroup> rewardGroups,
         Gui gui
 ) {
 
@@ -38,6 +39,7 @@ public record DailyRewardsConfig(
             String rewardClaimedChat,
             String rewardClaimedActionbar,
             String alreadyClaimedActionbar,
+            String rewardLockedActionbar,
             String claimError,
             String noRewardConfigured
     ) {
@@ -54,7 +56,9 @@ public record DailyRewardsConfig(
             String statusAvailable,
             String statusClaimed,
             String playerStatusAvailable,
-            String playerStatusClaimed
+            String playerStatusClaimed,
+            String hologramStatusAvailable,
+            String hologramStatusClaimed
     ) {
     }
 
@@ -75,6 +79,24 @@ public record DailyRewardsConfig(
     ) {
     }
 
+    public record RewardGroup(
+            String id,
+            boolean enabled,
+            String displayName,
+            List<String> ranks,
+            List<String> permissions,
+            int priority,
+            boolean fallbackAccess,
+            int slot,
+            Material frameMaterial,
+            List<Integer> frameColumns,
+            String frameName,
+            List<String> frameLore,
+            boolean frameHideTooltip,
+            RewardsCalendar rewardsCalendar
+    ) {
+    }
+
     public record RewardDefinition(
             String id,
             String displayName,
@@ -90,6 +112,7 @@ public record DailyRewardsConfig(
     public record GuiItems(
             GuiItem available,
             GuiItem claimed,
+            GuiItem locked,
             GuiItem statusAvailable,
             GuiItem statusClaimed,
             GuiItem info,

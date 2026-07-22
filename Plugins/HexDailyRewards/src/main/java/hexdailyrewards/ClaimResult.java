@@ -5,6 +5,7 @@ public record ClaimResult(Status status, ClaimState state, String errorMessage) 
     public enum Status {
         CLAIMED,
         UNAVAILABLE,
+        LOCKED,
         DISABLED,
         NO_REWARD,
         ERROR

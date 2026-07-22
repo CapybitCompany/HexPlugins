@@ -19,3 +19,24 @@ permissions:
   hexdailyrewards.admin:
     description: Allows reloading HexDailyRewards.
     default: op
+  hexdailyrewards.claim.all:
+    description: Allows claiming every daily reward group.
+    default: op
+  hexdailyrewards.rank.default:
+    description: Access marker for default/media daily rewards.
+    default: false
+  hexdailyrewards.rank.media:
+    description: Access marker for default/media daily rewards.
+    default: false
+  hexdailyrewards.rank.vip:
+    description: Access marker for VIP daily rewards.
+    default: false
+  hexdailyrewards.rank.svip:
+    description: Access marker for SVIP daily rewards.
+    default: false
+  hexdailyrewards.rank.elita:
+    description: Access marker for Elita daily rewards.
+    default: false
+  hexdailyrewards.rank.elite:
+    description: Access marker for Elite daily rewards.
+    default: false

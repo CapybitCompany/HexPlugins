@@ -27,9 +27,13 @@ public final class YamlRewardStorage implements RewardStorage {
     }
 
     @Override
-    public synchronized Optional<LocalDate> lastClaimDate(UUID playerId) {
+    public synchronized Optional<LocalDate> lastClaimDate(UUID playerId, String groupId) {
         ensureLoaded();
-        String raw = config.getString(path(playerId) + ".last-claim-date");
+        String normalizedGroupId = groupId(groupId);
+        String raw = config.getString(groupPath(playerId, normalizedGroupId) + ".last-claim-date");
+        if ((raw == null || raw.isBlank()) && DEFAULT_GROUP_ID.equals(normalizedGroupId)) {
+            raw = config.getString(path(playerId) + ".last-claim-date");
+        }
         if (raw == null || raw.isBlank()) {
             return Optional.empty();
         }
@@ -41,17 +45,34 @@ public final class YamlRewardStorage implements RewardStorage {
     }
 
     @Override
-    public synchronized void markClaimed(UUID playerId, String playerName, LocalDate claimDate, Instant claimedAt) throws IOException {
+    public synchronized void markClaimed(UUID playerId, String playerName, String groupId, LocalDate claimDate, Instant claimedAt) throws IOException {
         ensureLoaded();
+        String normalizedGroupId = groupId(groupId);
         String path = path(playerId);
         config.set(path + ".name", playerName);
-        config.set(path + ".last-claim-date", claimDate.toString());
-        config.set(path + ".last-claim-at", claimedAt.toString());
+        String groupPath = groupPath(playerId, normalizedGroupId);
+        config.set(groupPath + ".last-claim-date", claimDate.toString());
+        config.set(groupPath + ".last-claim-at", claimedAt.toString());
+        if (DEFAULT_GROUP_ID.equals(normalizedGroupId)) {
+            config.set(path + ".last-claim-date", claimDate.toString());
+            config.set(path + ".last-claim-at", claimedAt.toString());
+        }
         config.save(file);
     }
 
     private String path(UUID playerId) {
         return "players." + playerId;
+    }
+
+    private String groupPath(UUID playerId, String groupId) {
+        return path(playerId) + ".groups." + groupId;
+    }
+
+    private String groupId(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return DEFAULT_GROUP_ID;
+        }
+        return raw.toLowerCase(java.util.Locale.ROOT).replaceAll("[^a-z0-9_-]", "_");
     }
 
     private void ensureLoaded() {
@@ -60,4 +81,3 @@ public final class YamlRewardStorage implements RewardStorage {
         }
     }
 }
-

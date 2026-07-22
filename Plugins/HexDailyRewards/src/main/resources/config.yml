@@ -3,7 +3,7 @@
 # ==========================================================
 
 enabled: true
-config-version: 2
+config-version: 6
 
 daily-reset:
   # Nagroda resetuje sie po zmianie dnia w tej strefie czasowej.
@@ -26,16 +26,17 @@ time-format:
 
 messages:
   prefix: "&c&lDaily Rewards &8> "
-  no-permission: "&cNie masz uprawnień."
-  player-only: "&cTa komenda jest dostępna tylko dla gracza."
-  usage: "&7Użycie: &f/hexdailyrewards reload"
-  reload-success: "&aPrzeładowano konfigurację."
-  reload-failed: "&cNie udało się przeładować konfiguracji. Sprawdź konsolę."
-  disabled: "&cDaily Rewards są obecnie wyłączone."
-  reward-claimed-chat: "&aOdebrałeś dzisiejszą nagrodę."
-  reward-claimed-actionbar: "&aOdebrano codzienną nagrodę!"
-  already-claimed-actionbar: "&eDzisiejsza nagroda została już odebrana. Wróć za &6{time}&e."
-  claim-error: "&cNie udało się zapisać odbioru nagrody. Zgłoś to administracji."
+  no-permission: "&cNie masz uprawnien."
+  player-only: "&cTa komenda jest dostepna tylko dla gracza."
+  usage: "&7Uzycie: &f/hexdailyrewards reload"
+  reload-success: "&aPrzeladowano konfiguracje."
+  reload-failed: "&cNie udalo sie przeladowac konfiguracji. Sprawdz konsole."
+  disabled: "&cDaily Rewards sa obecnie wylaczone."
+  reward-claimed-chat: "&aOdebrales dzisiejsza nagrode z kategorii &f{group_name}&a."
+  reward-claimed-actionbar: "&aOdebrano nagrode: &f{reward_name}"
+  already-claimed-actionbar: "&eTa kategoria jest juz odebrana. Wroc za &6{time}&e."
+  reward-locked-actionbar: "&cTa skrzynka nie jest dostepna dla twojej rangi."
+  claim-error: "&cNie udalo sie zapisac odbioru nagrody. Zglos to administracji."
   no-reward-configured: "&cBrak skonfigurowanej nagrody na dzisiaj."
 
 placeholders:
@@ -47,6 +48,9 @@ placeholders:
   # %hexdailyrewards_player_status% -> player-status-available/player-status-claimed, per gracz
   # %hexdailyrewards_available% -> available/unavailable
   # %hexdailyrewards_reward_name%, %hexdailyrewards_reward_day%, %hexdailyrewards_reward_id%
+  # %hexdailyrewards_group_name%, %hexdailyrewards_group_ranks%
+  # Jedna linijka hologramu liczona per gracz:
+  # %hexdailyrewards_hologram_status%
   no-player: "-"
   no-reward: "-"
   available: "true"
@@ -54,7 +58,9 @@ placeholders:
   status-available: "Do odebrania"
   status-claimed: "Odebrane"
   player-status-available: "&aDo odebrania"
-  player-status-claimed: "&cOdebrany"
+  player-status-claimed: "&cOdebrano"
+  hologram-status-available: "&aDo odebrania"
+  hologram-status-claimed: "&cOdebrano"
 
 sounds:
   open:
@@ -77,131 +83,403 @@ reward:
   close-gui-after-claim: false
   refresh-gui-after-claim: true
 
-rewards-calendar:
-  # Cykl startuje od tej daty. day-1 przypada na start-date.
-  start-date: "2026-07-20"
-  # 14 dni = dwa tygodnie. Po day-14 plugin wraca do day-1.
-  cycle-days: 14
-  # Uzywane, gdy konkretna nagroda ma puste lore albo nie ma lore wcale.
-  default-lore:
-    - "&7Nagroda dnia: &f{reward_name}"
+reward-groups:
+  default:
+    enabled: true
+    display-name: "&aGracze / Media"
+    ranks: ["default", "media"]
+    permissions:
+      - "hexdailyrewards.rank.default"
+      - "hexdailyrewards.rank.media"
+      - "group.default"
+      - "group.media"
+    priority: 10
+    fallback-access: true
+    slot: 19
+    frame-material: "BLACK_STAINED_GLASS_PANE"
+    frame-columns: [1, 2, 3]
+    frame-name: ""
+    frame-lore: []
+    frame-hide-tooltip: true
+    rewards-calendar:
+      start-date: "2026-07-20"
+      cycle-days: 14
+      default-lore:
+        - "&7Kategoria: &f{group_name}"
+        - "&7Nagroda dnia: &f{reward_name}"
+      days:
+        day-1:
+          display-name: "&bDiamentowy start"
+          material: "DIAMOND"
+          lore:
+            - "&7Nagroda: &f1x Diament"
+          commands:
+            - "give {player} diamond 1"
+        day-2:
+          display-name: "&aSzmaragdowy bonus"
+          material: "EMERALD"
+          lore:
+            - "&7Nagroda: &f3x Szmaragd"
+          commands:
+            - "give {player} emerald 3"
+        day-3:
+          display-name: "&6Zlote wsparcie"
+          material: "GOLD_INGOT"
+          lore:
+            - "&7Nagroda: &f8x Zloto"
+          commands:
+            - "give {player} gold_ingot 8"
+        day-4:
+          display-name: "&9Lapisowy pakiet"
+          material: "LAPIS_LAZULI"
+          lore:
+            - "&7Nagroda: &f16x Lapis"
+          commands:
+            - "give {player} lapis_lazuli 16"
+        day-5:
+          display-name: "&eDoswiadczenie"
+          material: "EXPERIENCE_BOTTLE"
+          lore:
+            - "&7Nagroda: &f16x Butelka expa"
+          commands:
+            - "give {player} experience_bottle 16"
+        day-6:
+          display-name: "&dKrysztalowy drop"
+          material: "AMETHYST_SHARD"
+          lore:
+            - "&7Nagroda: &f12x Ametyst"
+          commands:
+            - "give {player} amethyst_shard 12"
+        day-7:
+          display-name: "&6Tygodniowa skrzynia"
+          material: "CHEST"
+          lore:
+            - "&7Nagroda: &f1x Skrzynia"
+          commands:
+            - "give {player} chest 1"
+        day-8:
+          display-name: "&fZelazny zapas"
+          material: "IRON_INGOT"
+          lore:
+            - "&7Nagroda: &f16x Zelazo"
+          commands:
+            - "give {player} iron_ingot 16"
+        day-9:
+          display-name: "&2Rolniczy pakiet"
+          material: "HAY_BLOCK"
+          lore:
+            - "&7Nagroda: &f8x Siano"
+          commands:
+            - "give {player} hay_block 8"
+        day-10:
+          display-name: "&cPyl redstone"
+          material: "REDSTONE"
+          lore:
+            - "&7Nagroda: &f24x Redstone"
+          commands:
+            - "give {player} redstone 24"
+        day-11:
+          display-name: "&3Morski pakiet"
+          material: "PRISMARINE_SHARD"
+          lore:
+            - "&7Nagroda: &f12x Pryzmaryn"
+          commands:
+            - "give {player} prismarine_shard 12"
+        day-12:
+          display-name: "&5Endowy dodatek"
+          material: "ENDER_PEARL"
+          lore:
+            - "&7Nagroda: &f4x Perla endu"
+          commands:
+            - "give {player} ender_pearl 4"
+        day-13:
+          display-name: "&eTNT zabawa"
+          material: "TNT"
+          lore:
+            - "&7Nagroda: &f4x TNT"
+          commands:
+            - "give {player} tnt 4"
+        day-14:
+          display-name: "&bFinal cyklu"
+          material: "NETHERITE_SCRAP"
+          lore:
+            - "&7Nagroda: &f1x Netherite Scrap"
+          commands:
+            - "give {player} netherite_scrap 1"
+      date-overrides:
+        "2026-12-24":
+          display-name: "&cSwiateczna nagroda"
+          material: "CHEST"
+          lore:
+            - "&7Nagroda specjalna dla graczy i media."
+          commands:
+            - "give {player} diamond 5"
 
-  # Placeholdery w komendach:
-  # {player}, {uuid}, {date}, {last_date}, {time}, {reset_time},
-  # {reward_id}, {reward_day}, {reward_name}
-  days:
-    day-1:
-      display-name: "&bDiamentowy start"
-      material: "DIAMOND"
-      lore:
-        - "&7Nagroda dnia: &f1x Diament"
-      commands:
-        - "give {player} diamond 1"
-    day-2:
-      display-name: "&aSzmaragdowy bonus"
-      material: "EMERALD"
-      lore:
-        - "&7Nagroda dnia: &f3x Szmaragd"
-      commands:
-        - "give {player} emerald 3"
-    day-3:
-      display-name: "&6Złote wsparcie"
-      material: "GOLD_INGOT"
-      lore:
-        - "&7Nagroda dnia: &f8x Złoto"
-      commands:
-        - "give {player} gold_ingot 8"
-    day-4:
-      display-name: "&9Lapisowy pakiet"
-      material: "LAPIS_LAZULI"
-      lore:
-        - "&7Nagroda dnia: &f16x Lapis"
-      commands:
-        - "give {player} lapis_lazuli 16"
-    day-5:
-      display-name: "&eDoświadczenie"
-      material: "EXPERIENCE_BOTTLE"
-      lore:
-        - "&7Nagroda dnia: &f16x Butelka expa"
-      commands:
-        - "give {player} experience_bottle 16"
-    day-6:
-      display-name: "&dKryształowy drop"
-      material: "AMETHYST_SHARD"
-      lore:
-        - "&7Nagroda dnia: &f12x Ametyst"
-      commands:
-        - "give {player} amethyst_shard 12"
-    day-7:
-      display-name: "&6Tygodniowa skrzynia"
-      material: "CHEST"
-      lore:
-        - "&7Nagroda dnia: &f1x Skrzynia"
-      commands:
-        - "give {player} chest 1"
-    day-8:
-      display-name: "&fŻelazny zapas"
-      material: "IRON_INGOT"
-      lore:
-        - "&7Nagroda dnia: &f16x Żelazo"
-      commands:
-        - "give {player} iron_ingot 16"
-    day-9:
-      display-name: "&2Rolniczy pakiet"
-      material: "HAY_BLOCK"
-      lore:
-        - "&7Nagroda dnia: &f8x Siano"
-      commands:
-        - "give {player} hay_block 8"
-    day-10:
-      display-name: "&cPył redstone"
-      material: "REDSTONE"
-      lore:
-        - "&7Nagroda dnia: &f24x Redstone"
-      commands:
-        - "give {player} redstone 24"
-    day-11:
-      display-name: "&3Morski pakiet"
-      material: "PRISMARINE_SHARD"
-      lore:
-        - "&7Nagroda dnia: &f12x Pryzmaryn"
-      commands:
-        - "give {player} prismarine_shard 12"
-    day-12:
-      display-name: "&5Endowy dodatek"
-      material: "ENDER_PEARL"
-      lore:
-        - "&7Nagroda dnia: &f4x Perła endu"
-      commands:
-        - "give {player} ender_pearl 4"
-    day-13:
-      display-name: "&eTNT zabawa"
-      material: "TNT"
-      lore:
-        - "&7Nagroda dnia: &f4x TNT"
-      commands:
-        - "give {player} tnt 4"
-    day-14:
-      display-name: "&bFinał cyklu"
-      material: "NETHERITE_SCRAP"
-      lore:
-        - "&7Nagroda dnia: &f1x Netherite Scrap"
-      commands:
-        - "give {player} netherite_scrap 1"
+  vip:
+    enabled: true
+    display-name: "&6VIP / SVIP"
+    ranks: ["vip", "svip"]
+    permissions:
+      - "hexdailyrewards.rank.vip"
+      - "hexdailyrewards.rank.svip"
+      - "group.vip"
+      - "group.svip"
+    priority: 20
+    fallback-access: false
+    slot: 22
+    frame-material: "YELLOW_STAINED_GLASS_PANE"
+    frame-columns: [4, 5, 6]
+    frame-name: ""
+    frame-lore: []
+    frame-hide-tooltip: true
+    rewards-calendar:
+      start-date: "2026-07-20"
+      cycle-days: 14
+      default-lore:
+        - "&7Kategoria: &f{group_name}"
+        - "&7Nagroda dnia: &f{reward_name}"
+      days:
+        day-1:
+          display-name: "&bVIP diamenty"
+          material: "DIAMOND"
+          lore:
+            - "&7Nagroda: &f3x Diament"
+          commands:
+            - "give {player} diamond 3"
+        day-2:
+          display-name: "&aVIP szmaragdy"
+          material: "EMERALD"
+          lore:
+            - "&7Nagroda: &f8x Szmaragd"
+          commands:
+            - "give {player} emerald 8"
+        day-3:
+          display-name: "&6VIP zloto"
+          material: "GOLD_INGOT"
+          lore:
+            - "&7Nagroda: &f16x Zloto"
+          commands:
+            - "give {player} gold_ingot 16"
+        day-4:
+          display-name: "&9VIP lapis"
+          material: "LAPIS_LAZULI"
+          lore:
+            - "&7Nagroda: &f32x Lapis"
+          commands:
+            - "give {player} lapis_lazuli 32"
+        day-5:
+          display-name: "&eVIP exp"
+          material: "EXPERIENCE_BOTTLE"
+          lore:
+            - "&7Nagroda: &f32x Butelka expa"
+          commands:
+            - "give {player} experience_bottle 32"
+        day-6:
+          display-name: "&dVIP ametyst"
+          material: "AMETHYST_SHARD"
+          lore:
+            - "&7Nagroda: &f24x Ametyst"
+          commands:
+            - "give {player} amethyst_shard 24"
+        day-7:
+          display-name: "&6VIP skrzynia"
+          material: "ENDER_CHEST"
+          lore:
+            - "&7Nagroda: &f1x Ender Chest"
+          commands:
+            - "give {player} ender_chest 1"
+        day-8:
+          display-name: "&fVIP zelazo"
+          material: "IRON_INGOT"
+          lore:
+            - "&7Nagroda: &f32x Zelazo"
+          commands:
+            - "give {player} iron_ingot 32"
+        day-9:
+          display-name: "&eVIP marchewki"
+          material: "GOLDEN_CARROT"
+          lore:
+            - "&7Nagroda: &f16x Zlota marchewka"
+          commands:
+            - "give {player} golden_carrot 16"
+        day-10:
+          display-name: "&cVIP redstone"
+          material: "REDSTONE"
+          lore:
+            - "&7Nagroda: &f48x Redstone"
+          commands:
+            - "give {player} redstone 48"
+        day-11:
+          display-name: "&3VIP pryzmaryn"
+          material: "PRISMARINE_CRYSTALS"
+          lore:
+            - "&7Nagroda: &f16x Krysztal pryzmarynu"
+          commands:
+            - "give {player} prismarine_crystals 16"
+        day-12:
+          display-name: "&5VIP perly"
+          material: "ENDER_PEARL"
+          lore:
+            - "&7Nagroda: &f8x Perla endu"
+          commands:
+            - "give {player} ender_pearl 8"
+        day-13:
+          display-name: "&eVIP TNT"
+          material: "TNT"
+          lore:
+            - "&7Nagroda: &f8x TNT"
+          commands:
+            - "give {player} tnt 8"
+        day-14:
+          display-name: "&bVIP final"
+          material: "NETHERITE_SCRAP"
+          lore:
+            - "&7Nagroda: &f2x Netherite Scrap"
+          commands:
+            - "give {player} netherite_scrap 2"
+      date-overrides:
+        "2026-12-24":
+          display-name: "&cVIP swieta"
+          material: "ENDER_CHEST"
+          lore:
+            - "&7Nagroda specjalna dla VIP/SVIP."
+          commands:
+            - "give {player} diamond 10"
 
-  # Specjalne nagrody na konkretne daty. Maja priorytet nad cyklem day-1..day-14.
-  date-overrides:
-    "2026-12-24":
-      display-name: "&cŚwiąteczna nagroda"
-      material: "CHEST"
-      lore:
-        - "&7Nagroda specjalna za dzisiejszy dzień."
-      commands:
-        - "give {player} diamond 5"
+  elite:
+    enabled: true
+    display-name: "&dElita"
+    ranks: ["elita"]
+    permissions:
+      - "hexdailyrewards.rank.elita"
+      - "hexdailyrewards.rank.elite"
+      - "group.elita"
+      - "group.elite"
+    priority: 30
+    fallback-access: false
+    slot: 25
+    frame-material: "LIGHT_BLUE_STAINED_GLASS_PANE"
+    frame-columns: [7, 8, 9]
+    frame-name: ""
+    frame-lore: []
+    frame-hide-tooltip: true
+    rewards-calendar:
+      start-date: "2026-07-20"
+      cycle-days: 14
+      default-lore:
+        - "&7Kategoria: &f{group_name}"
+        - "&7Nagroda dnia: &f{reward_name}"
+      days:
+        day-1:
+          display-name: "&dElitarne diamenty"
+          material: "DIAMOND_BLOCK"
+          lore:
+            - "&7Nagroda: &f1x Blok diamentu"
+          commands:
+            - "give {player} diamond_block 1"
+        day-2:
+          display-name: "&aElitarne szmaragdy"
+          material: "EMERALD_BLOCK"
+          lore:
+            - "&7Nagroda: &f1x Blok szmaragdu"
+          commands:
+            - "give {player} emerald_block 1"
+        day-3:
+          display-name: "&6Elitarne zloto"
+          material: "GOLD_BLOCK"
+          lore:
+            - "&7Nagroda: &f1x Blok zlota"
+          commands:
+            - "give {player} gold_block 1"
+        day-4:
+          display-name: "&9Elitarny lapis"
+          material: "LAPIS_BLOCK"
+          lore:
+            - "&7Nagroda: &f2x Blok lapisu"
+          commands:
+            - "give {player} lapis_block 2"
+        day-5:
+          display-name: "&eElitarne exp"
+          material: "EXPERIENCE_BOTTLE"
+          lore:
+            - "&7Nagroda: &f48x Butelka expa"
+          commands:
+            - "give {player} experience_bottle 48"
+        day-6:
+          display-name: "&dElitarny ametyst"
+          material: "AMETHYST_BLOCK"
+          lore:
+            - "&7Nagroda: &f4x Blok ametystu"
+          commands:
+            - "give {player} amethyst_block 4"
+        day-7:
+          display-name: "&dElitarna skrzynia"
+          material: "ENDER_CHEST"
+          lore:
+            - "&7Nagroda: &f2x Ender Chest"
+          commands:
+            - "give {player} ender_chest 2"
+        day-8:
+          display-name: "&fElitarne zelazo"
+          material: "IRON_BLOCK"
+          lore:
+            - "&7Nagroda: &f2x Blok zelaza"
+          commands:
+            - "give {player} iron_block 2"
+        day-9:
+          display-name: "&6Elitarne jedzenie"
+          material: "GOLDEN_APPLE"
+          lore:
+            - "&7Nagroda: &f3x Zlote jablko"
+          commands:
+            - "give {player} golden_apple 3"
+        day-10:
+          display-name: "&cElitarny redstone"
+          material: "REDSTONE_BLOCK"
+          lore:
+            - "&7Nagroda: &f3x Blok redstone"
+          commands:
+            - "give {player} redstone_block 3"
+        day-11:
+          display-name: "&3Elitarny ocean"
+          material: "SEA_LANTERN"
+          lore:
+            - "&7Nagroda: &f4x Sea Lantern"
+          commands:
+            - "give {player} sea_lantern 4"
+        day-12:
+          display-name: "&5Elitarne perly"
+          material: "ENDER_PEARL"
+          lore:
+            - "&7Nagroda: &f12x Perla endu"
+          commands:
+            - "give {player} ender_pearl 12"
+        day-13:
+          display-name: "&eElitarne TNT"
+          material: "TNT"
+          lore:
+            - "&7Nagroda: &f12x TNT"
+          commands:
+            - "give {player} tnt 12"
+        day-14:
+          display-name: "&bElitarny final"
+          material: "NETHERITE_INGOT"
+          lore:
+            - "&7Nagroda: &f1x Netherite Ingot"
+          commands:
+            - "give {player} netherite_ingot 1"
+      date-overrides:
+        "2026-12-24":
+          display-name: "&cElitarne swieta"
+          material: "NETHERITE_INGOT"
+          lore:
+            - "&7Nagroda specjalna dla Elity."
+          commands:
+            - "give {player} diamond_block 2"
 
 gui:
   title: "&cDaily Rewards"
-  size: 27
+  size: 45
 
   filler:
     material: "BLACK_STAINED_GLASS_PANE"
@@ -215,34 +493,59 @@ gui:
       slot: 13
       material: "CHEST"
       use-reward-material: true
-      name: "{reward_name}"
+      name: "{group_name}"
       lore:
-        - "{reward_lore}"
+        - "&fNagroda: {reward_name}"
+        - ""
+        - "&fStatus: {player_status}"
+        - "&fNastepna nagroda za: {time}"
     claimed:
       enabled: true
       slot: 13
       material: "MINECART"
       use-reward-material: true
-      name: "{reward_name}"
+      name: "{group_name}"
       lore:
-        - "{reward_lore}"
-    status-available:
+        - "&fNagroda: {reward_name}"
+        - ""
+        - "&fStatus: {player_status}"
+        - "&fNastepna nagroda za: {time}"
+    locked:
       enabled: true
-      slot: 26
+      slot: 13
+      material: "GRAY_DYE"
+      use-reward-material: true
+      name: "{group_name}"
+      lore:
+        - "&fNagroda: {reward_name}"
+        - ""
+        - "&fStatus: &cNiedostepna"
+        - "&fNastepna nagroda za: -"
+    status-available:
+      enabled: false
+      slot: 31
       material: "LIME_DYE"
       name: "&fStatus: &aDo odebrania"
       lore:
-        - "&7Do następnej nagrody: &f{time}"
+        - "&7Do nastepnego resetu: &f{time}"
     status-claimed:
-      enabled: true
-      slot: 26
+      enabled: false
+      slot: 31
       material: "RED_DYE"
       name: "&fStatus: &cOdebrane"
       lore:
-        - "&7Do następnej nagrody: &f{time}"
+        - "&7Do nastepnej nagrody: &f{time}"
+    info:
+      enabled: false
+      slot: 4
+      material: "CLOCK"
+      name: "&6Daily Rewards"
+      lore:
+        - "&7Wybierz skrzynke dostepna"
+        - "&7dla swojej rangi."
     close:
-      enabled: true
-      slot: 18
+      enabled: false
+      slot: 40
       material: "BARRIER"
       name: "&cZamknij"
       lore: []

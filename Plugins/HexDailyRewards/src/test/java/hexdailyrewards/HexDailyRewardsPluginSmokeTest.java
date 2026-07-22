@@ -97,13 +97,68 @@ class HexDailyRewardsPluginSmokeTest {
 
         Inventory top = player.getOpenInventory().getTopInventory();
         assertInstanceOf(DailyRewardsGuiHolder.class, top.getHolder());
-        assertEquals(27, top.getSize());
+        assertEquals(45, top.getSize());
         assertEquals(Material.BLACK_STAINED_GLASS_PANE, top.getItem(0).getType());
-        assertEquals(Material.DIAMOND, top.getItem(13).getType());
-        assertEquals(Material.BLACK_STAINED_GLASS_PANE, top.getItem(15).getType(), "clock info item should be removed");
-        assertEquals(Material.BARRIER, top.getItem(18).getType());
-        assertEquals(Material.LIME_DYE, top.getItem(26).getType());
+        assertEquals(Material.YELLOW_STAINED_GLASS_PANE, top.getItem(4).getType());
+        assertEquals(Material.LIGHT_BLUE_STAINED_GLASS_PANE, top.getItem(8).getType());
+        assertEquals(Material.DIAMOND, top.getItem(19).getType());
+        assertEquals(Material.DIAMOND, top.getItem(22).getType());
+        assertEquals(Material.DIAMOND_BLOCK, top.getItem(25).getType());
+        assertEquals(Material.YELLOW_STAINED_GLASS_PANE, top.getItem(31).getType());
+        assertEquals(Material.YELLOW_STAINED_GLASS_PANE, top.getItem(40).getType());
         assertTrue(plugin.config().gui().filler().hideTooltip());
+    }
+
+    @Test
+    void shouldShowVipRewardOnlyForVipPlayer() {
+        Player player = server.addPlayer("VipGuiUser");
+        player.addAttachment(plugin, "hexdailyrewards.rank.vip", true);
+        plugin.rewardService().setClock(Clock.fixed(Instant.parse("2026-07-21T10:00:00Z"), ZoneOffset.UTC));
+
+        plugin.gui().open(player);
+
+        Inventory top = player.getOpenInventory().getTopInventory();
+        assertEquals(Material.EMERALD, top.getItem(19).getType());
+        assertEquals(Material.EMERALD, top.getItem(22).getType());
+        assertEquals(Material.EMERALD_BLOCK, top.getItem(25).getType());
+        assertEquals("vip", plugin.rewardService().primaryRewardGroup(player).id());
+    }
+
+    @Test
+    void shouldBlockDefaultPlayerFromEliteReward() {
+        Player player = server.addPlayer("DefaultOnly");
+        plugin.rewardService().setClock(Clock.fixed(Instant.parse("2026-07-20T10:00:00Z"), ZoneOffset.UTC));
+
+        ClaimResult result = plugin.rewardService().claim(player, "elite");
+
+        assertEquals(ClaimResult.Status.LOCKED, result.status());
+        assertTrue(plugin.rewardService().state(player, "elite").available());
+    }
+
+    @Test
+    void shouldPreferEliteOverInheritedVipPermission() {
+        Player player = server.addPlayer("EliteUser");
+        player.addAttachment(plugin, "hexdailyrewards.rank.vip", true);
+        player.addAttachment(plugin, "hexdailyrewards.rank.elita", true);
+
+        assertEquals("elite", plugin.rewardService().primaryRewardGroup(player).id());
+        assertFalse(plugin.rewardService().canAccess(player, plugin.config().rewardGroups().get("vip")));
+        assertTrue(plugin.rewardService().canAccess(player, plugin.config().rewardGroups().get("elite")));
+    }
+
+    @Test
+    void shouldAllowOperatorToClaimEveryRewardGroup() {
+        Player op = server.addPlayer("AllRewardsOp");
+        op.setOp(true);
+        plugin.rewardService().setClock(Clock.fixed(Instant.parse("2026-07-20T10:00:00Z"), ZoneOffset.UTC));
+
+        assertTrue(plugin.rewardService().claim(op, "default").claimed());
+        assertTrue(plugin.rewardService().claim(op, "vip").claimed());
+        assertTrue(plugin.rewardService().claim(op, "elite").claimed());
+
+        assertFalse(plugin.rewardService().state(op, "default").available());
+        assertFalse(plugin.rewardService().state(op, "vip").available());
+        assertFalse(plugin.rewardService().state(op, "elite").available());
     }
 
     @Test
@@ -119,13 +174,29 @@ class HexDailyRewardsPluginSmokeTest {
 
         assertTrue(plugin.reloadPluginRuntime());
 
-        assertEquals(2, plugin.getConfig().getInt("config-version"));
+        assertEquals(6, plugin.getConfig().getInt("config-version"));
         assertEquals("&cDaily Rewards", plugin.config().gui().title());
-        assertEquals(18, plugin.config().gui().items().close().slot());
-        assertEquals(26, plugin.config().gui().items().statusAvailable().slot());
-        assertEquals(26, plugin.config().gui().items().statusClaimed().slot());
+        assertEquals(45, plugin.config().gui().size());
+        assertEquals(40, plugin.config().gui().items().close().slot());
+        assertEquals(31, plugin.config().gui().items().statusAvailable().slot());
+        assertEquals(31, plugin.config().gui().items().statusClaimed().slot());
         assertFalse(plugin.config().gui().items().info().enabled());
-        assertEquals(List.of("{reward_lore}"), plugin.config().gui().items().available().lore());
+        assertFalse(plugin.config().gui().items().close().enabled());
+        assertFalse(plugin.config().gui().items().statusAvailable().enabled());
+        assertFalse(plugin.config().gui().items().statusClaimed().enabled());
+        assertTrue(plugin.config().gui().items().locked().enabled());
+        assertEquals(19, plugin.config().rewardGroups().get("default").slot());
+        assertEquals(22, plugin.config().rewardGroups().get("vip").slot());
+        assertEquals(25, plugin.config().rewardGroups().get("elite").slot());
+        assertEquals(Material.BLACK_STAINED_GLASS_PANE, plugin.config().rewardGroups().get("default").frameMaterial());
+        assertEquals(Material.YELLOW_STAINED_GLASS_PANE, plugin.config().rewardGroups().get("vip").frameMaterial());
+        assertEquals(Material.LIGHT_BLUE_STAINED_GLASS_PANE, plugin.config().rewardGroups().get("elite").frameMaterial());
+        assertTrue(plugin.config().gui().items().locked().useRewardMaterial());
+        assertEquals("{group_name}", plugin.config().gui().items().available().name());
+        assertEquals(List.of("&fNagroda: {reward_name}", "", "&fStatus: {player_status}",
+                "&fNastepna nagroda za: {time}"), plugin.config().gui().items().available().lore());
+        assertEquals(List.of("&fNagroda: {reward_name}", "", "&fStatus: &cNiedostepna",
+                "&fNastepna nagroda za: -"), plugin.config().gui().items().locked().lore());
         assertTrue(plugin.config().gui().filler().hideTooltip());
     }
 
@@ -171,7 +242,7 @@ class HexDailyRewardsPluginSmokeTest {
                 return true;
             }
         });
-        plugin.getConfig().set("rewards-calendar.days.day-1.commands",
+        plugin.getConfig().set("reward-groups.default.rewards-calendar.days.day-1.commands",
                 List.of("hdrtest {player} {reward_day} {reward_id}"));
         plugin.saveConfig();
         assertTrue(plugin.reloadPluginRuntime());
@@ -186,8 +257,8 @@ class HexDailyRewardsPluginSmokeTest {
 
     @Test
     void shouldUseDefaultRewardLoreWhenConfiguredLoreIsBlank() {
-        plugin.getConfig().set("rewards-calendar.default-lore", List.of("&7Default {reward_name}"));
-        plugin.getConfig().set("rewards-calendar.days.day-1.lore", List.of(""));
+        plugin.getConfig().set("reward-groups.default.rewards-calendar.default-lore", List.of("&7Default {reward_name}"));
+        plugin.getConfig().set("reward-groups.default.rewards-calendar.days.day-1.lore", List.of(""));
         plugin.saveConfig();
 
         assertTrue(plugin.reloadPluginRuntime());
@@ -212,7 +283,25 @@ class HexDailyRewardsPluginSmokeTest {
         assertEquals("1", values.get("hours"));
         assertEquals("30", values.get("minutes"));
         assertEquals("Odebrane", values.get("status"));
-        assertEquals("&cOdebrany", values.get("player_status"));
+        assertEquals("&cOdebrano", values.get("player_status"));
         assertEquals("false", values.get("available"));
+    }
+
+    @Test
+    void shouldExposeHologramStatusForPlayersPrimaryRewardGroup() {
+        Player vip = server.addPlayer("VipPlaceholderUser");
+        vip.addAttachment(plugin, "hexdailyrewards.rank.vip", true);
+        plugin.rewardService().setClock(Clock.fixed(Instant.parse("2026-07-20T08:00:00Z"), ZoneOffset.UTC));
+
+        ClaimState state = plugin.rewardService().state(vip);
+        var availableValues = plugin.rewardService().placeholders(vip.getUniqueId(), vip.getName(), state);
+        assertEquals("&aDo odebrania", availableValues.get("hologram_status"));
+
+        assertTrue(plugin.rewardService().claim(vip).claimed());
+        plugin.rewardService().setClock(Clock.fixed(Instant.parse("2026-07-20T20:30:00Z"), ZoneOffset.UTC));
+
+        ClaimState claimedState = plugin.rewardService().state(vip);
+        var claimedValues = plugin.rewardService().placeholders(vip.getUniqueId(), vip.getName(), claimedState);
+        assertEquals("&cOdebrano", claimedValues.get("hologram_status"));
     }
 }

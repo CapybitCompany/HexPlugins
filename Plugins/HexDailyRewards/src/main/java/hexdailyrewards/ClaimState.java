@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 
 public record ClaimState(
+        String rewardGroupId,
         boolean available,
         LocalDate today,
         LocalDate lastClaimDate,
@@ -12,4 +13,3 @@ public record ClaimState(
         Duration remaining
 ) {
 }
-
