@@ -1,10 +1,16 @@
 package hexcustomitems.config;
 
+import hexcustomitems.model.CommandAction;
+import hexcustomitems.model.CommandExecutorType;
 import hexcustomitems.model.CustomItemDefinition;
-import hexcustomitems.model.CustomItemEffectType;
-import hexcustomitems.model.ItemEffectSettings;
+import hexcustomitems.model.ItemAction;
+import hexcustomitems.model.MessageAction;
 import hexcustomitems.model.PotionEffectSpec;
+import hexcustomitems.model.SelfPotionAction;
+import hexcustomitems.model.SoundAction;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -30,71 +36,75 @@ public final class HexCustomItemsConfigLoader {
         FileConfiguration config = plugin.getConfig();
         Logger logger = plugin.getLogger();
 
-        String prefix = readString(config, "prefix", "&8[&6HexItems&8]&f ", logger);
+        String prefix = readString(config, "prefix", "<dark_gray>[<gold>HexItems<dark_gray>]<white> ", logger);
         String givePermission = readString(config, "permissions.give", "hex.items.give", logger);
         String reloadPermission = readString(config, "permissions.reload", "hex.items.reload", logger);
+        String itemPermissionDefault = config.getString("permissions.item-default", "true");
         int maxGiveAmount = Math.max(1, config.getInt("settings.max-give-amount", 64));
-        boolean protectOps = config.getBoolean("settings.protect-ops-from-negative-effects", true);
+        String menuTitle = readString(config, "settings.menu-title", "<gold>Custom Itemy", logger);
+        int menuShiftGiveAmount = Math.max(1, config.getInt("settings.menu-shift-give-amount", 16));
 
-        HexCustomItemsConfig.Messages messages = new HexCustomItemsConfig.Messages(
-                readString(config, "messages.no-permission", "&cBrak uprawnień.", logger),
-                readString(config, "messages.player-not-found", "&cTen gracz nie jest online.", logger),
-                readString(config, "messages.invalid-number", "&cNiepoprawna liczba.", logger),
-                readString(config, "messages.item-not-found", "&cNie znaleziono itemu: &e%item_id%&c.", logger),
-                readString(config, "messages.usage-main", "&7Użycie: /hexcustomitems <give|reload|list>", logger),
-                readString(config, "messages.usage-give", "&7Użycie: /hexcustomitems give <item_id> <player> [amount]", logger),
-                readString(config, "messages.reloaded", "&aKonfiguracja HexCustomItems została przeładowana.", logger),
-                readString(config, "messages.given-sender", "&aDano item.", logger),
-                readString(config, "messages.given-target", "&7Otrzymałeś item.", logger),
-                readString(config, "messages.list-header", "&7Dostępne itemy: &e%items%", logger),
-                readString(config, "messages.target-player-required", "&cMusisz celować w gracza.", logger),
-                readString(config, "messages.target-too-far", "&cGracz jest za daleko.", logger),
-                readString(config, "messages.target-op-protected", "&cNie możesz użyć tego itemu na operatorze.", logger),
-                readString(config, "messages.drop-blocked", "&cNie możesz wyrzucić tego itemu.", logger)
-        );
-
+        HexCustomItemsConfig.Messages messages = loadMessages(config, logger);
         HexCustomItemsConfig.Sounds sounds = new HexCustomItemsConfig.Sounds(
                 readString(config, "sounds.consume", "item.book.page_turn", logger),
-                readString(config, "sounds.drink", "entity.generic.drink", logger),
-                readString(config, "sounds.dark", "entity.vex.charge", logger),
-                readString(config, "sounds.fire", "item.flintandsteel.use", logger),
-                readString(config, "sounds.ice", "block.glass.break", logger),
-                readString(config, "sounds.throw", "entity.witch.throw", logger),
-                readString(config, "sounds.wind-launch", "entity.wither.shoot", logger),
-                readString(config, "sounds.wind-hit", "entity.generic.explode", logger)
+                readString(config, "sounds.drink", "entity.generic.drink", logger)
+        );
+        HexCustomItemsConfig.RegionAwareness regionAwareness = new HexCustomItemsConfig.RegionAwareness(
+                config.getBoolean("region-awareness.enabled", true),
+                config.getBoolean("region-awareness.fail-closed", false),
+                config.getBoolean("region-awareness.respect-pvp", true),
+                readString(config, "region-awareness.blocked-message", "<red>Nie możesz użyć tego przedmiotu tutaj.", logger)
+        );
+        HexCustomItemsConfig.Cooldowns cooldowns = new HexCustomItemsConfig.Cooldowns(
+                config.getBoolean("cooldowns.persist", true),
+                config.getString("cooldowns.file", "cooldowns.yml")
         );
 
-        HexCustomItemsConfig.WindSettings windSettings = new HexCustomItemsConfig.WindSettings(
-                config.getDouble("wind-charge.radius", 2.8D),
-                config.getDouble("wind-charge.power", 1.55D),
-                config.getDouble("wind-charge.power-owner", 0.65D),
-                config.getDouble("wind-charge.up", 0.36D),
-                config.getDouble("wind-charge.up-owner", 0.14D),
-                config.getDouble("wind-charge.recoil", 0.28D),
-                config.getDouble("wind-charge.recoil-up", 0.08D),
-                config.getDouble("wind-charge.projectile-speed", 1.7D),
-                config.getInt("wind-charge.particle-explosion-count", 3),
-                config.getInt("wind-charge.particle-range", 32)
+        Map<String, CustomItemDefinition> items = loadItems(config, sounds, logger);
+        Map<String, HexCustomItemsConfig.RecipeSpec> recipeSpecs = loadRecipes(config, logger);
+        HexCustomItemsConfig.Recipes recipes = new HexCustomItemsConfig.Recipes(
+                config.getBoolean("recipes.enabled", true),
+                recipeSpecs
         );
-
-        Map<String, CustomItemDefinition> items = loadItems(config, logger);
-        Map<String, String> legacyBindings = loadLegacyBindings();
+        Map<String, String> legacyBindings = loadLegacyBindings(config, logger);
 
         return new HexCustomItemsConfig(
                 prefix,
                 givePermission,
                 reloadPermission,
+                itemPermissionDefault,
                 maxGiveAmount,
-                protectOps,
+                menuTitle,
+                menuShiftGiveAmount,
                 messages,
                 sounds,
-                windSettings,
+                regionAwareness,
+                cooldowns,
+                recipes,
                 items,
                 legacyBindings
         );
     }
 
-    private Map<String, CustomItemDefinition> loadItems(FileConfiguration config, Logger logger) {
+    private HexCustomItemsConfig.Messages loadMessages(FileConfiguration config, Logger logger) {
+        return new HexCustomItemsConfig.Messages(
+                readString(config, "messages.no-permission", "<red>Brak uprawnień.", logger),
+                readString(config, "messages.use-no-permission", "<red>Nie możesz użyć tego przedmiotu.", logger),
+                readString(config, "messages.player-not-found", "<red>Ten gracz nie jest online.", logger),
+                readString(config, "messages.invalid-number", "<red>Niepoprawna liczba.", logger),
+                readString(config, "messages.item-not-found", "<red>Nie znaleziono przedmiotu: <yellow><item_id></yellow>.", logger),
+                readString(config, "messages.usage-main", "<gray>Użycie: <yellow>/hexcustomitems <give|reload|list|menu>", logger),
+                readString(config, "messages.usage-give", "<gray>Użycie: <yellow>/hexcustomitems give <item_id> <player> [amount]", logger),
+                readString(config, "messages.reloaded", "<green>Konfiguracja HexCustomItems została przeładowana.", logger),
+                readString(config, "messages.given-sender", "<green>Dano <yellow><amount>x <item_name> <green>graczowi <yellow><target><green>.", logger),
+                readString(config, "messages.given-target", "<gray>Otrzymałeś <yellow><amount>x <item_name><gray>.", logger),
+                readString(config, "messages.list-header", "<gray>Dostępne przedmioty: <yellow><items>", logger),
+                readString(config, "messages.cooldown-active", "<red>Musisz odczekać <yellow><time>s <red>zanim użyjesz ponownie.", logger),
+                readString(config, "messages.drop-blocked", "<red>Nie możesz wyrzucić tego przedmiotu.", logger)
+        );
+    }
+
+    private Map<String, CustomItemDefinition> loadItems(FileConfiguration config, HexCustomItemsConfig.Sounds sounds, Logger logger) {
         ConfigurationSection itemsSection = config.getConfigurationSection("items");
         if (itemsSection == null) {
             throw new IllegalStateException("Brak sekcji items w config.yml");
@@ -103,112 +113,235 @@ public final class HexCustomItemsConfigLoader {
         Map<String, CustomItemDefinition> items = new LinkedHashMap<>();
         for (String itemId : itemsSection.getKeys(false)) {
             String root = "items." + itemId;
-            Material material = parseMaterial(
-                    config.getString(root + ".material"),
-                    Material.PAPER,
-                    logger,
-                    root + ".material"
-            );
-            String name = readString(config, root + ".name", "&f" + itemId, logger);
+            String id = itemId.toLowerCase(Locale.ROOT);
+
+            Material material = parseMaterial(config.getString(root + ".material"), Material.PAPER, logger, root + ".material");
+            String name = readString(config, root + ".name", "<white>" + itemId, logger);
             List<String> lore = config.getStringList(root + ".lore");
             boolean dropProtection = config.getBoolean(root + ".drop-protection", false);
+            String permission = config.getString(root + ".permission");
+            int cooldownSeconds = Math.max(0, config.getInt(root + ".cooldown-seconds", 0));
+            int charges = Math.max(0, config.getInt(root + ".charges", 0));
 
-            ConfigurationSection effectSection = config.getConfigurationSection(root + ".effect");
-            if (effectSection == null) {
-                logger.warning("Brak sekcji " + root + ".effect. Pomijam item.");
+            List<ItemAction> actions = loadActions(config, root, sounds, logger);
+            if (actions.isEmpty()) {
+                logger.warning("Przedmiot " + root + " nie ma żadnej poprawnej akcji - pomijam (nie da się go użyć).");
                 continue;
             }
 
-            ItemEffectSettings effectSettings = parseEffectSettings(effectSection, logger, root + ".effect");
-            items.put(
-                    itemId.toLowerCase(Locale.ROOT),
-                    new CustomItemDefinition(itemId.toLowerCase(Locale.ROOT), material, name, lore, dropProtection, effectSettings)
-            );
+            items.put(id, new CustomItemDefinition(id, material, name, lore, dropProtection, permission, cooldownSeconds, charges, actions));
         }
 
         if (items.isEmpty()) {
-            throw new IllegalStateException("Brak poprawnych itemów w sekcji items");
+            throw new IllegalStateException("Brak poprawnych przedmiotów w sekcji items");
         }
         return Map.copyOf(items);
     }
 
-    private ItemEffectSettings parseEffectSettings(ConfigurationSection effectSection, Logger logger, String rootPath) {
-        String typeRaw = effectSection.getString("type", "HEX_COINS");
-        CustomItemEffectType type;
+    /** Neues actions-System; fällt bei fehlender actions-Sektion auf die alte effect-Sektion zurück. */
+    private List<ItemAction> loadActions(FileConfiguration config, String root, HexCustomItemsConfig.Sounds sounds, Logger logger) {
+        List<Map<?, ?>> rawActions = config.getMapList(root + ".actions");
+        if (!rawActions.isEmpty()) {
+            List<ItemAction> actions = new ArrayList<>();
+            for (Map<?, ?> raw : rawActions) {
+                ItemAction action = parseAction(raw, root + ".actions", logger);
+                if (action != null) {
+                    actions.add(action);
+                }
+            }
+            return actions;
+        }
+
+        ConfigurationSection legacyEffect = config.getConfigurationSection(root + ".effect");
+        if (legacyEffect != null) {
+            return translateLegacyEffect(legacyEffect, sounds, logger, root + ".effect");
+        }
+
+        logger.warning("Przedmiot " + root + " nie ma sekcji 'actions' ani 'effect' - brak akcji.");
+        return List.of();
+    }
+
+    private ItemAction parseAction(Map<?, ?> raw, String path, Logger logger) {
+        String type = asString(raw.get("type"), "").trim().toUpperCase(Locale.ROOT);
+        boolean offensive = asBool(raw.get("offensive"), false);
+
+        switch (type) {
+            case "COMMAND", "HEX_COINS" -> {
+                CommandExecutorType executor = parseExecutor(asString(raw.get("executor"), "CONSOLE"), logger, path);
+                List<String> commands = asStringList(raw.get("commands"));
+                if (commands.isEmpty() && raw.get("command") != null) {
+                    commands = List.of(asString(raw.get("command"), ""));
+                }
+                if (commands.isEmpty()) {
+                    logger.warning("Akcja COMMAND w " + path + " nie ma 'commands' - pomijam.");
+                    return null;
+                }
+                return new CommandAction(executor, commands, offensive);
+            }
+            case "SELF_POTION" -> {
+                PotionEffectSpec effect = parsePotionSpecFromMap(raw, logger, path);
+                return new SelfPotionAction(effect, offensive);
+            }
+            case "MESSAGE" -> {
+                String message = asString(raw.get("message"), "");
+                if (message.isBlank()) {
+                    logger.warning("Akcja MESSAGE w " + path + " nie ma 'message' - pomijam.");
+                    return null;
+                }
+                return new MessageAction(message, offensive);
+            }
+            case "SOUND" -> {
+                String sound = asString(raw.get("sound"), "");
+                if (sound.isBlank()) {
+                    logger.warning("Akcja SOUND w " + path + " nie ma 'sound' - pomijam.");
+                    return null;
+                }
+                float volume = (float) asDouble(raw.get("volume"), 1.0D);
+                float pitch = (float) asDouble(raw.get("pitch"), 1.0D);
+                return new SoundAction(sound, volume, pitch, offensive);
+            }
+            default -> {
+                logger.warning("Nieznany typ akcji '" + type + "' w " + path + " - pomijam.");
+                return null;
+            }
+        }
+    }
+
+    /** Übersetzt die alte effect-Sektion in Aktionen (Backward-Compatibility). */
+    private List<ItemAction> translateLegacyEffect(ConfigurationSection effect, HexCustomItemsConfig.Sounds sounds, Logger logger, String path) {
+        String type = effect.getString("type", "SELF_POTION").trim().toUpperCase(Locale.ROOT);
+        List<ItemAction> actions = new ArrayList<>();
+
+        switch (type) {
+            case "HEX_COINS" -> {
+                int coins = Math.max(0, effect.getInt("coins", 0));
+                String template = effect.getString("command-template", "eco give %player% %coins%");
+                String command = template.replace("%coins%", String.valueOf(coins));
+                actions.add(new CommandAction(CommandExecutorType.CONSOLE, List.of(command), false));
+                actions.add(new SoundAction(sounds.consume(), 1.0F, 1.0F, false));
+            }
+            case "SELF_POTION" -> {
+                PotionEffectType potionType = parsePotionType(effect.getString("potion", "SPEED"), logger, path + ".potion");
+                int duration = Math.max(1, effect.getInt("duration-seconds", 5));
+                int amplifier = Math.max(0, effect.getInt("amplifier", 0));
+                actions.add(new SelfPotionAction(new PotionEffectSpec(potionType, duration, amplifier), false));
+                actions.add(new SoundAction(sounds.drink(), 1.0F, 1.0F, false));
+            }
+            default -> logger.warning("Stary effect.type '" + type + "' w " + path
+                    + " nie jest wspierany w wersji SMP - przedmiot bez akcji. Użyj sekcji 'actions'.");
+        }
+        return actions;
+    }
+
+    private PotionEffectSpec parsePotionSpecFromMap(Map<?, ?> raw, Logger logger, String path) {
+        PotionEffectType type = parsePotionType(asString(raw.get("potion"), "SPEED"), logger, path + ".potion");
+        int duration = Math.max(1, asInt(raw.get("duration-seconds"), 5));
+        int amplifier = Math.max(0, asInt(raw.get("amplifier"), 0));
+        return new PotionEffectSpec(type, duration, amplifier);
+    }
+
+    private CommandExecutorType parseExecutor(String raw, Logger logger, String path) {
         try {
-            type = CustomItemEffectType.valueOf(typeRaw.trim().toUpperCase(Locale.ROOT));
+            return CommandExecutorType.valueOf(raw.trim().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException ex) {
-            logger.warning("Niepoprawny effect.type '" + typeRaw + "' w " + rootPath + ". Używam HEX_COINS.");
-            type = CustomItemEffectType.HEX_COINS;
+            logger.warning("Niepoprawny executor '" + raw + "' w " + path + ". Używam CONSOLE.");
+            return CommandExecutorType.CONSOLE;
         }
-
-        int coins = Math.max(0, effectSection.getInt("coins", 0));
-        String commandTemplate = effectSection.getString("command-template", "eco give %player% %coins%");
-        PotionEffectSpec potionEffect = parsePotionEffectSpec(effectSection, logger, rootPath);
-        double radius = effectSection.getDouble("radius", 4.0D);
-        boolean affectSelf = effectSection.getBoolean("affect-self", false);
-        double maxDistance = effectSection.getDouble("max-distance", 5.0D);
-        int fireSeconds = Math.max(1, effectSection.getInt("fire-seconds", 5));
-        List<PotionEffectSpec> areaEffects = parseAreaEffects(effectSection.getMapList("effects"), logger, rootPath + ".effects");
-
-        return new ItemEffectSettings(
-                type,
-                coins,
-                commandTemplate,
-                potionEffect,
-                radius,
-                affectSelf,
-                maxDistance,
-                fireSeconds,
-                areaEffects
-        );
     }
 
-    private PotionEffectSpec parsePotionEffectSpec(ConfigurationSection section, Logger logger, String path) {
-        String potionRaw = section.getString("potion", "SPEED");
-        PotionEffectType type = parsePotionType(potionRaw, logger, path + ".potion");
-        int durationSeconds = Math.max(1, section.getInt("duration-seconds", 5));
-        int amplifier = Math.max(0, section.getInt("amplifier", 0));
-        return new PotionEffectSpec(type, durationSeconds, amplifier);
-    }
-
-    private List<PotionEffectSpec> parseAreaEffects(List<Map<?, ?>> maps, Logger logger, String path) {
-        if (maps.isEmpty()) {
-            return List.of();
+    private Map<String, HexCustomItemsConfig.RecipeSpec> loadRecipes(FileConfiguration config, Logger logger) {
+        ConfigurationSection recipesSection = config.getConfigurationSection("recipes.items");
+        if (recipesSection == null) {
+            return Map.of();
         }
 
-        List<PotionEffectSpec> result = new ArrayList<>();
-        for (Map<?, ?> map : maps) {
-            Object potionRaw = map.get("potion");
-            if (!(potionRaw instanceof String potionName) || potionName.isBlank()) {
-                logger.warning("Brak pola potion w " + path + ". Pomijam wpis.");
+        Map<String, HexCustomItemsConfig.RecipeSpec> result = new LinkedHashMap<>();
+        for (String itemId : recipesSection.getKeys(false)) {
+            String base = "recipes.items." + itemId;
+            String type = config.getString(base + ".type", "shaped").toLowerCase(Locale.ROOT);
+            int amount = Math.max(1, config.getInt(base + ".amount", 1));
+
+            if ("shapeless".equals(type)) {
+                List<Material> materials = new ArrayList<>();
+                for (String rawMat : config.getStringList(base + ".ingredients")) {
+                    Material mat = parseMaterial(rawMat, null, logger, base + ".ingredients");
+                    if (mat != null) {
+                        materials.add(mat);
+                    }
+                }
+                result.put(itemId.toLowerCase(Locale.ROOT), new HexCustomItemsConfig.RecipeSpec(type, List.of(), Map.of(), materials, amount));
+            } else {
+                List<String> shape = config.getStringList(base + ".shape");
+                Map<String, Material> ingredients = new LinkedHashMap<>();
+                ConfigurationSection ingredientsSection = config.getConfigurationSection(base + ".ingredients");
+                if (ingredientsSection != null) {
+                    for (String symbol : ingredientsSection.getKeys(false)) {
+                        Material mat = parseMaterial(ingredientsSection.getString(symbol), null, logger, base + ".ingredients." + symbol);
+                        if (mat != null) {
+                            ingredients.put(symbol, mat);
+                        }
+                    }
+                }
+                result.put(itemId.toLowerCase(Locale.ROOT), new HexCustomItemsConfig.RecipeSpec(type, shape, ingredients, List.of(), amount));
+            }
+        }
+        return result;
+    }
+
+    /** Config-getriebene Legacy-Bindings; ohne Sektion greift die statische Migration. */
+    private Map<String, String> loadLegacyBindings(FileConfiguration config, Logger logger) {
+        ConfigurationSection section = config.getConfigurationSection("legacy-commands");
+        if (section == null) {
+            return defaultLegacyBindings();
+        }
+        Map<String, String> bindings = new LinkedHashMap<>();
+        for (String command : section.getKeys(false)) {
+            String itemId = section.getString(command);
+            if (itemId == null || itemId.isBlank()) {
+                logger.warning("Legacy-command '" + command + "' nie wskazuje na żaden przedmiot - pomijam.");
                 continue;
             }
-            PotionEffectType type = parsePotionType(potionName, logger, path + ".potion");
-            int duration = map.get("duration-seconds") instanceof Number n ? Math.max(1, n.intValue()) : 5;
-            int amplifier = map.get("amplifier") instanceof Number n2 ? Math.max(0, n2.intValue()) : 0;
-            result.add(new PotionEffectSpec(type, duration, amplifier));
+            bindings.put(command, itemId.toLowerCase(Locale.ROOT));
         }
-        return List.copyOf(result);
+        return Map.copyOf(bindings);
+    }
+
+    private Map<String, String> defaultLegacyBindings() {
+        Map<String, String> bindings = new LinkedHashMap<>();
+        bindings.put("hex_item_potkaskoku", "jump_potion");
+        bindings.put("hex_item_ciastkoniewidka", "invisibility_cookie");
+        bindings.put("hex_item_hexcoin1", "hex_coin_1");
+        bindings.put("hex_item_hexcoins2", "hex_coin_2");
+        bindings.put("hex_item_hexcoins3", "hex_coin_3");
+        bindings.put("hex_item_hexcoins5", "hex_coin_5");
+        bindings.put("hex_item_potkaspeedu", "speed_potion");
+        return Map.copyOf(bindings);
     }
 
     private PotionEffectType parsePotionType(String raw, Logger logger, String path) {
-        PotionEffectType type = PotionEffectType.getByName(raw);
-        if (type != null) {
-            return type;
+        if (raw != null && !raw.isBlank()) {
+            NamespacedKey key = NamespacedKey.fromString(raw.trim().toLowerCase(Locale.ROOT));
+            if (key != null) {
+                PotionEffectType type = Registry.EFFECT.get(key);
+                if (type != null) {
+                    return type;
+                }
+            }
         }
         logger.warning("Niepoprawny potion type '" + raw + "' w " + path + ". Używam SPEED.");
-        return PotionEffectType.SPEED;
+        return Registry.EFFECT.get(NamespacedKey.minecraft("speed"));
     }
 
     private Material parseMaterial(String raw, Material fallback, Logger logger, String path) {
         if (raw == null || raw.isBlank()) {
-            logger.warning("Brak materiału w " + path + ". Używam " + fallback + ".");
+            if (fallback != null) {
+                logger.warning("Brak materiału w " + path + ". Używam " + fallback + ".");
+            }
             return fallback;
         }
         Material material = Material.matchMaterial(raw);
         if (material == null) {
-            logger.warning("Niepoprawny materiał '" + raw + "' w " + path + ". Używam " + fallback + ".");
+            logger.warning("Niepoprawny materiał '" + raw + "' w " + path + (fallback != null ? ". Używam " + fallback + "." : " - pomijam."));
             return fallback;
         }
         return material;
@@ -223,21 +356,63 @@ public final class HexCustomItemsConfigLoader {
         return value;
     }
 
-    private Map<String, String> loadLegacyBindings() {
-        Map<String, String> bindings = new LinkedHashMap<>();
-        bindings.put("hex_item_potkaskoku", "jump_potion");
-        bindings.put("hex_item_potkaspowolnienia", "slowness_splash");
-        bindings.put("hex_item_ciastkoniewidka", "invisibility_cookie");
-        bindings.put("hex_item_proszekciemnosci", "dark_powder");
-        bindings.put("hex_item_windcharge", "wind_charge");
-        bindings.put("hex_item_hexcoin1", "hex_coin_1");
-        bindings.put("hex_item_hexcoins2", "hex_coin_2");
-        bindings.put("hex_item_hexcoins3", "hex_coin_3");
-        bindings.put("hex_item_hexcoins5", "hex_coin_5");
-        bindings.put("hex_item_fireballitem", "fireball_item");
-        bindings.put("hex_item_iceballitem", "iceball_item");
-        bindings.put("hex_item_potkazawrotow", "nausea_splash");
-        bindings.put("hex_item_potkaspeedu", "speed_potion");
-        return Map.copyOf(bindings);
+    // ---- Hilfen zum Lesen aus getMapList-Einträgen ----
+
+    private static String asString(Object value, String fallback) {
+        return value == null ? fallback : String.valueOf(value);
+    }
+
+    private static boolean asBool(Object value, boolean fallback) {
+        if (value instanceof Boolean b) {
+            return b;
+        }
+        if (value instanceof String s) {
+            return Boolean.parseBoolean(s.trim());
+        }
+        return fallback;
+    }
+
+    private static int asInt(Object value, int fallback) {
+        if (value instanceof Number n) {
+            return n.intValue();
+        }
+        if (value instanceof String s) {
+            try {
+                return Integer.parseInt(s.trim());
+            } catch (NumberFormatException ignored) {
+                return fallback;
+            }
+        }
+        return fallback;
+    }
+
+    private static double asDouble(Object value, double fallback) {
+        if (value instanceof Number n) {
+            return n.doubleValue();
+        }
+        if (value instanceof String s) {
+            try {
+                return Double.parseDouble(s.trim());
+            } catch (NumberFormatException ignored) {
+                return fallback;
+            }
+        }
+        return fallback;
+    }
+
+    private static List<String> asStringList(Object value) {
+        if (value instanceof List<?> list) {
+            List<String> result = new ArrayList<>(list.size());
+            for (Object element : list) {
+                if (element != null) {
+                    result.add(String.valueOf(element));
+                }
+            }
+            return result;
+        }
+        if (value instanceof String s && !s.isBlank()) {
+            return List.of(s);
+        }
+        return List.of();
     }
 }

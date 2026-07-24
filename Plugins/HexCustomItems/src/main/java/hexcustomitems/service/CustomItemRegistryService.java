@@ -2,13 +2,16 @@ package hexcustomitems.service;
 
 import hexcustomitems.config.HexCustomItemsConfig;
 import hexcustomitems.model.CustomItemDefinition;
-import hexcustomitems.util.LegacyTextUtil;
+import hexcustomitems.util.TextUtil;
 import org.bukkit.NamespacedKey;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -17,10 +20,12 @@ import java.util.concurrent.atomic.AtomicReference;
 public final class CustomItemRegistryService {
 
     private final NamespacedKey itemIdKey;
+    private final NamespacedKey chargesKey;
     private final AtomicReference<Map<String, CustomItemDefinition>> itemsRef = new AtomicReference<>(Map.of());
 
     public CustomItemRegistryService(JavaPlugin plugin, HexCustomItemsConfig initialConfig) {
         this.itemIdKey = new NamespacedKey(plugin, "hexcustomitem_id");
+        this.chargesKey = new NamespacedKey(plugin, "hexcustomitem_charges");
         updateConfig(initialConfig);
     }
 
@@ -40,50 +45,82 @@ public final class CustomItemRegistryService {
     }
 
     public ItemStack createItem(CustomItemDefinition definition, int amount) {
+        return createItem(definition, amount, null);
+    }
+
+    /**
+     * Erzeugt genau ein ItemStack (bei Ladungs-Items immer Stackgröße 1).
+     * {@code papiContext} ist der Spieler, für den Name/Lore via PlaceholderAPI
+     * aufgelöst werden (z.B. Zielspieler beim Geben) - kann {@code null} sein.
+     */
+    public ItemStack createItem(CustomItemDefinition definition, int amount, OfflinePlayer papiContext) {
         Objects.requireNonNull(definition, "definition");
 
-        ItemStack item = new ItemStack(definition.material(), Math.max(1, amount));
-        ItemMeta meta = item.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName(LegacyTextUtil.colorize(definition.name()));
-            meta.setLore(LegacyTextUtil.colorize(definition.lore()));
-            meta.getPersistentDataContainer().set(itemIdKey, PersistentDataType.STRING, definition.id());
-            item.setItemMeta(meta);
-        }
+        int stackSize = definition.usesCharges() ? 1 : Math.max(1, amount);
+        ItemStack item = new ItemStack(definition.material(), stackSize);
+        applyMeta(item, definition, definition.charges(), papiContext);
         return item;
     }
 
+    /** Nur PDC-basierte Erkennung - kein Signatur-Scan pro Klick mehr. */
     public String resolveItemId(ItemStack itemStack) {
         if (itemStack == null || itemStack.getType().isAir()) {
             return null;
         }
-
         ItemMeta meta = itemStack.getItemMeta();
-        if (meta != null) {
-            String direct = meta.getPersistentDataContainer().get(itemIdKey, PersistentDataType.STRING);
-            if (direct != null && !direct.isBlank()) {
-                return direct.toLowerCase(Locale.ROOT);
-            }
+        if (meta == null) {
+            return null;
         }
-
-        return matchBySignature(itemStack);
+        String direct = meta.getPersistentDataContainer().get(itemIdKey, PersistentDataType.STRING);
+        if (direct == null || direct.isBlank()) {
+            return null;
+        }
+        return direct.toLowerCase(Locale.ROOT);
     }
 
     public boolean isManagedItem(ItemStack itemStack) {
         return resolveItemId(itemStack) != null;
     }
 
-    private String matchBySignature(ItemStack itemStack) {
-        ItemMeta meta = itemStack.getItemMeta();
-        String displayName = meta == null ? null : meta.getDisplayName();
-        for (CustomItemDefinition definition : itemsRef.get().values()) {
-            if (itemStack.getType() != definition.material()) {
-                continue;
-            }
-            if (displayName != null && displayName.equals(LegacyTextUtil.colorize(definition.name()))) {
-                return definition.id();
-            }
+    /** Aktuelle Ladungen eines Items; -1 wenn das Item kein Ladungs-System nutzt. */
+    public int readCharges(ItemStack itemStack) {
+        if (itemStack == null) {
+            return -1;
         }
-        return null;
+        ItemMeta meta = itemStack.getItemMeta();
+        if (meta == null) {
+            return -1;
+        }
+        Integer value = meta.getPersistentDataContainer().get(chargesKey, PersistentDataType.INTEGER);
+        return value == null ? -1 : value;
+    }
+
+    /** Setzt die verbleibenden Ladungen und rendert die Lore neu. */
+    public void writeCharges(ItemStack itemStack, CustomItemDefinition definition, int remaining, OfflinePlayer papiContext) {
+        applyMeta(itemStack, definition, remaining, papiContext);
+    }
+
+    private void applyMeta(ItemStack item, CustomItemDefinition definition, int remainingCharges, OfflinePlayer papiContext) {
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) {
+            return;
+        }
+
+        Map<String, String> placeholders = new HashMap<>();
+        if (definition.usesCharges()) {
+            placeholders.put("charges", String.valueOf(Math.max(0, remainingCharges)));
+            placeholders.put("max_charges", String.valueOf(definition.charges()));
+        }
+
+        meta.displayName(TextUtil.itemName(definition.name(), placeholders, papiContext));
+        meta.lore(TextUtil.itemLore(definition.lore(), placeholders, papiContext));
+
+        PersistentDataContainer data = meta.getPersistentDataContainer();
+        data.set(itemIdKey, PersistentDataType.STRING, definition.id());
+        if (definition.usesCharges()) {
+            data.set(chargesKey, PersistentDataType.INTEGER, Math.max(0, remainingCharges));
+        }
+
+        item.setItemMeta(meta);
     }
 }

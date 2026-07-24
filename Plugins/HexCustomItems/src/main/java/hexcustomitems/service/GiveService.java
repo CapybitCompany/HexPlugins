@@ -2,11 +2,14 @@ package hexcustomitems.service;
 
 import hexcustomitems.config.HexCustomItemsConfig;
 import hexcustomitems.model.CustomItemDefinition;
+import hexcustomitems.util.TextUtil;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
 
@@ -35,20 +38,34 @@ public final class GiveService {
 
         Player target = Bukkit.getPlayerExact(playerName);
         if (target == null) {
-            target = Bukkit.getPlayer(playerName);
-        }
-
-        if (target == null) {
             messageService.sendPlayerNotFound(sender);
             return false;
         }
 
         int cappedAmount = Math.min(configSupplier.get().maxGiveAmount(), Math.max(1, requestedAmount));
-        ItemStack stack = registryService.createItem(item, cappedAmount);
-        target.getInventory().addItem(stack);
+        giveTo(target, item, cappedAmount);
 
-        messageService.sendGivenSender(sender, String.valueOf(cappedAmount), item.name(), target.getName());
-        messageService.sendGivenTarget(target, String.valueOf(cappedAmount), item.name());
+        Component itemName = TextUtil.itemName(item.name(), Map.of(), target);
+        messageService.sendGivenSender(sender, String.valueOf(cappedAmount), itemName, target.getName());
+        messageService.sendGivenTarget(target, String.valueOf(cappedAmount), itemName);
         return true;
+    }
+
+    /** Gibt dem Spieler das Item; Ladungs-Items werden als einzelne Stuecke uebergeben. */
+    public void giveTo(Player target, CustomItemDefinition item, int amount) {
+        if (item.usesCharges()) {
+            for (int i = 0; i < amount; i++) {
+                addOrDrop(target, registryService.createItem(item, 1, target));
+            }
+        } else {
+            addOrDrop(target, registryService.createItem(item, amount, target));
+        }
+    }
+
+    private void addOrDrop(Player target, ItemStack stack) {
+        Map<Integer, ItemStack> overflow = target.getInventory().addItem(stack);
+        for (ItemStack leftover : overflow.values()) {
+            target.getWorld().dropItemNaturally(target.getLocation(), leftover);
+        }
     }
 }

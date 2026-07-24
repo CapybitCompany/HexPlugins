@@ -1,9 +1,12 @@
 package hexcustomitems.service;
 
 import hexcustomitems.config.HexCustomItemsConfig;
-import hexcustomitems.util.LegacyTextUtil;
-import hexcustomitems.util.PlaceholderUtil;
+import hexcustomitems.util.TextUtil;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 import java.util.Map;
 import java.util.Objects;
@@ -19,6 +22,10 @@ public final class MessageService {
 
     public void sendNoPermission(CommandSender sender) {
         send(sender, configSupplier.get().messages().noPermission(), Map.of());
+    }
+
+    public void sendUseNoPermission(CommandSender sender) {
+        send(sender, configSupplier.get().messages().useNoPermission(), Map.of());
     }
 
     public void sendPlayerNotFound(CommandSender sender) {
@@ -45,41 +52,55 @@ public final class MessageService {
         send(sender, configSupplier.get().messages().reloaded(), Map.of());
     }
 
-    public void sendGivenSender(CommandSender sender, String amount, String itemName, String target) {
-        send(
-                sender,
-                configSupplier.get().messages().givenSender(),
-                Map.of("amount", amount, "item_name", itemName, "target", target)
+    public void sendGivenSender(CommandSender sender, String amount, Component itemName, String target) {
+        TagResolver resolver = TagResolver.resolver(
+                Placeholder.unparsed("amount", amount),
+                Placeholder.unparsed("target", target),
+                Placeholder.component("item_name", itemName)
         );
+        sender.sendMessage(prefix().append(TextUtil.parse(configSupplier.get().messages().givenSender(), resolver)));
     }
 
-    public void sendGivenTarget(CommandSender sender, String amount, String itemName) {
-        send(sender, configSupplier.get().messages().givenTarget(), Map.of("amount", amount, "item_name", itemName));
+    public void sendGivenTarget(CommandSender sender, String amount, Component itemName) {
+        TagResolver resolver = TagResolver.resolver(
+                Placeholder.unparsed("amount", amount),
+                Placeholder.component("item_name", itemName)
+        );
+        sender.sendMessage(prefix().append(TextUtil.parse(configSupplier.get().messages().givenTarget(), resolver)));
     }
 
     public void sendList(CommandSender sender, String items) {
         send(sender, configSupplier.get().messages().listHeader(), Map.of("items", items));
     }
 
-    public void sendTargetPlayerRequired(CommandSender sender) {
-        send(sender, configSupplier.get().messages().targetPlayerRequired(), Map.of());
-    }
-
-    public void sendTargetTooFar(CommandSender sender) {
-        send(sender, configSupplier.get().messages().targetTooFar(), Map.of());
-    }
-
-    public void sendTargetOpProtected(CommandSender sender) {
-        send(sender, configSupplier.get().messages().targetOpProtected(), Map.of());
-    }
-
     public void sendDropBlocked(CommandSender sender) {
         send(sender, configSupplier.get().messages().dropBlocked(), Map.of());
     }
 
+    /** Cooldown-Hinweis als Actionbar - kein Chat-Spam beim wiederholten Klicken. */
+    public void sendCooldownActive(Player player, long seconds) {
+        Component text = TextUtil.parse(
+                configSupplier.get().messages().cooldownActive(),
+                Map.of("time", String.valueOf(seconds))
+        );
+        player.sendActionBar(text);
+    }
+
+    /** Blockade durch die Region-/PvP-Guard-Schicht. */
+    public void sendRegionBlocked(Player player) {
+        send(player, configSupplier.get().regionAwareness().blockedMessage(), Map.of());
+    }
+
+    /** MESSAGE-Aktion eines Items: rohe MiniMessage (ohne Prefix), PlaceholderAPI-Kontext = nutzender Spieler. */
+    public void sendActionMessage(Player player, String message) {
+        player.sendMessage(TextUtil.parse(message, Map.of(), player));
+    }
+
     private void send(CommandSender sender, String body, Map<String, String> placeholders) {
-        String prefix = configSupplier.get().prefix();
-        String finalText = PlaceholderUtil.apply(prefix + body, placeholders);
-        sender.sendMessage(LegacyTextUtil.toComponent(finalText));
+        sender.sendMessage(prefix().append(TextUtil.parse(body, placeholders)));
+    }
+
+    private Component prefix() {
+        return TextUtil.parse(configSupplier.get().prefix());
     }
 }

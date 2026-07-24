@@ -4,10 +4,13 @@ import hexcustomitems.config.HexCustomItemsConfig;
 import hexcustomitems.service.CustomItemRegistryService;
 import hexcustomitems.service.GiveService;
 import hexcustomitems.service.MessageService;
+import hexcustomitems.ui.MenuService;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
+import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,10 +24,12 @@ public final class HexCustomItemsCommand implements CommandExecutor, TabComplete
     private static final String SUBCOMMAND_GIVE = "give";
     private static final String SUBCOMMAND_RELOAD = "reload";
     private static final String SUBCOMMAND_LIST = "list";
+    private static final String SUBCOMMAND_MENU = "menu";
 
     private final Supplier<HexCustomItemsConfig> configSupplier;
     private final CustomItemRegistryService registryService;
     private final GiveService giveService;
+    private final MenuService menuService;
     private final MessageService messageService;
     private final Runnable reloadAction;
 
@@ -32,12 +37,14 @@ public final class HexCustomItemsCommand implements CommandExecutor, TabComplete
             Supplier<HexCustomItemsConfig> configSupplier,
             CustomItemRegistryService registryService,
             GiveService giveService,
+            MenuService menuService,
             MessageService messageService,
             Runnable reloadAction
     ) {
         this.configSupplier = Objects.requireNonNull(configSupplier, "configSupplier");
         this.registryService = Objects.requireNonNull(registryService, "registryService");
         this.giveService = Objects.requireNonNull(giveService, "giveService");
+        this.menuService = Objects.requireNonNull(menuService, "menuService");
         this.messageService = Objects.requireNonNull(messageService, "messageService");
         this.reloadAction = Objects.requireNonNull(reloadAction, "reloadAction");
     }
@@ -81,11 +88,38 @@ public final class HexCustomItemsCommand implements CommandExecutor, TabComplete
                 messageService.sendList(sender, joiner.toString());
                 return true;
             }
+            case SUBCOMMAND_MENU -> {
+                handleMenu(sender, config, args);
+                return true;
+            }
             default -> {
                 messageService.sendUsageMain(sender);
                 return true;
             }
         }
+    }
+
+    private void handleMenu(CommandSender sender, HexCustomItemsConfig config, String[] args) {
+        if (!sender.hasPermission(config.givePermission())) {
+            messageService.sendNoPermission(sender);
+            return;
+        }
+        if (!(sender instanceof Player viewer)) {
+            messageService.sendUsageMain(sender);
+            return;
+        }
+
+        if (args.length >= 2) {
+            Player target = Bukkit.getPlayerExact(args[1]);
+            if (target == null) {
+                messageService.sendPlayerNotFound(sender);
+                return;
+            }
+            menuService.open(viewer, target.getUniqueId(), 0);
+            return;
+        }
+
+        menuService.open(viewer, null, 0);
     }
 
     private void handleGive(CommandSender sender, String[] args) {
@@ -115,7 +149,7 @@ public final class HexCustomItemsCommand implements CommandExecutor, TabComplete
         if (args.length == 1) {
             String input = args[0].toLowerCase(Locale.ROOT);
             List<String> suggestions = new ArrayList<>();
-            for (String subcommand : List.of(SUBCOMMAND_GIVE, SUBCOMMAND_RELOAD, SUBCOMMAND_LIST)) {
+            for (String subcommand : List.of(SUBCOMMAND_GIVE, SUBCOMMAND_RELOAD, SUBCOMMAND_LIST, SUBCOMMAND_MENU)) {
                 if (subcommand.startsWith(input)) {
                     suggestions.add(subcommand);
                 }
@@ -134,10 +168,29 @@ public final class HexCustomItemsCommand implements CommandExecutor, TabComplete
             return suggestions;
         }
 
+        if (args.length == 3 && SUBCOMMAND_GIVE.equalsIgnoreCase(args[0])) {
+            return onlinePlayerNames(args[2]);
+        }
+
+        if (args.length == 2 && SUBCOMMAND_MENU.equalsIgnoreCase(args[0])) {
+            return onlinePlayerNames(args[1]);
+        }
+
         if (args.length == 4 && SUBCOMMAND_GIVE.equalsIgnoreCase(args[0])) {
             return List.of("1", "2", "3", "5", "10");
         }
 
         return List.of();
+    }
+
+    private List<String> onlinePlayerNames(String input) {
+        String lower = input.toLowerCase(Locale.ROOT);
+        List<String> names = new ArrayList<>();
+        for (Player online : Bukkit.getOnlinePlayers()) {
+            if (online.getName().toLowerCase(Locale.ROOT).startsWith(lower)) {
+                names.add(online.getName());
+            }
+        }
+        return names;
     }
 }

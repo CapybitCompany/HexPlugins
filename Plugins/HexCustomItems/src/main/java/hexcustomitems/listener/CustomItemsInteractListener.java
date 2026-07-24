@@ -1,6 +1,5 @@
 package hexcustomitems.listener;
 
-import hexcustomitems.service.CustomItemRegistryService;
 import hexcustomitems.service.CustomItemUseService;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -14,18 +13,13 @@ import java.util.Objects;
 
 public final class CustomItemsInteractListener implements Listener {
 
-    private final CustomItemRegistryService registryService;
     private final CustomItemUseService useService;
 
-    public CustomItemsInteractListener(
-            CustomItemRegistryService registryService,
-            CustomItemUseService useService
-    ) {
-        this.registryService = Objects.requireNonNull(registryService, "registryService");
+    public CustomItemsInteractListener(CustomItemUseService useService) {
         this.useService = Objects.requireNonNull(useService, "useService");
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onInteract(PlayerInteractEvent event) {
         if (event.getHand() != EquipmentSlot.HAND) {
             return;
@@ -41,12 +35,11 @@ public final class CustomItemsInteractListener implements Listener {
             return;
         }
 
-        String itemId = registryService.resolveItemId(item);
-        if (itemId == null) {
-            return;
+        // Nur abbrechen, wenn wirklich ein aktuell verwaltetes, nutzbares Custom-Item verarbeitet wurde.
+        // Stale PDC-Items (ID nicht mehr in der Registry) oder Items ohne gültige Aktionen liefern false
+        // und blockieren den Rechtsklick daher nicht.
+        if (useService.tryUseItem(event.getPlayer(), event.getHand(), item)) {
+            event.setCancelled(true);
         }
-
-        event.setCancelled(true);
-        useService.tryUseItem(event.getPlayer(), event.getHand(), item, action, event.getClickedBlock());
     }
 }

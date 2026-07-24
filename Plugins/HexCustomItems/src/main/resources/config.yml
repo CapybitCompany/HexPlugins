@@ -1,206 +1,249 @@
-prefix: "&8[&6HexItems&8]&f "
+# ===========================================================================
+# HexCustomItems 2.1 - szablon custom itemów dla SMP (MC 1.21.11)
+# Cała oprawa tekstowa używa formatu MiniMessage:
+#   https://docs.advntr.dev/minimessage/format.html
+# Przykłady: <gold>, <red>, <gradient:a:b>, <bold>, </...>
+# Jeśli zainstalowany jest PlaceholderAPI, w nazwach/lore działają też %papi%.
+# ===========================================================================
+
+prefix: "<dark_gray>[<gold>HexItems<dark_gray>]<white> "
 
 permissions:
   give: "hex.items.give"
   reload: "hex.items.reload"
+  # Domyślny poziom dla dynamicznie rejestrowanych permisji itemów (te z polem 'permission:').
+  # Dozwolone: true | op | false | not-op
+  item-default: "true"
 
 settings:
   max-give-amount: 64
-  protect-ops-from-negative-effects: true
+  menu-title: "<gold>Custom Itemy"
+  # Ile sztuk daje shift+klik w menu.
+  menu-shift-give-amount: 16
 
 messages:
-  no-permission: "&cBrak uprawnień."
-  player-not-found: "&cTen gracz nie jest online."
-  invalid-number: "&cNiepoprawna liczba."
-  item-not-found: "&cNie znaleziono itemu: &e%item_id%&c."
-  usage-main: "&7Użycie: &e/hexcustomitems <give|reload|list>"
-  usage-give: "&7Użycie: &e/hexcustomitems give <item_id> <player> [amount]"
-  reloaded: "&aKonfiguracja HexCustomItems została przeładowana."
-  given-sender: "&aDano &e%amount%x %item_name% &agraczowi &e%target%&a."
-  given-target: "&7Otrzymałeś &e%amount%x %item_name%&7."
-  list-header: "&7Dostępne itemy: &e%items%"
-  target-player-required: "&cMusisz celować w gracza."
-  target-too-far: "&cGracz jest za daleko."
-  target-op-protected: "&cNie możesz użyć tego itemu na operatorze."
-  drop-blocked: "&cNie możesz wyrzucić tego itemu."
+  no-permission: "<red>Brak uprawnień."
+  use-no-permission: "<red>Nie możesz użyć tego przedmiotu."
+  player-not-found: "<red>Ten gracz nie jest online."
+  invalid-number: "<red>Niepoprawna liczba."
+  item-not-found: "<red>Nie znaleziono przedmiotu: <yellow><item_id></yellow>."
+  usage-main: "<gray>Użycie: <yellow>/hexcustomitems <give|reload|list|menu>"
+  usage-give: "<gray>Użycie: <yellow>/hexcustomitems give <item_id> <player> [amount]"
+  reloaded: "<green>Konfiguracja HexCustomItems została przeładowana."
+  given-sender: "<green>Dano <yellow><amount>x <item_name> <green>graczowi <yellow><target><green>."
+  given-target: "<gray>Otrzymałeś <yellow><amount>x <item_name><gray>."
+  list-header: "<gray>Dostępne przedmioty: <yellow><items>"
+  cooldown-active: "<red>Musisz odczekać <yellow><time>s <red>zanim użyjesz ponownie."
+  drop-blocked: "<red>Nie możesz wyrzucić tego przedmiotu."
 
+# Domyślne dźwięki używane tylko przy migracji starej sekcji 'effect' (backward-compat).
 sounds:
   consume: "item.book.page_turn"
   drink: "entity.generic.drink"
-  dark: "entity.vex.charge"
-  fire: "item.flintandsteel.use"
-  ice: "block.glass.break"
-  throw: "entity.witch.throw"
-  wind-launch: "entity.wither.shoot"
-  wind-hit: "entity.generic.explode"
 
-wind-charge:
-  radius: 2.8
-  power: 1.55
-  power-owner: 0.65
-  up: 0.36
-  up-owner: 0.14
-  recoil: 0.28
-  recoil-up: 0.08
-  projectile-speed: 1.7
-  particle-explosion-count: 3
-  particle-range: 32
+# ---------------------------------------------------------------------------
+# Warstwa Guard/Policy dla akcji oznaczonych 'offensive: true'.
+# Domyślna konfiguracja nie ma itemów offensywnych, ale gdy wrócą, będą
+# respektować PvP świata oraz (opcjonalnie) regiony HexCore.
+#   respect-pvp   - jeśli PvP świata jest wyłączone, akcje offensywne są blokowane
+#   fail-closed   - gdy brak informacji o regionie: true = blokuj, false = pozwól
+# HexCore jest miękką zależnością (softdepend) - bez niego działa sam PvP-check.
+# Region HexCore traktowany jest jako strefa bezpieczna, gdy w jego meta jest
+#   pvp=false lub safe=true lub safezone=true.
+# ---------------------------------------------------------------------------
+region-awareness:
+  enabled: true
+  fail-closed: false
+  respect-pvp: true
+  blocked-message: "<red>Nie możesz użyć tego przedmiotu tutaj."
 
+# ---------------------------------------------------------------------------
+# Cooldowny mogą przetrwać restart. Zapis do pliku przy wyłączeniu, wczytanie
+# przy starcie (wygasłe wpisy są pomijane). Bez schedulera - leniwe czyszczenie.
+# ---------------------------------------------------------------------------
+cooldowns:
+  persist: true
+  file: "cooldowns.yml"
+
+# ---------------------------------------------------------------------------
+# Config-getriebene recepty. Rejestrowane przy starcie, podmieniane przy reload.
+# Klucz = id itemu (musi istnieć w sekcji items).
+#   type: shaped | shapeless
+#   shaped:    'shape' (do 3 wierszy) + 'ingredients' (znak -> materiał)
+#   shapeless: 'ingredients' jako lista materiałów
+# ---------------------------------------------------------------------------
+recipes:
+  enabled: true
+  items:
+    jump_potion:
+      type: shaped
+      amount: 1
+      shape:
+        - " R "
+        - " B "
+        - " R "
+      ingredients:
+        R: RABBIT_FOOT
+        B: POTION
+    hex_coin_1:
+      type: shapeless
+      amount: 1
+      ingredients:
+        - PAPER
+        - GOLD_NUGGET
+
+# ---------------------------------------------------------------------------
+# Legacy-komendy (config-driven). Klucz = nazwa komendy (musi istnieć w plugin.yml),
+# wartość = id itemu. Jeśli komenda nie istnieje w plugin.yml, pojawi się ostrzeżenie.
+# ---------------------------------------------------------------------------
+legacy-commands:
+  hex_item_potkaskoku: jump_potion
+  hex_item_ciastkoniewidka: invisibility_cookie
+  hex_item_hexcoin1: hex_coin_1
+  hex_item_hexcoins2: hex_coin_2
+  hex_item_hexcoins3: hex_coin_3
+  hex_item_hexcoins5: hex_coin_5
+  hex_item_potkaspeedu: speed_potion
+
+# ---------------------------------------------------------------------------
+# Definicje przedmiotów.
+#
+# Pola wspólne:
+#   material, name, lore, drop-protection (Q blokuje wyrzucenie)
+#   permission        - opcjonalny node; brak = item wolny dla wszystkich
+#   cooldown-seconds  - odstęp między użyciami (0 = brak)
+#   charges           - liczba użyć na jeden przedmiot (0 = zwykły stack)
+#                       w lore można użyć <charges> oraz <max_charges>
+#
+# System 'actions' (wykonywane po kolei, PPM). Typy:
+#   COMMAND      executor: CONSOLE|PLAYER, commands: [lista]
+#                placeholdery: %player% %uuid% %item_id% %world% %x% %y% %z% %amount%
+#   SELF_POTION  potion, duration-seconds, amplifier
+#   MESSAGE      message (MiniMessage, %papi% dla nutzujacego)
+#   SOUND        sound, volume, pitch
+# Każda akcja może mieć 'offensive: true' -> przechodzi przez Guard (regiony/PvP).
+#
+# Backward-compat: jeśli item nie ma 'actions', a ma starą sekcję 'effect'
+# (type: SELF_POTION lub HEX_COINS), zostanie ona automatycznie zmigrowana.
+# ---------------------------------------------------------------------------
 items:
   jump_potion:
     material: "POTION"
-    name: "&6Mikstura Skoku"
+    name: "<gold>Mikstura Skoku"
     lore:
-      - "&fSkok II - 7 sekund"
+      - "<white>Skok II - 7 sekund"
     drop-protection: false
-    effect:
-      type: "SELF_POTION"
-      potion: "JUMP_BOOST"
-      duration-seconds: 7
-      amplifier: 1
-
-  slowness_splash:
-    material: "SPLASH_POTION"
-    name: "&6Miotana Mikstura Spowolnienia"
-    lore:
-      - "&fRzuć w graczy, aby spowolnić ich na 5 sekund."
-    drop-protection: false
-    effect:
-      type: "AREA_PROJECTILE_POTION"
-      potion: "SLOWNESS"
-      duration-seconds: 5
-      amplifier: 3
-      radius: 4.0
-      affect-self: false
+    cooldown-seconds: 5
+    actions:
+      - type: SELF_POTION
+        potion: "JUMP_BOOST"
+        duration-seconds: 7
+        amplifier: 1
+      - type: SOUND
+        sound: "entity.generic.drink"
+        volume: 1.0
+        pitch: 1.0
 
   invisibility_cookie:
     material: "COOKIE"
-    name: "&6Ciastko Niewidka"
+    name: "<gold>Ciastko Niewidka"
     lore:
-      - "&fNiewidzialność - 20 sekund"
+      - "<white>Niewidzialność - 20 sekund"
+      - "<gray>Ładunki: <yellow><charges></yellow>/<yellow><max_charges></yellow>"
     drop-protection: false
-    effect:
-      type: "SELF_POTION"
-      potion: "INVISIBILITY"
-      duration-seconds: 20
-      amplifier: 0
-
-  dark_powder:
-    material: "GUNPOWDER"
-    name: "&6Proszek Natychmiastowej Ciemności"
-    lore:
-      - "&fRzuć, aby spowić okolicę mrokiem."
-    drop-protection: false
-    effect:
-      type: "DARKNESS_AOE"
-      radius: 4.0
-      affect-self: false
-      effects:
-        - potion: "BLINDNESS"
-          duration-seconds: 3
-          amplifier: 0
-        - potion: "SLOWNESS"
-          duration-seconds: 3
-          amplifier: 0
-
-  wind_charge:
-    material: "WIND_CHARGE"
-    name: "&6Wind Charge"
-    lore: [ ]
-    drop-protection: false
-    effect:
-      type: "WIND_CHARGE"
-
-  hex_coin_1:
-    material: "PAPER"
-    name: "&6Hex-Coin&f(1)"
-    lore:
-      - "&f1 Hex-Coin (Kliknij PPM)"
-    drop-protection: true
-    effect:
-      type: "HEX_COINS"
-      coins: 1
-      command-template: "eco give %player% %coins%"
-
-  hex_coin_2:
-    material: "PAPER"
-    name: "&6Hex-Coinsy&f(2)"
-    lore:
-      - "&f2 Hex-Coinsy (Kliknij PPM)"
-    drop-protection: true
-    effect:
-      type: "HEX_COINS"
-      coins: 2
-      command-template: "eco give %player% %coins%"
-
-  hex_coin_3:
-    material: "PAPER"
-    name: "&6Hex-Coinsy&f(3)"
-    lore:
-      - "&f3 Hex-Coinsy (Kliknij PPM)"
-    drop-protection: true
-    effect:
-      type: "HEX_COINS"
-      coins: 3
-      command-template: "eco give %player% %coins%"
-
-  hex_coin_5:
-    material: "PAPER"
-    name: "&6Hex-Coinsy&f(5)"
-    lore:
-      - "&f5 Hex-Coinsów (Kliknij PPM)"
-    drop-protection: true
-    effect:
-      type: "HEX_COINS"
-      coins: 5
-      command-template: "eco give %player% %coins%"
-
-  fireball_item:
-    material: "BLAZE_POWDER"
-    name: "&6Fireball"
-    lore:
-      - "&fPodpal wroga! (Kliknij PPM)"
-    drop-protection: false
-    effect:
-      type: "TARGET_FIRE"
-      max-distance: 5.0
-      fire-seconds: 5
-
-  iceball_item:
-    material: "PRISMARINE_CRYSTALS"
-    name: "&6Iceball"
-    lore:
-      - "&fZamróź wroga! (Kliknij PPM)"
-    drop-protection: false
-    effect:
-      type: "TARGET_POTION"
-      potion: "SLOWNESS"
-      duration-seconds: 10
-      amplifier: 3
-      max-distance: 5.0
-
-  nausea_splash:
-    material: "SPLASH_POTION"
-    name: "&6Mikstura Zawrotów Głowy"
-    lore:
-      - "&fRzuć w graczy, aby przyprawić ich o zawroty głowy."
-    drop-protection: false
-    effect:
-      type: "AREA_PROJECTILE_POTION"
-      potion: "NAUSEA"
-      duration-seconds: 15
-      amplifier: 0
-      radius: 4.0
-      affect-self: false
+    cooldown-seconds: 15
+    charges: 3
+    actions:
+      - type: SELF_POTION
+        potion: "INVISIBILITY"
+        duration-seconds: 20
+        amplifier: 0
+      - type: MESSAGE
+        message: "<gray>Zniknąłeś... na chwilę."
+      - type: SOUND
+        sound: "entity.generic.drink"
+        volume: 1.0
+        pitch: 1.2
 
   speed_potion:
     material: "POTION"
-    name: "&6Potka Prędkości"
+    name: "<gold>Mikstura Prędkości"
     lore:
-      - "&fSpeed II - 10 sekund"
+      - "<white>Speed II - 10 sekund"
     drop-protection: false
-    effect:
-      type: "SELF_POTION"
-      potion: "SPEED"
-      duration-seconds: 10
-      amplifier: 1
+    cooldown-seconds: 8
+    actions:
+      - type: SELF_POTION
+        potion: "SPEED"
+        duration-seconds: 10
+        amplifier: 1
+      - type: SOUND
+        sound: "entity.generic.drink"
+        volume: 1.0
+        pitch: 1.0
+
+  hex_coin_1:
+    material: "PAPER"
+    name: "<gold>Hex-Coin<white>(1)"
+    lore:
+      - "<white>1 Hex-Coin (Kliknij PPM)"
+    drop-protection: true
+    actions:
+      - type: COMMAND
+        executor: CONSOLE
+        commands:
+          - "eco give %player% 1"
+      - type: MESSAGE
+        message: "<green>Wymieniono na <yellow>1 Hex-Coin<green>!"
+      - type: SOUND
+        sound: "item.book.page_turn"
+        volume: 1.0
+        pitch: 1.0
+
+  hex_coin_2:
+    material: "PAPER"
+    name: "<gold>Hex-Coinsy<white>(2)"
+    lore:
+      - "<white>2 Hex-Coinsy (Kliknij PPM)"
+    drop-protection: true
+    actions:
+      - type: COMMAND
+        executor: CONSOLE
+        commands:
+          - "eco give %player% 2"
+      - type: SOUND
+        sound: "item.book.page_turn"
+        volume: 1.0
+        pitch: 1.0
+
+  hex_coin_3:
+    material: "PAPER"
+    name: "<gold>Hex-Coinsy<white>(3)"
+    lore:
+      - "<white>3 Hex-Coinsy (Kliknij PPM)"
+    drop-protection: true
+    actions:
+      - type: COMMAND
+        executor: CONSOLE
+        commands:
+          - "eco give %player% 3"
+      - type: SOUND
+        sound: "item.book.page_turn"
+        volume: 1.0
+        pitch: 1.0
+
+  hex_coin_5:
+    material: "PAPER"
+    name: "<gold>Hex-Coinsy<white>(5)"
+    lore:
+      - "<white>5 Hex-Coinsów (Kliknij PPM)"
+    drop-protection: true
+    actions:
+      - type: COMMAND
+        executor: CONSOLE
+        commands:
+          - "eco give %player% 5"
+      - type: SOUND
+        sound: "item.book.page_turn"
+        volume: 1.0
+        pitch: 1.0

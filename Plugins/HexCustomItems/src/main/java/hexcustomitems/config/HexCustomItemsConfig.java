@@ -1,7 +1,9 @@
 package hexcustomitems.config;
 
 import hexcustomitems.model.CustomItemDefinition;
+import org.bukkit.Material;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -9,11 +11,15 @@ public record HexCustomItemsConfig(
         String prefix,
         String givePermission,
         String reloadPermission,
+        String itemPermissionDefault,
         int maxGiveAmount,
-        boolean protectOpsFromNegativeEffects,
+        String menuTitle,
+        int menuShiftGiveAmount,
         Messages messages,
         Sounds sounds,
-        WindSettings windSettings,
+        RegionAwareness regionAwareness,
+        Cooldowns cooldowns,
+        Recipes recipes,
         Map<String, CustomItemDefinition> items,
         Map<String, String> legacyCommandBindings
 ) {
@@ -21,10 +27,15 @@ public record HexCustomItemsConfig(
         prefix = Objects.requireNonNull(prefix, "prefix");
         givePermission = Objects.requireNonNull(givePermission, "givePermission");
         reloadPermission = Objects.requireNonNull(reloadPermission, "reloadPermission");
+        itemPermissionDefault = itemPermissionDefault == null ? "true" : itemPermissionDefault;
         maxGiveAmount = Math.max(1, maxGiveAmount);
+        menuTitle = Objects.requireNonNull(menuTitle, "menuTitle");
+        menuShiftGiveAmount = Math.max(1, menuShiftGiveAmount);
         messages = Objects.requireNonNull(messages, "messages");
         sounds = Objects.requireNonNull(sounds, "sounds");
-        windSettings = Objects.requireNonNull(windSettings, "windSettings");
+        regionAwareness = Objects.requireNonNull(regionAwareness, "regionAwareness");
+        cooldowns = Objects.requireNonNull(cooldowns, "cooldowns");
+        recipes = Objects.requireNonNull(recipes, "recipes");
         items = Map.copyOf(Objects.requireNonNull(items, "items"));
         legacyCommandBindings = Map.copyOf(Objects.requireNonNull(legacyCommandBindings, "legacyCommandBindings"));
         if (items.isEmpty()) {
@@ -34,6 +45,7 @@ public record HexCustomItemsConfig(
 
     public record Messages(
             String noPermission,
+            String useNoPermission,
             String playerNotFound,
             String invalidNumber,
             String itemNotFound,
@@ -43,13 +55,12 @@ public record HexCustomItemsConfig(
             String givenSender,
             String givenTarget,
             String listHeader,
-            String targetPlayerRequired,
-            String targetTooFar,
-            String targetOpProtected,
+            String cooldownActive,
             String dropBlocked
     ) {
         public Messages {
             noPermission = Objects.requireNonNull(noPermission, "noPermission");
+            useNoPermission = Objects.requireNonNull(useNoPermission, "useNoPermission");
             playerNotFound = Objects.requireNonNull(playerNotFound, "playerNotFound");
             invalidNumber = Objects.requireNonNull(invalidNumber, "invalidNumber");
             itemNotFound = Objects.requireNonNull(itemNotFound, "itemNotFound");
@@ -59,58 +70,72 @@ public record HexCustomItemsConfig(
             givenSender = Objects.requireNonNull(givenSender, "givenSender");
             givenTarget = Objects.requireNonNull(givenTarget, "givenTarget");
             listHeader = Objects.requireNonNull(listHeader, "listHeader");
-            targetPlayerRequired = Objects.requireNonNull(targetPlayerRequired, "targetPlayerRequired");
-            targetTooFar = Objects.requireNonNull(targetTooFar, "targetTooFar");
-            targetOpProtected = Objects.requireNonNull(targetOpProtected, "targetOpProtected");
+            cooldownActive = Objects.requireNonNull(cooldownActive, "cooldownActive");
             dropBlocked = Objects.requireNonNull(dropBlocked, "dropBlocked");
         }
     }
 
+    /** Standard-Sounds, genutzt bei der Backward-Compatibility-Übersetzung alter {@code effect}-Sektionen. */
     public record Sounds(
             String consume,
-            String drink,
-            String dark,
-            String fire,
-            String ice,
-            String throwSound,
-            String windLaunch,
-            String windHit
+            String drink
     ) {
         public Sounds {
             consume = Objects.requireNonNull(consume, "consume");
             drink = Objects.requireNonNull(drink, "drink");
-            dark = Objects.requireNonNull(dark, "dark");
-            fire = Objects.requireNonNull(fire, "fire");
-            ice = Objects.requireNonNull(ice, "ice");
-            throwSound = Objects.requireNonNull(throwSound, "throwSound");
-            windLaunch = Objects.requireNonNull(windLaunch, "windLaunch");
-            windHit = Objects.requireNonNull(windHit, "windHit");
         }
     }
 
-    public record WindSettings(
-            double radius,
-            double power,
-            double powerOwner,
-            double up,
-            double upOwner,
-            double recoil,
-            double recoilUp,
-            double projectileSpeed,
-            int particleExplosionCount,
-            int particleRange
+    public record RegionAwareness(
+            boolean enabled,
+            boolean failClosed,
+            boolean respectPvp,
+            String blockedMessage
     ) {
-        public WindSettings {
-            radius = Math.max(0.5D, radius);
-            power = Math.max(0.0D, power);
-            powerOwner = Math.max(0.0D, powerOwner);
-            up = Math.max(0.0D, up);
-            upOwner = Math.max(0.0D, upOwner);
-            recoil = Math.max(0.0D, recoil);
-            recoilUp = Math.max(0.0D, recoilUp);
-            projectileSpeed = Math.max(0.1D, projectileSpeed);
-            particleExplosionCount = Math.max(0, particleExplosionCount);
-            particleRange = Math.max(0, particleRange);
+        public RegionAwareness {
+            blockedMessage = Objects.requireNonNull(blockedMessage, "blockedMessage");
+        }
+    }
+
+    public record Cooldowns(
+            boolean persist,
+            String file
+    ) {
+        public Cooldowns {
+            file = (file == null || file.isBlank()) ? "cooldowns.yml" : file;
+        }
+    }
+
+    public record Recipes(
+            boolean enabled,
+            Map<String, RecipeSpec> items
+    ) {
+        public Recipes {
+            items = Map.copyOf(Objects.requireNonNull(items, "items"));
+        }
+    }
+
+    /**
+     * Rezept-Definition. {@code shapedIngredients} (Zeichen -&gt; Material) wird für
+     * {@code shaped} genutzt, {@code shapelessIngredients} für {@code shapeless}.
+     */
+    public record RecipeSpec(
+            String type,
+            List<String> shape,
+            Map<String, Material> shapedIngredients,
+            List<Material> shapelessIngredients,
+            int amount
+    ) {
+        public RecipeSpec {
+            type = (type == null || type.isBlank()) ? "shaped" : type.toLowerCase(java.util.Locale.ROOT);
+            shape = List.copyOf(shape == null ? List.of() : shape);
+            shapedIngredients = Map.copyOf(shapedIngredients == null ? Map.of() : shapedIngredients);
+            shapelessIngredients = List.copyOf(shapelessIngredients == null ? List.of() : shapelessIngredients);
+            amount = Math.max(1, amount);
+        }
+
+        public boolean shapeless() {
+            return "shapeless".equals(type);
         }
     }
 }
