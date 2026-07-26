@@ -1,0 +1,17 @@
+world: world
+trigger-y: 108.0
+cooldown-ms: 2000
+bypass-operators: true
+
+spawn-command:
+  enabled: true
+  command: 'spawn {player}'
+
+fallback-location:
+  enabled: true
+  world: world
+  x: 496.5
+  y: 148.0
+  z: 898.5
+  yaw: 0.0
+  pitch: 0.0

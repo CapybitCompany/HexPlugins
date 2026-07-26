@@ -1,0 +1,6 @@
+name: HexControlRegion
+version: '1.0.0'
+main: hexcontrolregion.HexControlRegionPlugin
+api-version: '1.21'
+description: Teleports non-operator players to spawn when they fall below a configured Y level in the lobby world.
+authors: [HexDevTeam]
