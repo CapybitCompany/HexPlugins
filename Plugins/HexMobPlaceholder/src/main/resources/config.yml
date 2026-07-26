@@ -1,0 +1,56 @@
+hostile-mobs:
+  - BLAZE
+  - BOGGED
+  - BREEZE
+  - CAMEL_HUSK
+  - CAVE_SPIDER
+  - CREAKING
+  - CREEPER
+  - DROWNED
+  - ELDER_GUARDIAN
+  - ENDER_DRAGON
+  - ENDERMAN
+  - ENDERMITE
+  - EVOKER
+  - GHAST
+  - GUARDIAN
+  - HOGLIN
+  - HUSK
+  - MAGMA_CUBE
+  - PARCHED
+  - PHANTOM
+  - PIGLIN
+  - PIGLIN_BRUTE
+  - PILLAGER
+  - RAVAGER
+  - SHULKER
+  - SILVERFISH
+  - SKELETON
+  - SLIME
+  - SPIDER
+  - STRAY
+  - VEX
+  - VINDICATOR
+  - WARDEN
+  - WITCH
+  - WITHER
+  - WITHER_SKELETON
+  - ZOGLIN
+  - ZOMBIE
+  - ZOMBIE_HORSE
+  - ZOMBIE_NAUTILUS
+  - ZOMBIE_VILLAGER
+  - ZOMBIFIED_PIGLIN
+
+placeholders:
+  no-top-player: '-'
+
+messages:
+  prefix: '&8[&cHexMobPlaceholder&8] '
+  usage: '&7Uzycie: &f/hexmobplaceholder <debug|reload|reset <gracz>>'
+  no-permission: '&cNie masz uprawnien.'
+  reload-success: '&aPrzeladowano konfiguracje i dane.'
+  reload-failed: '&cNie udalo sie przeladowac konfiguracji.'
+  player-not-found: '&cNie znaleziono gracza &f{player}&c.'
+  reset-success: '&aWyzerowano postep agresywnych mobow dla gracza &f{player}&a.'
+  reset-failed: '&cNie udalo sie zapisac wyzerowanego postepu dla gracza &f{player}&c.'

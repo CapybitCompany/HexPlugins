@@ -1,0 +1,18 @@
+name: HexMobPlaceholder
+version: '1.0.0'
+main: hexmobplaceholder.HexMobPlaceholderPlugin
+api-version: '1.21.11'
+description: PlaceholderAPI counter for all configured hostile mob kills.
+authors: [HexDevTeam]
+softdepend: [PlaceholderAPI]
+
+commands:
+  hexmobplaceholder:
+    description: Reloads HexMobPlaceholder, shows debug status or resets a player's hostile mob kill progress.
+    usage: /hexmobplaceholder <debug|reload|reset <player>>
+    aliases: [hmp, hmplaceholder]
+
+permissions:
+  hexmobplaceholder.admin:
+    description: Allows reloading HexMobPlaceholder and resetting player progress.
+    default: op
