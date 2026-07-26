@@ -3,6 +3,7 @@ package hexpvpsmp.protection;
 import hexpvpsmp.config.HexPvpConfig;
 import hexpvpsmp.config.WorldConfig;
 import hexpvpsmp.region.PublicChest;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
@@ -53,9 +54,13 @@ public final class PublicChestRegistry {
      * Block-aware check. Matches the block's own coordinate and, if the block is
      * one half of a double chest, its partner half — so configuring a single
      * half whitelists the whole chest.
+     *
+     * <p>Only {@link Material#CHEST} and {@link Material#TRAPPED_CHEST} blocks may
+     * ever be treated as a public chest, so a mis-set coordinate that happens to
+     * point at some other block or container is never accidentally whitelisted.
      */
     public boolean isPublicChest(Block block) {
-        if (block == null || block.getWorld() == null) {
+        if (block == null || block.getWorld() == null || !isChestBlock(block.getType())) {
             return false;
         }
         String worldName = block.getWorld().getName();
@@ -71,5 +76,9 @@ public final class PublicChestRegistry {
             }
         }
         return false;
+    }
+
+    private static boolean isChestBlock(Material material) {
+        return material == Material.CHEST || material == Material.TRAPPED_CHEST;
     }
 }

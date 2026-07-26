@@ -34,6 +34,14 @@ combat:
 
 # Data-driven block/interaction/item protection for spawn + no-build regions.
 protection:
+  # HexPvpSmp owns spawn protection entirely. Paper checks its native
+  # server.properties spawn-protection BEFORE PlayerInteractEvent, so a native
+  # radius > 0 silently blocks chests, crafting tables and buttons in spawn
+  # before this plugin can decide. When true, HexPvpSmp stores the original
+  # radius, forces it to 0 while running and restores it on disable (only if it
+  # still controls it). server.properties itself is never edited. Leave true
+  # unless another plugin must keep the native spawn radius.
+  disable-native-spawn-protection: true
   # Whether OP / hexpvpsmp.bypass players are exempt from each rule group.
   # Set any switch to false to enforce that rule even for OP/bypass.
   bypass:
@@ -111,50 +119,49 @@ worlds:
       disable-hunger-loss: true
       region:
         type: CUBOID
-        min-x: -100
-        max-x: 100
-        min-z: -100
-        max-z: 100
+        min-x: 2701
+        max-x: 2827
+        min-z: 882
+        max-z: 993
 
     # NO_BUILD: PvP allowed, combat allowed, but building/breaking is denied.
-    # Four cuboids forming a ring around the spawn box (-100..100 / -100..100),
-    # so the whole spawn perimeter stays clean without being a PvP safe haven and
-    # without overlapping the spawn safezone. Outer radius is 180. The north/south
-    # strips span the full width (incl. corners); east/west fill the sides.
+    # Four cuboids form a continuous 200-block-wide ring around the spawn box
+    # (X 2701..2827 / Z 882..993). North/south include the corner areas;
+    # east/west fill the sides without overlapping the spawn safezone.
     # Spawn priority still wins if an admin later configures overlapping regions.
     no-build-zones:
       north_spawn:
         enabled: true
         region:
           type: CUBOID
-          min-x: -180
-          max-x: 180
-          min-z: -180
-          max-z: -101
+          min-x: 2501
+          max-x: 3027
+          min-z: 682
+          max-z: 881
       south_spawn:
         enabled: true
         region:
           type: CUBOID
-          min-x: -180
-          max-x: 180
-          min-z: 101
-          max-z: 180
+          min-x: 2501
+          max-x: 3027
+          min-z: 994
+          max-z: 1193
       east_spawn:
         enabled: true
         region:
           type: CUBOID
-          min-x: 101
-          max-x: 180
-          min-z: -100
-          max-z: 100
+          min-x: 2828
+          max-x: 3027
+          min-z: 882
+          max-z: 993
       west_spawn:
         enabled: true
         region:
           type: CUBOID
-          min-x: -180
-          max-x: -101
-          min-z: -100
-          max-z: 100
+          min-x: 2501
+          max-x: 2700
+          min-z: 882
+          max-z: 993
 
     # Public chests: block coordinates players may open/use inside spawn.
     # They are protected from being broken/exploded/moved. For a double chest
@@ -162,6 +169,6 @@ worlds:
     public-chests:
       spawn_public:
         world: world
-        x: 0
-        y: 65
-        z: 0
+        x: 2752
+        y: 75
+        z: 933

@@ -8,8 +8,11 @@ import java.util.Objects;
  * inside otherwise-protected spawn. Players may open/use it; it is still
  * protected from being broken or destroyed.
  *
- * <p>Coordinates are block coordinates (integers). Double chests should be
- * listed as two entries (one per half).
+ * <p>Coordinates are block coordinates (integers). For a double chest you only
+ * need to list <b>one</b> half — the partner half is resolved automatically from
+ * its block data by {@link hexpvpsmp.protection.PublicChestRegistry} /
+ * {@link hexpvpsmp.protection.DoubleChests}. Listing both halves explicitly also
+ * works and is equivalent.
  */
 public record PublicChest(
         String world,

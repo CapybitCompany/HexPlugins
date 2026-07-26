@@ -37,7 +37,8 @@ public final class HexPvpConfigLoader {
                 config.getBoolean("protection.bypass.interact", true),
                 config.getBoolean("protection.bypass.items", true),
                 config.getBoolean("protection.interactions.block-buttons", false),
-                config.getBoolean("protection.items.block-pvp-in-no-build", false)
+                config.getBoolean("protection.items.block-pvp-in-no-build", false),
+                config.getBoolean("protection.disable-native-spawn-protection", true)
         );
     }
 

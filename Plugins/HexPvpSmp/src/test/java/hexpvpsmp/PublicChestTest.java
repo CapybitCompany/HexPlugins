@@ -59,6 +59,26 @@ class PublicChestTest {
     }
 
     @Test
+    void blockOverloadOnlyTreatsChestsAsPublic() {
+        // The configured coordinate is (0,65,0). The Block-aware check must only
+        // treat a real CHEST / TRAPPED_CHEST there as public — never some other
+        // block or container that happens to sit at that coordinate.
+        Block block = server.getWorld("world").getBlockAt(0, 65, 0);
+
+        block.setType(Material.CHEST);
+        assertTrue(plugin.publicChestRegistry().isPublicChest(block),
+                "a CHEST at the configured coordinate is public");
+
+        block.setType(Material.TRAPPED_CHEST);
+        assertTrue(plugin.publicChestRegistry().isPublicChest(block),
+                "a TRAPPED_CHEST at the configured coordinate is public");
+
+        block.setType(Material.BARREL);
+        assertFalse(plugin.publicChestRegistry().isPublicChest(block),
+                "a non-chest block at the configured coordinate must NOT be public");
+    }
+
+    @Test
     void doubleChestPartnerResolvesFromSingleConfiguredHalf() {
         // Configured half is (0,65,0). Its EAST neighbour (1,65,0) should count
         // as public when it is the RIGHT half of the same double chest (facing

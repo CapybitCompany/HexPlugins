@@ -17,6 +17,12 @@ package hexpvpsmp.config;
  *       snowballs, bows, ...) are also blocked inside NO_BUILD zones. Terrain
  *       items are always blocked in every protected region; this only governs
  *       the PvP-relevant ones. Spawn safezones always block everything.</li>
+ *   <li>{@code disableNativeSpawnProtection}: whether HexPvpSmp forces the
+ *       server's native {@code spawn-protection} radius to 0 while it runs. This
+ *       plugin owns spawn protection entirely, and Paper checks its native
+ *       server.properties spawn protection <b>before</b> {@code PlayerInteractEvent},
+ *       so a native radius &gt; 0 silently blocks chests, crafting tables and
+ *       buttons in spawn before this plugin can decide. Default {@code true}.</li>
  * </ul>
  */
 public record ProtectionConfig(
@@ -24,9 +30,10 @@ public record ProtectionConfig(
         boolean bypassInteract,
         boolean bypassItems,
         boolean blockButtons,
-        boolean blockPvpItemsInNoBuild
+        boolean blockPvpItemsInNoBuild,
+        boolean disableNativeSpawnProtection
 ) {
     public static ProtectionConfig defaults() {
-        return new ProtectionConfig(true, true, true, false, false);
+        return new ProtectionConfig(true, true, true, false, false, true);
     }
 }

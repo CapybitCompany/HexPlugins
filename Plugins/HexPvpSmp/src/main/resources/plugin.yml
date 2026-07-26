@@ -1,5 +1,5 @@
 name: HexPvpSmp
-version: '1.0.0'
+version: '2.0.0'
 main: hexpvpsmp.HexPvpSmpPlugin
 api-version: '1.21.11'
 description: PvP SMP combat tag, config-based spawn safezone + no-build protection, command whitelist, combat-log punishment.

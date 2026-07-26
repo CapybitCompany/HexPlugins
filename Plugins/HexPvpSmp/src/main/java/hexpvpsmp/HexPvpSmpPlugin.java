@@ -11,16 +11,20 @@ import hexpvpsmp.movement.SafezoneInfoListener;
 import hexpvpsmp.movement.SafezoneMovementListener;
 import hexpvpsmp.protection.ConfigRegionProtectionProvider;
 import hexpvpsmp.protection.InteractionProtectionListener;
+import hexpvpsmp.protection.NativeSpawnProtectionManager;
 import hexpvpsmp.protection.ProtectionProvider;
 import hexpvpsmp.protection.ProtectionService;
 import hexpvpsmp.protection.PublicChestRegistry;
 import hexpvpsmp.protection.SpawnProtectionListener;
+import hexpvpsmp.protection.WorldDiagnostics;
 import hexpvpsmp.redline.BarrierService;
 import hexpvpsmp.ui.ActionBarService;
 import hexpvpsmp.ui.MessageService;
+import org.bukkit.World;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -34,6 +38,7 @@ public class HexPvpSmpPlugin extends JavaPlugin {
     private MessageService messageService;
     private PublicChestRegistry publicChestRegistry;
     private BarrierService barrierService;
+    private NativeSpawnProtectionManager nativeSpawnProtection;
 
     // Rebuilt on reload.
     private ProtectionService protectionService;
@@ -47,8 +52,11 @@ public class HexPvpSmpPlugin extends JavaPlugin {
         this.combatTagService = new CombatTagService(getServer(), configRef::get);
         this.publicChestRegistry = new PublicChestRegistry(configRef::get);
         this.barrierService = new BarrierService(this);
+        this.nativeSpawnProtection = new NativeSpawnProtectionManager(getServer(), getLogger());
 
         if (!initializeRuntime()) {
+            // Init failed before native spawn protection was touched, so the
+            // server's native radius still guards spawn: no unprotected state.
             getLogger().severe("Failed to initialize HexPvpSmp. Disabling plugin.");
             getServer().getPluginManager().disablePlugin(this);
             return;
@@ -68,11 +76,23 @@ public class HexPvpSmpPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new SpawnProtectionListener(this), this);
         getServer().getPluginManager().registerEvents(new InteractionProtectionListener(this), this);
 
-        getLogger().info("HexPvpSmp enabled.");
+        // Only now that this plugin's own protection is fully live do we take over
+        // the native spawn radius. Ordering matters: if anything above failed we
+        // returned early and the native radius still protects spawn.
+        runWorldDiagnostics();
+        applyNativeSpawnProtection();
+
+        getLogger().info("HexPvpSmp v" + getDescription().getVersion() + " enabled.");
     }
 
     @Override
     public void onDisable() {
+        // Hand the native spawn radius back first, so the server is never left
+        // both without this plugin's protection and without native protection.
+        if (nativeSpawnProtection != null) {
+            nativeSpawnProtection.restore();
+            nativeSpawnProtection = null;
+        }
         shutdownRuntime();
         if (combatTagService != null) {
             combatTagService.clearAll();
@@ -87,7 +107,16 @@ public class HexPvpSmpPlugin extends JavaPlugin {
     public boolean reloadPluginRuntime() {
         shutdownRuntime();
         reloadConfig();
-        return initializeRuntime();
+        boolean ok = initializeRuntime();
+        if (ok) {
+            runWorldDiagnostics();
+            applyNativeSpawnProtection();
+        } else if (nativeSpawnProtection != null) {
+            // Reload failed: this plugin's protection is down. Re-enable the
+            // native spawn radius so spawn is not left completely unprotected.
+            nativeSpawnProtection.restore();
+        }
+        return ok;
     }
 
     public HexPvpConfig config() {
@@ -116,6 +145,10 @@ public class HexPvpSmpPlugin extends JavaPlugin {
 
     public ActionBarService actionBarService() {
         return actionBarService;
+    }
+
+    public NativeSpawnProtectionManager nativeSpawnProtection() {
+        return nativeSpawnProtection;
     }
 
     /** Whether verbose protection logging is active. */
@@ -168,6 +201,35 @@ public class HexPvpSmpPlugin extends JavaPlugin {
             actionBarService = null;
         }
         protectionService = null;
+    }
+
+    /** Applies the configured native-spawn-protection policy for the current config. */
+    private void applyNativeSpawnProtection() {
+        HexPvpConfig current = configRef.get();
+        if (nativeSpawnProtection == null || current == null) {
+            return;
+        }
+        nativeSpawnProtection.apply(current.protection().disableNativeSpawnProtection());
+    }
+
+    /**
+     * Warns (once per enable/reload) about any enabled configured world whose
+     * name is not actually loaded on this server — the classic "config says
+     * 'world' but the real world is named differently" trap. Reads world names
+     * only; never loads a chunk.
+     */
+    private void runWorldDiagnostics() {
+        HexPvpConfig current = configRef.get();
+        if (current == null) {
+            return;
+        }
+        List<String> loaded = new ArrayList<>();
+        for (World world : getServer().getWorlds()) {
+            loaded.add(world.getName());
+        }
+        for (String warning : WorldDiagnostics.findConfiguredWorldsNotLoaded(current.worlds(), loaded)) {
+            getLogger().warning(warning);
+        }
     }
 
     private boolean registerCommand() {

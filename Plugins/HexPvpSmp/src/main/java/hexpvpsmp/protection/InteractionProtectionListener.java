@@ -80,7 +80,15 @@ public final class InteractionProtectionListener implements Listener {
 
     // ---- Block right-click + held item -----------------------------------
 
-    @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
+    /**
+     * Registered with {@code ignoreCancelled = false} on purpose: the held-item
+     * block (step 2, e.g. eye of ender / goat horn) must still fire even when the
+     * block-interaction result is already denied, so a hard-blocked item can
+     * never slip through. This listener only ever <em>cancels</em>; it never
+     * un-cancels, so events another plugin deliberately cancelled stay cancelled
+     * (native spawn protection is handled via the server spawn radius, not here).
+     */
+    @EventHandler(priority = EventPriority.LOW, ignoreCancelled = false)
     public void onInteract(PlayerInteractEvent event) {
         HexPvpConfig config = plugin.config();
         if (config == null || !config.enabled()) {
@@ -93,7 +101,7 @@ public final class InteractionProtectionListener implements Listener {
         // 0) Always allow opening a public chest or using a crafting table inside
         //    a protected region — even when the player happens to hold a blocked
         //    item. Returning here also prevents the held-item block (2) from
-        //    stopping the chest/table from opening.
+        //    stopping the chest/table from opening (explicit-use priority).
         if (rightClickBlock && (isPublicChest(block) || InteractionRules.isAlwaysAllowed(block.getType()))) {
             if (isChest(block.getType())) {
                 plugin.debugLog(chestDebug(block, true));
@@ -115,22 +123,45 @@ public final class InteractionProtectionListener implements Listener {
             }
         }
 
-        // 2) Using a restricted held item (throw pearl, place boat, bone meal, ...).
-        //    Uses the hard region policy: spawn always blocks, TERRAIN always
-        //    blocks in any protected region, COMBAT in no-build follows config +
-        //    bypass.items. Bypass therefore never opens spawn or TERRAIN items.
+        // 2) Using a restricted held item (throw pearl, place boat, bone meal,
+        //    eye of ender, goat horn, ...). {@code event.getItem()} is the item in
+        //    the hand that fired THIS event, so both main hand and off hand are
+        //    covered (Bukkit fires the event once per hand). The decision looks at
+        //    BOTH the player's position and the clicked block's position so a
+        //    player at a region edge cannot use a terrain item outward or inward.
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK || event.getAction() == Action.RIGHT_CLICK_AIR) {
             ItemStack item = event.getItem();
             if (item == null) {
                 return;
             }
             ItemCategory category = InteractionRules.itemCategory(item.getType());
-            Location where = block != null ? block.getLocation() : player.getLocation();
-            if (blockItemEffect(category, where, player)) {
+            if (blockHeldItemUse(category, player, block)) {
                 event.setCancelled(true);
                 denyItem(player);
             }
         }
+    }
+
+    /**
+     * Region policy for USING a held item, considering BOTH the player's own
+     * position and — for a block right-click — the clicked block's position. The
+     * use is blocked when the item's effect is forbidden at EITHER location.
+     *
+     * <p>This closes the region-edge bypass for hard-blocked terrain items (eye of
+     * ender, goat horn, pearls, boats, ...): standing inside a protected region
+     * they cannot be aimed at an unprotected block outside, and standing just
+     * outside they cannot be aimed at a block inside. Spawn and TERRAIN never get
+     * a bypass carve-out (see {@link #blockItemEffect}), so OP / bypass players
+     * are blocked too.
+     */
+    private boolean blockHeldItemUse(ItemCategory category, Player player, Block block) {
+        if (category == ItemCategory.NONE) {
+            return false;
+        }
+        if (blockItemEffect(category, player.getLocation(), player)) {
+            return true;
+        }
+        return block != null && blockItemEffect(category, block.getLocation(), player);
     }
 
     // ---- Projectiles (defense-in-depth for thrown/shot items) ------------
@@ -498,13 +529,21 @@ public final class InteractionProtectionListener implements Listener {
         return material == Material.CHEST || material == Material.TRAPPED_CHEST;
     }
 
-    /** Debug line describing a chest interaction decision inside a protected region. */
+    /**
+     * Debug line describing a chest interaction decision: world, X/Y/Z, block
+     * type, effective region type and the public-chest result (requirement B).
+     * Reads only already-loaded state; never loads a chunk.
+     */
     private String chestDebug(Block block, boolean allowed) {
-        return String.format("Chest interact %s at %s %d,%d,%d (type=%s, isPublicChest=%b)",
+        ProtectionService protection = plugin.protectionService();
+        String region = protection != null
+                ? protection.effectiveType(block.getLocation()).map(Enum::name).orElse("NONE")
+                : "?";
+        return String.format("Chest interact %s at world=%s x=%d y=%d z=%d type=%s region=%s publicChest=%b",
                 allowed ? "ALLOWED" : "BLOCKED",
                 block.getWorld() != null ? block.getWorld().getName() : "?",
                 block.getX(), block.getY(), block.getZ(),
-                block.getType(), isPublicChest(block));
+                block.getType(), region, isPublicChest(block));
     }
 
     private static boolean isInventoryHolder(Block block) {

@@ -5,6 +5,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.event.Event;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
@@ -108,6 +109,43 @@ class InteractionProtectionTest {
         return new Location(server.getWorld("world"), 500, 64, 500);
     }
 
+    /**
+     * Right-click AIR while holding an item in the given hand, standing at
+     * {@code at}. For an air click there is no block to interact with, so Bukkit
+     * always reports {@code isCancelled()==true} (block result DENY) regardless of
+     * the item — the meaningful signal for a held item is whether its <em>use</em>
+     * was denied, i.e. {@code useItemInHand()==DENY}.
+     */
+    private boolean fireUseItemAir(Location at, Material item, EquipmentSlot hand) {
+        player.teleport(at);
+        PlayerInteractEvent event = new PlayerInteractEvent(
+                player, Action.RIGHT_CLICK_AIR, new ItemStack(item), null, BlockFace.SELF, hand);
+        server.getPluginManager().callEvent(event);
+        return event.useItemInHand() == Event.Result.DENY;
+    }
+
+    /** Right-click a plain block while holding an item in the given hand, standing at {@code at}. */
+    private boolean fireUseItemHand(Location at, Material item, EquipmentSlot hand) {
+        player.teleport(at);
+        Block ground = at.getBlock();
+        ground.setType(Material.STONE);
+        PlayerInteractEvent event = new PlayerInteractEvent(
+                player, Action.RIGHT_CLICK_BLOCK, new ItemStack(item), ground, BlockFace.UP, hand);
+        server.getPluginManager().callEvent(event);
+        return event.isCancelled();
+    }
+
+    /** Stand at {@code playerAt} and right-click a (different) target block while holding {@code item}. */
+    private boolean fireUseItemAtBlock(Location playerAt, Block target, Material item) {
+        player.teleport(playerAt);
+        target.setType(Material.STONE);
+        PlayerInteractEvent event = new PlayerInteractEvent(
+                player, Action.RIGHT_CLICK_BLOCK, new ItemStack(item), target, BlockFace.UP,
+                EquipmentSlot.HAND);
+        server.getPluginManager().callEvent(event);
+        return event.isCancelled();
+    }
+
     // ---- Block interactables --------------------------------------------
 
     @Test
@@ -194,6 +232,67 @@ class InteractionProtectionTest {
         assertTrue(fireUseItem(spawn(), Material.GOAT_HORN, true), "goat horn in spawn blocked (OP)");
         assertTrue(fireUseItem(noBuild(), Material.GOAT_HORN, true), "goat horn in no-build blocked (OP)");
         assertFalse(fireUseItem(wild(), Material.GOAT_HORN), "goat horn in wilderness allowed");
+    }
+
+    @Test
+    void eyeAndGoatHornBlockedEvenForBypassPlayer() {
+        // Terrain items are hard-blocked: hexpvpsmp.bypass must not open them.
+        player.addAttachment(plugin, PermissionGate.BYPASS_PERMISSION, true);
+        assertTrue(fireUseItem(spawn(), Material.ENDER_EYE), "bypass: eye of ender blocked in spawn");
+        assertTrue(fireUseItem(noBuild(), Material.ENDER_EYE), "bypass: eye of ender blocked in no-build");
+        assertTrue(fireUseItem(spawn(), Material.GOAT_HORN), "bypass: goat horn blocked in spawn");
+        assertTrue(fireUseItemAir(spawn(), Material.GOAT_HORN, EquipmentSlot.HAND),
+                "bypass: goat horn (air) blocked in spawn");
+    }
+
+    @Test
+    void eyeAndGoatHornBlockedViaRightClickAir() {
+        // Right-click AIR (looking at the sky) must be blocked just like a block click.
+        assertTrue(fireUseItemAir(spawn(), Material.ENDER_EYE, EquipmentSlot.HAND),
+                "eye of ender right-click-air in spawn blocked");
+        assertTrue(fireUseItemAir(noBuild(), Material.GOAT_HORN, EquipmentSlot.HAND),
+                "goat horn right-click-air in no-build blocked");
+        assertFalse(fireUseItemAir(wild(), Material.ENDER_EYE, EquipmentSlot.HAND),
+                "eye of ender right-click-air in wilderness allowed");
+    }
+
+    @Test
+    void eyeAndGoatHornBlockedInOffHand() {
+        // Off-hand use must be blocked for both air and block right-clicks.
+        assertTrue(fireUseItemAir(spawn(), Material.ENDER_EYE, EquipmentSlot.OFF_HAND),
+                "off-hand eye of ender (air) in spawn blocked");
+        assertTrue(fireUseItemHand(spawn(), Material.GOAT_HORN, EquipmentSlot.OFF_HAND),
+                "off-hand goat horn (block) in spawn blocked");
+        assertTrue(fireUseItemHand(noBuild(), Material.ENDER_EYE, EquipmentSlot.OFF_HAND),
+                "off-hand eye of ender (block) in no-build blocked");
+        assertFalse(fireUseItemAir(wild(), Material.GOAT_HORN, EquipmentSlot.OFF_HAND),
+                "off-hand goat horn in wilderness allowed");
+    }
+
+    @Test
+    void terrainItemBlockedWhenPlayerInsideAimsAtBlockOutsideRegion() {
+        // Region-edge bypass: standing INSIDE spawn, aiming at an unprotected
+        // block outside must still be blocked (the player is in the region).
+        Block outside = wildBlock();
+        assertTrue(fireUseItemAtBlock(spawn(), outside, Material.ENDER_EYE),
+                "eye of ender used from inside spawn at an outside block must be blocked");
+        assertTrue(fireUseItemAtBlock(spawn(), outside, Material.GOAT_HORN),
+                "goat horn used from inside spawn at an outside block must be blocked");
+    }
+
+    @Test
+    void terrainItemBlockedWhenPlayerOutsideAimsAtBlockInsideRegion() {
+        // The mirror case: standing OUTSIDE, aiming at a block inside spawn.
+        Block inside = spawnBlock();
+        assertTrue(fireUseItemAtBlock(wild(), inside, Material.ENDER_EYE),
+                "eye of ender aimed at a block inside spawn must be blocked");
+    }
+
+    @Test
+    void terrainItemAllowedWhenPlayerAndTargetBothInWilderness() {
+        Block target = server.getWorld("world").getBlockAt(501, 64, 500);
+        assertFalse(fireUseItemAtBlock(wild(), target, Material.ENDER_EYE),
+                "eye of ender fully in the wilderness stays allowed");
     }
 
     @Test
