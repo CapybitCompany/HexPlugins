@@ -19,9 +19,10 @@ import java.util.Optional;
 
 /**
  * Anuluje każdą interakcję z inventory shopu i przekazuje kliknięcie do
- * {@link ShopService}. ItemStack ze slotu nigdy nie jest źródłem prawdy
- * — akcje wyznaczamy na podstawie mapy slot → item z holdera i typu
- * widoku, więc podmiana ikon przez klienta nie nabierze nas na buy/sell.
+ * {@link ShopService}. Akcję wyznaczamy wyłącznie na podstawie map slotów z
+ * holdera i typu widoku — zawartość slotu nigdy nie jest źródłem prawdy, więc
+ * podmiana ikon przez klienta nie nabierze nas na buy/sell, a kliknięcia w
+ * elementy nawigacji nigdy nie wywołują transakcji.
  */
 public final class ShopInventoryListener implements Listener {
 
@@ -43,27 +44,31 @@ public final class ShopInventoryListener implements Listener {
         if (!(event.getWhoClicked() instanceof Player player)) {
             return;
         }
-
-        // Każda interakcja przenosząca itemy między inventory musi być
-        // zablokowana — także klik w slot gracza (np. shift-click z
-        // ekwipunku do shopu).
         if (event.getClickedInventory() == null) {
             return;
         }
-        // Jeśli klik trafił w dolny ekwipunek gracza, anulowanie eventu
-        // wystarczy, by nic się nie przelało. Po prostu kończymy.
+        // Klik w dolny ekwipunek gracza — anulowanie wystarczy, nic nie robimy.
         if (event.getClickedInventory().getHolder() != holder) {
             return;
         }
-
         int slot = event.getRawSlot();
         if (slot < 0 || slot >= event.getView().getTopInventory().getSize()) {
+            return;
+        }
+        // Akcje przenoszące itemy nie mogą być traktowane jak intencja buy/sell.
+        InventoryAction action = event.getAction();
+        ClickType click = event.getClick();
+        if (action == InventoryAction.HOTBAR_SWAP
+                || action == InventoryAction.MOVE_TO_OTHER_INVENTORY
+                || action == InventoryAction.COLLECT_TO_CURSOR
+                || click == ClickType.SWAP_OFFHAND) {
             return;
         }
 
         switch (holder.view()) {
             case MAIN -> handleMainClick(player, holder, slot);
-            case DETAIL -> handleDetailClick(player, holder, slot, event.getClick(), event.getAction());
+            case DETAIL -> handleDetailClick(player, holder, slot);
+            case CONFIRM -> handleConfirmClick(player, holder, slot);
         }
     }
 
@@ -85,50 +90,81 @@ public final class ShopInventoryListener implements Listener {
 
     @EventHandler
     public void onClose(InventoryCloseEvent event) {
-        // Nic do czyszczenia — blokada transakcji (busy) zwalniana jest
-        // po zakończeniu ekonomii. Hook zostawiony pod przyszłe użycie.
+        // Nic do czyszczenia — busy zwalniane po zakończeniu ekonomii.
     }
 
     private void handleMainClick(Player player, ShopGuiHolder holder, int slot) {
+        Shop shop = holder.shop();
+        // Nawigacja — tylko gdy odpowiednia strona istnieje.
+        if (slot == holder.previousSlot() && holder.page() > 0) {
+            shopService.openShop(player, shop.id(), holder.page() - 1);
+            return;
+        }
+        if (slot == holder.nextSlot() && holder.page() < holder.totalPages() - 1) {
+            shopService.openShop(player, shop.id(), holder.page() + 1);
+            return;
+        }
+        // Item — otwarcie szczegółów z zapamiętaniem strony źródłowej.
         String itemId = holder.itemSlotMap().get(slot);
         if (itemId == null) {
             return;
         }
-        Shop shop = holder.shop();
         Optional<ShopItem> item = shop.item(itemId);
-        if (item.isEmpty()) {
-            return;
-        }
-        shopService.openDetail(player, shop, item.get());
+        item.ifPresent(shopItem -> shopService.openDetail(player, shop, shopItem,
+                shopItem.amount(), holder.page()));
     }
 
-    private void handleDetailClick(Player player, ShopGuiHolder holder, int slot,
-                                   ClickType click, InventoryAction action) {
-        // Blokujemy akcje typu number-key / drop / swap, które mogłyby
-        // przeciągnąć itemy. setCancelled na zewnątrz i tak temu
-        // przeciwdziała, ale traktowanie tego jako intencji buy/sell
-        // byłoby też błędne, więc ignorujemy.
-        if (action == InventoryAction.HOTBAR_SWAP
-                || action == InventoryAction.MOVE_TO_OTHER_INVENTORY
-                || action == InventoryAction.COLLECT_TO_CURSOR
-                || click == ClickType.SWAP_OFFHAND) {
-            return;
-        }
+    private void handleDetailClick(Player player, ShopGuiHolder holder, int slot) {
         Shop shop = holder.shop();
+        int originPage = holder.originPage();
+        int selected = holder.selectedQuantity();
+
         if (slot == holder.backButtonSlot()) {
-            shopService.back(player, shop);
+            shopService.back(player, shop, originPage);
             return;
         }
         ShopItem item = shop.item(holder.focusedItemId()).orElse(null);
         if (item == null) {
             return;
         }
-        if (slot == holder.buyButtonSlot()) {
-            shopService.buy(player, shop, item);
+        // Zmiana ilości przez preset — otwiera ponownie widok z nową ilością.
+        Integer presetQty = holder.presetSlots().get(slot);
+        if (presetQty != null) {
+            shopService.openDetail(player, shop, item, presetQty, originPage);
             return;
         }
-        if (slot == holder.sellButtonSlot()) {
-            shopService.sell(player, shop, item);
+        if (slot == holder.customQuantitySlot() && holder.customQuantitySlot() >= 0) {
+            shopService.requestCustomQuantity(player, shop, item, originPage, selected);
+            return;
+        }
+        if (slot == holder.buyButtonSlot() && holder.buyButtonSlot() >= 0) {
+            shopService.requestBuy(player, shop, item, selected, originPage);
+            return;
+        }
+        if (slot == holder.sellButtonSlot() && holder.sellButtonSlot() >= 0) {
+            shopService.requestSell(player, shop, item, selected, originPage);
+            return;
+        }
+        if (slot == holder.sellAllButtonSlot() && holder.sellAllButtonSlot() >= 0) {
+            shopService.requestSellAll(player, shop, item, originPage);
+        }
+    }
+
+    private void handleConfirmClick(Player player, ShopGuiHolder holder, int slot) {
+        Shop shop = holder.shop();
+        ShopItem item = shop.item(holder.focusedItemId()).orElse(null);
+        if (item == null) {
+            return;
+        }
+        // Anuluj: wróć do widoku szczegółów, zachowując item, ilość i stronę.
+        if (slot == holder.cancelSlot()) {
+            shopService.cancelConfirmation(player, shop, item, holder.selectedQuantity(), holder.originPage());
+            return;
+        }
+        // Potwierdź: wykonaj bezpośrednio wewnętrzny, ponownie walidujący tor.
+        if (slot == holder.confirmSlot() && holder.confirmAction() != null) {
+            shopService.confirmTransaction(player, shop, item, holder.confirmAction(),
+                    holder.selectedQuantity(), holder.originPage());
         }
     }
 

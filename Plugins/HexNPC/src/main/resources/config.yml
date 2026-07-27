@@ -55,23 +55,120 @@ skins:
     max-poll-attempts: 10
     poll-interval-millis: 2000
 
-# NPC shop subsystem. Shops are defined in shops.yml and opened from NPC
-# actions with type "npc-shop". User-facing texts in Polish.
+# ==========================================================
+# Podsystem sklepów NPC
+# ==========================================================
+# Sklepy definiuje się w shops.yml i otwiera akcją NPC typu "npc-shop".
+# Wszystkie teksty widoczne dla graczy są po polsku.
 shops:
   enabled: true
-  # When true, all transactions require HexEconomy. When false and economy is
-  # missing, buy/sell flows still refuse but no error is shown beyond the
-  # "economy-missing" message.
+  # Gdy true, transakcje wymagają HexEconomy. Gdy false i ekonomia jest
+  # niedostępna, kup/sprzedaj i tak odmawiają, pokazując tylko komunikat
+  # "economy-missing".
   require-economy: true
-  # GUI title format. <shop> is replaced by the shop's configured title.
+  # Format tytułu GUI. <shop> jest zastępowane tytułem sklepu z shops.yml.
   title-format: "&8Sklep: &6<shop>"
-  # Fallback size when a shop omits "size:".
+  # Domyślny rozmiar GUI, gdy sklep pomija "size:" (9, 18, 27, 36, 45 lub 54).
   default-size: 54
-  # Fallback central sell-slot when a shop omits "sell-slot:".
-  default-sell-slot: 49
-  # When true, items with custom name/lore/enchant/PDC/CustomModelData/damage
-  # are refused by PLAIN_MATERIAL shops.
+  # Gdy true, przedmioty z customową nazwą/lore/enchantem/PDC/CustomModelData/
+  # uszkodzeniem są odrzucane przez sklepy w trybie PLAIN_MATERIAL.
   prevent-selling-custom-items: true
+
+  # --- Ceny ---
+  # Liczba miejsc po przecinku ceny końcowej (0..8). Zaokrąglenie HALF_UP,
+  # spójne z normalizacją sald HexEconomy (domyślnie 2 miejsca).
+  # Semantyka cen: buy-price/sell-price to cena za skonfigurowaną ilość
+  # "amount". Cena jednostkowa = cena / amount, a cena łączna = jednostkowa
+  # * wybrana ilość. Dzięki temu przy ilości równej "amount" cena się nie
+  # zmienia względem starszych konfiguracji.
+  price-scale: 2
+
+  # --- Wybór ilości ---
+  # Przyciski szybkiego wyboru ilości w widoku szczegółów.
+  quantity-presets:
+    - 1
+    - 64
+  # Czy pokazywać przycisk „Własna ilość" (wprowadzanie przez tabliczkę/czat).
+  enable-custom-quantity: true
+  # Czy pokazywać przycisk „Sprzedaj wszystko".
+  enable-sell-all: true
+
+  # --- Edytor własnej ilości ---
+  sign-editor:
+    # true = preferuj wirtualny edytor tabliczki (PacketEvents). Gdy
+    # PacketEvents jest niedostępny, plugin automatycznie użyje czatu.
+    # Uwaga: czat jest ZAWSZE akceptowany równolegle — jeśli tabliczka po
+    # cichu się nie otworzy, gracz może po prostu wpisać ilość na czacie.
+    enabled: true
+    # Po ilu sekundach oczekiwanie na wpisanie ilości wygasa (twardy timeout).
+    timeout-seconds: 30
+    # Po ilu sekundach wysłać podpowiedź o czacie, gdy edytor mógł się nie
+    # otworzyć (krótki failover; musi być <= timeout-seconds).
+    chat-fallback-seconds: 4
+
+  # --- Potwierdzenie dużych transakcji ---
+  # Gdy faktyczna ilość transakcji jest ŚCIŚLE większa niż "threshold",
+  # przed wykonaniem pojawia się osobne GUI potwierdzenia. threshold: 64
+  # oznacza potwierdzenie dopiero od 65 sztuk. Ujemna wartość wraca na 64.
+  # Dotyczy kupna, sprzedaży wybranej ilości i „Sprzedaj wszystko".
+  confirmation:
+    enabled: true
+    threshold: 64
+    # Rozmiar i sloty GUI potwierdzenia (walidowane; bezpieczne domyślne).
+    size: 27
+    preview-slot: 13
+    confirm-slot: 11
+    cancel-slot: 15
+
+  # --- Audyt transakcji (MySQL przez HexCore) ---
+  # Zapisy append-only przez współdzieloną bazę HexCore. HexNPC NIE otwiera
+  # własnego połączenia ani puli i nigdy nie zamyka puli HexCore. Brak
+  # HexCore/bazy lub błąd audytu NIGDY nie blokuje ani nie cofa transakcji.
+  audit-log:
+    enabled: true
+    # Nazwa tabeli (tylko [A-Za-z0-9_]+); pełna nazwa dostaje prefiks HexCore.
+    table: "npc_shop_audit"
+    # Czy logować także odrzucone próby jako status DENIED: dzienny limit kupna,
+    # brak miejsca w ekwipunku, brak/za mało przedmiotów ORAZ odrzucone operacje
+    # ekonomii (np. NOT_ENOUGH_FUNDS). Udane/nieudane transakcje są logowane
+    # zawsze, niezależnie od tej opcji.
+    log-denied-transactions: true
+
+  # --- Domyślny układ GUI (globalny) ---
+  # Pojedynczy sklep może nadpisać dowolne z tych pól w shops.yml
+  # (sekcja <sklep>.layout). Wszystkie sloty są 0-based i muszą mieścić się
+  # w rozmiarze GUI. Kolizje i wartości spoza zakresu są wykrywane, logowane
+  # i zastępowane bezpiecznymi wartościami domyślnymi (bez awarii).
+  default-layout:
+    # AUTO  = itemy z shops.yml wypełniają item-slots i są dzielone na strony
+    #         (kolejność z pliku; item.slot oraz item.page są ignorowane).
+    # MANUAL = itemy trafiają na swoje slot/page z shops.yml.
+    placement: AUTO
+    # Sloty na przedmioty w widoku głównym — symetryczna siatka z widocznymi
+    # odstępami (co druga kolumna). 12 pozycji na stronę => automatyczna
+    # paginacja co 12 itemów.
+    item-slots: [10, 12, 14, 16, 19, 21, 23, 25, 28, 30, 32, 34]
+    # Nawigacja stron w dolnym rzędzie.
+    navigation:
+      previous-slot: 45
+      page-slot: 49
+      next-slot: 53
+    # Wypełniacz tła (zwykle niewidoczny — nazwa to spacja).
+    filler:
+      material: GRAY_STAINED_GLASS_PANE
+      name: " "
+    # Widok szczegółów przedmiotu.
+    detail:
+      preview-slot: 4
+      selected-info-slot: 13
+      quantity-slots: [19, 21, 23]
+      custom-quantity-slot: 25
+      buy-slot: 38
+      sell-all-slot: 40
+      sell-slot: 42
+      back-slot: 49
+
+  # --- Komunikaty (wszystkie po polsku, w pełni konfigurowalne) ---
   messages:
     economy-missing: "&cEkonomia jest niedostępna."
     shop-not-found: "&cNie znaleziono sklepu: &f<shop>"
@@ -82,3 +179,39 @@ shops:
     sold: "&aSprzedano &f<amount>x <item> &aza &f<price>&a."
     transaction-failed: "&cTransakcja nie powiodła się. &7<reason>"
     trade-busy: "&ePoczekaj, poprzednia transakcja nadal trwa."
+    invalid-quantity: "&cNieprawidłowa ilość. Podaj dodatnią liczbę całkowitą."
+    quantity-too-small: "&cIlość jest za mała. Minimum to &f<min>x&c."
+    quantity-too-large: "&cIlość jest za duża. Maksimum to &f<max>x&c."
+    buy-limit-reached: "&cMożesz kupić maksymalnie &f<limit>x &ctego przedmiotu dziennie. Pozostało dziś: &f<remaining>x&c."
+    sign-expired: "&cCzas na wpisanie ilości minął. Spróbuj ponownie."
+    sign-prompt: "&eWpisz ilość (od &f<min> &edo &f<max>&e)."
+    sign-chat-fallback: "&eJeśli tabliczka się nie otworzyła, wpisz ilość na czacie."
+    nothing-to-sell: "&cNie masz nic do sprzedania."
+    buy-disabled: "&cTego przedmiotu nie można kupić."
+    sell-disabled: "&cTego przedmiotu nie można sprzedać."
+    # Podpisy GUI:
+    gui-selected-quantity: "&eWybrana ilość: &f<quantity>x"
+    gui-previous-page: "&ePoprzednia strona"
+    gui-next-page: "&eNastępna strona"
+    gui-page-info: "&fStrona &e<current>&7/&e<total>"
+    gui-buy-button: "&aKup &f<quantity>x &7(&a<price>&7)"
+    gui-sell-button: "&6Sprzedaj &f<quantity>x &7(&e<price>&7)"
+    gui-sell-all-button: "&6Sprzedaj wszystko"
+    gui-custom-quantity-button: "&bWłasna ilość"
+    gui-back-button: "&cWróć"
+    gui-preset-button: "&f<quantity>x"
+    gui-buy-limit-lore: "&cDzienny limit: &f<limit>x &7(pozostało &f<remaining>x&7)"
+    gui-click-for-details: "&8Kliknij, aby otworzyć szczegóły"
+    gui-buy-line: "&7Kup: &a<price>"
+    gui-sell-line: "&7Sprzedaj: &e<price>"
+    gui-click-to-buy: "&eKliknij, aby kupić"
+    gui-click-to-sell: "&eKliknij, aby sprzedać"
+    gui-preset-selected: "&aWybrano"
+    gui-sell-all-owned: "&7Posiadasz: &f<amount>x"
+    gui-sell-all-earn: "&7Otrzymasz: &e<price>"
+    gui-sell-all-none: "&cNie masz tego przedmiotu"
+    gui-confirm-buy: "&aPotwierdź zakup"
+    gui-confirm-sell: "&6Potwierdź sprzedaż"
+    gui-confirm-quantity: "&7Ilość: &f<amount>x"
+    gui-confirm-price: "&7Łączna cena: &e<price>"
+    gui-cancel-button: "&cAnuluj"

@@ -15,38 +15,105 @@ import org.jetbrains.annotations.NotNull;
  * {@code holder instanceof ShopGuiHolder}, bez porównywania tytułu —
  * dzięki temu zmiana napisu w GUI nie psuje routingu zdarzeń.
  *
- * Holder przechowuje referencję do shopu, typ widoku (główna siatka
- * vs. szczegóły itemu), opcjonalne id wyróżnionego itemu oraz mapę
- * slot → item-id używaną przez router kliknięć. Stan ekwipunku gracza
- * nigdy nie jest źródłem prawdy — zawsze patrzymy w holder.
+ * <p>Holder jest jedynym źródłem prawdy o routingu kliknięć i o stanie
+ * sesji GUI (bieżąca strona w widoku głównym; wybrana ilość i strona
+ * źródłowa w widoku szczegółów). Zawartość slotów nigdy nie decyduje o
+ * akcji — patrzymy wyłącznie na mapy slotów z holdera. Wybrana ilość
+ * należy do konkretnej sesji GUI i nie wycieka na innych graczy ani sklepy.
  */
 public final class ShopGuiHolder implements InventoryHolder {
 
     public enum View {
         MAIN,
-        DETAIL
+        DETAIL,
+        CONFIRM
     }
 
     private final Shop shop;
     private final View view;
-    private final String focusedItemId;
+
+    // Widok główny (MAIN)
+    private final int page;
+    private final int totalPages;
     private final Map<Integer, String> itemSlotMap;
+    private final int previousSlot;
+    private final int nextSlot;
+    private final int pageInfoSlot;
+
+    // Widok szczegółów (DETAIL)
+    private final String focusedItemId;
+    private final int selectedQuantity;
+    private final int originPage;
+    private final Map<Integer, Integer> presetSlots; // slot -> ilość
+    private final int customQuantitySlot;
     private final int buyButtonSlot;
     private final int sellButtonSlot;
+    private final int sellAllButtonSlot;
     private final int backButtonSlot;
+    private final int previewSlot;
+
+    // Widok potwierdzenia (CONFIRM)
+    private final ConfirmAction confirmAction;
+    private final int confirmSlot;
+    private final int cancelSlot;
 
     private Inventory inventory;
 
-    public ShopGuiHolder(Shop shop, View view, String focusedItemId,
-                         Map<Integer, String> itemSlotMap,
-                         int buyButtonSlot, int sellButtonSlot, int backButtonSlot) {
+    private ShopGuiHolder(Shop shop, View view, int page, int totalPages,
+                          Map<Integer, String> itemSlotMap, int previousSlot, int nextSlot, int pageInfoSlot,
+                          String focusedItemId, int selectedQuantity, int originPage,
+                          Map<Integer, Integer> presetSlots, int customQuantitySlot,
+                          int buyButtonSlot, int sellButtonSlot, int sellAllButtonSlot,
+                          int backButtonSlot, int previewSlot,
+                          ConfirmAction confirmAction, int confirmSlot, int cancelSlot) {
         this.shop = Objects.requireNonNull(shop, "shop");
         this.view = Objects.requireNonNull(view, "view");
-        this.focusedItemId = focusedItemId;
+        this.page = page;
+        this.totalPages = totalPages;
         this.itemSlotMap = itemSlotMap == null ? Map.of() : Map.copyOf(itemSlotMap);
+        this.previousSlot = previousSlot;
+        this.nextSlot = nextSlot;
+        this.pageInfoSlot = pageInfoSlot;
+        this.focusedItemId = focusedItemId;
+        this.selectedQuantity = selectedQuantity;
+        this.originPage = originPage;
+        this.presetSlots = presetSlots == null ? Map.of() : Map.copyOf(presetSlots);
+        this.customQuantitySlot = customQuantitySlot;
         this.buyButtonSlot = buyButtonSlot;
         this.sellButtonSlot = sellButtonSlot;
+        this.sellAllButtonSlot = sellAllButtonSlot;
         this.backButtonSlot = backButtonSlot;
+        this.previewSlot = previewSlot;
+        this.confirmAction = confirmAction;
+        this.confirmSlot = confirmSlot;
+        this.cancelSlot = cancelSlot;
+    }
+
+    public static ShopGuiHolder main(Shop shop, int page, int totalPages,
+                                     Map<Integer, String> itemSlotMap,
+                                     int previousSlot, int nextSlot, int pageInfoSlot) {
+        return new ShopGuiHolder(shop, View.MAIN, page, totalPages, itemSlotMap,
+                previousSlot, nextSlot, pageInfoSlot,
+                null, 0, page, Map.of(), -1, -1, -1, -1, -1, -1,
+                null, -1, -1);
+    }
+
+    public static ShopGuiHolder detail(Shop shop, String focusedItemId, int selectedQuantity,
+                                       int originPage, Map<Integer, Integer> presetSlots,
+                                       int customQuantitySlot, int buyButtonSlot, int sellButtonSlot,
+                                       int sellAllButtonSlot, int backButtonSlot, int previewSlot) {
+        return new ShopGuiHolder(shop, View.DETAIL, originPage, 1, Map.of(), -1, -1, -1,
+                focusedItemId, selectedQuantity, originPage, presetSlots, customQuantitySlot,
+                buyButtonSlot, sellButtonSlot, sellAllButtonSlot, backButtonSlot, previewSlot,
+                null, -1, -1);
+    }
+
+    public static ShopGuiHolder confirm(Shop shop, String focusedItemId, ConfirmAction action,
+                                        int quantity, int originPage,
+                                        int confirmSlot, int cancelSlot, int previewSlot) {
+        return new ShopGuiHolder(shop, View.CONFIRM, originPage, 1, Map.of(), -1, -1, -1,
+                focusedItemId, quantity, originPage, Map.of(), -1, -1, -1, -1, -1, previewSlot,
+                action, confirmSlot, cancelSlot);
     }
 
     void bind(Inventory inventory) {
@@ -55,8 +122,6 @@ public final class ShopGuiHolder implements InventoryHolder {
 
     @Override
     public @NotNull Inventory getInventory() {
-        // Kontrakt Bukkita: nigdy nie zwracać null. Jeśli nie wykonano
-        // bind() (defensywne — bind() jest wołane natychmiast), rzucamy.
         if (inventory == null) {
             throw new IllegalStateException("ShopGuiHolder accessed before its inventory was bound");
         }
@@ -71,12 +136,48 @@ public final class ShopGuiHolder implements InventoryHolder {
         return view;
     }
 
-    public String focusedItemId() {
-        return focusedItemId;
+    public int page() {
+        return page;
+    }
+
+    public int totalPages() {
+        return totalPages;
     }
 
     public Map<Integer, String> itemSlotMap() {
         return itemSlotMap;
+    }
+
+    public int previousSlot() {
+        return previousSlot;
+    }
+
+    public int nextSlot() {
+        return nextSlot;
+    }
+
+    public int pageInfoSlot() {
+        return pageInfoSlot;
+    }
+
+    public String focusedItemId() {
+        return focusedItemId;
+    }
+
+    public int selectedQuantity() {
+        return selectedQuantity;
+    }
+
+    public int originPage() {
+        return originPage;
+    }
+
+    public Map<Integer, Integer> presetSlots() {
+        return presetSlots;
+    }
+
+    public int customQuantitySlot() {
+        return customQuantitySlot;
     }
 
     public int buyButtonSlot() {
@@ -87,8 +188,28 @@ public final class ShopGuiHolder implements InventoryHolder {
         return sellButtonSlot;
     }
 
+    public int sellAllButtonSlot() {
+        return sellAllButtonSlot;
+    }
+
     public int backButtonSlot() {
         return backButtonSlot;
+    }
+
+    public int previewSlot() {
+        return previewSlot;
+    }
+
+    public ConfirmAction confirmAction() {
+        return confirmAction;
+    }
+
+    public int confirmSlot() {
+        return confirmSlot;
+    }
+
+    public int cancelSlot() {
+        return cancelSlot;
     }
 
     public InventoryType inventoryType() {

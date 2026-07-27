@@ -695,8 +695,8 @@ public final class HexNpcCommand implements CommandExecutor, TabCompleter {
                 sender.sendMessage(LegacyFormat.component("&aSklepy (" + registry.size() + "):"));
                 for (Shop shop : registry.all()) {
                     sender.sendMessage(LegacyFormat.component(
-                            "&7- &f" + shop.id() + " &7(itemy=" + shop.itemValues().size()
-                                    + ", rozmiar=" + shop.size() + ")"));
+                            "&7- &f" + shop.id() + " &7(przedmioty: " + shop.itemValues().size()
+                                    + ", rozmiar: " + shop.size() + ")"));
                 }
             }
             case "open" -> {
@@ -721,21 +721,40 @@ public final class HexNpcCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
                 sender.sendMessage(LegacyFormat.component(
-                        "&aSklep &f" + shop.id() + " &7| rozmiar=" + shop.size()
-                                + " sell-slot=" + shop.sellSlot()));
+                        "&aSklep &f" + shop.id() + " &7| rozmiar: &f" + shop.size()
+                                + " &7· rozmieszczenie: &f" + describePlacement(shop)
+                                + " &7· stron: &f" + hexnpc.shop.gui.ShopPlacement.totalPages(shop)));
                 for (ShopItem item : shop.itemValues()) {
+                    String buy = item.hasBuyPrice() ? item.buyPrice().toPlainString() : "—";
+                    String sell = item.hasSellPrice() ? item.sellPrice().toPlainString() : "—";
+                    String limit = item.hasBuyLimit() ? (item.maxBuyAmount() + "/dzień") : "brak";
                     sender.sendMessage(LegacyFormat.component(String.format(Locale.US,
-                            "&7- &f%s &7slot=%d mat=%s amount=%d kup=%s sprzedaj=%s match=%s",
-                            item.id(), item.slot(), item.material(), item.amount(),
-                            item.hasBuyPrice() ? item.buyPrice().toPlainString() : "off",
-                            item.hasSellPrice() ? item.sellPrice().toPlainString() : "off",
-                            item.sellMatch().name())));
+                            "&7- &f%s &7| materiał: &f%s &7· ilość bazowa: &f%d &7· kup: &a%s &7· sprzedaj: &e%s"
+                                    + " &7· limit: &f%s &7· dopasowanie: &f%s",
+                            item.id(), item.material(), item.amount(), buy, sell, limit,
+                            describeSellMatch(item))));
                 }
             }
             default -> sender.sendMessage(LegacyFormat.component(
                     "&cNieznana operacja. Użyj reload|list|open|info."));
         }
         return true;
+    }
+
+    /** Polski opis trybu rozmieszczenia (enum wewnętrznie pozostaje po angielsku). */
+    private static String describePlacement(Shop shop) {
+        return switch (shop.layout().placement()) {
+            case MANUAL -> "ręczne (sloty z konfiguracji)";
+            case AUTO -> "automatyczne (item-slots + strony)";
+        };
+    }
+
+    /** Polski opis trybu dopasowania sprzedaży. */
+    private static String describeSellMatch(ShopItem item) {
+        return switch (item.sellMatch()) {
+            case PLAIN_MATERIAL -> "surowy materiał";
+            case EXACT_ITEM -> "dokładny przedmiot";
+        };
     }
 
     private InteractionTrigger parseTrigger(CommandSender sender, String raw) {

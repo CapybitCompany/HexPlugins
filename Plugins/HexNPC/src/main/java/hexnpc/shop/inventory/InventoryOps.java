@@ -156,6 +156,51 @@ public final class InventoryOps {
         return Optional.of(List.copyOf(removed));
     }
 
+    /**
+     * Dzieli podaną ilość sztuk na listę stosów o rozmiarze do
+     * {@code maxStackSize} materiału, zachowując metę szablonu. Dla itemów
+     * niestakowalnych (maxStackSize == 1) powstaje po jednym stosie na sztukę.
+     */
+    public static List<ItemStack> split(ItemStack unit, long quantity) {
+        List<ItemStack> stacks = new ArrayList<>();
+        if (unit == null || quantity <= 0) {
+            return stacks;
+        }
+        int maxStack = Math.max(1, unit.getMaxStackSize());
+        long remaining = quantity;
+        while (remaining > 0) {
+            int take = (int) Math.min(maxStack, remaining);
+            ItemStack copy = unit.clone();
+            copy.setAmount(take);
+            stacks.add(copy);
+            remaining -= take;
+        }
+        return stacks;
+    }
+
+    /** True, jeśli w ekwipunku zmieści się {@code quantity} sztuk itemu. */
+    public static boolean canFitQuantity(PlayerInventory inv, ItemStack unit, long quantity) {
+        if (unit == null || quantity <= 0) {
+            return true;
+        }
+        return remainingCapacity(inv, unit) >= quantity;
+    }
+
+    /**
+     * Wręcza {@code quantity} sztuk itemu (rozbite na stosy) w trybie
+     * all-or-nothing. Zwraca true przy pełnym sukcesie; przy jakimkolwiek
+     * przecieku ekwipunek jest przywracany do stanu sprzed wywołania.
+     */
+    public static boolean giveQuantityAllOrNothing(Player player, ItemStack unit, long quantity) {
+        if (unit == null || quantity <= 0) {
+            return true;
+        }
+        if (!canFitQuantity(player.getInventory(), unit, quantity)) {
+            return false;
+        }
+        return giveAllOrNothing(player, split(unit, quantity));
+    }
+
     private static int remainingCapacity(PlayerInventory inv, ItemStack reference) {
         int capacity = 0;
         int maxStack = reference.getMaxStackSize();

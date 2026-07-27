@@ -1,50 +1,102 @@
 # ==========================================================
 # HexNPC - katalog sklepów
 # ==========================================================
-# Każdy sklep identyfikowany jest swoim kluczem pod "shops:". Akcje
-# NPC odwołują się do niego przez:
+# Każdy sklep identyfikowany jest kluczem pod "shops:". Akcje NPC odwołują
+# się do niego przez:
 #   actions:
 #     on-click:
 #       - { type: npc-shop, shop: starter }
 #
-# Pola sklepu:
+# ----------------------------------------------------------
+# TRYB ROZMIESZCZENIA (placement) — PRIORYTET
+# ----------------------------------------------------------
+# Tryb sklepu jest ustalany w tej kolejności (pierwszy pasujący wygrywa):
+#   1. <shop>.placement
+#   2. <shop>.layout.placement
+#   3. dowolny item z jawnym 'slot'  ->  MANUAL (zgodność ze starymi plikami)
+#   4. globalny shops.default-layout.placement z config.yml
+# Jeśli podasz jednocześnie <shop>.placement oraz <shop>.layout.placement o
+# różnych wartościach, wygrywa <shop>.placement (w konsoli pojawi się
+# ostrzeżenie). Nieprawidłowa wartość placement nie znika po cichu —
+# jest logowana, a plugin schodzi do kolejnego prawidłowego fallbacku.
+#
+#   AUTO   -> itemy są rozmieszczane WYŁĄCZNIE wg kolejności w tym pliku.
+#             Wypełniają layout.item-slots; gdy sloty jednej strony się
+#             zapełnią, kolejne itemy przechodzą na następną stronę.
+#             W trybie AUTO pola item.slot ORAZ item.page są IGNOROWANE.
+#   MANUAL -> itemy trafiają dokładnie na swoje 'slot' oraz 'page'. Sloty
+#             zarezerwowane dla nawigacji (previous/page/next) są zabronione;
+#             taki item zostanie pominięty z ostrzeżeniem (bez przesuwania).
+#             Ta sama liczba slotu na różnych stronach jest dozwolona.
+#
+# ----------------------------------------------------------
+# POLA SKLEPU
+# ----------------------------------------------------------
 #   title       - tytuł GUI (kody kolorów przez &)
 #   size        - rozmiar inventory (9, 18, 27, 36, 45 lub 54)
-#   sell-slot   - slot środkowego przycisku "Sprzedaj" w widoku
-#                 szczegółów (indeks 0-based, w obrębie size)
+#   placement   - AUTO lub MANUAL (patrz wyżej)
+#   sell-slot   - (opcjonalne, zgodność wstecz) slot przycisku „Sprzedaj"
+#                 w widoku szczegółów. Równoważne layout.detail.sell-slot.
+#   layout      - (opcjonalne) nadpisania układu tylko dla tego sklepu.
+#                 Struktura identyczna jak shops.default-layout w config.yml
+#                 (może zawierać także 'placement').
 #   items       - mapa item-id -> definicja itemu
 #
-# Pola itemu:
-#   material      - nazwa enuma Material z Bukkita (case-insensitive)
-#   amount        - rozmiar stosu w jednej transakcji
-#                   (zakres: 1..Material.getMaxStackSize(); v1 nie obsługuje
-#                   transakcji wielo-stosowych, więc np. dla DIAMOND max=64)
-#   slot          - slot w głównym widoku GUI (0-based)
-#   display-name  - nazwa wyświetlana w GUI (kody kolorów przez &)
-#   lore          - lista linii lore widocznych w GUI
-#   buy-price     - kwota płacona przy zakupie stosu
-#   sell-price    - kwota otrzymywana przy sprzedaży stosu
-#   buy-enabled   - czy zakup jest dozwolony
-#   sell-enabled  - czy sprzedaż jest dozwolona
-#   sell-match    - PLAIN_MATERIAL (vanilla, ten sam Material, bez
-#                   custom name/lore/enchant/PDC/custom-model-data/damage)
-#                 LUB EXACT_ITEM (item musi odpowiadać skonfigurowanej
-#                   ikonie co do nazwy/lore/enchantów itp.)
+# ----------------------------------------------------------
+# POLA ITEMU
+# ----------------------------------------------------------
+#   material        - nazwa Material z Bukkita (case-insensitive)
+#   amount          - BAZOWA jednostka CENY (1..maxStack materiału). To NIE
+#                     jest wybrana ilość transakcji ani limit — służy jedynie
+#                     do przeliczenia ceny.
+#   slot            - slot w widoku głównym (tylko MANUAL; 0-based)
+#   page            - strona itemu (tylko MANUAL; domyślnie 0)
+#   display-name    - nazwa wyświetlana w GUI (kody kolorów przez &)
+#   lore            - lista linii lore w GUI
+#   buy-price       - cena ZA 'amount' sztuk przy zakupie
+#   sell-price      - kwota ZA 'amount' sztuk przy sprzedaży
+#   buy-enabled     - czy zakup jest dozwolony
+#   sell-enabled    - czy sprzedaż jest dozwolona
+#   sell-match      - PLAIN_MATERIAL: zgodność samego materiału (bez customów,
+#                       gdy prevent-selling-custom-items = true).
+#                     EXACT_ITEM: porównuje materiał, display-name i lore
+#                       skonfigurowane w czystym szablonie. Dodatkowe linie GUI
+#                       z cenami i podpowiedziami nie należą do porównania.
+#                       Enchanty, CustomModelData, PDC i inne dodatkowe
+#                       metadane nie są obecnie konfigurowalne w shops.yml
+#                       i powodują odrzucenie przedmiotu przy sprzedaży.
+#   max-buy-amount  - DZIENNY limit kupna (liczba sztuk) na gracza i parę
+#                     shop-id:item-id. 0 lub brak = bez limitu. Reset o północy
+#                     dnia serwera; stan trwały w buy-limits.yml. Dotyczy
+#                     WYŁĄCZNIE kupna — sprzedaż nie jest nim ograniczona.
 #
-# Uwaga praktyczna: dla PLAIN_MATERIAL Buy-Flow oddaje graczowi „gołą"
-# wersję itemu (sam Material + amount, bez nazwy/lore). Dzięki temu
-# gracz może bez problemu sprzedać go z powrotem w tym samym sklepie.
+# ----------------------------------------------------------
+# ILOŚĆ TRANSAKCJI I CENY
+# ----------------------------------------------------------
+# Wybrana ilość transakcji jest niezależna od 'amount' i od dziennego limitu.
+# Gracz może kupić/sprzedać dowolną dodatnią ilość, aż do technicznego
+# maksimum 100000 sztuk na JEDNĄ transakcję (ochrona przed przepełnieniem).
+# To maksimum obowiązuje niezależnie od max-buy-amount.
+#
+#   cena_jednostkowa = buy-price / amount
+#   cena_łączna      = cena_jednostkowa * wybrana_ilość
+# Obliczenia w BigDecimal, zaokrąglenie HALF_UP do shops.price-scale.
+# Gdy wybrana ilość == amount, cena łączna == cena z konfiguracji —
+# istniejące sklepy nie zmieniają cen.
+#
+# Uwaga: dla PLAIN_MATERIAL Buy-Flow oddaje graczowi „gołą" wersję itemu
+# (sam Material), aby mógł ją bez problemu sprzedać z powrotem.
 
 shops:
+  # ===== Jedyny aktywny sklep przykładowy =====
   starter:
     title: "&8Sklep startowy"
     size: 54
-    sell-slot: 49
+    placement: AUTO
     items:
       cobblestone:
         material: COBBLESTONE
         amount: 64
-        slot: 10
         display-name: "&7Bruk"
         lore:
           - "&8Podstawowy blok budowlany"
@@ -56,7 +108,6 @@ shops:
       diamond:
         material: DIAMOND
         amount: 1
-        slot: 12
         display-name: "&bDiament"
         lore:
           - "&7Cenny surowiec"
@@ -65,3 +116,79 @@ shops:
         buy-enabled: true
         sell-enabled: true
         sell-match: PLAIN_MATERIAL
+        # Demonstracja funkcji: dzienny limit 64 diamentów na gracza.
+        max-buy-amount: 64
+
+# ==========================================================
+# PRZYKŁADY (NIEAKTYWNE) — aby użyć, USUŃ znak # z początku linii
+# i przenieś wpisy pod klucz "shops:" powyżej.
+# ==========================================================
+#
+# ----- Przykład MANUAL: pełna kontrola slotów, wiele stron, layout-override -----
+# shops:
+#   kopalnia:
+#     title: "&8Kopalnia"
+#     size: 27
+#     placement: MANUAL          # (można też zapisać w layout.placement)
+#     layout:
+#       navigation:
+#         previous-slot: 18
+#         page-slot: 22
+#         next-slot: 26
+#     items:
+#       coal:
+#         material: COAL
+#         amount: 64
+#         slot: 10               # strona 0
+#         page: 0
+#         display-name: "&8Węgiel"
+#         buy-price: "50.00"
+#         sell-price: "20.00"
+#       gold_ingot:
+#         material: GOLD_INGOT
+#         amount: 8
+#         slot: 16               # strona 0
+#         page: 0
+#         display-name: "&6Sztabka złota"
+#         buy-price: "120.00"
+#         sell-price: "60.00"
+#       iron_ingot:
+#         material: IRON_INGOT
+#         amount: 16
+#         slot: 10               # ta sama liczba slotu, ale strona 1 — OK
+#         page: 1
+#         display-name: "&fSztabka żelaza"
+#         buy-price: "80.00"
+#         sell-price: "40.00"
+#
+# ----- Przykład pełnego nadpisania layoutu (AUTO) -----
+# shops:
+#   własny_sklep:
+#     title: "&8Własny sklep"
+#     size: 54
+#     placement: AUTO
+#     layout:
+#       item-slots: [10, 12, 14, 16, 28, 30, 32, 34]
+#       navigation:
+#         previous-slot: 45
+#         page-slot: 49
+#         next-slot: 53
+#       filler:
+#         material: BLACK_STAINED_GLASS_PANE
+#         name: " "
+#       detail:
+#         preview-slot: 4
+#         selected-info-slot: 13
+#         quantity-slots: [19, 21, 23]
+#         custom-quantity-slot: 25
+#         buy-slot: 38
+#         sell-all-slot: 40
+#         sell-slot: 42
+#         back-slot: 49
+#     items:
+#       emerald:
+#         material: EMERALD
+#         amount: 1
+#         display-name: "&aSzmaragd"
+#         buy-price: "300.00"
+#         sell-price: "150.00"

@@ -60,6 +60,21 @@ public final class ShopItemStackFactory {
     }
 
     /**
+     * Pojedyncza sztuka itemu do wydania (amount = 1), z metą właściwą dla
+     * trybu sprzedaży. Używane przez {@code InventoryOps.split} do rozbicia
+     * dużej ilości na wiele stosów. Dla PLAIN_MATERIAL item jest „goły",
+     * dla EXACT_ITEM niesie skonfigurowaną metę.
+     */
+    public static ItemStack tradeUnit(ShopItem item) {
+        if (item.sellMatch() == SellMatch.PLAIN_MATERIAL) {
+            return new ItemStack(item.material(), 1);
+        }
+        ItemStack stack = exactTemplate(item);
+        stack.setAmount(1);
+        return stack;
+    }
+
+    /**
      * Ikona w GUI. Pokazujemy skonfigurowaną metę plus dodatkowe linie
      * lore (np. ceny). Nie używać jako wzorca matchowania ani jako
      * realnego itemu do oddania graczowi.

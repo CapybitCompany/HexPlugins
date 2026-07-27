@@ -10,15 +10,22 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 /**
- * Optional, read-only bridge to HexCore. Resolved entirely via reflection so
- * HexNPC has no compile-time dependency on {@code hex.core.*} and continues
- * to load when HexCore is absent. v1 only exposes a generic service lookup
- * that returns {@code Optional<Object>} — callers cast where needed.
+ * Optional bridge to HexCore, resolved entirely via reflection so HexNPC has
+ * no compile-time dependency on {@code hex.core.*} and keeps loading when
+ * HexCore is absent. Exposes a generic service lookup plus the shared
+ * {@code DatabaseService} (used by the append-only shop audit log).
  *
- * Intentional non-goals for v1:
- *  - Do not import HexCore classes.
- *  - Do not mutate HexCore state.
- *  - Do not require HexCore to expose new API surface.
+ * <p>HexNPC never opens its own JDBC connection or pool: all persistence goes
+ * through HexCore's {@code DatabaseService}, whose connection pool and async
+ * executor are owned by HexCore. HexNPC must never call
+ * {@code DatabaseService#shutdown()}.
+ *
+ * <p>Design constraints:
+ *  <ul>
+ *    <li>Do not import HexCore classes at compile time.</li>
+ *    <li>Do not mutate HexCore's own state or lifecycle.</li>
+ *    <li>Writes are limited to HexNPC-owned tables via HexCore's API.</li>
+ *  </ul>
  */
 public final class HexCoreBridge {
 
@@ -55,6 +62,27 @@ public final class HexCoreBridge {
             return Optional.ofNullable(result);
         } catch (Exception ex) {
             logger.fine("HexNPC: HexCore service(" + type.getName() + ") failed: " + ex.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Zwraca współdzielony {@code hex.core.api.db.DatabaseService} HexCore
+     * (jako Object, przez reflection) lub {@link Optional#empty()}, gdy HexCore
+     * jest nieobecny albo jego API się zmieniło. HexNPC nie jest właścicielem
+     * puli i nigdy jej nie zamyka.
+     */
+    public Optional<Object> databaseService() {
+        Object api = resolveApi();
+        if (api == null) {
+            return Optional.empty();
+        }
+        try {
+            Method dbAccessor = api.getClass().getMethod("db");
+            dbAccessor.setAccessible(true);
+            return Optional.ofNullable(dbAccessor.invoke(api));
+        } catch (Exception ex) {
+            logger.fine("HexNPC: HexCore db() lookup failed: " + ex.getMessage());
             return Optional.empty();
         }
     }

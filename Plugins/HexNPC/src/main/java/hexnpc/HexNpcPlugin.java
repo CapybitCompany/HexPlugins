@@ -29,9 +29,20 @@ import hexnpc.service.skin.SkinSourceResolver;
 import hexnpc.shop.ShopRegistry;
 import hexnpc.shop.ShopService;
 import hexnpc.shop.action.ShopActionHandler;
+import hexnpc.shop.audit.HexCoreDatabase;
+import hexnpc.shop.audit.ShopAuditLog;
+import hexnpc.shop.config.ShopConfig;
 import hexnpc.shop.economy.EconomyBridge;
+import hexnpc.shop.gui.ShopGuiHolder;
 import hexnpc.shop.gui.ShopInventoryListener;
+import hexnpc.shop.limit.DailyBuyLimitService;
+import hexnpc.shop.sign.PacketSignTransport;
+import hexnpc.shop.sign.SignInputService;
+import hexnpc.shop.sign.SignTransport;
+import hexnpc.shop.sign.SignUpdatePacketListener;
 import hexnpc.storage.YamlNpcStorage;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -55,10 +66,14 @@ public class HexNpcPlugin extends JavaPlugin {
     private SkinResolver skinResolver;
     private HttpClient httpClient;
     private PacketListenerCommon packetClickListener;
+    private PacketListenerCommon signPacketListener;
     private EconomyBridge economyBridge;
     private ShopRegistry shopRegistry;
     private ShopService shopService;
     private ShopInventoryListener shopInventoryListener;
+    private DailyBuyLimitService buyLimitService;
+    private SignInputService signInputService;
+    private ShopAuditLog shopAuditLog;
 
     // Rebuilt every reload.
     private YamlNpcStorage storage;
@@ -91,13 +106,29 @@ public class HexNpcPlugin extends JavaPlugin {
         this.skinResolver = new SkinResolver(getLogger(), httpClient);
         this.economyBridge = new EconomyBridge(getLogger());
         this.shopRegistry = new ShopRegistry(getLogger());
+        // Wspólne źródło konfiguracji sklepu (żywe, reaguje na reload).
+        java.util.function.Supplier<ShopConfig> shopConfigSupplier = () -> {
+            HexNpcConfig c = configRef.get();
+            return c == null ? null : c.shops();
+        };
+        // Dzienne limity kupna — trwałe, reset o północy dnia serwera.
+        this.buyLimitService = new DailyBuyLimitService(new File(getDataFolder(), "buy-limits.yml"), getLogger());
+        this.buyLimitService.load();
+        // Transport wirtualnej tabliczki: PacketEvents jeśli dostępny, inaczej czat.
+        SignTransport signTransport = PacketEventsBootstrap.isAvailable()
+                ? new PacketSignTransport(getLogger(), () -> {
+            HexNpcConfig c = configRef.get();
+            return c != null && c.debug();
+        })
+                : SignTransport.unavailable();
+        // Serwis wprowadzania własnej ilości (sign/czat).
+        this.signInputService = new SignInputService(this, shopConfigSupplier, signTransport);
+        // Audyt transakcji przez współdzieloną bazę HexCore (append-only).
+        this.shopAuditLog = new ShopAuditLog(shopConfigSupplier, getLogger(),
+                () -> HexCoreDatabase.resolve(hexCoreBridge, getLogger()));
         // Build ShopService once. configRef changes are picked up via supplier.
         this.shopService = new ShopService(this, shopRegistry, economyBridge,
-                () -> {
-                    HexNpcConfig c = configRef.get();
-                    return c == null ? null : c.shops();
-                },
-                getLogger());
+                shopConfigSupplier, getLogger(), buyLimitService, signInputService, shopAuditLog);
 
         if (!initializeRuntime()) {
             getLogger().severe("Failed to initialize HexNPC. Disabling plugin.");
@@ -114,13 +145,37 @@ public class HexNpcPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PlayerLifecycleListener(this), this);
         this.shopInventoryListener = new ShopInventoryListener(shopService);
         getServer().getPluginManager().registerEvents(shopInventoryListener, this);
+        getServer().getPluginManager().registerEvents(signInputService, this);
         registerPacketClickListenerOnce();
+        registerSignPacketListenerOnce();
+
+        // Okresowy, asynchroniczny zapis dziennych limitów (co 5 min).
+        getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
+            DailyBuyLimitService svc = buyLimitService;
+            if (svc != null) {
+                svc.flushIfDirty();
+            }
+        }, 6000L, 6000L);
 
         getLogger().info("HexNPC enabled.");
     }
 
     @Override
     public void onDisable() {
+        // Zamknij otwarte GUI sklepów i zakończ oczekujące wejścia sign,
+        // żeby po disable nie dało się dokończyć nieaktualnej transakcji.
+        closeOpenShopGuis();
+        if (signInputService != null) {
+            signInputService.cancelAll();
+            HandlerList.unregisterAll(signInputService);
+        }
+        if (buyLimitService != null) {
+            buyLimitService.save();
+        }
+        if (shopAuditLog != null) {
+            // Nie zamyka puli HexCore — czeka tylko na własne zapisy audytu.
+            shopAuditLog.shutdown();
+        }
         shutdownRuntime();
         if (shopInventoryListener != null) {
             HandlerList.unregisterAll(shopInventoryListener);
@@ -129,6 +184,10 @@ public class HexNpcPlugin extends JavaPlugin {
         if (packetClickListener != null) {
             PacketEventsBootstrap.unregisterListener(packetClickListener);
             packetClickListener = null;
+        }
+        if (signPacketListener != null) {
+            PacketEventsBootstrap.unregisterListener(signPacketListener);
+            signPacketListener = null;
         }
         if (actionRegistry != null) {
             getServer().getServicesManager().unregister(NpcActionRegistry.class, actionRegistry);
@@ -145,11 +204,23 @@ public class HexNpcPlugin extends JavaPlugin {
         }
         shopService = null;
         shopRegistry = null;
+        signInputService = null;
+        buyLimitService = null;
+        shopAuditLog = null;
         hexCoreBridge = null;
         getLogger().info("HexNPC disabled.");
     }
 
     public boolean reloadPluginRuntime() {
+        // Zamknij otwarte GUI i przerwij oczekujące wejścia sign, aby reload
+        // nie pozostawił nieaktualnych/niepoprawnych transakcji.
+        closeOpenShopGuis();
+        if (signInputService != null) {
+            signInputService.cancelAll();
+        }
+        if (buyLimitService != null) {
+            buyLimitService.flushIfDirty();
+        }
         shutdownRuntime();
         reloadConfig();
         return initializeRuntime();
@@ -211,12 +282,24 @@ public class HexNpcPlugin extends JavaPlugin {
         return economyBridge;
     }
 
+    public DailyBuyLimitService buyLimitService() {
+        return buyLimitService;
+    }
+
+    public SignInputService signInputService() {
+        return signInputService;
+    }
+
     private boolean initializeRuntime() {
-        HexNpcConfig loaded = configLoader.load(getConfig());
+        HexNpcConfig loaded = configLoader.load(getConfig(), getLogger());
         configRef.set(loaded);
 
         if (hexCoreBridge != null && hexCoreBridge.isAvailable()) {
-            getLogger().info("HexCore detected — HexCoreBridge ready (read-only).");
+            getLogger().info("HexCore detected — HexCoreBridge ready.");
+        }
+        // (Re)inicjalizacja audytu — tworzy schemat asynchronicznie przez HexCore.
+        if (shopAuditLog != null) {
+            shopAuditLog.init();
         }
 
         this.storage = new YamlNpcStorage(new File(getDataFolder(), "npcs.yml"), getLogger());
@@ -347,6 +430,36 @@ public class HexNpcPlugin extends JavaPlugin {
             packetClickListener = listener;
         } catch (Throwable t) {
             getLogger().warning("Failed to register packet click listener: " + t.getMessage());
+        }
+    }
+
+    private void registerSignPacketListenerOnce() {
+        if (signPacketListener != null || signInputService == null) {
+            return;
+        }
+        if (!PacketEventsBootstrap.isAvailable()) {
+            return;
+        }
+        try {
+            SignUpdatePacketListener listener = new SignUpdatePacketListener(signInputService);
+            PacketEventsBootstrap.registerListener(listener);
+            signPacketListener = listener;
+        } catch (Throwable t) {
+            getLogger().warning("Failed to register sign packet listener: " + t.getMessage());
+        }
+    }
+
+    /** Zamyka wszystkie otwarte GUI sklepów HexNPC (reload/disable). */
+    private void closeOpenShopGuis() {
+        try {
+            for (Player online : getServer().getOnlinePlayers()) {
+                InventoryHolder holder = online.getOpenInventory().getTopInventory().getHolder();
+                if (holder instanceof ShopGuiHolder) {
+                    online.closeInventory();
+                }
+            }
+        } catch (Throwable ignored) {
+            // Best-effort — nie blokuj disable/reload przy problemie z GUI.
         }
     }
 

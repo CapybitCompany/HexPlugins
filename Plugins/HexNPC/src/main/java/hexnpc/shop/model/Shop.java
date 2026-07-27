@@ -1,7 +1,10 @@
 package hexnpc.shop.model;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -10,8 +13,7 @@ import java.util.Optional;
 public record Shop(
         String id,
         String title,
-        int size,
-        int sellSlot,
+        ShopLayout layout,
         Map<String, ShopItem> items
 ) {
     public Shop {
@@ -20,12 +22,7 @@ public record Shop(
             throw new IllegalArgumentException("shop id is blank");
         }
         title = title == null ? "" : title;
-        if (size <= 0 || size % 9 != 0 || size > 54) {
-            throw new IllegalArgumentException("shop size must be a positive multiple of 9 up to 54, got " + size);
-        }
-        if (sellSlot < 0 || sellSlot >= size) {
-            throw new IllegalArgumentException("sell-slot out of bounds: " + sellSlot);
-        }
+        layout = layout == null ? ShopLayout.defaults(54) : layout;
         // Klucze normalizujemy do lower-case, żeby wielkość liter w YAML
         // nigdy nie wpływała na wynik lookupu. Kolejność jest zachowana.
         Map<String, ShopItem> canonical = new LinkedHashMap<>();
@@ -39,7 +36,45 @@ public record Shop(
                 canonical.put(key, entry.getValue());
             }
         }
-        items = Map.copyOf(canonical);
+        // Zachowujemy kolejność wstawiania (z shops.yml) — jest ona źródłem
+        // prawdy dla paginacji i placement AUTO. Map.copyOf NIE gwarantuje
+        // kolejności, więc używamy niemodyfikowalnego LinkedHashMap.
+        items = Collections.unmodifiableMap(new LinkedHashMap<>(canonical));
+    }
+
+    /**
+     * Konstruktor kompatybilny wstecz: buduje sklep z prostego rozmiaru
+     * i slotu sprzedaży, tworząc domyślny układ o tym rozmiarze i
+     * ustawiając w nim ten slot sprzedaży w widoku szczegółów.
+     */
+    public Shop(String id, String title, int size, int sellSlot, Map<String, ShopItem> items) {
+        this(id, title, legacyLayout(size, sellSlot), items);
+    }
+
+    private static ShopLayout legacyLayout(int size, int sellSlot) {
+        ShopLayout base = ShopLayout.defaults(size);
+        int safeSell = (sellSlot >= 0 && sellSlot < base.size()) ? sellSlot : base.detailSellSlot();
+        return new ShopLayout(
+                base.size(), base.placement(), base.itemSlots(),
+                base.previousSlot(), base.pageSlot(), base.nextSlot(),
+                base.fillerMaterial(), base.fillerName(),
+                base.detailPreviewSlot(), base.detailSelectedInfoSlot(),
+                base.quantityPresetSlots(), base.detailCustomQuantitySlot(),
+                base.detailBuySlot(), safeSell, base.detailSellAllSlot(), base.detailBackSlot()
+        ).validated(null, "legacy-" + id(size, sellSlot));
+    }
+
+    private static String id(int size, int sellSlot) {
+        return size + "/" + sellSlot;
+    }
+
+    public int size() {
+        return layout.size();
+    }
+
+    /** Slot przycisku „Sprzedaj" w widoku szczegółów (kompatybilność wstecz). */
+    public int sellSlot() {
+        return layout.detailSellSlot();
     }
 
     public Optional<ShopItem> item(String itemId) {
@@ -51,5 +86,13 @@ public record Shop(
 
     public Collection<ShopItem> itemValues() {
         return items.values();
+    }
+
+    /**
+     * Zwraca itemy w kolejności z shops.yml jako listę — używane przez
+     * paginację i placement AUTO.
+     */
+    public List<ShopItem> orderedItems() {
+        return new ArrayList<>(items.values());
     }
 }

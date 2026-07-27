@@ -59,6 +59,27 @@ class ShopPluginIntegrationTest {
     }
 
     @Test
+    void shippedShopsFileHasExactlyStarterWithDemoLimit() {
+        var registry = plugin.shopRegistry();
+        assertEquals(1, registry.size(), "dostarczony plik ma dokładnie jeden aktywny sklep");
+        var starter = registry.find("starter").orElseThrow();
+        assertTrue(starter.item("cobblestone").isPresent(), "starter zawiera cobblestone");
+        var diamond = starter.item("diamond").orElseThrow();
+        assertEquals(64, diamond.maxBuyAmount(), "diament demonstruje dzienny limit 64");
+        // Zakomentowane przykłady nie mogą być aktywnie ładowane.
+        assertTrue(registry.find("kopalnia").isEmpty(), "przykład 'kopalnia' nie może być aktywny");
+        assertTrue(registry.find("własny_sklep").isEmpty(), "przykład layout-override nie może być aktywny");
+    }
+
+    @Test
+    void configItemSlotsMatchJavaDefault() {
+        // Dostarczony config.yml i ShopLayout.defaults(54) muszą być spójne.
+        assertEquals(hexnpc.shop.model.ShopLayout.defaults(54).itemSlots(),
+                plugin.config().shops().defaultLayout().itemSlots(),
+                "item-slots z config.yml muszą odpowiadać domyślnemu układowi Java");
+    }
+
+    @Test
     void reloadAlsoReloadsShopCatalog() throws Exception {
         File shopsFile = new File(plugin.getDataFolder(), "shops.yml");
         Files.writeString(shopsFile.toPath(), """
