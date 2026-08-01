@@ -1,0 +1,856 @@
+machines:
+  machine-1:
+    world: world
+    activation-material: MAGENTA_GLAZED_TERRACOTTA
+    activation-block:
+      x: 2795
+      y: 73
+      z: 957
+    player-location:
+      x: 2795.5
+      y: 74.0
+      z: 957.5
+      yaw: 90.0
+      pitch: 0.0
+  machine-2:
+    world: world
+    activation-material: MAGENTA_GLAZED_TERRACOTTA
+    activation-block:
+      x: 2795
+      y: 73
+      z: 955
+    player-location:
+      x: 2795.5
+      y: 74.0
+      z: 955.5
+      yaw: 90.0
+      pitch: 0.0
+  machine-3:
+    world: world
+    activation-material: MAGENTA_GLAZED_TERRACOTTA
+    activation-block:
+      x: 2795
+      y: 73
+      z: 951
+    player-location:
+      x: 2795.5
+      y: 74.0
+      z: 951.5
+      yaw: 90.0
+      pitch: 0.0
+  machine-4:
+    world: world
+    activation-material: MAGENTA_GLAZED_TERRACOTTA
+    activation-block:
+      x: 2795
+      y: 73
+      z: 949
+    player-location:
+      x: 2795.5
+      y: 74.0
+      z: 949.5
+      yaw: 90.0
+      pitch: 0.0
+
+idle-particles:
+  enabled: true
+  particle: HAPPY_VILLAGER
+  interval-ticks: 10
+  count: 3
+  offset-x: 0.25
+  offset-y: 0.25
+  offset-z: 0.25
+  speed: 0.06
+  y-offset: 1.4
+
+occupied-particles:
+  enabled: true
+  particle: DUST
+  red: 255
+  green: 35
+  blue: 35
+  size: 1.15
+  interval-ticks: 10
+  count: 3
+  offset-x: 0.25
+  offset-y: 0.25
+  offset-z: 0.25
+  speed: 0.06
+  y-offset: 1.4
+
+slot-machine:
+  bet-per-line-options: [1, 2, 5, 10]
+  line-options: [1, 3, 5]
+  default-bet-per-line: 1
+  default-lines: 5
+  roll-tick-interval: 3
+  result-subtitle-ticks: 40
+  exit-velocity:
+    enabled: true
+    backwards-strength: 0.45
+    y: 0.15
+  highlight:
+    enabled: true
+    duration-ticks: 8
+    flash-count: 3
+  win-assist:
+    enabled: true
+    # Jezeli naturalny roll nic nie trafi, ta szansa wymusi jedna wygrana linie.
+    # 0 = czysta losowosc, 100 = kazdy spin ma minimum jedna wygrana linie.
+    chance-percent: 35.0
+
+wheel-of-fortune:
+  machines:
+    wheel-1:
+      world: world
+      activation-material: MAGENTA_GLAZED_TERRACOTTA
+      activation-block:
+        x: 2798
+        y: 73
+        z: 958
+      player-location:
+        x: 2798.5
+        y: 74.0
+        z: 958.5
+        yaw: 90.0
+        pitch: 0.0
+  multiplier-options: [1, 2, 5, 10]
+  default-multiplier: 1
+  spin-tick-interval: 2
+  result-subtitle-ticks: 40
+  exit-velocity:
+    enabled: true
+    backwards-strength: 0.45
+    y: 0.15
+  gui:
+    title: '&6KOŁO FORTUNY'
+    size: 54
+    wheel-slots: [10, 11, 12, 13, 14, 15, 16, 25, 34, 43, 42, 41, 40, 39, 38, 37, 36, 27, 18, 9]
+    action-slot: 22
+    multiplier-slot: 49
+    balance-slot: 46
+    exit-slot: 45
+    info-slot: 53
+    filler:
+      material: BLACK_STAINED_GLASS_PANE
+      name: ''
+      lore: []
+      hide-tooltip: true
+    balance-item:
+      material: BUNDLE
+      name: '&aŚrodki: &f{balance_display}'
+      lore: []
+      hide-tooltip: false
+      hide-additional-tooltip: true
+    spin-item:
+      material: LIME_DYE
+      name: '&d&lZAKRĘĆ KOŁEM!'
+      lore:
+        - '&c&m--------------------'
+        - '&fAktualny koszt: &a{total_cost}'
+        - '&c&m--------------------'
+        - '&7Mnożnik: &f{multiplier}'
+      hide-tooltip: false
+    no-funds-item:
+      material: RED_DYE
+      name: '&cBrak środków'
+      lore:
+        - '&c&m--------------------'
+        - '&7Wymagane: &f{total_cost}$'
+        - '&7Twoje środki: &f{balance_display}'
+      hide-tooltip: false
+    rolling-item:
+      material: YELLOW_DYE
+      name: '&eKoło się kręci'
+      lore: []
+      hide-tooltip: false
+    multiplier-item:
+      material: WHITE_DYE
+      name: '&fUstawienia gry:'
+      lore:
+        - '&c&m--------------------'
+        - '&eLPM: &fZmień mnożnik'
+        - '&c&m--------------------'
+        - '&7Mnożnik: &f{multiplier}'
+      hide-tooltip: false
+    exit-item:
+      material: BARRIER
+      name: '&cWyjście'
+      lore: []
+      hide-tooltip: false
+    info-item:
+      material: PAPER
+      name: '&fLegenda Koła'
+      lore:
+        - '&c&m--------------------'
+        - '{segment_payouts}'
+      segment-line: '&e{index}. {segment_name} &7(&a{multiplier}x&7)'
+      hide-tooltip: false
+  segment-layout:
+    - lose
+    - x1
+    - lose
+    - x2
+    - x1
+    - lose
+    - x3
+    - x1
+    - lose
+    - x5
+    - x2
+    - lose
+    - x1
+    - x10
+    - lose
+    - x2
+    - x3
+    - lose
+    - x25
+    - x50
+  segments:
+    lose:
+      material: RED_STAINED_GLASS_PANE
+      name: '&cPrzegrana'
+      lore: []
+      multiplier: 0
+      chance-weight: 35
+    x1:
+      material: IRON_NUGGET
+      name: '&fZwrot'
+      lore: []
+      multiplier: 1
+      chance-weight: 25
+    x2:
+      material: GOLD_NUGGET
+      name: '&eMała wygrana'
+      lore: []
+      multiplier: 2
+      chance-weight: 18
+    x3:
+      material: GOLD_INGOT
+      name: '&6Dobra wygrana'
+      lore: []
+      multiplier: 3
+      chance-weight: 10
+    x5:
+      material: EMERALD
+      name: '&aDuża wygrana'
+      lore: []
+      multiplier: 5
+      chance-weight: 7
+    x10:
+      material: DIAMOND
+      name: '&bMega wygrana'
+      lore: []
+      multiplier: 10
+      chance-weight: 3
+    x25:
+      material: AMETHYST_SHARD
+      name: '&dSuper wygrana'
+      lore: []
+      multiplier: 25
+      chance-weight: 1.5
+    x50:
+      material: NETHER_STAR
+      name: '&f&lJACKPOT'
+      lore: []
+      multiplier: 50
+      chance-weight: 0.5
+
+bus-driver:
+  machines:
+    bus-driver-1:
+      world: world
+      activation-material: MAGENTA_GLAZED_TERRACOTTA
+      activation-block:
+        x: 2798
+        y: 73
+        z: 943
+      player-location:
+        x: 2798.5
+        y: 74.0
+        z: 943.5
+        yaw: 90.0
+        pitch: 0.0
+  multiplier-options: [1, 2, 5, 10]
+  default-multiplier: 1
+  round-payout-multipliers: [1.5, 2.5, 4, 7, 12]
+  result-subtitle-ticks: 40
+  exit-velocity:
+    enabled: true
+    backwards-strength: 0.45
+    y: 0.15
+  gui:
+    title: '&cBUS DRIVER'
+    size: 54
+    card-slot: 22
+    lower-slot: 30
+    higher-slot: 32
+    cashout-slot: 40
+    multiplier-slot: 41
+    balance-slot: 46
+    exit-slot: 45
+    info-slot: 53
+    progress-slots: [11, 12, 13, 14, 15]
+    filler:
+      material: BLACK_STAINED_GLASS_PANE
+      name: ''
+      lore: []
+      hide-tooltip: true
+    balance-item:
+      material: BUNDLE
+      name: '&aŚrodki: &f{balance_display}'
+      lore: []
+      hide-tooltip: false
+      hide-additional-tooltip: true
+    start-item:
+      material: LIME_DYE
+      name: '&a&lROZPOCZNIJ'
+      lore:
+        - '&c&m--------------------'
+        - '&fKoszt wejścia: &a{total_cost}'
+        - '&c&m--------------------'
+        - '&7Mnożnik: &f{multiplier}'
+      hide-tooltip: false
+    no-funds-item:
+      material: RED_DYE
+      name: '&cBrak środków'
+      lore:
+        - '&c&m--------------------'
+        - '&7Wymagane: &f{total_cost}$'
+        - '&7Twoje środki: &f{balance_display}'
+      hide-tooltip: false
+    lower-item:
+      material: RED_DYE
+      name: '&c&lNIŻEJ'
+      lore: []
+      hide-tooltip: false
+    higher-item:
+      material: LIME_DYE
+      name: '&a&lWYŻEJ'
+      lore: []
+      hide-tooltip: false
+    cashout-item:
+      material: GOLD_INGOT
+      name: '&e&lWYPŁAĆ'
+      lore:
+        - '&c&m--------------------'
+        - '&7Aktualna wygrana: &a{current_win}$'
+      hide-tooltip: false
+    cashout-unavailable-item:
+      material: GRAY_DYE
+      name: '&7Brak wygranej do wypłaty'
+      lore: []
+      hide-tooltip: false
+    multiplier-item:
+      material: WHITE_DYE
+      name: '&fUstawienia gry:'
+      lore:
+        - '&c&m--------------------'
+        - '&eLPM: &fZmień mnożnik'
+        - '&c&m--------------------'
+        - '&7Mnożnik: &f{multiplier}'
+      hide-tooltip: false
+    exit-item:
+      material: BARRIER
+      name: '&cWyjście'
+      lore: []
+      hide-tooltip: false
+    info-item:
+      material: PAPER
+      name: '&fBus Driver'
+      lore:
+        - '&c&m--------------------'
+        - '&7Zgadnij czy kolejna karta będzie wyżej albo niżej.'
+        - '{round_payouts}'
+      round-line: '&eRunda {round}: &a{x}x'
+      hide-tooltip: false
+    progress-pending-item:
+      material: GRAY_STAINED_GLASS_PANE
+      name: '&7Runda {round}'
+      lore:
+        - '&7Wypłata: &f{x}x'
+      hide-tooltip: false
+    progress-complete-item:
+      material: LIME_STAINED_GLASS_PANE
+      name: '&aRunda {round}'
+      lore:
+        - '&7Wypłata: &a{x}x'
+      hide-tooltip: false
+
+economy:
+  balance-placeholder: '%hexeconomy_balance%'
+  remove-command: 'hexeconomy remove {player} {amount}'
+  add-command: 'hexeconomy add {player} {amount}'
+
+gui:
+  title: '&cJEDNORĘKI BANDYTA'
+  size: 54
+  reel-slots: [3, 4, 5, 12, 13, 14, 21, 22, 23]
+  action-slot: 39
+  bet-slot: 41
+  balance-slot: 46
+  exit-slot: 45
+  info-slot: 53
+  filler:
+    material: BLACK_STAINED_GLASS_PANE
+    name: ''
+    lore: []
+    hide-tooltip: true
+  balance-item:
+    material: BUNDLE
+    name: '&aŚrodki: &f{balance_display}'
+    lore: []
+    hide-tooltip: false
+    hide-additional-tooltip: true
+  spin-available-item:
+    material: LIME_DYE
+    name: '&d&lZAKRĘĆ!'
+    lore:
+      - '&c&m--------------------'
+      - '&fAktualny koszt: &a{total_cost}'
+      - '&c&m--------------------'
+      - '&7Mnożnik: &f{bet_per_line}'
+      - '&7Linie: &f{lines}'
+    hide-tooltip: false
+  spin-unavailable-item:
+    material: RED_DYE
+    name: '&cBrak środków'
+    lore:
+      - '&c&m--------------------'
+      - '&7Wymagane: &f{total_cost}$'
+      - '&7Twoje środki: &f{balance_display}'
+    hide-tooltip: false
+  rolling-item:
+    material: YELLOW_DYE
+    name: '&eZatrzymaj kolumnę'
+    lore: []
+    hide-tooltip: false
+  bet-item:
+    material: WHITE_DYE
+    name: '&fUstawienia gry:'
+    lore:
+      - '&c&m--------------------'
+      - '&eLPM: &fZmień mnożnik'
+      - '&ePPM: &fZmień ilość linii'
+      - '&c&m--------------------'
+      - '&7Mnożnik: &f{bet_per_line}'
+      - '&7Linie: &f{lines}'
+    hide-tooltip: false
+  exit-item:
+    material: BARRIER
+    name: '&cWyjście'
+    lore: []
+    hide-tooltip: false
+  highlight-item:
+    material: LIME_STAINED_GLASS_PANE
+    name: '&a&lWYGRANA LINIA'
+    lore: []
+    hide-tooltip: true
+  info-item:
+    material: PAPER
+    name: '&fLegenda Wypłat'
+    lore:
+      - '&c&m--------------------'
+      - '&7Przy aktualnym mnożniku: &f{bet_per_line}'
+      - '{symbol_payouts}'
+    symbol-line: '&e{index}. {legend_name} &7(&a{payout}$&7)'
+    hide-tooltip: false
+
+initial-symbols:
+  - gold_nugget
+  - melon_slice
+  - amethyst_shard
+  - diamond
+  - diamond
+  - diamond
+  - emerald
+  - flint
+  - blaze_powder
+
+winning-lines:
+  middle:
+    name: '&eŚrodkowa'
+    slots: [12, 13, 14]
+  top:
+    name: '&eGórna'
+    slots: [3, 4, 5]
+  bottom:
+    name: '&eDolna'
+    slots: [21, 22, 23]
+  diagonal-down:
+    name: '&ePrzekątna 1'
+    slots: [3, 13, 23]
+  diagonal-up:
+    name: '&ePrzekątna 2'
+    slots: [21, 13, 5]
+
+symbols:
+  # multiplier = wyplata za jedna trafiona linie: mnoznik x multiplier.
+  # chance-weight = waga losowania symbolu. Wieksza liczba oznacza, ze symbol wypada czesciej.
+  flint:
+    material: FLINT
+    display-name: '&8Krzemień'
+    legend-name: '&8Krzemień'
+    lore: []
+    multiplier: 1
+    chance-weight: 22
+    win-actionbar: '&7Trafiono &8Krzemień&7: &a+{win}$'
+    win-sounds:
+      - enabled: true
+        name: BLOCK_NOTE_BLOCK_PLING
+        volume: 0.65
+        pitch: 0.85
+        delay-ticks: 0
+    win-particles:
+      enabled: true
+      particle: DUST
+      red: 95
+      green: 95
+      blue: 95
+      size: 0.85
+      interval-ticks: 10
+      count: 10
+      offset-x: 0.45
+      offset-y: 0.35
+      offset-z: 0.45
+      speed: 0.02
+      y-offset: 1.0
+  melon_slice:
+    material: MELON_SLICE
+    display-name: '&2Arbuz'
+    legend-name: '&2Arbuz'
+    lore: []
+    multiplier: 3
+    chance-weight: 18
+    win-actionbar: '&7Trafiono &2Arbuz&7: &a+{win}$'
+    win-sounds:
+      - enabled: true
+        name: BLOCK_NOTE_BLOCK_PLING
+        volume: 0.7
+        pitch: 1.0
+        delay-ticks: 0
+    win-particles:
+      enabled: true
+      particle: DUST
+      red: 55
+      green: 180
+      blue: 70
+      size: 0.9
+      interval-ticks: 10
+      count: 12
+      offset-x: 0.45
+      offset-y: 0.35
+      offset-z: 0.45
+      speed: 0.02
+      y-offset: 1.0
+  gold_nugget:
+    material: GOLD_NUGGET
+    display-name: '&eZłoto'
+    legend-name: '&eZłoto'
+    lore: []
+    multiplier: 8
+    chance-weight: 14
+    win-actionbar: '&7Trafiono &eZłoto&7: &a+{win}$'
+    win-sounds:
+      - enabled: true
+        name: ENTITY_EXPERIENCE_ORB_PICKUP
+        volume: 0.85
+        pitch: 1.35
+        delay-ticks: 0
+      - enabled: true
+        name: BLOCK_NOTE_BLOCK_BELL
+        volume: 0.6
+        pitch: 1.45
+        delay-ticks: 3
+    win-particles:
+      enabled: true
+      particle: DUST
+      red: 255
+      green: 210
+      blue: 40
+      size: 1.0
+      interval-ticks: 10
+      count: 14
+      offset-x: 0.5
+      offset-y: 0.4
+      offset-z: 0.5
+      speed: 0.02
+      y-offset: 1.0
+  blaze_powder:
+    material: BLAZE_POWDER
+    display-name: '&6Płomień'
+    legend-name: '&6Płomień'
+    lore: []
+    multiplier: 16
+    chance-weight: 10
+    win-actionbar: '&7Trafiono &6Płomień&7: &a+{win}$'
+    win-sounds:
+      - enabled: true
+        name: BLOCK_NOTE_BLOCK_BELL
+        volume: 0.75
+        pitch: 1.2
+        delay-ticks: 0
+      - enabled: true
+        name: ITEM_FIRECHARGE_USE
+        volume: 0.45
+        pitch: 1.55
+        delay-ticks: 3
+    win-particles:
+      enabled: true
+      particle: DUST
+      red: 255
+      green: 120
+      blue: 20
+      size: 1.0
+      interval-ticks: 10
+      count: 16
+      offset-x: 0.5
+      offset-y: 0.45
+      offset-z: 0.5
+      speed: 0.02
+      y-offset: 1.0
+  amethyst_shard:
+    material: AMETHYST_SHARD
+    display-name: '&dAmetyst'
+    legend-name: '&dAmetyst'
+    lore: []
+    multiplier: 30
+    chance-weight: 8
+    win-actionbar: '&7Trafiono &dAmetyst&7: &a+{win}$'
+    win-sounds:
+      - enabled: true
+        name: BLOCK_AMETHYST_BLOCK_CHIME
+        volume: 0.9
+        pitch: 1.15
+        delay-ticks: 0
+      - enabled: true
+        name: BLOCK_NOTE_BLOCK_CHIME
+        volume: 0.65
+        pitch: 1.45
+        delay-ticks: 4
+    win-particles:
+      enabled: true
+      particle: DUST
+      red: 210
+      green: 80
+      blue: 255
+      size: 1.05
+      interval-ticks: 10
+      count: 18
+      offset-x: 0.55
+      offset-y: 0.45
+      offset-z: 0.55
+      speed: 0.02
+      y-offset: 1.0
+  emerald:
+    material: EMERALD
+    display-name: '&aEmerald'
+    legend-name: '&aEmerald'
+    lore: []
+    multiplier: 60
+    chance-weight: 5
+    win-actionbar: '&7Trafiono &aEmerald&7: &a+{win}$'
+    win-sounds:
+      - enabled: true
+        name: ENTITY_PLAYER_LEVELUP
+        volume: 0.8
+        pitch: 1.25
+        delay-ticks: 0
+      - enabled: true
+        name: BLOCK_NOTE_BLOCK_PLING
+        volume: 0.75
+        pitch: 1.7
+        delay-ticks: 4
+    win-particles:
+      enabled: true
+      particle: DUST
+      red: 40
+      green: 255
+      blue: 110
+      size: 1.1
+      interval-ticks: 10
+      count: 22
+      offset-x: 0.6
+      offset-y: 0.5
+      offset-z: 0.6
+      speed: 0.025
+      y-offset: 1.0
+  diamond:
+    material: DIAMOND
+    display-name: '&bDiament'
+    legend-name: '&bDiament'
+    lore: []
+    multiplier: 120
+    chance-weight: 2
+    win-actionbar: '&7Trafiono &bDiament&7: &a+{win}$'
+    win-sounds:
+      - enabled: true
+        name: UI_TOAST_CHALLENGE_COMPLETE
+        volume: 0.85
+        pitch: 1.15
+        delay-ticks: 0
+      - enabled: true
+        name: BLOCK_AMETHYST_BLOCK_CHIME
+        volume: 0.9
+        pitch: 1.55
+        delay-ticks: 5
+    win-particles:
+      enabled: true
+      particle: DUST
+      red: 80
+      green: 235
+      blue: 255
+      size: 1.15
+      interval-ticks: 10
+      count: 28
+      offset-x: 0.65
+      offset-y: 0.55
+      offset-z: 0.65
+      speed: 0.025
+      y-offset: 1.0
+  nether_star:
+    material: NETHER_STAR
+    display-name: '&f&lGwiazda'
+    legend-name: '&f&lGwiazda'
+    lore: []
+    multiplier: 300
+    chance-weight: 1
+    win-actionbar: '&f&lGWIAZDA! &a+{win}$'
+    win-sounds:
+      - enabled: true
+        name: UI_TOAST_CHALLENGE_COMPLETE
+        volume: 1.0
+        pitch: 1.0
+        delay-ticks: 0
+      - enabled: true
+        name: ENTITY_FIREWORK_ROCKET_BLAST
+        volume: 0.85
+        pitch: 1.25
+        delay-ticks: 4
+      - enabled: true
+        name: ENTITY_PLAYER_LEVELUP
+        volume: 0.95
+        pitch: 1.7
+        delay-ticks: 8
+    win-particles:
+      enabled: true
+      particle: DUST
+      red: 255
+      green: 255
+      blue: 255
+      size: 1.25
+      interval-ticks: 10
+      count: 36
+      offset-x: 0.75
+      offset-y: 0.65
+      offset-z: 0.75
+      speed: 0.03
+      y-offset: 1.0
+
+messages:
+  prefix: '&8[&cHexCasino&8] '
+  reload-success: '&aPrzeładowano HexCasino.'
+  reload-failed: '&cNie udało się przeładować HexCasino. Sprawdź konsolę.'
+  no-permission: '&cNie masz uprawnień.'
+  usage: '&7Użycie: &f/hexcasino reload'
+  machine-busy: '&cTa maszyna jest aktualnie zajęta.'
+  already-playing: '&cJuż korzystasz z innej maszyny.'
+  no-funds-actionbar: '&cNie masz wystarczających środków. Wymagane: &f{total_cost}$'
+  economy-unavailable-actionbar: '&cEkonomia jest chwilowo niedostępna.'
+  spin-start-actionbar: '&aZakręcono za &f{total_cost}$&a.'
+  lose-actionbar: '&cBrak wygranej. Spróbuj ponownie.'
+  win-actionbar: '&aWygrana: &f{win}$ &8(&7{winning_lines}&8)'
+  win-subtitle: '&aWygrana: &f{win}$'
+  bet-changed-actionbar: '&aMnożnik: &f{bet_per_line} &8x &f{lines} linii &8= &a{total_cost}$'
+
+sounds:
+  open:
+    - enabled: true
+      name: ENTITY_EXPERIENCE_ORB_PICKUP
+      volume: 0.85
+      pitch: 1.45
+      delay-ticks: 0
+    - enabled: true
+      name: BLOCK_AMETHYST_BLOCK_CHIME
+      volume: 0.85
+      pitch: 1.2
+      delay-ticks: 2
+    - enabled: true
+      name: BLOCK_NOTE_BLOCK_BELL
+      volume: 0.65
+      pitch: 1.7
+      delay-ticks: 4
+  close:
+    - enabled: true
+      name: ENTITY_ITEM_PICKUP
+      volume: 0.65
+      pitch: 0.8
+      delay-ticks: 0
+    - enabled: true
+      name: BLOCK_AMETHYST_BLOCK_CHIME
+      volume: 0.45
+      pitch: 0.75
+      delay-ticks: 2
+  no-funds:
+    - enabled: true
+      name: ENTITY_VILLAGER_NO
+      volume: 0.9
+      pitch: 1.0
+      delay-ticks: 0
+  spin-start:
+    - enabled: true
+      name: ENTITY_EXPERIENCE_ORB_PICKUP
+      volume: 1.0
+      pitch: 1.1
+      delay-ticks: 0
+    - enabled: true
+      name: BLOCK_CHAIN_PLACE
+      volume: 0.75
+      pitch: 1.35
+      delay-ticks: 2
+  roll-tick:
+    - enabled: true
+      name: BLOCK_NOTE_BLOCK_HAT
+      volume: 0.55
+      pitch: 1.2
+      delay-ticks: 0
+  column-stop:
+    - enabled: true
+      name: BLOCK_NOTE_BLOCK_PLING
+      volume: 0.8
+      pitch: 1.4
+      delay-ticks: 0
+  lose:
+    - enabled: true
+      name: BLOCK_NOTE_BLOCK_BASS
+      volume: 0.75
+      pitch: 0.8
+      delay-ticks: 0
+    - enabled: true
+      name: BLOCK_NOTE_BLOCK_BASS
+      volume: 0.75
+      pitch: 0.65
+      delay-ticks: 3
+    - enabled: true
+      name: ENTITY_VILLAGER_NO
+      volume: 0.55
+      pitch: 0.9
+      delay-ticks: 6
+  win-small:
+    - enabled: true
+      name: ENTITY_PLAYER_LEVELUP
+      volume: 0.9
+      pitch: 1.1
+      delay-ticks: 0
+  win-big:
+    - enabled: true
+      name: UI_TOAST_CHALLENGE_COMPLETE
+      volume: 1.0
+      pitch: 1.0
+      delay-ticks: 0
+    - enabled: true
+      name: ENTITY_FIREWORK_ROCKET_BLAST
+      volume: 0.75
+      pitch: 1.25
+      delay-ticks: 4
