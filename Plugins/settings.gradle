@@ -1,0 +1,36 @@
+rootProject.name = 'HexPlugins'
+
+include ':plugins'
+project(':plugins').projectDir = file('gradle/plugins')
+
+def pluginProjects = [
+    'AreaEffects',
+    'DbExample',
+    'HexCollections',
+    'HexCore',
+    'HexEconomy',
+    'HexElimination',
+    'HexMinions',
+    'HexNameTags',
+    'HexPortals',
+    'HexQuests',
+    'HexRankExpiry',
+    'HexSequence',
+    'HexSkills',
+    'HexTowns',
+    'HexVelocityFallback',
+    'IcebergEvent',
+    'Minigames',
+    'StatsApi',
+    'UiExample',
+    'VishopBroadcast',
+    'VishopBroadcastProxy',
+    'WaterDrawn',
+    'WaterLevelFlood',
+    'hexdisplayabovename'
+]
+
+pluginProjects.each { pluginName ->
+    include ":plugins:${pluginName}"
+    project(":plugins:${pluginName}").projectDir = file(pluginName)
+}

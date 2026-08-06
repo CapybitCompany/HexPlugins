@@ -1,0 +1,2 @@
+apply from: file('../gradle/standalone-plugin-settings.gradle')
+

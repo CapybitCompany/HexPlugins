@@ -1,0 +1,21 @@
+def registerCompatibilityTask = { String taskName, String taskDescription ->
+    if (tasks.findByName(taskName) == null) {
+        tasks.register(taskName) {
+            group = 'build setup'
+            description = taskDescription
+            doLast {
+                logger.lifecycle("Task ${path} is a compatibility task and has no work for this Groovy/Java plugin project.")
+            }
+        }
+    }
+}
+
+registerCompatibilityTask(
+    'wrapper',
+    'Compatibility task for IDE/CI invocations of wrapper on plugin subprojects. Use the root wrapper task to generate Gradle wrapper files.'
+)
+
+registerCompatibilityTask(
+    'prepareKotlinBuildScriptModel',
+    'Compatibility task for JetBrains Gradle import when Kotlin build script model is requested for a Groovy/Java plugin project.'
+)

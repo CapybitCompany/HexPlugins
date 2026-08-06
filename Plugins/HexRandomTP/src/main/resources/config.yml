@@ -1,0 +1,137 @@
+# Świat, w którym działa losowy teleport.
+world: world
+
+messages:
+  # Prefiks wiadomości HexRandomTP w formacie MiniMessage. Ustaw "", aby go wyłączyć.
+  prefix: "<gray>[</gray><aqua><bold>RTP</bold></aqua><gray>]</gray> "
+
+activators:
+  # Pozycje przycisków, dźwigni, płyt naciskowych lub innych bloków Powerable.
+  # Kliknięcie mechanizmu albo fizyczne wejście na niego uruchamia RTP gracza.
+  # Pole world jest opcjonalne; bez niego używany jest główny świat RTP ustawiony wyżej.
+  positions: []
+  # Przykład:
+  # positions:
+  #   - world: world
+  #     x: 100
+  #     y: 65
+  #     z: -200
+  #   - x: 105
+  #     y: 65
+  #     z: -200
+
+# Losowane współrzędne są inkluzywne.
+bounds:
+  min-x: -10000
+  max-x: 10000
+  min-z: -10000
+  max-z: 10000
+
+cooldown:
+  # Cooldown dla gracza bez specjalnej rangi.
+  default-seconds: 60
+
+  # Gracz z tym uprawnieniem nie ma cooldownu.
+  bypass-permission: hexrandomtp.cooldown.bypass
+
+  # Cooldowny dla dowolnych uprawnień/rang.
+  # Jeżeli gracz ma kilka pasujących uprawnień, wybierany jest NAJKRÓTSZY cooldown.
+  permission-cooldowns:
+    - permission: nte.vip
+      seconds: 30
+    - permission: nte.svip
+      seconds: 20
+    - permission: nte.elita
+      seconds: 10
+
+  # Starszy format "permission-overrides" nadal jest obsługiwany dla zgodności
+  # z istniejącymi konfiguracjami, ale dla nowych wpisów zalecana jest lista powyżej.
+
+search:
+  # Czy wolno generować nowe, wcześniej nieistniejące chunki.
+  # Ustaw false, jeżeli świat RTP jest wcześniej pregenerowany i nie chcesz generacji podczas komendy.
+  generate-new-chunks: true
+
+  # Ile maksymalnie miejsc sprawdzić przed zwróceniem błędu.
+  max-attempts: 50
+
+  # Prostokątne obszary, których współrzędne nie mogą zostać wylosowane.
+  # Zakres obejmuje x1/z1 i x2/z2. Kolejność narożników nie ma znaczenia.
+  forbidden-areas: []
+  # Przykład:
+  # forbidden-areas:
+  #   - name: spawn
+  #     x1: -500
+  #     z1: -500
+  #     x2: 500
+  #     z2: 500
+  #   - name: event-zone
+  #     x1: 1200
+  #     z1: -800
+  #     x2: 1800
+  #     z2: -200
+
+  # Konkretne chunki do całkowitego pominięcia, format: "chunkX,chunkZ".
+  forbidden-chunks: []
+  # Przykład:
+  # forbidden-chunks:
+  #   - "0,0"
+  #   - "12,-8"
+
+  # Odstęp między kolejnymi próbami. 1 tick ogranicza skoki obciążenia.
+  retry-delay-ticks: 1
+
+  # Dodatkowe ograniczenie wysokości powierzchni.
+  min-surface-y: -64
+  max-surface-y: 317
+
+  # Nie teleportuj poza aktualną granicę świata.
+  respect-world-border: true
+
+  # Biomy są porównywane po kluczu NamespacedKey.
+  # Można używać zarówno "minecraft:ocean", jak i "OCEAN".
+  forbidden-biomes:
+    - minecraft:ocean
+    - minecraft:deep_ocean
+    - minecraft:cold_ocean
+    - minecraft:deep_cold_ocean
+    - minecraft:frozen_ocean
+    - minecraft:deep_frozen_ocean
+    - minecraft:lukewarm_ocean
+    - minecraft:deep_lukewarm_ocean
+    - minecraft:warm_ocean
+    - minecraft:river
+    - minecraft:frozen_river
+    - minecraft:the_void
+
+  # Bloki, na których gracz nie może wylądować.
+  forbidden-surface-blocks:
+    - WATER
+    - LAVA
+    - MAGMA_BLOCK
+    - CACTUS
+    - CAMPFIRE
+    - SOUL_CAMPFIRE
+    - FIRE
+    - SOUL_FIRE
+    - POWDER_SNOW
+    - SWEET_BERRY_BUSH
+    - WITHER_ROSE
+    - POINTED_DRIPSTONE
+
+regions:
+  # true = każde miejsce należące do dowolnego regionu HexCore jest odrzucane.
+  exclude-any-hexcore-region: false
+
+  # Konkretne regiony HexCore w formacie namespace:id.
+  forbidden-keys: []
+  # Przykład:
+  # forbidden-keys:
+  #   - spawn:main
+  #   - towns:safezone
+
+  # Odrzuca wszystkie regiony należące do podanych namespace'ów.
+  forbidden-namespaces: []
+  # Przykład:
+  # forbidden-namespaces:
+  #   - spawn

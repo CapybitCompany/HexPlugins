@@ -1,0 +1,20 @@
+// Shared helper for plugin projects.
+// Keeps a copy of each built plugin JAR in one predictable directory without
+// changing the normal Gradle output in <plugin>/build/libs.
+
+plugins.withId('java') {
+    def generatedPluginJarsDir = rootProject.layout.buildDirectory.dir('generated-plugin-jars')
+
+    def copyPluginJarToGeneratedJars = tasks.register('copyPluginJarToGeneratedJars', Copy) {
+        group = 'build'
+        description = 'Copies the plugin JAR to the shared generated-plugin-jars directory.'
+
+        dependsOn tasks.named('jar')
+        from(tasks.named('jar').flatMap { it.archiveFile })
+        into(generatedPluginJarsDir)
+    }
+
+    tasks.named('assemble') {
+        dependsOn copyPluginJarToGeneratedJars
+    }
+}

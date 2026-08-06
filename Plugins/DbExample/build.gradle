@@ -2,6 +2,8 @@ plugins {
     id "java"
 }
 
+apply from: file('../gradle/ide-compat.gradle')
+
 group = "hex"
 version = "1.0.0"
 
@@ -21,3 +23,12 @@ java {
     }
 }
 
+if (tasks.findByName('wrapper') == null) {
+    tasks.register('wrapper') {
+        group = 'build setup'
+        description = 'Compatibility task for IDE/CI invocations of wrapper on plugin subprojects. Use the root wrapper task to generate Gradle wrapper files.'
+        doLast {
+            logger.lifecycle("Task ${path} is a compatibility task. Run ':wrapper' from the root project to generate Gradle wrapper files.")
+        }
+    }
+}

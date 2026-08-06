@@ -1,0 +1,45 @@
+rootProject.name = settingsDir.name
+
+def pluginDependencies = [
+    AreaEffects          : [],
+    DbExample           : ['HexCore'],
+    HexCollections      : ['HexCore', 'HexTowns'],
+    HexCore             : [],
+    HexEconomy          : ['HexCore'],
+    HexElimination      : ['HexCore'],
+    HexMinions          : ['HexCore', 'HexTowns', 'HexCollections'],
+    HexNameTags         : ['HexCore'],
+    HexPortals          : [],
+    HexQuests           : ['HexCore', 'HexTowns'],
+    HexRankExpiry       : ['HexCore'],
+    HexSequence         : ['HexCore'],
+    HexSkills           : ['HexCore', 'HexTowns'],
+    HexTowns            : ['HexCore'],
+    HexVelocityFallback : [],
+    IcebergEvent        : ['HexCore'],
+    Minigames           : ['HexCore'],
+    StatsApi            : [],
+    UiExample           : ['HexCore'],
+    VishopBroadcast     : ['HexCore'],
+    VishopBroadcastProxy: [],
+    WaterDrawn          : ['HexCore'],
+    WaterLevelFlood     : ['HexCore'],
+    hexdisplayabovename : []
+]
+
+def collectDependencies
+collectDependencies = { String pluginName, Set<String> collected ->
+    pluginDependencies.get(pluginName, []).each { dependencyName ->
+        if (dependencyName != settingsDir.name && collected.add(dependencyName)) {
+            collectDependencies(dependencyName, collected)
+        }
+    }
+}
+
+def requiredPlugins = new LinkedHashSet<String>()
+collectDependencies(settingsDir.name, requiredPlugins)
+
+requiredPlugins.each { pluginName ->
+    include ":plugins:${pluginName}"
+    project(":plugins:${pluginName}").projectDir = new File(settingsDir.parentFile, pluginName)
+}

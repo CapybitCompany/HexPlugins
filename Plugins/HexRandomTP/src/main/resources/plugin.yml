@@ -1,0 +1,36 @@
+name: HexRandomTP
+version: 1.2.0
+main: hex.randomtp.HexRandomTpPlugin
+api-version: "1.21"
+author: Havix
+description: Bezpieczny losowy teleport z zakazanymi obszarami i cooldownami zależnymi od uprawnień.
+depend:
+  - HexCore
+
+commands:
+  randomtp:
+    description: Teleportuje gracza w losowe, bezpieczne miejsce.
+    usage: /rtp [reload]
+    aliases:
+      - rtp
+      - randomteleport
+
+permissions:
+  hexrandomtp.use:
+    description: Pozwala używać /rtp.
+    default: true
+  hexrandomtp.admin:
+    description: Pozwala przeładować konfigurację przez /rtp reload.
+    default: op
+  hexrandomtp.cooldown.bypass:
+    description: Całkowicie omija cooldown RTP.
+    default: op
+  nte.vip:
+    description: Przykładowy cooldown VIP skonfigurowany w config.yml.
+    default: false
+  nte.svip:
+    description: Przykładowy cooldown SVIP skonfigurowany w config.yml.
+    default: false
+  nte.elita:
+    description: Przykładowy cooldown Elita skonfigurowany w config.yml.
+    default: false

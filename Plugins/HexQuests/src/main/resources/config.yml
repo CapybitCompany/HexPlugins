@@ -1,0 +1,34 @@
+daily:
+  # Zadania zmieniają się o północy w tej strefie czasu.
+  time-zone: Europe/Warsaw
+  count: 3
+  # Stała sól losowania. Faktyczny wynik jest zapisywany w SQL,
+  # więc reload/restart nie zmieni zadań w środku dnia.
+  selection-seed: 5207652439015183188
+
+database:
+  # Przechowujemy wyłącznie bieżący dzień i 6 poprzednich dni.
+  retention-days: 7
+
+menu:
+  title: "&8Codzienne zadania"
+  info-slot: 4
+  quest-slots: [11, 13, 15]
+  info-name: "&eCodzienne zadania"
+  info-lore:
+    - "&7Każdego dnia o północy losowane są"
+    - "&7te same 3 zadania dla całego serwera."
+    - "&7Postęp i nagrody są osobne dla każdego gracza."
+    - "&7Nagroda wpada automatycznie po ukończeniu."
+
+completion:
+  sound: UI_TOAST_CHALLENGE_COMPLETE
+  volume: 1.0
+  pitch: 1.0
+
+messages:
+  prefix: "&8[&6Daily&8] &7"
+  loading: "Ładowanie zadań..."
+  completed: "Ukończyłeś zadanie &e<quest>&7!"
+  reloaded: "Konfiguracja HexQuests została przeładowana."
+  no-permission: "Nie masz uprawnień."
