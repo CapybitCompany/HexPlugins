@@ -38,14 +38,34 @@ public final class BazaarCommand implements CommandExecutor, TabCompleter {
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command,
                              @NotNull String label, @NotNull String[] args) {
         MessageFactory messages = plugin.messages();
-        if (!plugin.schemaReady()) {
-            messages.send(sender, "common.schema-not-ready");
-            return true;
-        }
         BazaarConfig cfg = plugin.config().bazaar();
-        if (!cfg.enabled()) {
-            messages.send(sender, "common.feature-disabled");
-            return true;
+        // reload musi działać nawet przy bazaar.enabled:false (naprawa konfiguracji).
+        String sub0 = args.length == 0 ? "" : args[0].toLowerCase(Locale.ROOT);
+        // Jednolita bramka „enabled" (punkt #4): globalny tryb konserwacji (enabled:false) ORAZ
+        // feature-specific disable (bazaar.enabled:false) blokują NOWĄ komercję, ale przepuszczają akcje
+        // ODZYSKU (reload, przegląd/anulowanie własnych zleceń) - dalej chronione permisją i bramką DB,
+        // więc środki/przedmioty gracza się nie zablokują.
+        switch (commandGate(sub0, plugin.config().enabled(), cfg.enabled())) {
+            case MAINTENANCE -> {
+                messages.send(sender, "common.maintenance");
+                return true;
+            }
+            case FEATURE_DISABLED -> {
+                messages.send(sender, "common.feature-disabled");
+                return true;
+            }
+            case ALLOW -> { /* przechodzimy dalej (permisja + DB gate) */ }
+        }
+        // reload działa nawet gdy baza/schema nie są gotowe (naprawa konfiguracji).
+        if (!sub0.equals("reload")) {
+            if (!plugin.dbHealthy()) {
+                messages.send(sender, "common.database-unavailable");
+                return true;
+            }
+            if (!plugin.schemaReady()) {
+                messages.send(sender, "common.schema-not-ready");
+                return true;
+            }
         }
         if (args.length == 0) {
             if (!(sender instanceof Player p)) {
@@ -70,6 +90,40 @@ public final class BazaarCommand implements CommandExecutor, TabCompleter {
             case "selloffer" -> handleSellOffer(sender, args);
             default -> true;
         };
+    }
+
+    /**
+     * Podkomendy dozwolone w globalnym trybie konserwacji (enabled:false): reload oraz akcje ODZYSKU
+     * (przegląd i anulowanie własnych zleceń), żeby nie uwięzić środków/przedmiotów. Komercyjne wejścia
+     * (przeglądanie prowadzące do kupna, buy/sell/buyorder/selloffer) - zablokowane.
+     */
+    static boolean maintenanceAllowed(String sub0) {
+        return switch (sub0) {
+            case "reload", "orders", "order" -> true;
+            default -> false;
+        };
+    }
+
+    /** Wynik jednolitej bramki „enabled" dla podkomendy (punkt #4). */
+    enum CommandGate { ALLOW, MAINTENANCE, FEATURE_DISABLED }
+
+    /**
+     * Czysta, testowalna bramka „enabled" (punkt #4): akcje ODZYSKU ({@link #maintenanceAllowed}) są ZAWSZE
+     * przepuszczane (dalej chronione permisją i bramką DB), także przy feature-specific disable
+     * (bazaar.enabled:false). Dla komercyjnych wejść globalny tryb konserwacji ma pierwszeństwo
+     * (MAINTENANCE) przed wyłączoną funkcją (FEATURE_DISABLED). Ujednolica semantykę obu przełączników.
+     */
+    static CommandGate commandGate(String sub0, boolean globalEnabled, boolean featureEnabled) {
+        if (maintenanceAllowed(sub0)) {
+            return CommandGate.ALLOW;
+        }
+        if (!globalEnabled) {
+            return CommandGate.MAINTENANCE;
+        }
+        if (!featureEnabled) {
+            return CommandGate.FEATURE_DISABLED;
+        }
+        return CommandGate.ALLOW;
     }
 
     private boolean handleReload(CommandSender sender) {
@@ -111,7 +165,7 @@ public final class BazaarCommand implements CommandExecutor, TabCompleter {
             return true;
         }
         plugin.bazaarService().buy(p, key, qty).thenAccept(outcome ->
-                Bukkit.getScheduler().runTask(plugin, () -> reportBuy(p, key, qty, outcome)));
+                Bukkit.getScheduler().runTask(plugin, () -> reportBuy(p, key, outcome)));
         return true;
     }
 
@@ -162,11 +216,13 @@ public final class BazaarCommand implements CommandExecutor, TabCompleter {
                     for (BazaarOrder o : list) {
                         plugin.messages().send(p, "bazaar.order-list-line", placeholders(
                                 "id", String.valueOf(o.id()),
-                                "side", o.side().name(),
+                                "side", plugin.messages().raw(o.side() == OrderSide.BUY
+                                        ? "bazaar.order-side-buy" : "bazaar.order-side-sell", null),
                                 "amount", o.amountRemaining() + "/" + o.amountTotal(),
                                 "item", o.itemKey(),
                                 "price", plugin.economy().format(o.pricePerUnit()),
-                                "state", o.state().name()));
+                                "state", plugin.messages().raw("bazaar.order-state."
+                                        + o.state().name().toLowerCase(Locale.ROOT), null)));
                     }
                 }));
         return true;
@@ -293,8 +349,14 @@ public final class BazaarCommand implements CommandExecutor, TabCompleter {
             case NOT_ENOUGH_ITEMS -> plugin.messages().send(p, "bazaar.not-enough-items",
                     placeholders("item", key));
             case ECONOMY_UNAVAILABLE -> plugin.messages().send(p, "common.economy-missing");
+            case ECONOMY_ERROR -> plugin.messages().send(p, "common.economy-error");
             case DB_FAILED -> plugin.messages().send(p, "common.schema-not-ready");
             case FEATURE_DISABLED -> plugin.messages().send(p, "bazaar.order-feature-disabled");
+            // Krytyczny stan kompensacji: dla SELL nie udało się zwrócić przedmiotów, dla BUY - środków.
+            case COMPENSATION_FAILED -> plugin.messages().send(p, side == OrderSide.BUY
+                    ? "bazaar.order-buy-refund-failed" : "bazaar.order-return-failed");
+            case NO_PERMISSION -> plugin.messages().send(p, "common.no-permission");
+            case BUSY -> plugin.messages().send(p, "bazaar.order-busy");
         }
     }
 
@@ -306,15 +368,16 @@ public final class BazaarCommand implements CommandExecutor, TabCompleter {
                     placeholders("id", String.valueOf(id)));
             case NOT_OWNER -> plugin.messages().send(p, "bazaar.order-not-yours");
             case NOT_OPEN -> plugin.messages().send(p, "bazaar.order-not-open");
+            case NO_PERMISSION -> plugin.messages().send(p, "common.no-permission");
             case DB_FAILED -> plugin.messages().send(p, "common.schema-not-ready");
         }
     }
 
-    private void reportBuy(Player p, String key, int qty, BazaarService.BuyOutcome outcome) {
+    private void reportBuy(Player p, String key, BazaarService.BuyOutcome outcome) {
         switch (outcome.result()) {
             case OK -> {
                 plugin.messages().send(p, "bazaar.bought", placeholders(
-                        "amount", String.valueOf(qty),
+                        "amount", String.valueOf(outcome.deliveredAmount()),
                         "item", key,
                         "total", plugin.economy().format(outcome.total())));
                 if (outcome.wentToClaim()) {
@@ -328,24 +391,51 @@ public final class BazaarCommand implements CommandExecutor, TabCompleter {
                     placeholders("key", key));
             case BUY_DISABLED -> plugin.messages().send(p, "bazaar.buy-disabled");
             case ECONOMY_UNAVAILABLE -> plugin.messages().send(p, "common.economy-missing");
+            case ECONOMY_ERROR -> plugin.messages().send(p, "common.economy-error");
             case INVALID_QTY -> plugin.messages().send(p, "bazaar.invalid-quantity");
-            case DB_FAILED -> plugin.messages().send(p, "common.schema-not-ready");
+            case DB_FAILED -> plugin.messages().send(p, "common.db-error");
+            case REFUNDED -> plugin.messages().send(p, "bazaar.buy-refunded");
+            case REFUND_PENDING -> plugin.messages().send(p, "bazaar.buy-refund-pending");
+            case OVERPAY_REFUND_PENDING -> {
+                plugin.messages().send(p, "bazaar.bought", placeholders(
+                        "amount", String.valueOf(outcome.deliveredAmount()),
+                        "item", key,
+                        "total", plugin.economy().format(outcome.total())));
+                if (outcome.wentToClaim()) {
+                    plugin.messages().send(p, "bazaar.inventory-full-claim");
+                }
+                plugin.messages().send(p, "bazaar.overpay-refund-pending");
+            }
+            case COMPENSATION_FAILED -> plugin.messages().send(p, "bazaar.buy-critical-error");
+            case FEATURE_DISABLED -> plugin.messages().send(p, "common.feature-disabled");
+            case NO_PERMISSION -> plugin.messages().send(p, "common.no-permission");
         }
     }
 
     private void reportSell(Player p, String key, int qty, BazaarService.SellOutcome outcome) {
         switch (outcome.result()) {
             case OK -> plugin.messages().send(p, "bazaar.sold", placeholders(
-                    "amount", String.valueOf(qty),
+                    "amount", String.valueOf(outcome.amountSold()),
                     "item", key,
                     "total", plugin.economy().format(outcome.total())));
             case OK_PENDING_CLAIM -> {
                 plugin.messages().send(p, "bazaar.sold", placeholders(
-                        "amount", String.valueOf(qty),
+                        "amount", String.valueOf(outcome.amountSold()),
                         "item", key,
                         "total", plugin.economy().format(outcome.total())));
                 plugin.messages().send(p, "bazaar.sell-pending-claim");
             }
+            case OK_REST_CLAIMED -> {
+                plugin.messages().send(p, "bazaar.sold", placeholders(
+                        "amount", String.valueOf(outcome.amountSold()),
+                        "item", key,
+                        "total", plugin.economy().format(outcome.total())));
+                plugin.messages().send(p, "bazaar.sell-rest-claimed");
+            }
+            case RETURN_FAILED -> plugin.messages().send(p, "bazaar.sell-return-failed");
+            case FEATURE_DISABLED -> plugin.messages().send(p, "common.feature-disabled");
+            case NO_PERMISSION -> plugin.messages().send(p, "common.no-permission");
+            case NOTHING_SOLD -> plugin.messages().send(p, "bazaar.nothing-sold");
             case PAYOUT_FAILED -> plugin.messages().send(p, "bazaar.sell-payout-failed");
             case NOT_ENOUGH_ITEMS -> plugin.messages().send(p, "bazaar.not-enough-items",
                     placeholders("item", key));
@@ -354,7 +444,7 @@ public final class BazaarCommand implements CommandExecutor, TabCompleter {
             case SELL_DISABLED -> plugin.messages().send(p, "bazaar.sell-disabled");
             case ECONOMY_UNAVAILABLE -> plugin.messages().send(p, "common.economy-missing");
             case INVALID_QTY -> plugin.messages().send(p, "bazaar.invalid-quantity");
-            case DB_FAILED -> plugin.messages().send(p, "common.schema-not-ready");
+            case DB_FAILED -> plugin.messages().send(p, "common.db-error");
         }
     }
 

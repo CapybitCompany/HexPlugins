@@ -27,16 +27,18 @@ class SellPayoutCompletionTest {
 
     @Test
     void okOutcomeReportsOk() {
-        var o = BazaarService.SellOutcome.ok(null, java.math.BigDecimal.TEN);
+        var o = BazaarService.SellOutcome.ok(null, java.math.BigDecimal.TEN, 5L);
         assertEquals(BazaarService.SellResult.OK, o.result());
+        assertEquals(5L, o.amountSold(), "outcome niesie faktycznie sprzedaną ilość");
     }
 
     @Test
     void pendingClaimOutcomeReportsPending() {
-        var o = BazaarService.SellOutcome.okPendingClaim(null, java.math.BigDecimal.TEN);
+        var o = BazaarService.SellOutcome.okPendingClaim(null, java.math.BigDecimal.TEN, 5L);
         assertEquals(BazaarService.SellResult.OK_PENDING_CLAIM, o.result());
         assertEquals(java.math.BigDecimal.TEN, o.total(),
                 "total powinien odzwierciedlac to co zostalo zaksiegowane jako claim");
+        assertEquals(5L, o.amountSold());
     }
 
     @Test

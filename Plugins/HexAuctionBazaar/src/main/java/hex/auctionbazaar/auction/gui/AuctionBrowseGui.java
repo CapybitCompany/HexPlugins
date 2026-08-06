@@ -32,9 +32,6 @@ import static hex.auctionbazaar.util.MessageFactory.placeholders;
  */
 public final class AuctionBrowseGui {
 
-    // Rezerwujemy pierwsze 45 slotow (rzedy 0..4) na aukcje.
-    private static final int LISTING_AREA = 45;
-
     public static void open(Plugin plugin, Player player,
                             Supplier<AuctionConfig> cfg,
                             AuctionService service,
@@ -50,13 +47,24 @@ public final class AuctionBrowseGui {
                             MessageFactory messages,
                             int page,
                             AuctionService.SortMode sort) {
+        int capacity = cfg.get().itemSlots().size();
         int safePage = Math.max(0, page);
-        int offset = safePage * LISTING_AREA;
-        service.listActive(LISTING_AREA, offset, sort).thenAcceptBoth(
+        int offset = AuctionItemArea.offset(safePage, capacity);
+        service.listActive(capacity, offset, sort).thenAcceptBoth(
                 service.countActive(),
-                (listings, total) -> Bukkit.getScheduler().runTask(plugin,
-                        () -> render(plugin, player, listings, total, cfg.get(),
-                                service, economy, messages, safePage, sort))
+                (listings, total) -> Bukkit.getScheduler().runTask(plugin, () -> {
+                    // Bezpieczne KLEMOWANIE strony: po zakupie/anulowaniu/wyścigu strona mogła wyjść
+                    // poza zakres. Klemujemy do [0, totalPages-1] i - jeśli przeskoczyliśmy - otwieramy
+                    // raz ponownie na dozwolonej stronie (bez „Strona 6/1", bez fałszywego pustego stanu).
+                    int totalPages = AuctionItemArea.totalPages(total, capacity);
+                    int clamped = total > 0 ? AuctionItemArea.clampPage(safePage, totalPages) : 0;
+                    if (total > 0 && clamped != safePage) {
+                        open(plugin, player, cfg, service, economy, messages, clamped, sort);
+                        return;
+                    }
+                    render(plugin, player, listings, total, cfg.get(),
+                            service, economy, messages, clamped, sort);
+                })
         );
     }
 
@@ -67,13 +75,16 @@ public final class AuctionBrowseGui {
         Inventory inv = Bukkit.createInventory(holder, 54, LegacyFormat.component(cfg.guiTitle()));
         holder.bindInventory(inv);
 
-        int slot = 0;
-        for (AuctionListing l : listings) {
-            if (slot >= LISTING_AREA) break;
+        List<Integer> itemSlots = cfg.itemSlots();
+        int capacity = itemSlots.size();
+        for (int i = 0; i < listings.size() && i < capacity; i++) {
+            AuctionListing l = listings.get(i);
+            int slot = itemSlots.get(i);
             ItemStack icon = ItemSerializer.deserialize(l.itemBlob());
             if (icon == null) {
                 icon = new ItemStack(Material.BARRIER);
             }
+            boolean own = l.sellerUuid().equals(player.getUniqueId());
             ItemMeta meta = icon.getItemMeta();
             if (meta != null) {
                 List<Component> lore = new ArrayList<>();
@@ -85,22 +96,32 @@ public final class AuctionBrowseGui {
                 lore.add(LegacyFormat.component(messages.raw("auction.gui.listing-id",
                         placeholders("id", String.valueOf(l.id())))));
                 lore.add(Component.empty());
-                lore.add(LegacyFormat.component(messages.raw("auction.gui.listing-click-buy", null)));
+                if (own) {
+                    // Własna aukcja jest wizualnie oznaczona i zablokowana do kupna.
+                    lore.add(LegacyFormat.component(messages.raw("auction.gui.listing-own", null)));
+                    lore.add(LegacyFormat.component(messages.raw("auction.gui.listing-own-hint", null)));
+                } else {
+                    lore.add(LegacyFormat.component(messages.raw("auction.gui.listing-click-buy", null)));
+                }
                 meta.lore(lore);
                 icon.setItemMeta(meta);
             }
             inv.setItem(slot, icon);
             final long listingId = l.id();
-            holder.setSlotAction(slot, ctx -> AuctionConfirmGui.open(plugin, ctx.player(), listingId,
-                    () -> cfg, service, economy, messages));
-            slot++;
+            if (own) {
+                // Klik na własnej aukcji nie otwiera okna zakupu - tylko komunikat.
+                holder.setSlotAction(slot, ctx -> messages.send(ctx.player(), "auction.own-listing"));
+            } else {
+                holder.setSlotAction(slot, ctx -> AuctionConfirmGui.open(plugin, ctx.player(), listingId,
+                        () -> cfg, service, economy, messages));
+            }
         }
 
         if (listings.isEmpty()) {
             inv.setItem(cfg.slotEmptyState(), emptyStateItem(messages));
         }
 
-        int totalPages = Math.max(1, (int) Math.ceil(total / (double) LISTING_AREA));
+        int totalPages = AuctionItemArea.totalPages(total, capacity);
         int currentPage = page + 1;
         addControls(inv, holder, plugin, cfg, service, economy, messages,
                 page, sort, currentPage, totalPages, total);
@@ -161,7 +182,8 @@ public final class AuctionBrowseGui {
                 List.of(messages.raw("auction.gui.my-listings-lore", null)));
         inv.setItem(cfg.slotMyListings(), mine);
         holder.setSlotAction(cfg.slotMyListings(),
-                ctx -> AuctionMyListingsGui.open(plugin, ctx.player(), () -> cfg, service, economy, messages));
+                ctx -> AuctionMyListingsGui.open(plugin, ctx.player(), () -> cfg, service, economy, messages,
+                        0, page, sort));
 
         // Odbior nagrod
         ItemStack claims = GuiFrame.button(Material.CHEST,
@@ -169,7 +191,8 @@ public final class AuctionBrowseGui {
                 List.of(messages.raw("auction.gui.claims-lore", null)));
         inv.setItem(cfg.slotClaims(), claims);
         holder.setSlotAction(cfg.slotClaims(),
-                ctx -> AuctionClaimsGui.open(plugin, ctx.player(), () -> cfg, service, economy, messages));
+                ctx -> AuctionClaimsGui.open(plugin, ctx.player(), () -> cfg, service, economy, messages,
+                        0, page, sort));
 
         // Wystaw przedmiot - otwiera dedykowane GUI wystawiania.
         ItemStack sellHelp = GuiFrame.button(Material.EMERALD,

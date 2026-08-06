@@ -29,7 +29,7 @@ class OrderExpirySymmetryTest {
                         new BigDecimal("5")),
                 "&8Bazar", "&8%display%", "&8Q", "&8O", "&8Zlecenie", "GRAY_STAINED_GLASS_PANE",
                 List.of(1L, 64L, 576L),
-                true, 60, 1500L,
+                true, 60,
                 Map.<String, BazaarConfig.CategoryConfig>of(),
                 "hexbazaar.open", "hexbazaar.buy", "hexbazaar.sell",
                 "hexbazaar.orders", "hexbazaar.order.create.buy",

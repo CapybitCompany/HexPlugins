@@ -42,19 +42,52 @@ public final class AuctionListingRepository {
                 "reserved_until BIGINT NULL," +
                 "sold_to_uuid CHAR(36) NULL," +
                 "sold_at BIGINT NULL," +
+                // Niezmienny snapshot podatkowy (NULL = aukcja legacy sprzed podatku z góry).
+                "tax_percent DECIMAL(6,2) NULL," +
+                "tax_amount DECIMAL(19,2) NULL," +
+                "listing_fee_amount DECIMAL(19,2) NULL," +
+                "economic_net_amount DECIMAL(19,2) NULL," +
                 "KEY idx_state_expires (state, expires_at)," +
                 "KEY idx_seller (seller_uuid)" +
                 ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        // Migracja niedestrukcyjna: dodaj kolumny snapshotu do istniejących tabel,
+        // gdy ich brak. Istniejące aukcje pozostają nietknięte (legacy = NULL).
+        String tbl = t();
+        addColumnIfMissing(tbl, "tax_percent", "DECIMAL(6,2) NULL");
+        addColumnIfMissing(tbl, "tax_amount", "DECIMAL(19,2) NULL");
+        addColumnIfMissing(tbl, "listing_fee_amount", "DECIMAL(19,2) NULL");
+        addColumnIfMissing(tbl, "economic_net_amount", "DECIMAL(19,2) NULL");
     }
 
+    private void addColumnIfMissing(String tableName, String column, String definition) {
+        boolean exists = db.queryOne(
+                "SELECT COUNT(*) AS c FROM INFORMATION_SCHEMA.COLUMNS" +
+                        " WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?",
+                rs -> rs.getInt("c"), tableName, column
+        ).orElse(0) > 0;
+        if (!exists) {
+            db.update("ALTER TABLE " + tableName + " ADD COLUMN " + column + " " + definition);
+        }
+    }
+
+    /**
+     * Wstaw aukcję wraz z niezmiennym snapshotem podatkowym wyliczonym z góry.
+     * Snapshot ({@code taxPercent}/{@code taxAmount}/{@code listingFeeAmount}/
+     * {@code economicNet}) jest zapisany dokładnie tak, jak pokazany i pobrany.
+     */
     public long insert(UUID sellerUuid, String sellerName, byte[] itemBlob, String material,
-                       int amount, BigDecimal price, long createdAt, long expiresAt) {
+                       int amount, BigDecimal price, long createdAt, long expiresAt,
+                       BigDecimal taxPercent, BigDecimal taxAmount,
+                       BigDecimal listingFeeAmount, BigDecimal economicNet) {
         return db.tx(tx -> {
             tx.update("INSERT INTO " + t() +
                             " (seller_uuid, seller_name, item_blob, item_material, item_amount, price, " +
-                            "  state, created_at, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                            "  state, created_at, expires_at, tax_percent, tax_amount, " +
+                            "  listing_fee_amount, economic_net_amount)" +
+                            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     sellerUuid.toString(), sellerName, itemBlob, material, amount,
-                    price, ListingState.ACTIVE.name(), createdAt, expiresAt);
+                    price, ListingState.ACTIVE.name(), createdAt, expiresAt,
+                    taxPercent, taxAmount, listingFeeAmount, economicNet);
             return tx.queryOne("SELECT LAST_INSERT_ID() AS id",
                     rs -> rs.getLong("id")).orElseThrow();
         });
@@ -93,6 +126,14 @@ public final class AuctionListingRepository {
         return db.query("SELECT * FROM " + t() + " WHERE seller_uuid=? AND state IN (?, ?) ORDER BY id DESC",
                 AuctionListingRepository::map, seller.toString(),
                 ListingState.ACTIVE.name(), ListingState.RESERVED.name());
+    }
+
+    /** Stronicowany widok własnych aukcji (LIMIT/OFFSET po stronie DB). */
+    public List<AuctionListing> findActiveBySeller(UUID seller, int limit, int offset) {
+        return db.query("SELECT * FROM " + t()
+                        + " WHERE seller_uuid=? AND state IN (?, ?) ORDER BY id DESC LIMIT ? OFFSET ?",
+                AuctionListingRepository::map, seller.toString(),
+                ListingState.ACTIVE.name(), ListingState.RESERVED.name(), limit, offset);
     }
 
     public int countActiveBySeller(UUID seller) {
@@ -180,10 +221,15 @@ public final class AuctionListingRepository {
      * Atomic: for each expired listing, mark EXPIRED + insert item-claim for
      * the seller. Returns the number of listings actually processed.
      */
-    public int expireBatchWithClaimsTx(List<AuctionListing> due, long now) {
-        if (due.isEmpty()) return 0;
+    /**
+     * Atomowo wygasza ACTIVE-aukcje z listy i tworzy claimy. Zwraca aukcje FAKTYCZNIE
+     * przestawione na EXPIRED (UPDATE trafił dokładnie 1 wiersz w stanie ACTIVE) - dzięki temu
+     * caller audytuje tylko rzeczywiście wygasłe, a nie te w międzyczasie kupione/anulowane.
+     */
+    public List<AuctionListing> expireBatchWithClaimsTx(List<AuctionListing> due, long now) {
+        if (due.isEmpty()) return List.of();
         return db.tx(tx -> {
-            int processed = 0;
+            List<AuctionListing> expired = new java.util.ArrayList<>();
             for (AuctionListing l : due) {
                 int updated = tx.update(
                         "UPDATE " + tx.t(TABLE) + " SET state=? WHERE id=? AND state=?",
@@ -192,10 +238,10 @@ public final class AuctionListingRepository {
                     AuctionClaimRepository.insertItemTx(
                             tx, l.sellerUuid(), l.itemBlob(),
                             "auction-expired-" + l.id(), l.id(), now);
-                    processed++;
+                    expired.add(l);
                 }
             }
-            return processed;
+            return expired;
         });
     }
 
@@ -214,6 +260,11 @@ public final class AuctionListingRepository {
         Long soldAt = rs.wasNull() ? null : soldAtRaw;
         String reservedBy = rs.getString("reserved_by_uuid");
         String soldTo = rs.getString("sold_to_uuid");
+        // Snapshot podatkowy - null-safe (legacy = brak kolumny/NULL).
+        BigDecimal taxPercent = getBigDecimalOrNull(rs, "tax_percent");
+        BigDecimal taxAmount = getBigDecimalOrNull(rs, "tax_amount");
+        BigDecimal listingFee = getBigDecimalOrNull(rs, "listing_fee_amount");
+        BigDecimal economicNet = getBigDecimalOrNull(rs, "economic_net_amount");
         return new AuctionListing(
                 rs.getLong("id"),
                 UUID.fromString(rs.getString("seller_uuid")),
@@ -228,7 +279,19 @@ public final class AuctionListingRepository {
                 reservedBy == null ? null : UUID.fromString(reservedBy),
                 reservedUntil,
                 soldTo == null ? null : UUID.fromString(soldTo),
-                soldAt
+                soldAt,
+                taxPercent, taxAmount, listingFee, economicNet
         );
+    }
+
+    /** Odczyt kolumny DECIMAL, która może nie istnieć (stara tabela) lub być NULL. */
+    private static BigDecimal getBigDecimalOrNull(ResultSet rs, String column) {
+        try {
+            BigDecimal v = rs.getBigDecimal(column);
+            return rs.wasNull() ? null : v;
+        } catch (SQLException ex) {
+            // Kolumna nieobecna w wyniku (stary schemat przed migracją) -> legacy.
+            return null;
+        }
     }
 }

@@ -115,6 +115,20 @@ public final class AuctionClaimRepository {
                 AuctionClaimRepository::map, owner.toString(), ClaimState.PENDING.name(), limit);
     }
 
+    /** Stronicowany widok PENDING (LIMIT/OFFSET po stronie DB - bez cięcia w Javie). */
+    public List<AuctionClaim> findPendingByOwner(UUID owner, int limit, int offset) {
+        return db.query(
+                "SELECT * FROM " + t() + " WHERE owner_uuid=? AND state=? ORDER BY id ASC LIMIT ? OFFSET ?",
+                AuctionClaimRepository::map, owner.toString(), ClaimState.PENDING.name(), limit, offset);
+    }
+
+    public int countPendingByOwner(UUID owner) {
+        return db.queryOne(
+                "SELECT COUNT(*) AS c FROM " + t() + " WHERE owner_uuid=? AND state=?",
+                rs -> rs.getInt("c"), owner.toString(), ClaimState.PENDING.name()
+        ).orElse(0);
+    }
+
     /**
      * Atomic PENDING -&gt; CLAIMING. Returns the locked claim snapshot if the
      * transition succeeded, or empty if the claim is gone / already claiming.

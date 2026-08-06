@@ -101,13 +101,38 @@ public final class BazaarMainGui {
 
         player.openInventory(inv);
 
-        // Auto-refresh: kazde otwarcie glownego GUI rejestruje sie w tickerze,
-        // ticker sam wyrejestruje sesje gdy inventory sie zamknie.
+        // Auto-refresh W MIEJSCU (bez ponownego otwierania): aktualizujemy jedynie
+        // ikony przedmiotów (cena/stan/spread) w tym samym inventory. Ticker trzyma
+        // maks. jedną sesję na gracza i sam ją usuwa przy zamknięciu/wejściu gdzie indziej.
         HexAuctionBazaarPlugin main = plugin instanceof HexAuctionBazaarPlugin p ? p : null;
         if (main != null && main.autoRefreshTicker() != null) {
-            main.autoRefreshTicker().register(player, GuiHolder.Kind.BAZAAR_MAIN,
-                    () -> open(plugin, player, () -> cfg, service, economy, messages,
-                            activeCategory, safePage));
+            main.autoRefreshTicker().register(player, holder, inv, handle ->
+                    service.marketSnapshot().thenAccept(fresh -> handle.runMain(() -> {
+                        if (!handle.isCurrent()) return;   // veraltete/zamknięte -> verwerfen
+                        refreshItemsInPlace(inv, cfg, fresh, economy, messages, activeCategory, safePage);
+                    })));
+        }
+    }
+
+    /**
+     * Aktualizacja W MIEJSCU: nadpisuje wyłącznie ikony przedmiotów w slotach
+     * {@link #ITEM_SLOTS} (cena/stan/spread). Nie rusza kategorii, nawigacji,
+     * akcji slotów (pozostają w holderze) ani nie otwiera inventory na nowo.
+     */
+    private static void refreshItemsInPlace(Inventory inv, BazaarConfig cfg,
+                                            Map<String, BazaarService.Snapshot> snapshot,
+                                            EconomyBridge economy, MessageFactory messages,
+                                            String activeCategory, int page) {
+        int startIdx = page * ITEM_SLOTS.length;
+        int cursor = 0;
+        int categoryIdx = 0;
+        for (BazaarItemConfig item : cfg.items().values()) {
+            if (!item.category().equalsIgnoreCase(activeCategory)) continue;
+            if (categoryIdx++ < startIdx) continue;
+            if (cursor >= ITEM_SLOTS.length) break;
+            int slot = ITEM_SLOTS[cursor++];
+            BazaarService.Snapshot snap = snapshot.get(item.key());
+            inv.setItem(slot, buildItemIcon(item, snap, economy, messages));
         }
     }
 

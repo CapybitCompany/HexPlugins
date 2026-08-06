@@ -4,21 +4,21 @@ import hex.auctionbazaar.util.LegacyFormat;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.lang.reflect.Method;
 import java.util.List;
 
 /**
  * Pomocnicze funkcje do budowania spójnego wizualnie GUI:
  * ramka wypełniająca puste sloty, przyciski nawigacyjne itp.
- * Filler-panel ma ukryty tooltip (pusta ramka bez opisu przy hoverze).
+ *
+ * Dekoracyjne wypełnienie (filler) ma wyłączony tooltip - na Paperze 1.21.11
+ * używamy wprost {@code ItemMeta#setHideTooltip(true)} (bez reflection).
+ * Tooltip wyłączamy WYŁĄCZNIE na dekoracyjnych fillerach; prawdziwe przedmioty
+ * i interaktywne przyciski zachowują swoje opisy.
  */
 public final class GuiFrame {
-
-    private static final ItemFlag HIDE_TOOLTIP_FLAG = resolveHideTooltipFlag();
 
     private GuiFrame() {
     }
@@ -33,18 +33,15 @@ public final class GuiFrame {
     }
 
     /**
-     * Buduje filler-item ktory NIE pokazuje pustego tooltipu.
-     * Na Paperze uzywamy meta.setHideTooltip(true) jesli dostepne, w
-     * przeciwnym razie ItemFlag.HIDE_TOOLTIP, w przeciwnym razie sadzimy
-     * wszystkie znane HIDE_* flagi + pusta nazwe (najbardziej minimalny
-     * tooltip mozliwy na starych API).
+     * Buduje dekoracyjny filler-item bez tooltipu (pusta ramka bez opisu przy
+     * hoverze). Tooltip chowamy przez {@link ItemMeta#setHideTooltip(boolean)}.
      */
     public static ItemStack filler(Material material) {
         ItemStack s = new ItemStack(material);
         ItemMeta meta = s.getItemMeta();
         if (meta != null) {
             meta.displayName(Component.empty());
-            applyHideTooltip(meta);
+            meta.setHideTooltip(true);
             s.setItemMeta(meta);
         }
         return s;
@@ -68,6 +65,7 @@ public final class GuiFrame {
             if (lore != null && !lore.isEmpty()) {
                 meta.lore(LegacyFormat.components(lore));
             }
+            // Interaktywne przyciski ZAWSZE zachowują tooltip - nigdy nie chowamy go tutaj.
             s.setItemMeta(meta);
         }
         return s;
@@ -75,48 +73,5 @@ public final class GuiFrame {
 
     public static ItemStack button(Material material, String name) {
         return button(material, name, List.of());
-    }
-
-    /**
-     * Best-effort ukrycie tooltipu przedmiotu na fillerze.
-     *
-     * Priorytet:
-     *  1. Paper 1.20.6+ meta.setHideTooltip(true) - reflection zeby budowac
-     *     na starszym API.
-     *  2. ItemFlag.HIDE_TOOLTIP (dodane w nowszym Bukkit) jesli obecne.
-     *  3. Fallback: zestaw wszystkich HIDE_* flag, aby lore nie mrugala.
-     * Kazde ustawienie jest opcjonalne - brak wsparcia nie rzuca wyjatku.
-     */
-    static void applyHideTooltip(ItemMeta meta) {
-        // 1) Paper reflectively
-        try {
-            Method setHideTooltip = meta.getClass().getMethod("setHideTooltip", boolean.class);
-            setHideTooltip.invoke(meta, true);
-            return;
-        } catch (ReflectiveOperationException ignored) {
-        }
-        // 2) ItemFlag.HIDE_TOOLTIP
-        if (HIDE_TOOLTIP_FLAG != null) {
-            try {
-                meta.addItemFlags(HIDE_TOOLTIP_FLAG);
-                return;
-            } catch (Throwable ignored) {
-            }
-        }
-        // 3) fallback - ukryj wszystkie mozliwe atrybuty
-        for (ItemFlag f : ItemFlag.values()) {
-            try {
-                meta.addItemFlags(f);
-            } catch (Throwable ignored) {
-            }
-        }
-    }
-
-    private static ItemFlag resolveHideTooltipFlag() {
-        try {
-            return ItemFlag.valueOf("HIDE_TOOLTIP");
-        } catch (IllegalArgumentException ex) {
-            return null;
-        }
     }
 }

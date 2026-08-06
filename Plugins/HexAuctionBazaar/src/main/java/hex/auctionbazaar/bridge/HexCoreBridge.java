@@ -28,7 +28,7 @@ public final class HexCoreBridge {
     public boolean tryBootstrap() {
         RegisteredServiceProvider<HexApi> reg = Bukkit.getServicesManager().getRegistration(HexApi.class);
         if (reg == null) {
-            logger.severe("HexCore HexApi not registered in ServicesManager.");
+            logger.severe("HexApi z HexCore nie jest zarejestrowane w ServicesManager.");
             return false;
         }
         this.hexApi = reg.getProvider();

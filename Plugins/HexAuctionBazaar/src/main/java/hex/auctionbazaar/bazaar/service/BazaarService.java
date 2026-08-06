@@ -12,6 +12,8 @@ import hex.auctionbazaar.config.BazaarConfig;
 import hex.auctionbazaar.config.BazaarItemConfig;
 import hex.auctionbazaar.util.InventoryFit;
 import hex.auctionbazaar.util.ItemSerializer;
+import hex.auctionbazaar.util.Money;
+import hex.auctionbazaar.util.RefundCompensation;
 import hex.economy.api.EconomyResult;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -25,6 +27,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -44,32 +49,57 @@ import java.util.logging.Logger;
 public final class BazaarService {
 
     public enum BuyResult { OK, UNKNOWN_ITEM, BUY_DISABLED, NOT_ENOUGH_STOCK,
-                            NOT_ENOUGH_MONEY, DB_FAILED, ECONOMY_UNAVAILABLE, INVALID_QTY }
+                            NOT_ENOUGH_MONEY, DB_FAILED, ECONOMY_UNAVAILABLE, INVALID_QTY,
+                            /** Techniczny błąd systemu ekonomii (wyjątek/nieudana operacja, nie brak środków). */
+                            ECONOMY_ERROR,
+                            /** Funkcja Rynku wyłączona (bazaar.enabled:false) - egzekwowane serwerowo. */
+                            FEATURE_DISABLED,
+                            /** Brak uprawnień - sprawdzane też serwerowo, nie tylko w komendzie/GUI. */
+                            NO_PERMISSION,
+                            /** Kupno nieudane - pełny zwrot środków wykonany wprost przez Economy. */
+                            REFUNDED,
+                            /** Kupno nieudane - zwrot środków czeka jako claim (Odbiór przedmiotów). */
+                            REFUND_PENDING,
+                            /** Zakup zrealizowany, ale zwrot nadpłaty czeka jako claim. */
+                            OVERPAY_REFUND_PENDING,
+                            /** Niepewny stan ekwipunku lub nieodwracalna kompensacja - wymagana ręczna korekta. */
+                            COMPENSATION_FAILED }
     public enum SellResult {
         OK,
         /** Sprzedaz sie udala, ale wyplata trafila do claims (deposit fail + claim ok). */
         OK_PENDING_CLAIM,
+        /** Sprzedano; niesprzedana reszta bezpiecznie zapisana jako claim (odbiór). */
+        OK_REST_CLAIMED,
         UNKNOWN_ITEM, SELL_DISABLED, NOT_ENOUGH_ITEMS,
         DB_FAILED, ECONOMY_UNAVAILABLE, INVALID_QTY,
         /** Zarowno deposit jak i money-claim sie nie powiodly - platnosc nieodzyskana. */
-        PAYOUT_FAILED
+        PAYOUT_FAILED,
+        /** Nic nie sprzedano - przedmioty zwrócone (np. transakcja magazynu nie powiodła się). */
+        NOTHING_SOLD,
+        /** Zwrot niesprzedanej reszty NIEPEWNY/NIEUDANY - stan krytyczny, wymagana ręczna korekta. */
+        RETURN_FAILED,
+        /** Funkcja Rynku wyłączona (bazaar.enabled:false) - egzekwowane serwerowo. */
+        FEATURE_DISABLED,
+        /** Brak uprawnień - sprawdzane też serwerowo. */
+        NO_PERMISSION
     }
 
-    public record BuyOutcome(BuyResult result, BazaarPrice price, BigDecimal total, boolean wentToClaim) {
-        public static BuyOutcome ok(BazaarPrice p, BigDecimal total, boolean claim) {
-            return new BuyOutcome(BuyResult.OK, p, total, claim);
+    public record BuyOutcome(BuyResult result, BazaarPrice price, BigDecimal total,
+                             int deliveredAmount, boolean wentToClaim) {
+        public static BuyOutcome ok(BazaarPrice p, BigDecimal total, int deliveredAmount, boolean claim) {
+            return new BuyOutcome(BuyResult.OK, p, total, Math.max(0, deliveredAmount), claim);
         }
-        public static BuyOutcome fail(BuyResult r) { return new BuyOutcome(r, null, null, false); }
+        public static BuyOutcome fail(BuyResult r) { return new BuyOutcome(r, null, null, 0, false); }
     }
 
-    public record SellOutcome(SellResult result, BazaarPrice price, BigDecimal total) {
-        public static SellOutcome ok(BazaarPrice p, BigDecimal total) {
-            return new SellOutcome(SellResult.OK, p, total);
+    public record SellOutcome(SellResult result, BazaarPrice price, BigDecimal total, long amountSold) {
+        public static SellOutcome ok(BazaarPrice p, BigDecimal total, long amountSold) {
+            return new SellOutcome(SellResult.OK, p, total, amountSold);
         }
-        public static SellOutcome okPendingClaim(BazaarPrice p, BigDecimal total) {
-            return new SellOutcome(SellResult.OK_PENDING_CLAIM, p, total);
+        public static SellOutcome okPendingClaim(BazaarPrice p, BigDecimal total, long amountSold) {
+            return new SellOutcome(SellResult.OK_PENDING_CLAIM, p, total, amountSold);
         }
-        public static SellOutcome fail(SellResult r) { return new SellOutcome(r, null, null); }
+        public static SellOutcome fail(SellResult r) { return new SellOutcome(r, null, null, 0L); }
     }
 
     private final Plugin plugin;
@@ -82,6 +112,8 @@ public final class BazaarService {
     private final BazaarOrderService orderService;
     private final Supplier<BazaarConfig> configSupplier;
     private final Supplier<Boolean> requirePlainItem;
+    /** Globalny przełącznik pluginu (enabled). false = tryb konserwacji: brak nowych komercyjnych mutacji. */
+    private final java.util.function.BooleanSupplier pluginEnabled;
 
     public BazaarService(Plugin plugin,
                          HexCoreBridge hexCore,
@@ -91,7 +123,8 @@ public final class BazaarService {
                          AuditService audit,
                          BazaarOrderService orderService,
                          Supplier<BazaarConfig> configSupplier,
-                         Supplier<Boolean> requirePlainItem) {
+                         Supplier<Boolean> requirePlainItem,
+                         java.util.function.BooleanSupplier pluginEnabled) {
         this.plugin = Objects.requireNonNull(plugin, "plugin");
         this.logger = plugin.getLogger();
         this.hexCore = Objects.requireNonNull(hexCore, "hexCore");
@@ -102,21 +135,64 @@ public final class BazaarService {
         this.orderService = Objects.requireNonNull(orderService, "orderService");
         this.configSupplier = Objects.requireNonNull(configSupplier, "configSupplier");
         this.requirePlainItem = Objects.requireNonNull(requirePlainItem, "requirePlainItem");
+        this.pluginEnabled = Objects.requireNonNull(pluginEnabled, "pluginEnabled");
+    }
+
+    /**
+     * Nowe komercyjne mutacje (instant buy/sell) dozwolone tylko gdy plugin NIE jest w trybie konserwacji
+     * (global enabled) ORAZ Rynek jest włączony (bazaar.enabled). Egzekwowane SERWEROWO tuż przed mutacją.
+     */
+    private boolean commerceEnabled() {
+        return pluginEnabled.getAsBoolean() && configSupplier.get().enabled();
     }
 
     private void onMain(Runnable r) {
         Bukkit.getScheduler().runTask(plugin, r);
     }
 
-    /** Idempotent initial stock seeding (called on enable / reload). */
+    /**
+     * Bezpieczna próba wykonania operacji wymagającej głównego wątku. Zwraca
+     * false, gdy plugin został wyłączony albo scheduler odrzucił zadanie.
+     */
+    private boolean tryOnMain(Runnable r) {
+        if (!plugin.isEnabled()) return false;
+        if (Bukkit.isPrimaryThread()) {
+            r.run();
+            return true;
+        }
+        try {
+            Bukkit.getScheduler().runTask(plugin, r);
+            return true;
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    /** Domknięcie wyniku nie dotyka Bukkit API i nie zależy od schedulera pluginu. */
+    private void completeNow(Runnable r) {
+        try {
+            r.run();
+        } catch (Throwable t) {
+            logger.log(Level.SEVERE, "RYNEK: nie udało się domknąć wyniku operacji", t);
+        }
+    }
+
+    /**
+     * Synchroniczne (blokujące) seedowanie stanów - wołane na wątku DB jako część
+     * inicjalizacji schematu. Wyjątek propaguje się, aby init schematu respektował
+     * {@code database.required}.
+     */
+    public void seedItemsBlocking() {
+        long now = System.currentTimeMillis();
+        for (BazaarItemConfig item : configSupplier.get().items().values()) {
+            stocks.ensureInitialStock(item.key(), item.initialStock(), now);
+        }
+    }
+
+    /** Idempotent initial stock seeding (asynchroniczny wariant, np. do testów/diagnozy). */
     public CompletableFuture<Void> seedItems() {
-        return hexCore.asyncRun(() -> {
-            long now = System.currentTimeMillis();
-            for (BazaarItemConfig item : configSupplier.get().items().values()) {
-                stocks.ensureInitialStock(item.key(), item.initialStock(), now);
-            }
-        }).exceptionally(ex -> {
-            logger.log(Level.WARNING, "bazaar stock seed failed", ex);
+        return hexCore.asyncRun(this::seedItemsBlocking).exceptionally(ex -> {
+            logger.log(Level.WARNING, "RYNEK: inicjalizacja stanów magazynu nie powiodła się", ex);
             return null;
         });
     }
@@ -135,7 +211,7 @@ public final class BazaarService {
                     return BazaarPricer.compute(item, cfg.pricing(), stock, lastBuy, lastSell);
                 })
                 .exceptionally(ex -> {
-                    logger.log(Level.WARNING, "currentPrice failed for " + itemKey, ex);
+                    logger.log(Level.WARNING, "RYNEK: odczyt aktualnej ceny nie powiódł się dla " + itemKey, ex);
                     return null;
                 });
     }
@@ -160,7 +236,7 @@ public final class BazaarService {
             }
             return out;
         }).exceptionally(ex -> {
-            logger.log(Level.WARNING, "marketSnapshot failed", ex);
+            logger.log(Level.WARNING, "RYNEK: pobranie migawki rynku nie powiodło się", ex);
             return Map.of();
         });
     }
@@ -182,6 +258,15 @@ public final class BazaarService {
      * a ewentualna nadplata (gdy match ma race z innym kupujacym) jest zwracana.
      */
     public CompletableFuture<BuyOutcome> buy(Player buyer, String itemKey, int amount) {
+        // SERWEROWA autoryzacja tuż przed mutacją (GUI mogło zostać otwarte przed disable/utratą praw).
+        // commerceEnabled() = global enabled (tryb konserwacji) ORAZ bazaar.enabled.
+        BazaarConfig gate = configSupplier.get();
+        if (!commerceEnabled()) {
+            return CompletableFuture.completedFuture(BuyOutcome.fail(BuyResult.FEATURE_DISABLED));
+        }
+        if (!buyer.hasPermission(gate.permBuy())) {
+            return CompletableFuture.completedFuture(BuyOutcome.fail(BuyResult.NO_PERMISSION));
+        }
         if (amount <= 0) {
             return CompletableFuture.completedFuture(BuyOutcome.fail(BuyResult.INVALID_QTY));
         }
@@ -195,6 +280,11 @@ public final class BazaarService {
         }
         if (!item.buyEnabled()) {
             return CompletableFuture.completedFuture(BuyOutcome.fail(BuyResult.BUY_DISABLED));
+        }
+        // #7: górna granica sumy (maks. cena * ilość) MUSI mieścić się w DECIMAL(19,2) PRZED ekonomią/DB.
+        // Faktyczny koszt jest <= tej granicy, więc gdy granica się mieści, mieści się też realna suma.
+        if (Money.totalOrNull(item.maxPrice(), amount) == null) {
+            return CompletableFuture.completedFuture(BuyOutcome.fail(BuyResult.INVALID_QTY));
         }
 
         CompletableFuture<BuyOutcome> result = new CompletableFuture<>();
@@ -212,14 +302,15 @@ public final class BazaarService {
                 })
                 .whenComplete((plan, planErr) -> {
                     if (planErr != null || plan == null) {
-                        logger.log(Level.WARNING, "bazaar buy planning failed", planErr);
-                        onMain(() -> result.complete(BuyOutcome.fail(BuyResult.DB_FAILED)));
+                        logger.log(Level.WARNING, "RYNEK: planowanie kupna nie powiodło się", planErr);
+                        completeNow(() -> result.complete(BuyOutcome.fail(BuyResult.DB_FAILED)));
                         return;
                     }
                     long matchable = plan.preview.matchable();
                     long systemNeeded = Math.max(0L, amount - matchable);
                     if (matchable + Math.min(systemNeeded, plan.stock.stock()) < amount) {
-                        onMain(() -> result.complete(BuyOutcome.fail(BuyResult.NOT_ENOUGH_STOCK)));
+                        completeNow(() ->
+                                result.complete(BuyOutcome.fail(BuyResult.NOT_ENOUGH_STOCK)));
                         return;
                     }
                     BazaarPrice systemPrice = BazaarPricer.compute(item, cfg.pricing(),
@@ -231,11 +322,16 @@ public final class BazaarService {
                     economy.withdraw(buyerId, buyerName, totalCost, "bazaar-buy-" + itemKey)
                             .whenComplete((wd, wdErr) -> {
                                 if (wdErr != null || wd == null || !wd.success()) {
-                                    onMain(() -> result.complete(BuyOutcome.fail(BuyResult.NOT_ENOUGH_MONEY)));
+                                    // Rozdziel brak środków (NOT_ENOUGH_FUNDS) od technicznego błędu ekonomii.
+                                    boolean notEnough = wd != null && !wd.success()
+                                            && "NOT_ENOUGH_FUNDS".equals(wd.reason());
+                                    BuyResult r = notEnough ? BuyResult.NOT_ENOUGH_MONEY
+                                            : BuyResult.ECONOMY_ERROR;
+                                    completeNow(() -> result.complete(BuyOutcome.fail(r)));
                                     return;
                                 }
                                 executeBuyMatchAndSystem(buyer, buyerId, buyerName, item, cfg,
-                                        (int) matchable, (int) systemNeeded,
+                                        amount, (int) matchable, (int) systemNeeded,
                                         orderCost, systemCost, plan.stock, systemPrice, result);
                             });
                 });
@@ -306,7 +402,7 @@ public final class BazaarService {
      */
     private void executeBuyMatchAndSystem(Player buyer, UUID buyerId, String buyerName,
                                            BazaarItemConfig item, BazaarConfig cfg,
-                                           int matchable, int systemNeeded,
+                                           int requestedQty, int matchable, int systemNeeded,
                                            BigDecimal orderCost, BigDecimal systemCost,
                                            BazaarStock stock,
                                            BazaarPrice systemPrice,
@@ -325,16 +421,10 @@ public final class BazaarService {
 
         matchStep.whenComplete((match, matchErr) -> {
             if (matchErr != null) {
-                logger.log(Level.SEVERE, "bazaar buy match step failed", matchErr);
-                economy.deposit(buyerId, buyerName, totalWithdrawn,
-                        "bazaar-buy-match-error-refund-" + itemKey).exceptionally(ex -> {
-                    logger.log(Level.SEVERE, "match-error deposit failed", ex);
-                    hexCore.async(() -> claims.insertMoney(buyerId, totalWithdrawn,
-                            "bazaar-buy-match-error-refund-" + itemKey, null,
-                            System.currentTimeMillis()));
-                    return null;
-                });
-                onMain(() -> result.complete(BuyOutcome.fail(BuyResult.DB_FAILED)));
+                logger.log(Level.SEVERE, "RYNEK: krok dopasowania w księdze zleceń nie powiódł się", matchErr);
+                // Nic nie dostarczono -> pełny, ŚLEDZONY zwrot; terminalny audyt powstaje w finalizeBuy.
+                finalizeBuy(buyer, buyerId, buyerName, item, systemPrice, "księga zleceń", requestedQty, 0,
+                        BigDecimal.ZERO, totalWithdrawn, result);
                 return;
             }
             long actualMatched = match.matched();
@@ -347,37 +437,17 @@ public final class BazaarService {
                     shortfall, stock.stock(), systemPrice.buyPrice());
             int systemFill = acc.systemFill();
             BigDecimal actualSystemCost = acc.systemCost();
-            BigDecimal refund = acc.refund();
-            // Krok B: refund nadwyzki (moze byc niezerowa gdy race obcial matching
-            // i/lub magazyn ma za malo).
-            if (refund.signum() > 0) {
-                economy.deposit(buyerId, buyerName, refund,
-                        "bazaar-buy-refund-" + itemKey).exceptionally(ex -> {
-                    logger.log(Level.SEVERE, "buy refund deposit failed", ex);
-                    hexCore.async(() -> claims.insertMoney(buyerId, refund,
-                            "bazaar-buy-refund-" + itemKey, null,
-                            System.currentTimeMillis()));
-                    return null;
-                });
-            }
+            // Nadpłata (i ewentualna nieopłacona reszta) są rozliczane CENTRALNIE w finalizeBuy jako
+            // zwrot = totalWithdrawn - kwota za faktycznie dostarczone przedmioty (śledzony, nie fire-and-forget).
             if (systemFill <= 0) {
-                // Wszystko z orderbooka (lub kredyt nie wystarczyl na system fill).
-                if (actualMatched > 0) {
-                    audit.log(audit.builder()
-                            .actor(buyerId, buyerName)
-                            .action(AuditAction.BAZAAR_INSTANT_BUY)
-                            .market(AuditAction.MARKET_BAZAAR)
-                            .itemKey(itemKey)
-                            .amount(actualMatched)
-                            .total(actualOrderCost)
-                            .result(AuditAction.RESULT_OK)
-                            .reason("all filled by orderbook"));
-                }
-                onMain(() -> giveOrClaim(buyer, item, (int) actualMatched, systemPrice,
-                        actualOrderCost, result));
+                // Wszystko z księgi zleceń (lub kredyt nie wystarczył na system fill).
+                String source = actualMatched > 0 ? "księga zleceń" : "brak";
+                finalizeBuy(buyer, buyerId, buyerName, item, systemPrice, source,
+                        requestedQty, (int) actualMatched,
+                        actualOrderCost, totalWithdrawn, result);
                 return;
             }
-            // Krok C: system stock buy dla brakujacej reszty (systemFill).
+            // Krok C: kupno brakującej reszty z magazynu systemowego (systemFill).
             int finalSystemFill = systemFill;
             BigDecimal finalSystemCost = actualSystemCost;
             hexCore.async(() -> {
@@ -387,127 +457,402 @@ public final class BazaarService {
                     })
                     .whenComplete((stockOk, stockErr) -> {
                         if (stockErr != null || stockOk == null || !stockOk) {
-                            // System zawiodl - zwracamy TYLKO to co za nie zaplacilismy
-                            // (finalSystemCost), matched juz dostarczone i platne.
-                            audit.log(audit.builder()
-                                    .actor(buyerId, buyerName)
-                                    .action(AuditAction.BAZAAR_INSTANT_BUY)
-                                    .market(AuditAction.MARKET_BAZAAR)
-                                    .itemKey(itemKey)
-                                    .amount((long) actualMatched)
-                                    .total(actualOrderCost)
-                                    .result(AuditAction.RESULT_ROLLBACK)
-                                    .reason("system stock tx failed - partial delivery"));
-                            if (finalSystemCost.signum() > 0) {
-                                economy.deposit(buyerId, buyerName, finalSystemCost,
-                                        "bazaar-buy-system-refund-" + itemKey).exceptionally(ex -> {
-                                    logger.log(Level.SEVERE, "system-refund deposit failed", ex);
-                                    hexCore.async(() -> claims.insertMoney(buyerId, finalSystemCost,
-                                            "bazaar-buy-system-refund-" + itemKey, null,
-                                            System.currentTimeMillis()));
-                                    return null;
-                                });
-                            }
-                            onMain(() -> giveOrClaim(buyer, item, (int) actualMatched, systemPrice,
-                                    actualOrderCost, result));
+                            logger.log(Level.SEVERE, "RYNEK: transakcja magazynu systemowego nie "
+                                    + "powiodła się - dostawa częściowa", stockErr);
+                            // Dostarczamy tylko część z księgi zleceń; resztę kredytu (nadpłata + część
+                            // systemowa) zwraca finalizeBuy jako totalWithdrawn - actualOrderCost.
+                            finalizeBuy(buyer, buyerId, buyerName, item, systemPrice,
+                                    "księga zleceń", requestedQty,
+                                    (int) actualMatched,
+                                    actualOrderCost, totalWithdrawn, result);
                             return;
                         }
                         BigDecimal totalActual = actualOrderCost.add(finalSystemCost);
-                        audit.log(audit.builder()
-                                .actor(buyerId, buyerName)
-                                .action(AuditAction.BAZAAR_INSTANT_BUY)
-                                .market(AuditAction.MARKET_BAZAAR)
-                                .itemKey(itemKey)
-                                .amount((long) (actualMatched + finalSystemFill))
-                                .total(totalActual)
-                                .result(AuditAction.RESULT_OK)
-                                .reason(actualMatched > 0
-                                        ? "hybrid orderbook+system fill"
-                                        : "system stock fill"));
-                        onMain(() -> giveOrClaim(buyer, item,
-                                (int) actualMatched + finalSystemFill,
-                                systemPrice, totalActual, result));
+                        String source = actualMatched > 0 ? "hybryda (księga+magazyn)" : "magazyn systemowy";
+                        finalizeBuy(buyer, buyerId, buyerName, item, systemPrice, source, requestedQty,
+                                (int) actualMatched + finalSystemFill, totalActual, totalWithdrawn, result);
                     });
         });
     }
 
-    /**
-     * Main-thread item delivery with all-or-nothing semantics:
-     *  1. Try to add the full stack via {@link InventoryFit#tryAddFullOrRevert}.
-     *     If it fits completely, complete OK without any claim.
-     *  2. Otherwise nothing was placed in the inventory; insert the entire
-     *     purchase as a single item-claim.
-     *  3. If the claim insert fails, refund the buyer the full price.
-     *     If the refund deposit also fails, fall back to a money-claim so
-     *     the money is never lost.
-     */
-    private void giveOrClaim(Player buyer, BazaarItemConfig item, int amount,
-                             BazaarPrice price, BigDecimal total, CompletableFuture<BuyOutcome> result) {
-        UUID buyerId = buyer.getUniqueId();
-        String buyerName = buyer.getName();
-        ItemStack stack = new ItemStack(item.material(), amount);
+    /** Sposób, w jaki przedmiot trafił (lub nie) do gracza. Stany NIE mogą się zlewać. */
+    public enum ItemDelivery {
+        /** ADDED_FULLY: całość w ekwipunku. */
+        IN_INVENTORY,
+        /** NOT_FIT_REVERTED + potwierdzony insert: cały przedmiot jako jeden item-claim. */
+        AS_CLAIM,
+        /** NOT_FIT_REVERTED + nieudany insert: nic nie dostarczono (cenę trzeba zwrócić). */
+        CLAIM_FAILED,
+        /** STATE_UNCERTAIN: niepewny stan ekwipunku (BEZ claim-a i BEZ zwrotu). */
+        UNCERTAIN,
+        /** Brak przedmiotów do dostarczenia (np. pełne niepowodzenie dopasowania). */
+        NONE
+    }
 
-        if (InventoryFit.tryAddFullOrRevert(buyer, stack)) {
-            result.complete(BuyOutcome.ok(price, total, false));
-            return;
+    /** Terminalny wynik kupna: komunikat dla gracza ({@link BuyResult}) + status audytu. */
+    public record BuyFinal(BuyResult buyResult, String auditResult) {}
+
+    /**
+     * Czyste/asynchroniczne mapowanie tri-state ekwipunku na sposób dostarczenia (testowalne):
+     *  - {@code ADDED_FULLY}      -> IN_INVENTORY (bez claim-a);
+     *  - {@code NOT_FIT_REVERTED} -> DOKŁADNIE jeden item-claim: sukces -> AS_CLAIM, błąd -> CLAIM_FAILED;
+     *  - {@code STATE_UNCERTAIN}  -> UNCERTAIN (bez claim-a; wołający NIE zwraca pieniędzy).
+     * Future zawsze terminalny; {@code claimInsert} wołane co najwyżej raz i tylko przy NOT_FIT_REVERTED.
+     */
+    public static CompletableFuture<ItemDelivery> resolveItemDelivery(
+            InventoryFit.Result addResult,
+            java.util.function.Supplier<CompletableFuture<Boolean>> claimInsert) {
+        if (addResult == InventoryFit.Result.ADDED_FULLY) {
+            return CompletableFuture.completedFuture(ItemDelivery.IN_INVENTORY);
+        }
+        if (addResult == InventoryFit.Result.STATE_UNCERTAIN) {
+            return CompletableFuture.completedFuture(ItemDelivery.UNCERTAIN);
+        }
+        CompletableFuture<Boolean> ins;
+        try {
+            CompletableFuture<Boolean> f = claimInsert.get();
+            ins = f == null ? CompletableFuture.completedFuture(false) : f.exceptionally(ex -> false);
+        } catch (Throwable t) {
+            ins = CompletableFuture.completedFuture(false);
+        }
+        return ins.thenApply(ok ->
+                Boolean.TRUE.equals(ok) ? ItemDelivery.AS_CLAIM : ItemDelivery.CLAIM_FAILED);
+    }
+
+    /**
+     * Czysta kombinacja sposobu dostawy i statusu zwrotu w terminalny wynik kupna (testowalne).
+     * {@code refundStatus == null} oznacza brak wymaganego zwrotu. Żaden stan OK nie zlewa się z Fehler:
+     *  - UNCERTAIN                                    -> COMPENSATION_FAILED / RESULT_FAILED (krytyczne, bez zwrotu);
+     *  - CLAIM_FAILED bez zwrotu (przedmiot darmowy)  -> COMPENSATION_FAILED / RESULT_FAILED;
+     *  - dowolny wymagany zwrot == FAILED             -> COMPENSATION_FAILED / RESULT_FAILED (pieniądze utracone);
+     *  - IN_INVENTORY|AS_CLAIM, brak zwrotu / REFUNDED-> OK / RESULT_OK (dostawa + ewent. nadpłata zwrócona wprost);
+     *  - IN_INVENTORY|AS_CLAIM, zwrot PENDING_CLAIM   -> OVERPAY_REFUND_PENDING / RESULT_REFUND_PENDING;
+     *  - NONE|CLAIM_FAILED, zwrot REFUNDED            -> REFUNDED / RESULT_ROLLBACK (cały zakup cofnięty);
+     *  - NONE|CLAIM_FAILED, zwrot PENDING_CLAIM       -> REFUND_PENDING / RESULT_REFUND_PENDING.
+     */
+    public static BuyFinal combineBuy(ItemDelivery delivery, RefundCompensation.Status refundStatus) {
+        if (delivery == ItemDelivery.UNCERTAIN) {
+            return new BuyFinal(BuyResult.COMPENSATION_FAILED, AuditAction.RESULT_FAILED);
+        }
+        if (delivery == ItemDelivery.CLAIM_FAILED && refundStatus == null) {
+            // przedmiotu nie dostarczono, a nie ma czego zwracać (darmowy) -> nadal niepowodzenie dostawy
+            return new BuyFinal(BuyResult.COMPENSATION_FAILED, AuditAction.RESULT_FAILED);
+        }
+        if (refundStatus == RefundCompensation.Status.FAILED) {
+            return new BuyFinal(BuyResult.COMPENSATION_FAILED, AuditAction.RESULT_FAILED);
+        }
+        boolean itemsWithPlayer = delivery == ItemDelivery.IN_INVENTORY || delivery == ItemDelivery.AS_CLAIM;
+        if (itemsWithPlayer) {
+            if (refundStatus == RefundCompensation.Status.PENDING_CLAIM) {
+                return new BuyFinal(BuyResult.OVERPAY_REFUND_PENDING, AuditAction.RESULT_REFUND_PENDING);
+            }
+            return new BuyFinal(BuyResult.OK, AuditAction.RESULT_OK);   // brak zwrotu lub REFUNDED wprost
+        }
+        // NONE lub CLAIM_FAILED -> nic nie dostarczono; o wyniku decyduje zwrot
+        if (refundStatus == RefundCompensation.Status.PENDING_CLAIM) {
+            return new BuyFinal(BuyResult.REFUND_PENDING, AuditAction.RESULT_REFUND_PENDING);
+        }
+        if (refundStatus == RefundCompensation.Status.REFUNDED) {
+            return new BuyFinal(BuyResult.REFUNDED, AuditAction.RESULT_ROLLBACK);
+        }
+        // Brak dostawy nigdy nie jest sukcesem, również dla przedmiotu o cenie 0.
+        return new BuyFinal(BuyResult.DB_FAILED, AuditAction.RESULT_FAILED);
+    }
+
+    /**
+     * Finalizacja kupna: dostarcz przedmioty (all-or-nothing), rozlicz ŚLEDZONY zwrot reszty kredytu,
+     * napisz DOKŁADNIE jeden terminalny audyt i domknij wynik gracza. Wołane z wątku DB-callbacku.
+     */
+    private void finalizeBuy(Player buyer, UUID buyerId, String buyerName, BazaarItemConfig item,
+                             BazaarPrice price, String source,
+                             int requestedQty, int deliveredQty, BigDecimal chargedForDelivered,
+                             BigDecimal totalWithdrawn,
+                             CompletableFuture<BuyOutcome> result) {
+        deliverItems(buyerId, buyer, item, deliveredQty).whenComplete((delivery, dErr) -> {
+            ItemDelivery del = (dErr != null || delivery == null) ? ItemDelivery.UNCERTAIN : delivery;
+            completeBuy(buyerId, buyerName, item, price, source, requestedQty,
+                    deliveredQty, chargedForDelivered,
+                    totalWithdrawn, del, result);
+        });
+    }
+
+    /** Dostawa przedmiotu na wątku głównym (tri-state -> {@link ItemDelivery}). Nigdy nie rzuca do callera. */
+    private CompletableFuture<ItemDelivery> deliverItems(UUID buyerId, Player buyer,
+                                                         BazaarItemConfig item, int qty) {
+        CompletableFuture<ItemDelivery> out = new CompletableFuture<>();
+        if (qty <= 0) {
+            out.complete(ItemDelivery.NONE);
+            return out;
+        }
+        final ItemStack stack;
+        try {
+            stack = new ItemStack(item.material(), qty);
+        } catch (Throwable t) {
+            logger.log(Level.SEVERE, "RYNEK: nie udało się utworzyć przedmiotu do dostawy", t);
+            out.complete(ItemDelivery.UNCERTAIN);
+            return out;
         }
 
-        // Inventory could not fit the full purchase. Try to put the entire
-        // stack into a claim row. If that succeeds the buyer keeps nothing
-        // in the inventory and picks the items up via /hexauction claims.
+        // Maszyna stanów PENDING->RUNNING: dokładnie jeden zwycięzca (CAS) między zadaniem
+        // głównego wątku a fallbackiem timeout/disable. Dzięki temu:
+        //  - zadanie, które NIGDY nie ruszyło -> bezpieczny PEŁNY claim (nic nie dotknęło ekwipunku);
+        //  - zadanie, które ruszyło (mutacja mogła się zacząć) -> UNCERTAIN (bez claim/zwrotu);
+        //  - spóźnione zadanie po wygranym fallbacku NIE mutuje już ekwipunku.
+        AtomicBoolean started = new AtomicBoolean(false);
+
+        Runnable deliver = () -> {
+            if (out.isDone()) return;
+            if (!started.compareAndSet(false, true)) return;   // fallback już wygrał -> nie mutuj
+            try {
+                if (!buyer.isOnline()) {
+                    completeAsClaim(buyerId, stack, item.key(), out);
+                    return;
+                }
+                InventoryFit.Result r = InventoryFit.tryAddFull(buyer, stack);
+                resolveItemDelivery(r, () -> insertOverflowClaim(buyerId, stack, item.key()))
+                        .whenComplete((d, e) -> out.complete(
+                                (e != null || d == null) ? ItemDelivery.UNCERTAIN : d));
+            } catch (Throwable t) {
+                logger.log(Level.SEVERE, "RYNEK: nieoczekiwany błąd dostawy przedmiotu", t);
+                out.complete(ItemDelivery.UNCERTAIN);
+            }
+        };
+
+        if (!buyer.isOnline() || !tryOnMain(deliver)) {
+            // Gracz offline albo scheduler odrzucił zadanie: nic nie dotknęło PlayerInventory,
+            // więc bezpiecznie zapisujemy cały przedmiot jako trwały claim.
+            if (started.compareAndSet(false, true)) {
+                completeAsClaim(buyerId, stack, item.key(), out);
+            }
+            return out;
+        }
+        // Fallback po 30 s (także gdy zaakceptowane zadanie zostanie porzucone przy disable):
+        // NIGDY nie ruszyło -> pełny claim; już ruszyło -> UNCERTAIN. Zwycięstwo atomowe (CAS).
+        CompletableFuture.runAsync(() -> {
+            if (out.isDone()) return;
+            if (started.compareAndSet(false, true)) {
+                completeAsClaim(buyerId, stack, item.key(), out);   // zadanie nigdy nie ruszyło
+            } else {
+                out.complete(ItemDelivery.UNCERTAIN);               // no-op jeśli już domknięte
+            }
+        }, CompletableFuture.delayedExecutor(30, TimeUnit.SECONDS));
+        return out;
+    }
+
+    private void completeAsClaim(UUID buyerId, ItemStack stack, String itemKey,
+                                 CompletableFuture<ItemDelivery> out) {
+        resolveItemDelivery(InventoryFit.Result.NOT_FIT_REVERTED,
+                () -> insertOverflowClaim(buyerId, stack, itemKey))
+                .whenComplete((delivery, error) -> out.complete(
+                        error == null && delivery != null ? delivery : ItemDelivery.CLAIM_FAILED));
+    }
+
+    /** Rozlicza zwrot reszty kredytu (śledzony) i przechodzi do finishBuy z terminalnym statusem. */
+    private void completeBuy(UUID buyerId, String buyerName, BazaarItemConfig item,
+                             BazaarPrice price, String source,
+                             int requestedQty, int deliveredQty, BigDecimal chargedForDelivered,
+                             BigDecimal totalWithdrawn,
+                             ItemDelivery delivery, CompletableFuture<BuyOutcome> result) {
+        BigDecimal surplus = totalWithdrawn.subtract(chargedForDelivered);
+        BigDecimal refundOwed = surplus.signum() > 0 ? surplus : BigDecimal.ZERO;
+        if (delivery == ItemDelivery.UNCERTAIN) {
+            // Niepewny stan ekwipunku: część mogła już trafić do gracza -> BEZ zwrotu (ręczna korekta).
+            logSevereBuyUncertain(System.nanoTime(), buyerId, item.key(), item.material(),
+                    deliveredQty, chargedForDelivered);
+            BigDecimal finalRefundOwed = refundOwed;
+            completeNow(() -> finishBuy(buyerId, buyerName, item, price, source, requestedQty,
+                    deliveredQty, chargedForDelivered, totalWithdrawn, finalRefundOwed,
+                    delivery, null, result));
+            return;
+        }
+        if (delivery == ItemDelivery.CLAIM_FAILED) {
+            refundOwed = refundOwed.add(chargedForDelivered);   // przedmiotu nie dostarczono -> zwróć też jego cenę
+        }
+        if (refundOwed.signum() <= 0) {
+            completeNow(() -> finishBuy(buyerId, buyerName, item, price, source, requestedQty,
+                    deliveredQty, chargedForDelivered, totalWithdrawn, BigDecimal.ZERO,
+                    delivery, null, result));
+            return;
+        }
+        final BigDecimal amount = refundOwed;
+        trackedBuyRefund(buyerId, buyerName, amount, item.key()).whenComplete((refund, e) -> {
+            RefundCompensation.TrackedOutcome tracked = (e != null || refund == null)
+                    ? new RefundCompensation.TrackedOutcome(RefundCompensation.Status.FAILED, null)
+                    : refund;
+            if (tracked.status() == RefundCompensation.Status.FAILED) {
+                logSevereBuyRefundFailed(System.nanoTime(), buyerId, amount);
+            }
+            completeNow(() -> finishBuy(buyerId, buyerName, item, price, source, requestedQty,
+                    deliveredQty, chargedForDelivered, totalWithdrawn, amount,
+                    delivery, tracked, result));
+        });
+    }
+
+    /** Kombinuje wynik, pisze JEDEN terminalny audyt i domyka future gracza (nawet gdy audyt rzuci). */
+    private void finishBuy(UUID buyerId, String buyerName, BazaarItemConfig item,
+                           BazaarPrice price, String source,
+                           int requestedQty, int deliveredQty, BigDecimal chargedForDelivered,
+                           BigDecimal totalWithdrawn, BigDecimal refundOwed, ItemDelivery delivery,
+                           RefundCompensation.TrackedOutcome refund,
+                           CompletableFuture<BuyOutcome> result) {
+        RefundCompensation.Status refundStatus = refund == null ? null : refund.status();
+        BuyFinal fin;
+        try {
+            fin = combineBuy(delivery, refundStatus);
+        } catch (Throwable t) {
+            fin = new BuyFinal(BuyResult.COMPENSATION_FAILED, AuditAction.RESULT_FAILED);
+        }
+        BuyOutcome outcome = toOutcome(fin.buyResult(), price, chargedForDelivered, deliveredQty, delivery);
+        // CompletableFuture.complete jest atomowym strażnikiem idempotencji: tylko
+        // zwycięski terminalny callback może utworzyć wpis audytu.
+        if (!result.complete(outcome)) return;
+        try {
+            writeBuyAudit(buyerId, buyerName, item.key(), requestedQty, deliveredQty,
+                    totalWithdrawn, chargedForDelivered, refundOwed, source, delivery,
+                    refund, fin.auditResult());
+        } catch (Throwable t) {
+            logger.log(Level.SEVERE, "RYNEK: zapis audytu kupna nie powiódł się", t);
+        }
+    }
+
+    public static BuyOutcome toOutcome(BuyResult r, BazaarPrice price, BigDecimal charged,
+                                       int deliveredQty, ItemDelivery delivery) {
+        return switch (r) {
+            case OK -> BuyOutcome.ok(price, charged, deliveredQty, delivery == ItemDelivery.AS_CLAIM);
+            case OVERPAY_REFUND_PENDING -> new BuyOutcome(BuyResult.OVERPAY_REFUND_PENDING, price,
+                    charged, Math.max(0, deliveredQty), delivery == ItemDelivery.AS_CLAIM);
+            default -> BuyOutcome.fail(r);   // REFUNDED / REFUND_PENDING / COMPENSATION_FAILED
+        };
+    }
+
+    /** ŚLEDZONY zwrot: deposit -> (przy błędzie) money-claim -> terminalny {@link RefundCompensation.Status}. */
+    private CompletableFuture<RefundCompensation.TrackedOutcome> trackedBuyRefund(
+            UUID buyerId, String buyerName, BigDecimal amount, String itemKey) {
+        return RefundCompensation.compensateTracked(
+                () -> economy.deposit(buyerId, buyerName, amount, "bazaar-buy-refund-" + itemKey)
+                        .thenApply(res -> res != null && res.success()),
+                () -> hexCore.async(() -> claims.insertMoney(buyerId, amount,
+                                "bazaar-buy-refund-claim-" + itemKey, null, System.currentTimeMillis())));
+    }
+
+    /** Jeden terminalny audyt BAZAAR_INSTANT_BUY z polskim, wyczerpującym powodem (bez NBT/sekretów). */
+    private void writeBuyAudit(UUID buyerId, String buyerName, String itemKey,
+                               int requestedQty, int deliveredQty, BigDecimal totalWithdrawn,
+                               BigDecimal charged, BigDecimal refundOwed, String source,
+                               ItemDelivery delivery, RefundCompensation.TrackedOutcome refund,
+                               String auditResult) {
+        RefundCompensation.Status refundStatus = refund == null ? null : refund.status();
+        String reason = buildBuyAuditReason(source, requestedQty, deliveredQty, totalWithdrawn,
+                charged, refundOwed, delivery, refundStatus);
+        audit.log(audit.builder()
+                .actor(buyerId, buyerName)
+                .action(AuditAction.BAZAAR_INSTANT_BUY)
+                .market(AuditAction.MARKET_BAZAAR)
+                .itemKey(itemKey)
+                .claimId(refund == null ? null : refund.claimId())
+                .amount((long) deliveredQty)
+                .total(charged)
+                .result(auditResult)
+                .reason(reason));
+    }
+
+    /** Pełny, testowalny opis finansowy jednego terminalnego kupna. */
+    public static String buildBuyAuditReason(String source, int requestedQty, int deliveredQty,
+                                             BigDecimal totalWithdrawn, BigDecimal charged,
+                                             BigDecimal refundOwed, ItemDelivery delivery,
+                                             RefundCompensation.Status refundStatus) {
+        StringBuilder reason = new StringBuilder()
+                .append("źródło=").append(source)
+                .append(" zamówiono=").append(requestedQty)
+                .append(" dostarczono=").append(deliveredQty)
+                .append(" pobrano=").append(money(totalWithdrawn))
+                .append(" rozliczono=").append(money(charged))
+                .append(" zwrot_należny=").append(money(refundOwed))
+                .append(" dostawa=").append(deliveryLabel(delivery));
+        if (refundStatus != null) {
+            reason.append(" zwrot=").append(refundLabel(refundStatus));
+        } else if (refundOwed != null && refundOwed.signum() > 0) {
+            reason.append(" zwrot=niewykonany_z_powodu_niepewnego_stanu");
+        }
+        return reason.toString();
+    }
+
+    private static String money(BigDecimal value) {
+        return value == null ? "0" : value.toPlainString();
+    }
+
+    private static String deliveryLabel(ItemDelivery d) {
+        return switch (d) {
+            case IN_INVENTORY -> "ekwipunek";
+            case AS_CLAIM -> "przedmiot zapisany do odbioru";
+            case CLAIM_FAILED -> "nieudana";
+            case UNCERTAIN -> "niepewna";
+            case NONE -> "brak";
+        };
+    }
+
+    private static String refundLabel(RefundCompensation.Status s) {
+        return switch (s) {
+            case REFUNDED -> "zwrócony wprost";
+            case PENDING_CLAIM -> "czeka do odbioru";
+            case FAILED -> "nieudany";
+        };
+    }
+
+    /** Serializuje i wstawia CAŁY nadmiar jako jeden item-claim; true tylko po potwierdzonym insertcie. */
+    private CompletableFuture<Boolean> insertOverflowClaim(UUID buyerId, ItemStack stack, String itemKey) {
         final byte[] blob;
         try {
             blob = ItemSerializer.serialize(stack);
         } catch (Throwable t) {
-            logger.log(Level.WARNING, "could not serialize overflow", t);
-            refundOrMoneyClaim(buyerId, buyerName, total, item.key(), result, price, total);
-            return;
+            logger.log(Level.WARNING, "RYNEK: nie udało się zserializować nadmiaru zakupu", t);
+            return CompletableFuture.completedFuture(false);
         }
-        hexCore.async(() -> claims.insertItem(buyerId, blob,
-                        "bazaar-buy-overflow-" + item.key(), null, System.currentTimeMillis()))
-                .whenComplete((claimId, err) -> {
-                    if (err != null || claimId == null || claimId < 0) {
+        return hexCore.async(() -> claims.insertItem(buyerId, blob,
+                        "bazaar-buy-overflow-" + itemKey, null, System.currentTimeMillis()))
+                .handle((claimId, err) -> {
+                    boolean ok = err == null && claimId != null && claimId >= 0;
+                    if (!ok) {
                         logger.log(Level.SEVERE,
-                                "overflow claim insert failed for " + buyerId, err);
-                        refundOrMoneyClaim(buyerId, buyerName, total, item.key(), result, price, total);
-                        return;
+                                "RYNEK: zapis nadmiaru do odbioru (claim) nie powiódł się dla " + buyerId, err);
                     }
-                    onMain(() -> result.complete(BuyOutcome.ok(price, total, true)));
+                    return ok;
                 });
     }
 
+    private final java.util.concurrent.atomic.AtomicLong lastSevereLogAt =
+            new java.util.concurrent.atomic.AtomicLong(0L);
+    private final java.util.concurrent.atomic.AtomicLong lastRefundSevereLogAt =
+            new java.util.concurrent.atomic.AtomicLong(0L);
+
     /**
-     * Last-resort compensation for a bazaar buy where the item could neither
-     * be placed in the inventory nor stored as an item-claim. Refund the
-     * money; if the deposit fails too, persist it as a money-claim so the
-     * funds are never lost.
+     * Rate-limitowany (60s) SEVERE dla niepewnego stanu ekwipunku przy kupnie. Zawiera identyfikatory
+     * techniczne (tx/UUID/klucz/materiał/ilość/kwota), ale BEZ sekretów i BEZ pełnych danych NBT.
      */
-    private void refundOrMoneyClaim(UUID buyerId, String buyerName, BigDecimal total, String itemKey,
-                                     CompletableFuture<BuyOutcome> result,
-                                     BazaarPrice price, BigDecimal totalForReport) {
-        economy.deposit(buyerId, buyerName, total, "bazaar-buy-refund-" + itemKey)
-                .whenComplete((depo, depoErr) -> {
-                    if (depoErr == null && depo != null && depo.success()) {
-                        // Money is back; from the buyer's perspective the whole
-                        // purchase was reverted. Surface this as DB_FAILED so
-                        // the caller does not announce a successful purchase.
-                        onMain(() -> result.complete(BuyOutcome.fail(BuyResult.DB_FAILED)));
-                        return;
-                    }
-                    logger.log(Level.SEVERE,
-                            "buy refund deposit failed; inserting money claim for " + buyerId, depoErr);
-                    hexCore.async(() -> claims.insertMoney(buyerId, total,
-                                    "bazaar-buy-refund-claim-" + itemKey,
-                                    null, System.currentTimeMillis()))
-                            .whenComplete((id, claimErr) -> {
-                                if (claimErr != null || id == null || id < 0) {
-                                    logger.log(Level.SEVERE,
-                                            "money-claim insert for buy refund failed for " + buyerId,
-                                            claimErr);
-                                }
-                                onMain(() -> result.complete(BuyOutcome.fail(BuyResult.DB_FAILED)));
-                            });
-                });
+    private void logSevereBuyUncertain(long txId, UUID buyerId, String itemKey,
+                                       org.bukkit.Material material, int amount, BigDecimal money) {
+        long now = System.currentTimeMillis();
+        long last = lastSevereLogAt.get();
+        if (now - last >= 60_000L && lastSevereLogAt.compareAndSet(last, now)) {
+            logger.severe("RYNEK KUPNO: niepewny stan ekwipunku - tx=" + txId
+                    + " gracz=" + buyerId
+                    + " przedmiot=" + itemKey + " (" + material + ")"
+                    + " ilość=" + amount
+                    + " kwota=" + (money == null ? "0" : money.toPlainString())
+                    + " - brak automatycznej kompensacji; wymagana ręczna kontrola");
+        }
+    }
+
+    /** Rate-limitowany (60s) SEVERE, gdy ani zwrot, ani money-claim się nie powiodły. Bez sekretów. */
+    private void logSevereBuyRefundFailed(long txId, UUID buyerId, BigDecimal amount) {
+        long now = System.currentTimeMillis();
+        long last = lastRefundSevereLogAt.get();
+        if (now - last >= 60_000L && lastRefundSevereLogAt.compareAndSet(last, now)) {
+            logger.severe("RYNEK KUPNO: kompensacja pieniężna nieodwracalna - tx=" + txId
+                    + " gracz=" + buyerId
+                    + " kwota=" + (amount == null ? "0" : amount.toPlainString())
+                    + " - ani zwrot, ani money-claim nie powiodły się; wymagana ręczna korekta");
+        }
     }
 
     // ---------------------------------------------------------------- sell
@@ -520,6 +865,15 @@ public final class BazaarService {
      * zwracane graczowi lub trafiaja do claims.
      */
     public CompletableFuture<SellOutcome> sell(Player seller, String itemKey, int amount) {
+        // SERWEROWA autoryzacja tuż przed mutacją (GUI/komenda nie są jedyną granicą).
+        // commerceEnabled() = global enabled (tryb konserwacji) ORAZ bazaar.enabled.
+        BazaarConfig gate = configSupplier.get();
+        if (!commerceEnabled()) {
+            return CompletableFuture.completedFuture(SellOutcome.fail(SellResult.FEATURE_DISABLED));
+        }
+        if (!seller.hasPermission(gate.permSell())) {
+            return CompletableFuture.completedFuture(SellOutcome.fail(SellResult.NO_PERMISSION));
+        }
         if (amount <= 0) {
             return CompletableFuture.completedFuture(SellOutcome.fail(SellResult.INVALID_QTY));
         }
@@ -533,6 +887,11 @@ public final class BazaarService {
         }
         if (!item.sellEnabled()) {
             return CompletableFuture.completedFuture(SellOutcome.fail(SellResult.SELL_DISABLED));
+        }
+        // #7: górna granica przychodu (maks. cena * ilość) MUSI mieścić się w DECIMAL(19,2) PRZED zdjęciem
+        // przedmiotów/ekonomią. Sprawdzamy zanim usuniemy cokolwiek z ekwipunku.
+        if (Money.totalOrNull(item.maxPrice(), amount) == null) {
+            return CompletableFuture.completedFuture(SellOutcome.fail(SellResult.INVALID_QTY));
         }
 
         UUID sellerId = seller.getUniqueId();
@@ -550,11 +909,13 @@ public final class BazaarService {
                         item.minPrice(), sellerId, sellerName))
                 .whenComplete((match, matchErr) -> {
                     if (matchErr != null) {
-                        logger.log(Level.WARNING, "bazaar sell match step failed", matchErr);
-                        onMain(() -> {
-                            giveBack(seller, sellerId, item.material(), amount);
-                            result.complete(SellOutcome.fail(SellResult.DB_FAILED));
-                        });
+                        logger.log(Level.WARNING, "RYNEK: krok dopasowania sprzedaży w księdze zleceń "
+                                + "nie powiódł się", matchErr);
+                        // Nic nie sprzedano -> ŚLEDZONY zwrot wszystkich przedmiotów; wynik ZALEŻY od zwrotu:
+                        // udany zwrot -> DB_FAILED (retry), nieudany/niepewny -> RETURN_FAILED (krytyczne).
+                        returnThen(seller, item, amount, ret -> result.complete(restReturnFailed(ret)
+                                ? SellOutcome.fail(SellResult.RETURN_FAILED)
+                                : SellOutcome.fail(SellResult.DB_FAILED)));
                         return;
                     }
                     long matched = match.matched();
@@ -562,22 +923,21 @@ public final class BazaarService {
                     long remaining = amount - matched;
                     if (remaining <= 0) {
                         // Wszystko dopasowane w orderbooku - wystarczy zaplacic sprzedajacemu.
-                        depositAndFinishSell(seller, sellerId, sellerName, item, matched,
-                                orderRevenue, orderRevenue, null, "orderbook fill", result);
+                        depositAndFinishSell(seller, sellerId, sellerName, item, amount, matched,
+                                orderRevenue, orderRevenue, null, "realizacja z księgi zleceń",
+                                ItemDelivery.NONE, result);
                         return;
                     }
                     // Krok 2: sprzedaz reszty do magazynu systemowego.
                     hexCore.async(() -> stocks.find(itemKey))
                             .whenComplete((opt, err) -> {
                                 if (err != null) {
-                                    onMain(() -> {
-                                        // Cofnij tylko niedopasowana czesc.
-                                        giveBack(seller, sellerId, item.material(), (int) remaining);
-                                        // Za dopasowana czesc wciaz zaplacimy.
-                                        depositAndFinishSell(seller, sellerId, sellerName, item, matched,
-                                                orderRevenue, orderRevenue, null,
-                                                "partial: system lookup failed", result);
-                                    });
+                                    // Zwróć tylko niedopasowaną część (śledzony), potem wypłać za dopasowaną.
+                                    returnThen(seller, item, (int) remaining,
+                                            ret -> depositAndFinishSell(seller, sellerId, sellerName, item,
+                                                    amount, matched, orderRevenue, orderRevenue, null,
+                                                    "częściowo: odczyt magazynu systemowego nie powiódł się",
+                                                    ret, result));
                                     return;
                                 }
                                 BazaarStock stock = opt.orElseGet(() -> new BazaarStock(
@@ -596,22 +956,21 @@ public final class BazaarService {
                                         })
                                         .whenComplete((stockOk, stockErr) -> {
                                             if (stockErr != null || stockOk == null || !stockOk) {
-                                                onMain(() -> {
-                                                    giveBack(seller, sellerId, item.material(),
-                                                            (int) finalRemaining);
-                                                    // Wciaz platnosc za czesc dopasowana w orderbooku.
-                                                    depositAndFinishSell(seller, sellerId, sellerName, item,
-                                                            matched, orderRevenue, orderRevenue, price,
-                                                            "partial: system tx failed", result);
-                                                });
+                                                // Zwróć niedopasowaną resztę (śledzony), potem wypłać za dopasowaną.
+                                                returnThen(seller, item, (int) finalRemaining,
+                                                        ret -> depositAndFinishSell(seller, sellerId, sellerName,
+                                                                item, amount, matched, orderRevenue, orderRevenue,
+                                                                price, "częściowo: transakcja magazynu "
+                                                                        + "systemowego nie powiodła się",
+                                                                ret, result));
                                                 return;
                                             }
                                             BigDecimal totalRevenue = orderRevenue.add(systemRevenue);
                                             depositAndFinishSell(seller, sellerId, sellerName, item,
-                                                    amount, totalRevenue, orderRevenue, price,
-                                                    matched > 0 ? "hybrid orderbook+system fill"
-                                                            : "system stock fill",
-                                                    result);
+                                                    amount, amount, totalRevenue, orderRevenue, price,
+                                                    matched > 0 ? "hybryda (księga+magazyn)"
+                                                            : "magazyn systemowy",
+                                                    ItemDelivery.NONE, result);
                                         });
                             });
                 });
@@ -627,74 +986,91 @@ public final class BazaarService {
      * SellOutcome nie jest ukonczony dopoki nie wiemy, ktora sciezka przeszla.
      */
     private void depositAndFinishSell(Player seller, UUID sellerId, String sellerName,
-                                       BazaarItemConfig item, long amountSold, BigDecimal total,
+                                       BazaarItemConfig item, long requested, long amountSold, BigDecimal total,
                                        BigDecimal orderPortion, BazaarPrice fallbackPrice,
-                                       String auditReason,
+                                       String auditReason, ItemDelivery restReturn,
                                        CompletableFuture<SellOutcome> result) {
-        String itemKey = item.key();
         BazaarPrice priceForOutcome = fallbackPrice != null ? fallbackPrice
                 : new BazaarPrice(BigDecimal.ZERO, item.basePrice(), item.basePrice());
+
+        if (amountSold <= 0) {
+            finishSell(sellerId, sellerName, item.key(), auditReason, requested, 0L, BigDecimal.ZERO,
+                    restReturn, SellResult.NOTHING_SOLD, priceForOutcome, result);
+            return;
+        }
         if (total == null || total.signum() <= 0) {
+            finishSell(sellerId, sellerName, item.key(), auditReason + " - wypłata zerowa", requested,
+                    amountSold, BigDecimal.ZERO, restReturn, SellResult.OK, priceForOutcome, result);
+            return;
+        }
+        economy.deposit(sellerId, sellerName, total, "bazaar-sell-" + item.key())
+                .whenComplete((depo, depoErr) -> {
+                    if (depoErr == null && depo != null && depo.success()) {
+                        finishSell(sellerId, sellerName, item.key(), auditReason, requested, amountSold,
+                                total, restReturn, SellResult.OK, priceForOutcome, result);
+                        return;
+                    }
+                    logger.log(Level.SEVERE,
+                            "RYNEK: wypłata za sprzedaż nie powiodła się - próbuję money-claim dla "
+                                    + sellerId, depoErr);
+                    hexCore.async(() -> claims.insertMoney(sellerId, total,
+                                    "bazaar-sell-refund-" + item.key(), null,
+                                    System.currentTimeMillis()))
+                            .whenComplete((cid, e) -> {
+                                boolean claimOk = e == null && cid != null && cid >= 0;
+                                if (!claimOk) {
+                                    logger.log(Level.SEVERE,
+                                            "RYNEK: nieodwracalny błąd wypłaty za sprzedaż dla "
+                                                    + sellerId + " kwota=" + total, e);
+                                }
+                                finishSell(sellerId, sellerName, item.key(), auditReason, requested,
+                                        amountSold, total, restReturn,
+                                        claimOk ? SellResult.OK_PENDING_CLAIM : SellResult.PAYOUT_FAILED,
+                                        priceForOutcome, result);
+                            });
+                });
+    }
+
+    /**
+     * Terminalne złożenie wyniku sprzedaży: łączy status WYPŁATY z terminalnym statusem ZWROTU reszty
+     * i pisze DOKŁADNIE jeden audyt. Kluczowe: nieudany/niepewny zwrot reszty (RETURN_FAILED) ma
+     * PIERWSZEŃSTWO nad OK - nigdy nie meldujemy zwykłego „Sprzedano", gdy reszta nie wróciła bezpiecznie.
+     * Audyt nie twierdzi „zwrócono", jeśli to nie zostało potwierdzone.
+     */
+    private void finishSell(UUID sellerId, String sellerName, String itemKey, String auditReason,
+                            long requested, long amountSold, BigDecimal total, ItemDelivery restReturn,
+                            SellResult payoutResult, BazaarPrice price, CompletableFuture<SellOutcome> result) {
+        SellResult finalResult = combineSellResult(payoutResult, restReturn);
+        String auditResult = switch (finalResult) {
+            case OK, OK_REST_CLAIMED -> AuditAction.RESULT_OK;
+            case OK_PENDING_CLAIM -> AuditAction.RESULT_REFUND_PENDING;
+            case NOTHING_SOLD -> AuditAction.RESULT_ROLLBACK;
+            default -> AuditAction.RESULT_FAILED;                      // PAYOUT_FAILED / RETURN_FAILED
+        };
+        String reason = auditReason + " (zamówiono=" + requested + " sprzedano=" + amountSold
+                + " reszta=" + Math.max(0, requested - amountSold)
+                + " zwrot-reszty=" + restLabel(restReturn)
+                + " wypłata=" + (total == null ? "0" : total.toPlainString()) + ")";
+        try {
             audit.log(audit.builder()
                     .actor(sellerId, sellerName)
                     .action(AuditAction.BAZAAR_INSTANT_SELL)
                     .market(AuditAction.MARKET_BAZAAR)
                     .itemKey(itemKey)
                     .amount(amountSold)
-                    .total(BigDecimal.ZERO)
-                    .result(AuditAction.RESULT_OK)
-                    .reason(auditReason + " - zero payout"));
-            onMain(() -> result.complete(SellOutcome.ok(priceForOutcome, BigDecimal.ZERO)));
-            return;
+                    .total(total == null ? BigDecimal.ZERO : total)
+                    .result(auditResult)
+                    .reason(reason));
+        } catch (Throwable t) {
+            logger.log(Level.SEVERE, "RYNEK: zapis audytu sprzedaży nie powiódł się", t);
         }
-        economy.deposit(sellerId, sellerName, total, "bazaar-sell-" + itemKey)
-                .whenComplete((depo, depoErr) -> {
-                    if (depoErr == null && depo != null && depo.success()) {
-                        audit.log(audit.builder()
-                                .actor(sellerId, sellerName)
-                                .action(AuditAction.BAZAAR_INSTANT_SELL)
-                                .market(AuditAction.MARKET_BAZAAR)
-                                .itemKey(itemKey)
-                                .amount(amountSold)
-                                .total(total)
-                                .result(AuditAction.RESULT_OK)
-                                .reason(auditReason));
-                        onMain(() -> result.complete(SellOutcome.ok(priceForOutcome, total)));
-                        return;
-                    }
-                    logger.log(Level.SEVERE,
-                            "sell deposit failed - trying money claim for " + sellerId, depoErr);
-                    hexCore.async(() -> claims.insertMoney(sellerId, total,
-                                    "bazaar-sell-refund-" + itemKey, null,
-                                    System.currentTimeMillis()))
-                            .whenComplete((cid, e) -> {
-                                boolean claimOk = e == null && cid != null && cid >= 0;
-                                audit.log(audit.builder()
-                                        .actor(sellerId, sellerName)
-                                        .action(AuditAction.BAZAAR_INSTANT_SELL)
-                                        .market(AuditAction.MARKET_BAZAAR)
-                                        .itemKey(itemKey)
-                                        .amount(amountSold)
-                                        .total(total)
-                                        .claimId(claimOk ? cid : null)
-                                        .result(claimOk
-                                                ? AuditAction.RESULT_REFUND_PENDING
-                                                : AuditAction.RESULT_FAILED)
-                                        .reason(claimOk
-                                                ? "sell deposit failed - money claim path"
-                                                : "sell deposit + money claim both failed"));
-                                if (claimOk) {
-                                    onMain(() -> result.complete(
-                                            SellOutcome.okPendingClaim(priceForOutcome, total)));
-                                } else {
-                                    logger.log(Level.SEVERE,
-                                            "sell payout unrecoverable for " + sellerId
-                                                    + " total=" + total, e);
-                                    onMain(() -> result.complete(
-                                            SellOutcome.fail(SellResult.PAYOUT_FAILED)));
-                                }
-                            });
-                });
+        SellOutcome outcome = switch (finalResult) {
+            case OK -> SellOutcome.ok(price, total, amountSold);
+            case OK_REST_CLAIMED -> new SellOutcome(SellResult.OK_REST_CLAIMED, price, total, amountSold);
+            case OK_PENDING_CLAIM -> SellOutcome.okPendingClaim(price, total, amountSold);
+            default -> SellOutcome.fail(finalResult);                  // NOTHING_SOLD / PAYOUT_FAILED / RETURN_FAILED
+        };
+        onMain(() -> result.complete(outcome));
     }
 
     /**
@@ -719,43 +1095,72 @@ public final class BazaarService {
             if (plainOnly && !PlainItemMatcher.isPlain(it, mat)) continue;
             int take = Math.min(it.getAmount(), remaining);
             int leftover = it.getAmount() - take;
+            ItemStack newValue;
             if (leftover <= 0) {
-                contents[slot] = null;
+                newValue = null;
             } else {
                 ItemStack copy = it.clone();
                 copy.setAmount(leftover);
-                contents[slot] = copy;
+                newValue = copy;
             }
+            // Zapis per-slot (sloty 0..35 = schowek): równoważny setStorageContents, modyfikuje tylko
+            // zmienione sloty i jest w pełni wspierany przez środowiska testowe.
+            p.getInventory().setItem(slot, newValue);
             remaining -= take;
         }
-        p.getInventory().setStorageContents(contents);
         return true;
     }
 
-    private void giveBack(Player p, UUID owner, Material mat, int amount) {
-        if (p != null && p.isOnline()) {
-            var leftover = p.getInventory().addItem(new ItemStack(mat, amount));
-            for (ItemStack rest : leftover.values()) {
-                claimItemAsync(owner, rest, "bazaar-sell-refund");
-            }
+    /**
+     * ŚLEDZONY zwrot niesprzedanych przedmiotów (all-or-nothing tri-state przez {@link #deliverItems})
+     * i DOPIERO potem kontynuacja (np. wypłata za sprzedaną część + wynik gracza). Żadnego
+     * fire-and-forget: wynik/busy-guard kończy się dopiero po TERMINALNYM zwrocie. Niepewny/nieudany
+     * zwrot (UNCERTAIN/CLAIM_FAILED) -> SEVERE do ręcznej korekty (nigdy world-drop, nigdy dup).
+     */
+    private void returnThen(Player seller, BazaarItemConfig item, int qty, Consumer<ItemDelivery> then) {
+        if (qty <= 0) {
+            onMain(() -> then.accept(ItemDelivery.NONE));
             return;
         }
-        claimItemAsync(owner, new ItemStack(mat, amount), "bazaar-sell-refund");
+        deliverItems(seller.getUniqueId(), seller, item, qty).whenComplete((ret, e) -> {
+            ItemDelivery d = (e != null || ret == null) ? ItemDelivery.UNCERTAIN : ret;
+            if (restReturnFailed(d)) {
+                logger.severe("RYNEK: zwrot niesprzedanych przedmiotów niepewny/nieudany dla "
+                        + seller.getUniqueId() + " (ilość=" + qty + ", stan=" + d
+                        + ") - wymagana ręczna korekta");
+            }
+            final ItemDelivery fd = d;
+            onMain(() -> then.accept(fd));
+        });
     }
 
-    private void claimItemAsync(UUID owner, ItemStack item, String reason) {
-        if (owner == null || item == null) return;
-        final byte[] blob;
-        try {
-            blob = ItemSerializer.serialize(item);
-        } catch (Throwable t) {
-            logger.log(Level.WARNING, "could not serialize refund item", t);
-            return;
-        }
-        hexCore.async(() -> claims.insertItem(owner, blob, reason, null, System.currentTimeMillis()))
-                .exceptionally(ex -> {
-                    logger.log(Level.SEVERE, "refund claim insert failed for " + owner, ex);
-                    return -1L;
-                });
+    /** Zwrot reszty NIE jest bezpieczny (mogła nastąpić częściowa dostawa albo claim padł). */
+    static boolean restReturnFailed(ItemDelivery d) {
+        return d == ItemDelivery.UNCERTAIN || d == ItemDelivery.CLAIM_FAILED;
     }
+
+    /**
+     * Czysta reguła łączenia wyniku wypłaty ze statusem zwrotu reszty (testowalna).
+     * Nieudany/niepewny zwrot reszty ma PIERWSZEŃSTWO nad OK (krytyczne, nigdy fałszywy „Sprzedano").
+     */
+    public static SellResult combineSellResult(SellResult payout, ItemDelivery restReturn) {
+        if (restReturnFailed(restReturn)) {
+            return SellResult.RETURN_FAILED;
+        }
+        if (payout == SellResult.OK && restReturn == ItemDelivery.AS_CLAIM) {
+            return SellResult.OK_REST_CLAIMED;
+        }
+        return payout;
+    }
+
+    private static String restLabel(ItemDelivery d) {
+        return switch (d) {
+            case IN_INVENTORY -> "ekwipunek";
+            case AS_CLAIM -> "odbiór (claim)";
+            case CLAIM_FAILED -> "NIEUDANY";
+            case UNCERTAIN -> "NIEPEWNY";
+            case NONE -> "brak reszty";
+        };
+    }
+
 }

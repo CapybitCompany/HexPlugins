@@ -34,9 +34,13 @@ public final class InMemoryDb implements Db {
 
     private Handler defaultUpdate = params -> 1;
     private QueryHandler<Object> defaultQuery = params -> List.of();
+    private String throwOnUpdateContaining = null;   // gdy SQL update zawiera ten fragment -> rzuć (test błędów DB)
 
     public void setDefaultUpdate(Handler h) { this.defaultUpdate = h; }
     public void setDefaultQuery(QueryHandler<Object> h) { this.defaultQuery = h; }
+
+    /** Ustawia fragment SQL, dla którego {@link #update} rzuci wyjątek (symulacja awarii konkretnego zapisu). */
+    public void failUpdatesContaining(String sqlFragment) { this.throwOnUpdateContaining = sqlFragment; }
 
     /** Operacja logowana; test moze zweryfikowac czy wyladowala w liscie. */
     public record Op(String sql, List<Object> params) {}
@@ -44,22 +48,41 @@ public final class InMemoryDb implements Db {
     public List<Op> operations() { return List.copyOf(operations); }
     public void clearOps() { operations.clear(); }
 
+    /**
+     * Null-tolerancyjna migawka parametrów. Produkcyjne zapytania (np. audyt) przekazują parametry
+     * {@code null} (brak actora/itemKey/orderId...), a {@code List.of(...)} rzuciłby na nich NPE -
+     * co maskowałoby faktyczne wykonanie zapytania. Używamy niemodyfikowalnej listy dopuszczającej null.
+     */
+    private static List<Object> paramList(Object... params) {
+        return java.util.Collections.unmodifiableList(java.util.Arrays.asList(params));
+    }
+
     @Override
     public int update(String sql, Object... params) {
-        operations.add(new Op(sql, List.of(params)));
-        return defaultUpdate.handle(List.of(params));
+        List<Object> p = paramList(params);
+        if (throwOnUpdateContaining != null && sql.contains(throwOnUpdateContaining)) {
+            // Symulacja awarii konkretnego zapisu (op NIE jest logowany - zapis się nie powiódł).
+            throw new RuntimeException("symulowana awaria update: " + throwOnUpdateContaining);
+        }
+        operations.add(new Op(sql, p));
+        return defaultUpdate.handle(p);
     }
 
     @Override
     public <T> List<T> query(String sql, RowMapper<T> mapper, Object... params) {
-        operations.add(new Op(sql, List.of(params)));
+        operations.add(new Op(sql, paramList(params)));
         // Nie mamy sposobu na ResultSet - test double zwraca pusta liste.
         return List.of();
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> Optional<T> queryOne(String sql, RowMapper<T> mapper, Object... params) {
-        operations.add(new Op(sql, List.of(params)));
+        operations.add(new Op(sql, paramList(params)));
+        // Wsparcie dla wzorca insert-then-get-id (LAST_INSERT_ID) - zwraca kolejne wygenerowane id.
+        if (sql.contains("LAST_INSERT_ID")) {
+            return (Optional<T>) Optional.of(nextGeneratedId());
+        }
         return Optional.empty();
     }
 

@@ -1,5 +1,8 @@
 # Przedmioty dostępne w Bazarze definiujesz tutaj.
 # Kategoria musi pasować do jednego z kluczy w config.yml -> bazaar.categories.
+# Jeśli nie pasuje (lub kategoria jest poza 5 widocznymi), przedmiot trafi do pierwszej widocznej kategorii.
+# Ceny (base/min/max) są normalizowane do 2 miejsc po przecinku i muszą mieścić się w DECIMAL(19,2);
+# wymagane: min > 0, max >= min, base w [min, max]. Wartości spoza zakresu -> bezpieczny fallback + ostrzeżenie.
 items:
   cobblestone:
     material: COBBLESTONE

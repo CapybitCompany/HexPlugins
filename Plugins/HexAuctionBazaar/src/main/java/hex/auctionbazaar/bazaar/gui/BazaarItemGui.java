@@ -8,6 +8,7 @@ import hex.auctionbazaar.config.BazaarConfig;
 import hex.auctionbazaar.config.BazaarItemConfig;
 import hex.auctionbazaar.gui.GuiFrame;
 import hex.auctionbazaar.gui.GuiHolder;
+import hex.auctionbazaar.gui.SignPrompt;
 import hex.auctionbazaar.util.LegacyFormat;
 import hex.auctionbazaar.util.MessageFactory;
 import net.kyori.adventure.text.Component;
@@ -88,12 +89,8 @@ public final class BazaarItemGui {
 
         GuiFrame.fillEmpty(inv, GuiFrame.materialOrDefault(c.frameMaterial(), Material.GRAY_STAINED_GLASS_PANE));
         player.openInventory(inv);
-
-        HexAuctionBazaarPlugin main = plugin instanceof HexAuctionBazaarPlugin p ? p : null;
-        if (main != null && main.autoRefreshTicker() != null) {
-            main.autoRefreshTicker().register(player, GuiHolder.Kind.BAZAAR_ITEM,
-                    () -> open(plugin, player, item.key(), cfg, service, economy, messages));
-        }
+        // Menu przedmiotu odświeżamy WYŁĄCZNIE manualnie (przycisk zegara) - bezpieczny
+        // in-place refresh sum na przyciskach ilości nie jest tu zrobiony celowo (punkt #4).
     }
 
     private static ItemStack buildInfo(BazaarItemConfig item, BazaarPrice price,
@@ -170,13 +167,23 @@ public final class BazaarItemGui {
             }
             main.signPrompt().promptLong(ctx.player(),
                     messages.raw("bazaar.gui.quantity-preset-custom", null),
-                    v -> {
-                        if (v == null || v <= 0 || v > Integer.MAX_VALUE) {
+                    res -> {
+                        // #9: rozłączne wyniki. Nie-sukces -> właściwy komunikat i (poza offline)
+                        // powrót do widoku ilości.
+                        if (!res.isSuccess()) {
+                            messages.send(ctx.player(), SignPrompt.messageKey(res.outcome()));
+                            if (res.outcome() != SignPrompt.PromptOutcome.TRANSPORT_FAILED) {
+                                open(plugin, ctx.player(), item.key(), cfg, service, economy, messages);
+                            }
+                            return;
+                        }
+                        long v = res.value();
+                        if (v > Integer.MAX_VALUE) {
                             messages.send(ctx.player(), "bazaar.invalid-quantity");
                             open(plugin, ctx.player(), item.key(), cfg, service, economy, messages);
                             return;
                         }
-                        int qty = v.intValue();
+                        int qty = (int) v;
                         if (isBuy) doBuy(plugin, ctx.player(), item, qty, service, economy, messages);
                         else doSell(plugin, ctx.player(), item, qty, service, economy, messages);
                     });
@@ -227,7 +234,7 @@ public final class BazaarItemGui {
         }
         service.buy(player, item.key(), qty).thenAccept(outcome ->
                 Bukkit.getScheduler().runTask(plugin,
-                        () -> handleBuyOutcome(player, item, qty, outcome, economy, messages)));
+                        () -> handleBuyOutcome(player, item, outcome, economy, messages)));
     }
 
     private static void doSell(Plugin plugin, Player player, BazaarItemConfig item, int qty,
@@ -277,7 +284,7 @@ public final class BazaarItemGui {
                                         BazaarItemConfig item, Supplier<BazaarConfig> cfg,
                                         BazaarService service, EconomyBridge economy,
                                         MessageFactory messages) {
-        ItemStack back = GuiFrame.button(Material.ARROW,
+        ItemStack back = GuiFrame.button(Material.BARRIER,
                 messages.raw("bazaar.gui.back", null));
         inv.setItem(SLOT_BACK, back);
         holder.setSlotAction(SLOT_BACK, ctx -> BazaarMainGui.open(plugin, ctx.player(),
@@ -295,13 +302,13 @@ public final class BazaarItemGui {
         holder.setSlotAction(SLOT_CLOSE, ctx -> ctx.player().closeInventory());
     }
 
-    private static void handleBuyOutcome(Player player, BazaarItemConfig item, int qty,
+    private static void handleBuyOutcome(Player player, BazaarItemConfig item,
                                           BazaarService.BuyOutcome outcome,
                                           EconomyBridge economy, MessageFactory messages) {
         switch (outcome.result()) {
             case OK -> {
                 messages.send(player, "bazaar.bought", placeholders(
-                        "amount", String.valueOf(qty),
+                        "amount", String.valueOf(outcome.deliveredAmount()),
                         "item", item.displayName(),
                         "total", economy.format(outcome.total())));
                 if (outcome.wentToClaim()) {
@@ -315,8 +322,24 @@ public final class BazaarItemGui {
             case UNKNOWN_ITEM -> messages.send(player, "bazaar.unknown-item",
                     placeholders("key", item.key()));
             case ECONOMY_UNAVAILABLE -> messages.send(player, "common.economy-missing");
+            case ECONOMY_ERROR -> messages.send(player, "common.economy-error");
             case INVALID_QTY -> messages.send(player, "bazaar.invalid-quantity");
-            case DB_FAILED -> messages.send(player, "common.schema-not-ready");
+            case DB_FAILED -> messages.send(player, "common.db-error");
+            case REFUNDED -> messages.send(player, "bazaar.buy-refunded");
+            case REFUND_PENDING -> messages.send(player, "bazaar.buy-refund-pending");
+            case OVERPAY_REFUND_PENDING -> {
+                messages.send(player, "bazaar.bought", placeholders(
+                        "amount", String.valueOf(outcome.deliveredAmount()),
+                        "item", item.displayName(),
+                        "total", economy.format(outcome.total())));
+                if (outcome.wentToClaim()) {
+                    messages.send(player, "bazaar.inventory-full-claim");
+                }
+                messages.send(player, "bazaar.overpay-refund-pending");
+            }
+            case COMPENSATION_FAILED -> messages.send(player, "bazaar.buy-critical-error");
+            case FEATURE_DISABLED -> messages.send(player, "common.feature-disabled");
+            case NO_PERMISSION -> messages.send(player, "common.no-permission");
         }
     }
 
@@ -325,16 +348,27 @@ public final class BazaarItemGui {
                                            EconomyBridge economy, MessageFactory messages) {
         switch (outcome.result()) {
             case OK -> messages.send(player, "bazaar.sold", placeholders(
-                    "amount", String.valueOf(qty),
+                    "amount", String.valueOf(outcome.amountSold()),
                     "item", item.displayName(),
                     "total", economy.format(outcome.total())));
             case OK_PENDING_CLAIM -> {
                 messages.send(player, "bazaar.sold", placeholders(
-                        "amount", String.valueOf(qty),
+                        "amount", String.valueOf(outcome.amountSold()),
                         "item", item.displayName(),
                         "total", economy.format(outcome.total())));
                 messages.send(player, "bazaar.sell-pending-claim");
             }
+            case OK_REST_CLAIMED -> {
+                messages.send(player, "bazaar.sold", placeholders(
+                        "amount", String.valueOf(outcome.amountSold()),
+                        "item", item.displayName(),
+                        "total", economy.format(outcome.total())));
+                messages.send(player, "bazaar.sell-rest-claimed");
+            }
+            case RETURN_FAILED -> messages.send(player, "bazaar.sell-return-failed");
+            case FEATURE_DISABLED -> messages.send(player, "common.feature-disabled");
+            case NO_PERMISSION -> messages.send(player, "common.no-permission");
+            case NOTHING_SOLD -> messages.send(player, "bazaar.nothing-sold");
             case PAYOUT_FAILED -> messages.send(player, "bazaar.sell-payout-failed");
             case NOT_ENOUGH_ITEMS -> messages.send(player, "bazaar.not-enough-items",
                     placeholders("item", item.displayName()));
@@ -343,7 +377,7 @@ public final class BazaarItemGui {
                     placeholders("key", item.key()));
             case ECONOMY_UNAVAILABLE -> messages.send(player, "common.economy-missing");
             case INVALID_QTY -> messages.send(player, "bazaar.invalid-quantity");
-            case DB_FAILED -> messages.send(player, "common.schema-not-ready");
+            case DB_FAILED -> messages.send(player, "common.db-error");
         }
     }
 }

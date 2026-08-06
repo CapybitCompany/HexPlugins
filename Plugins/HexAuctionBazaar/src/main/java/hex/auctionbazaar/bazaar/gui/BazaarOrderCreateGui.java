@@ -10,6 +10,7 @@ import hex.auctionbazaar.config.BazaarConfig;
 import hex.auctionbazaar.config.BazaarItemConfig;
 import hex.auctionbazaar.gui.GuiFrame;
 import hex.auctionbazaar.gui.GuiHolder;
+import hex.auctionbazaar.gui.SignPrompt;
 import hex.auctionbazaar.util.LegacyFormat;
 import hex.auctionbazaar.util.MessageFactory;
 import org.bukkit.Bukkit;
@@ -111,15 +112,18 @@ public final class BazaarOrderCreateGui {
             if (main.signPrompt() == null) return;
             main.signPrompt().promptLong(ctx.player(),
                     messages.raw("bazaar.gui.quantity-preset-custom", null),
-                    v -> {
-                        if (v == null || v <= 0) {
-                            messages.send(ctx.player(), "bazaar.invalid-quantity");
-                            render(plugin, ctx.player(), item, side, price, cfg, service, economy,
-                                    messages, amount, chosenPrice);
+                    res -> {
+                        // #9: nie-sukces -> właściwy komunikat i (poza offline) powrót do kreatora.
+                        if (!res.isSuccess()) {
+                            messages.send(ctx.player(), SignPrompt.messageKey(res.outcome()));
+                            if (res.outcome() != SignPrompt.PromptOutcome.TRANSPORT_FAILED) {
+                                render(plugin, ctx.player(), item, side, price, cfg, service, economy,
+                                        messages, amount, chosenPrice);
+                            }
                             return;
                         }
                         render(plugin, ctx.player(), item, side, price, cfg, service, economy,
-                                messages, v, chosenPrice);
+                                messages, res.value(), chosenPrice);
                     });
         });
 
@@ -135,8 +139,8 @@ public final class BazaarOrderCreateGui {
 
         // Custom price
         ItemStack customPrice = GuiFrame.button(Material.OAK_SIGN,
-                messages.raw("bazaar.gui.quantity-preset-custom", null),
-                List.of(messages.raw("bazaar.gui.quantity-custom-lore", null),
+                messages.raw("bazaar.gui.price-preset-custom", null),
+                List.of(messages.raw("bazaar.gui.price-custom-lore", null),
                         messages.raw("auction.gui.sell-price-custom-lore-2",
                                 placeholders("min", item.minPrice().toPlainString(),
                                         "max", item.maxPrice().toPlainString()))));
@@ -146,10 +150,20 @@ public final class BazaarOrderCreateGui {
             if (main.signPrompt() == null) return;
             main.signPrompt().promptNumber(ctx.player(),
                     messages.raw("bazaar.order-flow.prompt-price", null),
-                    v -> {
-                        if (v == null || v.signum() <= 0
-                                || v.compareTo(item.minPrice()) < 0
-                                || v.compareTo(item.maxPrice()) > 0) {
+                    res -> {
+                        if (!res.isSuccess()) {
+                            messages.send(ctx.player(), SignPrompt.messageKey(res.outcome()));
+                            if (res.outcome() != SignPrompt.PromptOutcome.TRANSPORT_FAILED) {
+                                render(plugin, ctx.player(), item, side, price, cfg, service, economy,
+                                        messages, amount, chosenPrice);
+                            }
+                            return;
+                        }
+                        // #7: normalizacja do skali 2 i granic DECIMAL(19,2) przed walidacją/DB/ekonomią.
+                        BigDecimal p = hex.auctionbazaar.util.Money.normalize(res.value());
+                        if (p == null || p.signum() <= 0 || !hex.auctionbazaar.util.Money.fits(p)
+                                || p.compareTo(item.minPrice()) < 0
+                                || p.compareTo(item.maxPrice()) > 0) {
                             messages.send(ctx.player(), "bazaar.invalid-price",
                                     placeholders("min", item.minPrice().toPlainString(),
                                             "max", item.maxPrice().toPlainString()));
@@ -158,7 +172,7 @@ public final class BazaarOrderCreateGui {
                             return;
                         }
                         render(plugin, ctx.player(), item, side, price, cfg, service, economy,
-                                messages, amount, v);
+                                messages, amount, p);
                     });
         });
 
@@ -189,7 +203,7 @@ public final class BazaarOrderCreateGui {
         }
 
         // Back / close
-        ItemStack back = GuiFrame.button(Material.ARROW,
+        ItemStack back = GuiFrame.button(Material.BARRIER,
                 messages.raw("bazaar.gui.back", null));
         inv.setItem(SLOT_BACK, back);
         holder.setSlotAction(SLOT_BACK, ctx -> BazaarItemGui.open(plugin, ctx.player(),
@@ -269,8 +283,14 @@ public final class BazaarOrderCreateGui {
                 case NOT_ENOUGH_ITEMS -> messages.send(player, "bazaar.not-enough-items",
                         placeholders("item", item.displayName()));
                 case ECONOMY_UNAVAILABLE -> messages.send(player, "common.economy-missing");
+                case ECONOMY_ERROR -> messages.send(player, "common.economy-error");
                 case DB_FAILED -> messages.send(player, "common.schema-not-ready");
                 case FEATURE_DISABLED -> messages.send(player, "bazaar.order-feature-disabled");
+                // Krytyczny stan kompensacji: dla SELL nie udało się zwrócić przedmiotów, dla BUY - środków.
+                case COMPENSATION_FAILED -> messages.send(player, side == OrderSide.BUY
+                        ? "bazaar.order-buy-refund-failed" : "bazaar.order-return-failed");
+                case NO_PERMISSION -> messages.send(player, "common.no-permission");
+                case BUSY -> messages.send(player, "bazaar.order-busy");
             }
         }));
     }

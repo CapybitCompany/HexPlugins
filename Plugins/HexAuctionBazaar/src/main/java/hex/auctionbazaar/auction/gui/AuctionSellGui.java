@@ -6,8 +6,11 @@ import hex.auctionbazaar.bridge.EconomyBridge;
 import hex.auctionbazaar.config.AuctionConfig;
 import hex.auctionbazaar.gui.GuiFrame;
 import hex.auctionbazaar.gui.GuiHolder;
+import hex.auctionbazaar.gui.SignPrompt;
 import hex.auctionbazaar.util.LegacyFormat;
 import hex.auctionbazaar.util.MessageFactory;
+import hex.auctionbazaar.util.SaleFeeResolver;
+import hex.auctionbazaar.util.SaleTax;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -23,84 +26,53 @@ import java.util.function.Supplier;
 import static hex.auctionbazaar.util.MessageFactory.placeholders;
 
 /**
- * GUI wystawiania przedmiotu na aukcje.
- * Nie przyjmuje przedmiotu do zadedykowanego slotu (unikamy dupe-risk-a
- * przez wymuszona kotwice na przedmiocie z reki). Uzytkownik:
- *  1. Trzyma przedmiot w rece.
- *  2. Klika preset ceny lub "Własna cena" (znak).
- *  3. Serwis {@link AuctionService#sellItemInHand} sam snapshotuje i usuwa
- *     przedmiot atomowo, chroniac przed race-item-change.
+ * GUI wystawiania przedmiotu na aukcję (punkt #10 / #11).
  *
- * Dzieki temu nie mamy stanu inventory-w-GUI ktore trzeba by odzyskiwac
- * w razie zamkniecia okna.
+ * Bez presetów cen - jest tylko jeden przycisk „Własna cena”, który uruchamia
+ * naprawioną tabliczkę/czat. Po wpisaniu ceny pokazujemy przejrzystą
+ * ZUSAMMENFASSUNG (brutto / podatek / netto), a dopiero jej zatwierdzenie
+ * tworzy aukcję. Przedmiot nie trafia do dedykowanego slotu (kotwica na ręce),
+ * dzięki czemu nie ma stanu inventory do odzyskiwania po zamknięciu okna.
  */
 public final class AuctionSellGui {
 
     private static final int ROWS = 5;
     private static final int SIZE = ROWS * 9;
 
-    private static final int SLOT_ITEM_PREVIEW = 4;
+    // Ekran wyboru ceny.
+    private static final int SLOT_ITEM_PREVIEW = 13;
     private static final int SLOT_INFO = 22;
-    private static final int SLOT_CANCEL = 40;
-    private static final int SLOT_CLOSE = 44;
-    // Presety cen w rzedzie 2 (sloty 10-16, do 7 presetow) - wypelnianie od lewej.
-    private static final int[] PRESET_SLOTS = {10, 11, 12, 13, 14, 15, 16};
-    // Custom price slot: rzad 4 (aby oddzielic wizualnie).
     private static final int SLOT_CUSTOM_PRICE = 31;
+    private static final int SLOT_BACK = 40;
+
+    // Ekran podsumowania.
+    private static final int SLOT_SUMMARY_INFO = 22;
+    private static final int SLOT_CONFIRM = 29;
+    private static final int SLOT_CHANGE_PRICE = 33;
 
     public static void open(Plugin plugin, Player player, Supplier<AuctionConfig> cfg,
                             AuctionService service, EconomyBridge economy, MessageFactory messages) {
-        render(plugin, player, cfg.get(), service, economy, messages);
+        renderChoosePrice(plugin, player, cfg, service, economy, messages);
     }
 
-    private static void render(Plugin plugin, Player player, AuctionConfig cfg,
-                                AuctionService service, EconomyBridge economy, MessageFactory messages) {
+    // ------------------------------------------------------------ choose-price screen
+
+    private static void renderChoosePrice(Plugin plugin, Player player, Supplier<AuctionConfig> cfgSup,
+                                          AuctionService service, EconomyBridge economy,
+                                          MessageFactory messages) {
+        AuctionConfig cfg = cfgSup.get();
         GuiHolder holder = new GuiHolder(GuiHolder.Kind.AUCTION_SELL);
         Inventory inv = Bukkit.createInventory(holder, SIZE, LegacyFormat.component(cfg.sellTitle()));
         holder.bindInventory(inv);
 
-        // Podglad przedmiotu z reki
-        ItemStack inHand = player.getInventory().getItemInMainHand();
-        if (inHand != null && inHand.getType() != Material.AIR) {
-            ItemStack preview = inHand.clone();
-            var meta = preview.getItemMeta();
-            if (meta != null) {
-                List<String> lore = new ArrayList<>();
-                lore.add(messages.raw("auction.gui.sell-item-slot-title", null));
-                meta.lore(LegacyFormat.components(lore));
-                preview.setItemMeta(meta);
-            }
-            inv.setItem(SLOT_ITEM_PREVIEW, preview);
-        } else {
-            inv.setItem(SLOT_ITEM_PREVIEW, GuiFrame.button(Material.BARRIER,
-                    messages.raw("auction.gui.sell-item-slot-empty", null)));
-        }
+        inv.setItem(SLOT_ITEM_PREVIEW, itemPreview(player, messages));
 
-        // Info banner
         inv.setItem(SLOT_INFO, GuiFrame.button(Material.PAPER,
                 messages.raw("auction.gui.sell-price-info-1", null),
                 List.of(messages.raw("auction.gui.sell-price-info-2",
                         placeholders("min", cfg.minPrice().toPlainString(),
                                 "max", cfg.maxPrice().toPlainString())))));
 
-        // Presety cen
-        List<BigDecimal> presets = cfg.sellPricePresets();
-        int placed = 0;
-        for (int i = 0; i < PRESET_SLOTS.length && i < presets.size(); i++) {
-            BigDecimal p = presets.get(i);
-            if (!cfg.priceInRange(p)) continue;
-            int slot = PRESET_SLOTS[placed++];
-            ItemStack btn = GuiFrame.button(Material.GOLD_INGOT,
-                    messages.raw("auction.gui.sell-price-preset-title",
-                            placeholders("price", economy.format(p))),
-                    List.of(messages.raw("auction.gui.sell-price-preset-lore", null)));
-            inv.setItem(slot, btn);
-            final BigDecimal chosen = p;
-            holder.setSlotAction(slot, ctx -> submitSell(plugin, ctx.player(), chosen,
-                    cfg, service, economy, messages));
-        }
-
-        // Custom price
         ItemStack custom = GuiFrame.button(Material.OAK_SIGN,
                 messages.raw("auction.gui.sell-price-custom-title", null),
                 List.of(messages.raw("auction.gui.sell-price-custom-lore-1", null),
@@ -109,24 +81,40 @@ public final class AuctionSellGui {
                                         "max", cfg.maxPrice().toPlainString()))));
         inv.setItem(SLOT_CUSTOM_PRICE, custom);
         holder.setSlotAction(SLOT_CUSTOM_PRICE, ctx -> promptCustomPrice(plugin, ctx.player(),
-                cfg, service, economy, messages));
+                cfgSup, service, economy, messages));
 
-        // Cancel / close
-        ItemStack cancel = GuiFrame.button(Material.RED_WOOL,
-                messages.raw("auction.gui.confirm-cancel-button", null));
-        inv.setItem(SLOT_CANCEL, cancel);
-        holder.setSlotAction(SLOT_CANCEL, ctx -> ctx.player().closeInventory());
-
-        ItemStack close = GuiFrame.button(Material.BARRIER,
-                messages.raw("bazaar.gui.close", null));
-        inv.setItem(SLOT_CLOSE, close);
-        holder.setSlotAction(SLOT_CLOSE, ctx -> ctx.player().closeInventory());
+        ItemStack back = GuiFrame.button(Material.BARRIER,
+                messages.raw("auction.gui.back", null),
+                List.of(messages.raw("auction.gui.back-lore", null)));
+        inv.setItem(SLOT_BACK, back);
+        holder.setSlotAction(SLOT_BACK, ctx -> AuctionBrowseGui.open(plugin, ctx.player(),
+                cfgSup, service, economy, messages));
 
         GuiFrame.fillEmpty(inv, GuiFrame.materialOrDefault(cfg.frameMaterial(), Material.BLACK_STAINED_GLASS_PANE));
         player.openInventory(inv);
     }
 
-    private static void promptCustomPrice(Plugin plugin, Player player, AuctionConfig cfg,
+    private static ItemStack itemPreview(Player player, MessageFactory messages) {
+        ItemStack inHand = player.getInventory().getItemInMainHand();
+        if (inHand == null || inHand.getType() == Material.AIR) {
+            return GuiFrame.button(Material.BARRIER, messages.raw("auction.gui.sell-item-slot-empty", null));
+        }
+        // Zachowujemy prawdziwy podgląd (nazwa/lore/meta), dodając tylko krótką notkę.
+        ItemStack preview = inHand.clone();
+        var meta = preview.getItemMeta();
+        if (meta != null) {
+            List<net.kyori.adventure.text.Component> lore = new ArrayList<>();
+            if (meta.hasLore() && meta.lore() != null) {
+                lore.addAll(meta.lore());
+            }
+            lore.add(LegacyFormat.component(messages.raw("auction.gui.sell-item-slot-title", null)));
+            meta.lore(lore);
+            preview.setItemMeta(meta);
+        }
+        return preview;
+    }
+
+    private static void promptCustomPrice(Plugin plugin, Player player, Supplier<AuctionConfig> cfgSup,
                                           AuctionService service, EconomyBridge economy,
                                           MessageFactory messages) {
         HexAuctionBazaarPlugin main = (HexAuctionBazaarPlugin) plugin;
@@ -134,38 +122,148 @@ public final class AuctionSellGui {
             messages.send(player, "common.input-invalid");
             return;
         }
+        AuctionConfig cfg = cfgSup.get();
         main.signPrompt().promptNumber(player,
                 messages.raw("auction.sell-flow.prompt-price", null),
-                v -> {
-                    if (v == null || v.signum() <= 0 || !cfg.priceInRange(v)) {
+                res -> {
+                    // #9: rozłączne wyniki promptu. Anulacja/timeout/błąd/transport mają własny
+                    // komunikat i (poza offline) przywracają widok wyboru ceny.
+                    if (!res.isSuccess()) {
+                        messages.send(player, SignPrompt.messageKey(res.outcome()));
+                        if (res.outcome() != SignPrompt.PromptOutcome.TRANSPORT_FAILED) {
+                            renderChoosePrice(plugin, player, cfgSup, service, economy, messages);
+                        }
+                        return;
+                    }
+                    // #7: normalizacja do skali 2 (HALF_UP) i granic DECIMAL(19,2) ZANIM cena
+                    // trafi do podatku/ekonomii/DB/audytu oraz na ekran podsumowania.
+                    BigDecimal price = hex.auctionbazaar.util.Money.normalize(res.value());
+                    if (price == null || price.signum() <= 0 || !hex.auctionbazaar.util.Money.fits(price)
+                            || !cfg.priceInRange(price)) {
                         messages.send(player, "auction.sell-flow.price-out-of-range",
                                 placeholders("min", cfg.minPrice().toPlainString(),
                                         "max", cfg.maxPrice().toPlainString()));
-                        open(plugin, player, () -> cfg, service, economy, messages);
+                        renderChoosePrice(plugin, player, cfgSup, service, economy, messages);
                         return;
                     }
-                    submitSell(plugin, player, v, cfg, service, economy, messages);
+                    renderSummary(plugin, player, cfgSup, service, economy, messages, price);
                 });
     }
 
-    private static void submitSell(Plugin plugin, Player player, BigDecimal price, AuctionConfig cfg,
-                                    AuctionService service, EconomyBridge economy, MessageFactory messages) {
-        service.sellItemInHand(player, price).thenAccept(outcome ->
+    // ------------------------------------------------------------ summary screen
+
+    private static void renderSummary(Plugin plugin, Player player, Supplier<AuctionConfig> cfgSup,
+                                      AuctionService service, EconomyBridge economy,
+                                      MessageFactory messages, BigDecimal price) {
+        AuctionConfig cfg = cfgSup.get();
+        BigDecimal pct = SaleFeeResolver.resolve(player::hasPermission, cfg.saleFeePercent(), cfg.saleFeeTiers());
+        SaleTax.Breakdown tax = SaleTax.compute(price, pct);
+        BigDecimal fee = cfg.listingFee() == null ? BigDecimal.ZERO : cfg.listingFee();
+        BigDecimal economicNet = tax.net().subtract(fee);
+        if (economicNet.signum() < 0) economicNet = BigDecimal.ZERO;
+
+        GuiHolder holder = new GuiHolder(GuiHolder.Kind.AUCTION_SELL);
+        Inventory inv = Bukkit.createInventory(holder, SIZE,
+                LegacyFormat.component(messages.raw("auction.sell-flow.summary-title", null)));
+        holder.bindInventory(inv);
+
+        inv.setItem(SLOT_ITEM_PREVIEW, itemPreview(player, messages));
+
+        List<String> summaryLore = new ArrayList<>();
+        summaryLore.add(messages.raw("auction.gui.sell-summary-gross",
+                placeholders("gross", economy.format(tax.gross()))));
+        if (fee.signum() > 0) {
+            summaryLore.add(messages.raw("auction.gui.sell-summary-fee",
+                    placeholders("fee", economy.format(fee))));
+        }
+        summaryLore.add(messages.raw("auction.gui.sell-summary-tax",
+                placeholders("percent", tax.percent().toPlainString(),
+                        "tax", economy.format(tax.tax()))));
+        summaryLore.add(messages.raw("auction.gui.sell-summary-net",
+                placeholders("net", economy.format(economicNet))));
+        summaryLore.add("");
+        summaryLore.add(messages.raw("auction.gui.sell-summary-hint", null));
+
+        inv.setItem(SLOT_SUMMARY_INFO, GuiFrame.button(Material.GOLD_INGOT,
+                messages.raw("auction.gui.sell-summary-gross",
+                        placeholders("gross", economy.format(tax.gross()))),
+                summaryLore));
+
+        ItemStack confirm = GuiFrame.button(Material.LIME_WOOL,
+                messages.raw("auction.gui.sell-confirm-button",
+                        placeholders("gross", economy.format(tax.gross()))),
+                summaryLore);
+        inv.setItem(SLOT_CONFIRM, confirm);
+        final BigDecimal shownPct = pct;
+        holder.setSlotAction(SLOT_CONFIRM, ctx -> submitSell(plugin, ctx.player(), price, shownPct, cfgSup,
+                service, economy, messages));
+
+        ItemStack change = GuiFrame.button(Material.OAK_SIGN,
+                messages.raw("auction.gui.sell-change-price", null),
+                List.of(messages.raw("auction.gui.sell-price-custom-lore-1", null)));
+        inv.setItem(SLOT_CHANGE_PRICE, change);
+        holder.setSlotAction(SLOT_CHANGE_PRICE, ctx -> promptCustomPrice(plugin, ctx.player(),
+                cfgSup, service, economy, messages));
+
+        ItemStack back = GuiFrame.button(Material.BARRIER,
+                messages.raw("auction.gui.back", null),
+                List.of(messages.raw("auction.gui.back-lore", null)));
+        inv.setItem(SLOT_BACK, back);
+        holder.setSlotAction(SLOT_BACK, ctx -> AuctionBrowseGui.open(plugin, ctx.player(),
+                cfgSup, service, economy, messages));
+
+        GuiFrame.fillEmpty(inv, GuiFrame.materialOrDefault(cfg.frameMaterial(), Material.BLACK_STAINED_GLASS_PANE));
+        player.openInventory(inv);
+    }
+
+    private static void submitSell(Plugin plugin, Player player, BigDecimal price, BigDecimal shownPct,
+                                   Supplier<AuctionConfig> cfgSup, AuctionService service,
+                                   EconomyBridge economy, MessageFactory messages) {
+        AuctionConfig cfg = cfgSup.get();
+        // Wiążemy pokazany procent - jeśli się zmienił, GUI pokaże podsumowanie ponownie.
+        service.sellItemInHand(player, price, shownPct).thenAccept(outcome ->
                 Bukkit.getScheduler().runTask(plugin, () -> {
                     switch (outcome.result()) {
-                        case OK -> messages.send(player, "auction.listing-created",
-                                placeholders("id", String.valueOf(outcome.listingId()),
-                                        "price", economy.format(price)));
-                        case NO_ITEM -> messages.send(player, "auction.sell-flow.item-mismatch");
-                        case INVALID_PRICE -> messages.send(player, "auction.sell-flow.price-out-of-range",
-                                placeholders("min", cfg.minPrice().toPlainString(),
-                                        "max", cfg.maxPrice().toPlainString()));
-                        case TOO_MANY -> messages.send(player, "auction.too-many-listings",
-                                placeholders("max", String.valueOf(cfg.maxActiveListingsPerPlayer())));
-                        case ECONOMY_FAILED -> messages.send(player, "common.economy-missing");
-                        case DB_FAILED -> messages.send(player, "common.schema-not-ready");
+                        case OK -> {
+                            messages.send(player, "auction.listing-created",
+                                    placeholders("id", String.valueOf(outcome.listingId()),
+                                            "gross", economy.format(outcome.gross()),
+                                            "tax", economy.format(outcome.tax()),
+                                            "net", economy.format(outcome.net())));
+                            player.closeInventory();
+                        }
+                        case TAX_CHANGED -> {
+                            messages.send(player, "auction.tax-changed",
+                                    placeholders("percent", outcome.taxPercent().toPlainString()));
+                            renderSummary(plugin, player, cfgSup, service, economy, messages, price);
+                        }
+                        case NOT_ENOUGH_MONEY -> {
+                            messages.send(player, "auction.not-enough-money-for-listing",
+                                    placeholders("required", economy.format(outcome.required()),
+                                            "fee", economy.format(outcome.listingFee()),
+                                            "tax", economy.format(outcome.tax())));
+                            player.closeInventory();
+                        }
+                        case ECONOMY_UNAVAILABLE -> { messages.send(player, "common.economy-missing"); player.closeInventory(); }
+                        case ECONOMY_ERROR -> { messages.send(player, "auction.economy-error"); player.closeInventory(); }
+                        case BUSY -> messages.send(player, "auction.sell-busy");
+                        case FEATURE_DISABLED -> { messages.send(player, "common.feature-disabled"); player.closeInventory(); }
+                        case NO_PERMISSION -> { messages.send(player, "common.no-permission"); player.closeInventory(); }
+                        case COMPENSATION_FAILED -> { messages.send(player, "auction.compensation-failed"); player.closeInventory(); }
+                        case NO_ITEM -> { messages.send(player, "auction.sell-flow.item-mismatch"); player.closeInventory(); }
+                        case INVALID_PRICE -> {
+                            messages.send(player, "auction.sell-flow.price-out-of-range",
+                                    placeholders("min", cfg.minPrice().toPlainString(),
+                                            "max", cfg.maxPrice().toPlainString()));
+                            player.closeInventory();
+                        }
+                        case TOO_MANY -> {
+                            messages.send(player, "auction.too-many-listings",
+                                    placeholders("max", String.valueOf(outcome.limit())));
+                            player.closeInventory();
+                        }
+                        case DB_FAILED -> { messages.send(player, "common.db-error"); player.closeInventory(); }
                     }
-                    player.closeInventory();
                 }));
     }
 }

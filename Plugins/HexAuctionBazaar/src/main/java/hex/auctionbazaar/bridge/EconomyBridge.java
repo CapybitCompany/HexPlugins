@@ -35,7 +35,7 @@ public final class EconomyBridge {
     public boolean tryBootstrap() {
         RegisteredServiceProvider<HexEconomyApi> reg = Bukkit.getServicesManager().getRegistration(HexEconomyApi.class);
         if (reg == null) {
-            logger.warning("HexEconomyApi is not registered - buy/sell is not possible.");
+            logger.warning("HexEconomyApi nie jest zarejestrowane - kupno i sprzedaż są niedostępne.");
             return false;
         }
         this.economy = reg.getProvider();

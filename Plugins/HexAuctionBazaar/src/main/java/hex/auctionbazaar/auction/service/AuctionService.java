@@ -12,6 +12,11 @@ import hex.auctionbazaar.bridge.HexCoreBridge;
 import hex.auctionbazaar.config.AuctionConfig;
 import hex.auctionbazaar.util.InventoryFit;
 import hex.auctionbazaar.util.ItemSerializer;
+import hex.auctionbazaar.util.ListingLimitResolver;
+import hex.auctionbazaar.util.SafeTime;
+import hex.auctionbazaar.util.RefundCompensation;
+import hex.auctionbazaar.util.SaleFeeResolver;
+import hex.auctionbazaar.util.SaleTax;
 import hex.economy.api.EconomyResult;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -50,19 +55,127 @@ import java.util.logging.Logger;
  */
 public final class AuctionService {
 
-    public enum SellResult { OK, NO_ITEM, INVALID_PRICE, TOO_MANY, ECONOMY_FAILED, DB_FAILED }
-    public enum BuyOutcome { OK, NOT_ACTIVE, NOT_ENOUGH_MONEY, DB_FAILED, ECONOMY_UNAVAILABLE, OWN_LISTING }
-    public enum CancelOutcome { OK, NOT_FOUND, NOT_OWNER, NOT_ACTIVE }
-    public enum ClaimOutcome { OK, NOT_AVAILABLE, ECONOMY_FAILED, DB_FAILED, INVENTORY_FULL }
+    public enum SellResult {
+        OK, NO_ITEM, INVALID_PRICE, TOO_MANY, TAX_CHANGED, BUSY,
+        ECONOMY_UNAVAILABLE, NOT_ENOUGH_MONEY, ECONOMY_ERROR, DB_FAILED,
+        /** Wystawienie się nie powiodło i nie udało się bezpiecznie zwrócić przedmiotu/środków. */
+        COMPENSATION_FAILED,
+        /** Dom Aukcyjny wyłączony (auction.enabled:false) lub tryb konserwacji - egzekwowane serwerowo. */
+        FEATURE_DISABLED,
+        /** Brak uprawnień (auction.permissions.sell) - sprawdzane też serwerowo, nie tylko w komendzie/GUI. */
+        NO_PERMISSION
+    }
+    /**
+     * Wynik kupna. Rozróżnia: dostawę bezpośrednią, dostawę jako claim, zwrot środków
+     * (bezpośredni / jako claim), krytyczny błąd kompensacji oraz zwykłe odmowy.
+     * Stany NIE zlewają się - sukces oznacza WYŁĄCZNIE OK_DELIVERED / OK_ITEM_CLAIMED.
+     */
+    public enum BuyOutcome {
+        OK_DELIVERED, OK_ITEM_CLAIMED,
+        REFUNDED, REFUND_PENDING, COMPENSATION_FAILED,
+        NOT_ACTIVE, NOT_ENOUGH_MONEY, DB_FAILED, ECONOMY_UNAVAILABLE, OWN_LISTING,
+        /** Techniczny błąd systemu ekonomii (wyjątek/nieudana operacja, nie brak środków). */
+        ECONOMY_ERROR,
+        /** Dom Aukcyjny wyłączony (auction.enabled:false) - egzekwowane serwerowo. */
+        FEATURE_DISABLED,
+        /** Brak uprawnień - sprawdzane też serwerowo. */
+        NO_PERMISSION
+    }
+    public enum CancelOutcome {
+        OK, NOT_FOUND, NOT_OWNER, NOT_ACTIVE,
+        /** Brak uprawnień (auction.permissions.cancel-own) - sprawdzane też serwerowo. */
+        NO_PERMISSION
+    }
+    public enum ClaimOutcome { OK, NOT_AVAILABLE, ECONOMY_FAILED, DB_FAILED, INVENTORY_FULL,
+            /** Niepewny stan ekwipunku lub nieudany rollback - claim pozostaje w CLAIMING, wymagana ręczna korekta. */
+            COMPENSATION_FAILED }
+    /** Wynik śledzonej rekompensaty przedmiotu: dostarczony do ekwipunku / zapisany jako claim / niepowodzenie. */
+    public enum ItemRefundStatus { DELIVERED, CLAIMED, FAILED }
 
-    public record SellOutcome(SellResult result, Long listingId, String error) {
-        public static SellOutcome ok(long id) { return new SellOutcome(SellResult.OK, id, null); }
-        public static SellOutcome fail(SellResult r, String err) { return new SellOutcome(r, null, err); }
+    /**
+     * Wynik wystawienia. Niesie rozbicie: brutto, podatek, {@code listingFee}
+     * oraz {@code net} = ekonomiczne netto (brutto - podatek - opłata). Podatek i
+     * opłata są pobierane z góry przy wystawieniu. {@link #required()} = łączna
+     * kwota pobierana z góry (do komunikatu o braku środków).
+     */
+    public record SellOutcome(SellResult result, Long listingId, int limit,
+                              BigDecimal gross, BigDecimal tax, BigDecimal net,
+                              BigDecimal taxPercent, BigDecimal listingFee, String error) {
+        private static BigDecimal nz(BigDecimal v) { return v == null ? BigDecimal.ZERO : v; }
+
+        public BigDecimal required() {
+            return nz(listingFee).add(nz(tax));
+        }
+
+        public static SellOutcome ok(long id, SaleTax.Breakdown b, BigDecimal fee, BigDecimal net) {
+            return new SellOutcome(SellResult.OK, id, 0, b.gross(), b.tax(), net, b.percent(), fee, null);
+        }
+        public static SellOutcome fail(SellResult r, String err) {
+            return new SellOutcome(r, null, 0, null, null, null, null, null, err);
+        }
+        public static SellOutcome tooMany(int limit) {
+            return new SellOutcome(SellResult.TOO_MANY, null, limit, null, null, null, null, null,
+                    "limit " + limit);
+        }
+        /** Dla TAX_CHANGED / NOT_ENOUGH_MONEY: niesie aktualne rozbicie do wyświetlenia. */
+        public static SellOutcome withBreakdown(SellResult r, SaleTax.Breakdown b,
+                                                BigDecimal fee, BigDecimal net, String err) {
+            return new SellOutcome(r, null, 0, b.gross(), b.tax(), net, b.percent(), fee, err);
+        }
     }
 
     public record BuyResult(BuyOutcome outcome, AuctionListing listing, BigDecimal pricePaid) {
-        public static BuyResult ok(AuctionListing l) { return new BuyResult(BuyOutcome.OK, l, l.price()); }
+        public static BuyResult delivered(AuctionListing l) {
+            return new BuyResult(BuyOutcome.OK_DELIVERED, l, l.price());
+        }
+        public static BuyResult itemClaimed(AuctionListing l) {
+            return new BuyResult(BuyOutcome.OK_ITEM_CLAIMED, l, l.price());
+        }
+        /** Zwrot/kompensacja po nieudanej transakcji - niesie cenę zapłaconą (do komunikatu). */
+        public static BuyResult compensated(BuyOutcome o, AuctionListing l) {
+            return new BuyResult(o, l, l == null ? null : l.price());
+        }
         public static BuyResult fail(BuyOutcome o) { return new BuyResult(o, null, null); }
+    }
+
+    /** Czysta mapa statusu kompensacji pieniężnej na wynik kupna (zwrot). */
+    public static BuyOutcome refundOutcome(RefundCompensation.Status s) {
+        return switch (s) {
+            case REFUNDED -> BuyOutcome.REFUNDED;
+            case PENDING_CLAIM -> BuyOutcome.REFUND_PENDING;
+            case FAILED -> BuyOutcome.COMPENSATION_FAILED;
+        };
+    }
+
+    /** Czysta mapa statusu zwrotu pieniędzy na status audytu. */
+    public static String refundAuditResult(RefundCompensation.Status s) {
+        return switch (s) {
+            case REFUNDED -> AuditAction.RESULT_ROLLBACK;
+            case PENDING_CLAIM -> AuditAction.RESULT_REFUND_PENDING;
+            case FAILED -> AuditAction.RESULT_FAILED;
+        };
+    }
+
+    /** Czysta mapa statusu dostawy przedmiotu na wynik kupna (sukces WYŁĄCZNIE dla dostarczenia/claim). */
+    public static BuyOutcome deliveryOutcome(ItemRefundStatus st) {
+        return switch (st) {
+            case DELIVERED -> BuyOutcome.OK_DELIVERED;
+            case CLAIMED -> BuyOutcome.OK_ITEM_CLAIMED;
+            case FAILED -> BuyOutcome.COMPENSATION_FAILED;
+        };
+    }
+
+    /**
+     * Czysta decyzja wyniku, gdy withdraw opłaty/podatku się nie powiódł.
+     * Niepowodzenie zwrotu przedmiotu ma PIERWSZEŃSTWO (błąd techniczny) nad
+     * NOT_ENOUGH_MONEY / ECONOMY_ERROR (punkt #3).
+     */
+    public static SellResult listingWithdrawFailResult(boolean itemRefundFailed,
+                                                       boolean chargeError, boolean notEnough) {
+        if (itemRefundFailed) return SellResult.COMPENSATION_FAILED;
+        if (chargeError) return SellResult.ECONOMY_ERROR;
+        if (notEnough) return SellResult.NOT_ENOUGH_MONEY;
+        return SellResult.ECONOMY_ERROR;
     }
 
     private final Plugin plugin;
@@ -73,6 +186,14 @@ public final class AuctionService {
     private final AuctionClaimRepository claims;
     private final AuditService audit;
     private final Supplier<AuctionConfig> configSupplier;
+    /** Globalny przełącznik pluginu (enabled). false = tryb konserwacji: brak nowych komercyjnych mutacji. */
+    private final java.util.function.BooleanSupplier pluginEnabled;
+
+    /** Busy-guard: blokuje równoległe wystawianie tego samego gracza aż do końca kompensacji. */
+    private final java.util.Set<UUID> selling = java.util.concurrent.ConcurrentHashMap.newKeySet();
+    /** Rate-limit dla SEVERE logu nieodwracalnej kompensacji. */
+    private final java.util.concurrent.atomic.AtomicLong lastSevereLogAt =
+            new java.util.concurrent.atomic.AtomicLong(0L);
 
     public AuctionService(Plugin plugin,
                           HexCoreBridge hexCore,
@@ -80,7 +201,8 @@ public final class AuctionService {
                           AuctionListingRepository listings,
                           AuctionClaimRepository claims,
                           AuditService audit,
-                          Supplier<AuctionConfig> configSupplier) {
+                          Supplier<AuctionConfig> configSupplier,
+                          java.util.function.BooleanSupplier pluginEnabled) {
         this.plugin = Objects.requireNonNull(plugin, "plugin");
         this.logger = plugin.getLogger();
         this.hexCore = Objects.requireNonNull(hexCore, "hexCore");
@@ -89,23 +211,47 @@ public final class AuctionService {
         this.claims = Objects.requireNonNull(claims, "claims");
         this.audit = Objects.requireNonNull(audit, "audit");
         this.configSupplier = Objects.requireNonNull(configSupplier, "configSupplier");
+        this.pluginEnabled = Objects.requireNonNull(pluginEnabled, "pluginEnabled");
     }
 
     // ---------------------------------------------------------------- helpers
+
+    /**
+     * Nowe komercyjne mutacje (wystawianie/kupno) są dozwolone tylko gdy plugin NIE jest w trybie
+     * konserwacji (global enabled) ORAZ Dom Aukcyjny jest włączony (auction.enabled). Sprawdzane
+     * SERWEROWO tuż przed mutacją - także dla GUI otwartego przed reloadem. Akcje odzysku
+     * (anulowanie, odbiór) świadomie NIE przechodzą przez tę bramkę.
+     */
+    private boolean commerceEnabled() {
+        return pluginEnabled.getAsBoolean() && configSupplier.get().enabled();
+    }
+
+    /**
+     * Punkt #6: mapowanie wyniku zwolnienia rezerwacji po nieudanym pobraniu środków przy kupnie.
+     * Wynik {@code false}/{@code null}/wyjątek oznacza, że aukcja mogła zostać uwięziona w RESERVED ->
+     * {@link BuyOutcome#COMPENSATION_FAILED} (stan krytyczny). Tylko potwierdzone {@code true} pozwala
+     * zwrócić pierwotny wynik ekonomii ({@code econFail}).
+     */
+    public static BuyOutcome reservationReleaseBuyOutcome(Boolean released, Throwable err, BuyOutcome econFail) {
+        if (err != null || !Boolean.TRUE.equals(released)) {
+            return BuyOutcome.COMPENSATION_FAILED;
+        }
+        return econFail;
+    }
 
     private void onMain(Runnable r) {
         Bukkit.getScheduler().runTask(plugin, r);
     }
 
     private <T> CompletableFuture<T> failOnMain(String label, Throwable err) {
-        logger.log(Level.WARNING, "auction " + label + " failed", err);
+        logger.log(Level.WARNING, "Operacja aukcji '" + label + "' nie powiodła się", err);
         return CompletableFuture.failedFuture(err);
     }
 
     public CompletableFuture<Optional<AuctionListing>> findByIdAsync(long id) {
         return hexCore.async(() -> listings.findById(id))
                 .exceptionally(ex -> {
-                    logger.log(Level.WARNING, "findById failed for " + id, ex);
+                    logger.log(Level.WARNING, "Odczyt aukcji o ID " + id + " nie powiódł się", ex);
                     return Optional.empty();
                 });
     }
@@ -118,10 +264,33 @@ public final class AuctionService {
      * either returns the item to the seller's inventory or stores it as a
      * pending claim - the item is never silently lost.
      */
+    /** Wejście z komendy - bez wiązania procentu z podsumowania. */
     public CompletableFuture<SellOutcome> sellItemInHand(Player seller, BigDecimal price) {
+        return sellItemInHand(seller, price, null);
+    }
+
+    /**
+     * Wystawienie z ręki. {@code expectedPercent} (może być null) wiąże procent
+     * pokazany w podsumowaniu z faktycznie pobieranym: jeśli między podsumowaniem a
+     * potwierdzeniem zmienią się permisje, zwracamy TAX_CHANGED (GUI pokaże ponownie),
+     * nigdy nie pobierając innej kwoty niż wyświetlona.
+     *
+     * Bezpieczeństwo: item serializowany PRZED jakąkolwiek mutacją; podatek+opłata
+     * z góry; snapshot podatkowy zapisany na aukcji; każde niepowodzenie po pobraniu
+     * środków uruchamia śledzoną kompensację (deposit -> money-claim -> terminal),
+     * a przedmiot wraca do gracza. Busy-guard blokuje równoległe wystawianie.
+     */
+    public CompletableFuture<SellOutcome> sellItemInHand(Player seller, BigDecimal price, BigDecimal expectedPercent) {
         AuctionConfig cfg = configSupplier.get();
-        if (!cfg.enabled()) {
-            return CompletableFuture.completedFuture(SellOutcome.fail(SellResult.NO_ITEM, "auction disabled"));
+        // SERWEROWA autoryzacja/gate PRZED jakąkolwiek mutacją (GUI mogło zostać otwarte przed
+        // disable/utratą praw). Wyłączona funkcja to FEATURE_DISABLED, NIE mylące NO_ITEM (punkt #4).
+        if (!commerceEnabled()) {
+            return CompletableFuture.completedFuture(
+                    SellOutcome.fail(SellResult.FEATURE_DISABLED, "auction disabled"));
+        }
+        if (!seller.hasPermission(cfg.permSell())) {
+            return CompletableFuture.completedFuture(
+                    SellOutcome.fail(SellResult.NO_PERMISSION, "no permission"));
         }
         if (!cfg.priceInRange(price)) {
             return CompletableFuture.completedFuture(SellOutcome.fail(SellResult.INVALID_PRICE, "price out of range"));
@@ -131,23 +300,52 @@ public final class AuctionService {
             return CompletableFuture.completedFuture(SellOutcome.fail(SellResult.NO_ITEM, "no item in hand"));
         }
         if (!economy.isAvailable()) {
-            return CompletableFuture.completedFuture(SellOutcome.fail(SellResult.ECONOMY_FAILED, "economy unavailable"));
+            return CompletableFuture.completedFuture(
+                    SellOutcome.fail(SellResult.ECONOMY_UNAVAILABLE, "economy unavailable"));
         }
 
         UUID sellerId = seller.getUniqueId();
         String sellerName = seller.getName();
         ItemStack snapshot = inHand.clone();
 
+        // Serializacja PRZED jakąkolwiek mutacją (Economy/ekwipunek).
+        final byte[] blob;
+        try {
+            blob = ItemSerializer.serialize(snapshot);
+        } catch (Throwable t) {
+            logger.log(Level.WARNING, "AUKCJA: serializacja przedmiotu nie powiodła się "
+                    + "przed pobraniem środków", t);
+            return CompletableFuture.completedFuture(SellOutcome.fail(SellResult.DB_FAILED, "serialize"));
+        }
+
+        BigDecimal pct = SaleFeeResolver.resolve(seller::hasPermission, cfg.saleFeePercent(), cfg.saleFeeTiers());
+        SaleTax.Breakdown tax = SaleTax.compute(price, pct);
+        BigDecimal fee = cfg.listingFee() == null ? BigDecimal.ZERO : cfg.listingFee();
+        BigDecimal economicNet = economicNet(tax, fee);
+        // Wiązanie podsumowania z abbuchung: zmiana rangi -> pokaż ponownie.
+        if (expectedPercent != null && expectedPercent.compareTo(pct) != 0) {
+            return CompletableFuture.completedFuture(
+                    SellOutcome.withBreakdown(SellResult.TAX_CHANGED, tax, fee, economicNet, "tax changed"));
+        }
+        int limit = ListingLimitResolver.resolve(seller::hasPermission,
+                cfg.listingLimitDefault(), cfg.listingLimitTiers());
+
+        // Busy-guard: jeden aktywny proces wystawiania na gracza (do końca kompensacji).
+        if (!selling.add(sellerId)) {
+            return CompletableFuture.completedFuture(SellOutcome.fail(SellResult.BUSY, "already selling"));
+        }
         CompletableFuture<SellOutcome> result = new CompletableFuture<>();
+        result.whenComplete((r, e) -> selling.remove(sellerId));
+
+        BigDecimal upfront = fee.add(tax.tax());
         hexCore.async(() -> listings.countActiveBySeller(sellerId))
                 .whenComplete((count, err) -> {
                     if (err != null) {
                         onMain(() -> result.complete(SellOutcome.fail(SellResult.DB_FAILED, err.getMessage())));
                         return;
                     }
-                    if (count >= cfg.maxActiveListingsPerPlayer()) {
-                        onMain(() -> result.complete(SellOutcome.fail(SellResult.TOO_MANY,
-                                "limit " + cfg.maxActiveListingsPerPlayer())));
+                    if (count >= limit) {
+                        onMain(() -> result.complete(SellOutcome.tooMany(limit)));
                         return;
                     }
                     onMain(() -> {
@@ -157,54 +355,67 @@ public final class AuctionService {
                             result.complete(SellOutcome.fail(SellResult.NO_ITEM, "item changed"));
                             return;
                         }
-                        ItemStack remove = snapshot.clone();
-                        seller.getInventory().removeItem(remove);
-                        chargeListingFeeThenInsert(seller, sellerId, sellerName, snapshot, price, cfg, result);
+                        if (!cfg.priceInRange(price)) {
+                            result.complete(SellOutcome.fail(SellResult.INVALID_PRICE, "price out of range"));
+                            return;
+                        }
+                        seller.getInventory().removeItem(snapshot.clone());
+                        chargeAndInsert(seller, sellerId, sellerName, snapshot, blob, price, tax, fee,
+                                upfront, economicNet, cfg, result);
                     });
                 });
         return result;
     }
 
-    private void chargeListingFeeThenInsert(Player seller, UUID sellerId, String sellerName,
-                                            ItemStack snapshot, BigDecimal price, AuctionConfig cfg,
-                                            CompletableFuture<SellOutcome> result) {
-        BigDecimal fee = cfg.listingFee() == null ? BigDecimal.ZERO : cfg.listingFee();
-        CompletableFuture<EconomyResult> feeChain = fee.signum() <= 0
-                ? CompletableFuture.completedFuture(EconomyResult.ok(BigDecimal.ZERO))
-                : economy.withdraw(sellerId, sellerName, fee, "auction-listing-fee");
+    /** Ekonomiczne netto = brutto - podatek - opłata (nie mniej niż 0). */
+    private static BigDecimal economicNet(SaleTax.Breakdown tax, BigDecimal fee) {
+        BigDecimal net = tax.net().subtract(fee == null ? BigDecimal.ZERO : fee);
+        return net.signum() < 0
+                ? BigDecimal.ZERO.setScale(SaleTax.MONEY_SCALE, RoundingMode.HALF_UP)
+                : net;
+    }
 
-        feeChain.whenComplete((feeRes, feeErr) -> {
-            if (feeErr != null || feeRes == null || !feeRes.success()) {
-                onMain(() -> {
-                    refundItemOrClaim(seller, sellerId, snapshot, "listing-refund");
-                    result.complete(SellOutcome.fail(SellResult.ECONOMY_FAILED, "listing fee declined"));
-                });
+    private void chargeAndInsert(Player seller, UUID sellerId, String sellerName,
+                                 ItemStack snapshot, byte[] blob, BigDecimal price, SaleTax.Breakdown tax,
+                                 BigDecimal fee, BigDecimal upfront, BigDecimal economicNet,
+                                 AuctionConfig cfg, CompletableFuture<SellOutcome> result) {
+        CompletableFuture<EconomyResult> chargeChain = upfront.signum() <= 0
+                ? CompletableFuture.completedFuture(EconomyResult.ok(BigDecimal.ZERO))
+                : economy.withdraw(sellerId, sellerName, upfront, "auction-listing-tax");
+
+        chargeChain.whenComplete((chargeRes, chargeErr) -> {
+            if (chargeErr != null || chargeRes == null || !chargeRes.success()) {
+                // Środki NIE zostały pobrane - zwróć przedmiot (śledzone) i DOPIERO potem zakończ.
+                boolean notEnough = chargeRes != null && "NOT_ENOUGH_FUNDS".equals(chargeRes.reason());
+                long txId = System.nanoTime();
+                returnItemTracked(seller, sellerId, snapshot, "listing-refund")
+                        .whenComplete((is, e) -> onMain(() -> {
+                            boolean itemFailed = e != null || is == ItemRefundStatus.FAILED;
+                            if (itemFailed) {
+                                logSevereCompensationFailure(txId, sellerId, BigDecimal.ZERO,
+                                        ItemRefundStatus.FAILED, RefundCompensation.Status.REFUNDED);
+                            }
+                            // Niepowodzenie zwrotu przedmiotu ma PIERWSZEŃSTWO nad NOT_ENOUGH_MONEY (punkt #3).
+                            SellResult r = listingWithdrawFailResult(itemFailed, chargeErr != null, notEnough);
+                            result.complete(r == SellResult.NOT_ENOUGH_MONEY
+                                    ? SellOutcome.withBreakdown(r, tax, fee, economicNet, "brak środków")
+                                    : SellOutcome.fail(r, r == SellResult.COMPENSATION_FAILED
+                                            ? "zwrot przedmiotu nie powiódł się" : "błąd pobrania środków"));
+                        }));
                 return;
             }
-            byte[] blob;
-            try {
-                blob = ItemSerializer.serialize(snapshot);
-            } catch (Throwable t) {
-                onMain(() -> {
-                    refundItemOrClaim(seller, sellerId, snapshot, "listing-refund");
-                    refundFee(sellerId, sellerName, fee, "auction-listing-fee-refund");
-                    result.complete(SellOutcome.fail(SellResult.DB_FAILED, "serialize"));
-                });
-                return;
-            }
+            // Środki pobrane. Wstaw aukcję ze snapshotem; przy błędzie -> pełna kompensacja.
             long now = System.currentTimeMillis();
-            long expiresAt = now + cfg.defaultDurationSeconds() * 1000L;
+            // SafeTime chroni przed przepełnieniem (nigdy ujemny expiresAt - punkt #8).
+            long expiresAt = SafeTime.deadlineMillis(now, cfg.defaultDurationSeconds());
             hexCore.async(() -> listings.insert(sellerId, sellerName, blob,
-                            snapshot.getType().name(), snapshot.getAmount(), price, now, expiresAt))
+                            snapshot.getType().name(), snapshot.getAmount(), price, now, expiresAt,
+                            tax.percent(), tax.tax(), fee, economicNet))
                     .whenComplete((id, insertErr) -> {
                         if (insertErr != null || id == null) {
-                            logger.log(Level.WARNING, "auction insert failed", insertErr);
-                            onMain(() -> {
-                                refundItemOrClaim(seller, sellerId, snapshot, "listing-refund");
-                                refundFee(sellerId, sellerName, fee, "auction-listing-fee-refund");
-                                result.complete(SellOutcome.fail(SellResult.DB_FAILED,
-                                        insertErr == null ? "no id" : insertErr.getMessage()));
-                            });
+                            logger.log(Level.WARNING, "AUKCJA: zapis aukcji nie powiódł się "
+                                    + "- uruchamiam kompensację", insertErr);
+                            compensateListingFailure(seller, sellerId, sellerName, snapshot, upfront, result);
                             return;
                         }
                         audit.log(audit.builder()
@@ -214,54 +425,255 @@ public final class AuctionService {
                                 .listingId(id)
                                 .unitPrice(price)
                                 .total(price)
-                                .result(AuditAction.RESULT_OK));
-                        onMain(() -> result.complete(SellOutcome.ok(id)));
+                                .result(AuditAction.RESULT_OK)
+                                .reason("brutto=" + tax.gross().toPlainString()
+                                        + " podatek=" + tax.tax().toPlainString()
+                                        + " (" + tax.percent().toPlainString() + "%)"
+                                        + " opłata=" + fee.toPlainString()
+                                        + " netto=" + economicNet.toPlainString()));
+                        onMain(() -> result.complete(SellOutcome.ok(id, tax, fee, economicNet)));
                     });
         });
     }
 
     /**
-     * Main-thread refund: adds back to inventory or, if offline / overflow,
-     * asynchronously creates an item claim. Never drops in the world.
+     * Kompensacja po pobraniu opłaty+podatku, gdy insert aukcji zawiódł.
+     * Przedmiot wraca do gracza; kwota zwracana przez deposit, a przy jego
+     * niepowodzeniu przez trwały money-claim. Wynik terminalny dopiero po ustaleniu
+     * statusu (żadnego fire-and-forget). Rate-limitowany SEVERE, gdy ani deposit ani
+     * claim się nie powiodą.
      */
-    private void refundItemOrClaim(Player seller, UUID sellerId, ItemStack item, String reason) {
-        if (seller != null && seller.isOnline()) {
-            var leftover = seller.getInventory().addItem(item.clone());
-            for (ItemStack rest : leftover.values()) {
-                claimItemAsync(sellerId, rest, reason, null);
-            }
-            return;
-        }
-        claimItemAsync(sellerId, item, reason, null);
+    private record CompensationResult(ItemRefundStatus item, RefundCompensation.Status money) {}
+
+    private void compensateListingFailure(Player seller, UUID sellerId, String sellerName,
+                                          ItemStack snapshot, BigDecimal upfront,
+                                          CompletableFuture<SellOutcome> result) {
+        long txId = System.nanoTime();
+        // Kompensacja przedmiotu I środków jest w pełni śledzona; wynik terminalny dopiero po OBU.
+        CompletableFuture<ItemRefundStatus> itemFuture =
+                returnItemTracked(seller, sellerId, snapshot, "listing-refund");
+        CompletableFuture<RefundCompensation.Status> moneyFuture =
+                (upfront == null || upfront.signum() <= 0)
+                        ? CompletableFuture.completedFuture(RefundCompensation.Status.REFUNDED)
+                        : RefundCompensation.compensate(
+                        () -> economy.deposit(sellerId, sellerName, upfront, "auction-listing-fee-refund")
+                                .thenApply(r -> r != null && r.success()),
+                        () -> hexCore.async(() -> claims.insertMoney(sellerId, upfront,
+                                        "auction-listing-fee-refund-claim", null, System.currentTimeMillis()))
+                                .thenApply(cid -> cid != null && cid >= 0));
+
+        itemFuture.thenCombine(moneyFuture, CompensationResult::new)
+                .whenComplete((res, err) -> onMain(() -> {
+                    ItemRefundStatus is = (err != null || res == null) ? ItemRefundStatus.FAILED : res.item();
+                    RefundCompensation.Status ms = (err != null || res == null)
+                            ? RefundCompensation.Status.FAILED : res.money();
+                    auditRefund(sellerId, sellerName, upfront, is, ms);
+                    boolean compFailed = is == ItemRefundStatus.FAILED
+                            || ms == RefundCompensation.Status.FAILED;
+                    if (compFailed) {
+                        logSevereCompensationFailure(txId, sellerId, upfront, is, ms);
+                    }
+                    // Dopiero teraz zwalniamy busy-guard (przez result.whenComplete) i kończymy.
+                    // Nieudana kompensacja -> błąd techniczny; udana -> DB_FAILED (środki+przedmiot zwrócone).
+                    result.complete(SellOutcome.fail(
+                            compFailed ? SellResult.COMPENSATION_FAILED : SellResult.DB_FAILED,
+                            "zapis aukcji nie powiódł się"));
+                }));
     }
 
-    private void claimItemAsync(UUID owner, ItemStack item, String reason, Long listingId) {
-        if (owner == null || item == null) return;
+    private void auditRefund(UUID sellerId, String sellerName, BigDecimal amount,
+                             ItemRefundStatus item, RefundCompensation.Status money) {
+        String res = compensationAuditResult(item, money);
+        audit.log(audit.builder()
+                .actor(sellerId, sellerName)
+                .action(AuditAction.AUCTION_LISTING_CREATED)
+                .market(AuditAction.MARKET_AUCTION)
+                .total(amount)
+                .result(res)
+                .reason("zapis aukcji nieudany - zwrot przedmiotu="
+                        + item.name().toLowerCase(java.util.Locale.ROOT)
+                        + " zwrot środków=" + money.name().toLowerCase(java.util.Locale.ROOT)));
+    }
+
+    private void logSevereCompensationFailure(long txId, UUID uuid, BigDecimal amount,
+                                              ItemRefundStatus item, RefundCompensation.Status money) {
+        long now = System.currentTimeMillis();
+        long last = lastSevereLogAt.get();
+        if (now - last >= 60_000L && lastSevereLogAt.compareAndSet(last, now)) {
+            logger.severe("KOMPENSACJA AUKCJI NIEODWRACALNA tx=" + txId
+                    + " gracz=" + uuid
+                    + " kwota=" + (amount == null ? "0" : amount.toPlainString())
+                    + " przedmiot=" + item + " środki=" + money
+                    + " - wymagana ręczna korekta (bez danych dostępowych do bazy)");
+        }
+    }
+
+    /**
+     * Śledzona, ALL-OR-NOTHING rekompensata przedmiotu (punkty #2/#3). Dostęp do
+     * ekwipunku WYŁĄCZNIE na wątku głównym; wyjątki nie wydostają się z zadania.
+     * Mapowanie ({@link #resolveItemReturn}):
+     *  - ADDED_FULLY -> DELIVERED (meta/NBT/PDC zachowane - dodajemy klon oryginału),
+     *  - NOT_FIT_REVERTED -> PEŁNY przedmiot jako POJEDYNCZY trwały claim (CLAIMED po
+     *    potwierdzonym insertcie; FAILED gdy insert padł),
+     *  - STATE_UNCERTAIN -> FAILED, BEZ zapisu claim (w ekwipunku może już leżeć część -
+     *    unikamy duplikacji),
+     *  - gracz offline -> od razu claim pełnego przedmiotu.
+     * Future domykany jest ZAWSZE (także gdy nie da się zaplanować zadania po disable).
+     */
+    private CompletableFuture<ItemRefundStatus> returnItemTracked(Player player, UUID owner,
+                                                                  ItemStack item, String reason) {
+        CompletableFuture<ItemRefundStatus> out = new CompletableFuture<>();
+        try {
+            onMain(() -> {
+                try {
+                    if (owner == null || item == null) {
+                        out.complete(ItemRefundStatus.FAILED);
+                        return;
+                    }
+                    boolean online = player != null && player.isOnline();
+                    InventoryFit.Result addResult = online
+                            ? InventoryFit.tryAddFull(player, item.clone())
+                            : InventoryFit.Result.NOT_FIT_REVERTED;   // offline: pomiń ekwipunek, od razu claim
+                    resolveItemReturn(online, addResult, item,
+                            it -> insertItemClaimTracked(owner, it, reason))
+                            .whenComplete((st, e) -> out.complete(
+                                    (e != null || st == null) ? ItemRefundStatus.FAILED : st));
+                } catch (Throwable t) {
+            logger.log(Level.SEVERE, "AUKCJA: zwrot przedmiotu - nieoczekiwany błąd "
+                            + "na wątku głównym", t);
+                    out.complete(ItemRefundStatus.FAILED);
+                }
+            });
+        } catch (Throwable t) {
+            // Nie udało się zaplanować zadania (np. plugin wyłączany) -> domknij terminalnie.
+            logger.log(Level.SEVERE, "AUKCJA: nie można zaplanować zwrotu przedmiotu "
+                    + "(plugin wyłączany?) - zwracam FAILED", t);
+            out.complete(ItemRefundStatus.FAILED);
+        }
+        return out;
+    }
+
+    /**
+     * Czyste mapowanie wyniku dodawania do ekwipunku na śledzoną rekompensatę (testowalne):
+     * ADDED_FULLY -> DELIVERED; STATE_UNCERTAIN -> FAILED (bez claim); NOT_FIT_REVERTED lub
+     * gracz offline -> claim pełnego przedmiotu.
+     */
+    public static <T> CompletableFuture<ItemRefundStatus> resolveItemReturn(
+            boolean attemptedInventory, InventoryFit.Result addResult, T item,
+            java.util.function.Function<T, CompletableFuture<Boolean>> claimInsert) {
+        if (attemptedInventory) {
+            if (addResult == InventoryFit.Result.ADDED_FULLY) {
+                return CompletableFuture.completedFuture(ItemRefundStatus.DELIVERED);
+            }
+            if (addResult == InventoryFit.Result.STATE_UNCERTAIN) {
+                // Niepewny stan ekwipunku -> NIE zapisujemy claim (możliwa częściowa dostawa).
+                return CompletableFuture.completedFuture(ItemRefundStatus.FAILED);
+            }
+            // NOT_FIT_REVERTED -> pełny przedmiot jako jeden claim.
+        }
+        return trackItemReturn(false, java.util.List.of(item), claimInsert);
+    }
+
+    /**
+     * Śledzona część rekompensaty przedmiotu (bez Bukkit, testowalna). Przy pełnej
+     * dostawie -> DELIVERED; inaczej wstawia claim-y i czeka na WSZYSTKIE inserty:
+     * wszystkie OK -> CLAIMED, jakikolwiek błąd -> FAILED. Future kończy się dopiero
+     * po potwierdzeniu wszystkich insertów (żadnego fire-and-forget).
+     */
+    public static <T> CompletableFuture<ItemRefundStatus> trackItemReturn(
+            boolean fullyDelivered, java.util.Collection<T> toClaim,
+            java.util.function.Function<T, CompletableFuture<Boolean>> claimInsert) {
+        if (fullyDelivered || toClaim == null || toClaim.isEmpty()) {
+            return CompletableFuture.completedFuture(ItemRefundStatus.DELIVERED);
+        }
+        java.util.List<CompletableFuture<Boolean>> inserts = new java.util.ArrayList<>();
+        for (T it : toClaim) {
+            CompletableFuture<Boolean> f;
+            try {
+                f = claimInsert.apply(it);
+                if (f == null) f = CompletableFuture.completedFuture(false);
+            } catch (Throwable t) {
+                f = CompletableFuture.completedFuture(false);
+            }
+            inserts.add(f.exceptionally(ex -> false));
+        }
+        return CompletableFuture.allOf(inserts.toArray(new CompletableFuture[0]))
+                .thenApply(v -> combineClaimResults(
+                        inserts.stream().map(cf -> cf.getNow(false)).toList()));
+    }
+
+    /** Czysta reguła: brak claim-ów -> DELIVERED; wszystkie OK -> CLAIMED; jakikolwiek błąd -> FAILED. */
+    public static ItemRefundStatus combineClaimResults(java.util.List<Boolean> results) {
+        if (results == null || results.isEmpty()) {
+            return ItemRefundStatus.DELIVERED;
+        }
+        return results.stream().allMatch(Boolean.TRUE::equals)
+                ? ItemRefundStatus.CLAIMED : ItemRefundStatus.FAILED;
+    }
+
+    /**
+     * Czysty status audytu połączonej kompensacji: dowolny FAILED -> FAILED,
+     * inaczej dowolny "pending" (CLAIMED / PENDING_CLAIM) -> REFUND_PENDING, inaczej ROLLBACK.
+     */
+    public static String compensationAuditResult(ItemRefundStatus item, RefundCompensation.Status money) {
+        if (item == ItemRefundStatus.FAILED || money == RefundCompensation.Status.FAILED) {
+            return AuditAction.RESULT_FAILED;
+        }
+        if (item == ItemRefundStatus.CLAIMED || money == RefundCompensation.Status.PENDING_CLAIM) {
+            return AuditAction.RESULT_REFUND_PENDING;
+        }
+        return AuditAction.RESULT_ROLLBACK;
+    }
+
+    /** Wstawia item-claim i zwraca true dopiero po potwierdzonym insertcie (błąd -> false, logowany). */
+    private CompletableFuture<Boolean> insertItemClaimTracked(UUID owner, ItemStack item, String reason) {
         final byte[] blob;
         try {
             blob = ItemSerializer.serialize(item);
         } catch (Throwable t) {
-            logger.log(Level.WARNING, "could not serialize for claim", t);
-            return;
+            logger.log(Level.SEVERE, "nie udało się zserializować przedmiotu do odbioru (claim), powód="
+                    + reason, t);
+            return CompletableFuture.completedFuture(false);
         }
-        hexCore.async(() -> claims.insertItem(owner, blob, reason, listingId, System.currentTimeMillis()))
-                .exceptionally(ex -> {
-                    logger.log(Level.SEVERE, "claim insert failed for " + owner + " reason=" + reason, ex);
-                    return -1L;
+        return hexCore.async(() -> claims.insertItem(owner, blob, reason, null, System.currentTimeMillis()))
+                .handle((id, ex) -> {
+                    boolean ok = ex == null && id != null && id >= 0;
+                    if (!ok) {
+                        logger.log(Level.SEVERE, "zapis odbioru (claim) nie powiódł się dla " + owner
+                                + " powód=" + reason, ex);
+                    }
+                    return ok;
                 });
-    }
-
-    private void refundFee(UUID uuid, String name, BigDecimal amount, String reason) {
-        if (amount == null || amount.signum() <= 0) return;
-        economy.deposit(uuid, name, amount, reason).exceptionally(ex -> {
-            logger.log(Level.WARNING, "fee refund failed for " + uuid, ex);
-            return null;
-        });
     }
 
     // ---------------------------------------------------------------- buy
 
+    /**
+     * Czysta ocena warunków wstępnych kupna. Zwraca {@code null} gdy można
+     * kontynuować (rezerwacja + pobranie środków), albo powód odmowy. Kupno
+     * WŁASNEJ aukcji zwraca {@link BuyOutcome#OWN_LISTING} - zawsze zanim
+     * cokolwiek zostanie zarezerwowane lub pobrane.
+     */
+    public static BuyOutcome checkPreBuy(AuctionListing l, UUID buyerId) {
+        if (l == null || l.state() != ListingState.ACTIVE) {
+            return BuyOutcome.NOT_ACTIVE;
+        }
+        if (l.sellerUuid().equals(buyerId)) {
+            return BuyOutcome.OWN_LISTING;
+        }
+        return null;
+    }
+
     public CompletableFuture<BuyResult> buy(Player buyer, long listingId) {
+        AuctionConfig cfg0 = configSupplier.get();
+        // SERWEROWA autoryzacja tuż przed mutacją (GUI mogło zostać otwarte przed disable/utratą praw).
+        // commerceEnabled() = global enabled (tryb konserwacji) ORAZ auction.enabled.
+        if (!commerceEnabled()) {
+            return CompletableFuture.completedFuture(BuyResult.fail(BuyOutcome.FEATURE_DISABLED));
+        }
+        if (!buyer.hasPermission(cfg0.permOpen())) {
+            return CompletableFuture.completedFuture(BuyResult.fail(BuyOutcome.NO_PERMISSION));
+        }
         if (!economy.isAvailable()) {
             return CompletableFuture.completedFuture(BuyResult.fail(BuyOutcome.ECONOMY_UNAVAILABLE));
         }
@@ -269,7 +681,8 @@ public final class AuctionService {
         UUID buyerId = buyer.getUniqueId();
         String buyerName = buyer.getName();
         long now = System.currentTimeMillis();
-        long reservedUntil = now + cfg.reservationTtlSeconds() * 1000L;
+        // SafeTime chroni przed przepełnieniem (nigdy ujemny reservedUntil - punkt #8).
+        long reservedUntil = SafeTime.deadlineMillis(now, cfg.reservationTtlSeconds());
 
         CompletableFuture<BuyResult> result = new CompletableFuture<>();
         hexCore.async(() -> listings.findById(listingId))
@@ -279,12 +692,11 @@ public final class AuctionService {
                         return;
                     }
                     AuctionListing l = opt.orElse(null);
-                    if (l == null || l.state() != ListingState.ACTIVE) {
-                        onMain(() -> result.complete(BuyResult.fail(BuyOutcome.NOT_ACTIVE)));
-                        return;
-                    }
-                    if (l.sellerUuid().equals(buyerId)) {
-                        onMain(() -> result.complete(BuyResult.fail(BuyOutcome.OWN_LISTING)));
+                    // Guard oceniany PRZED rezerwacją i pobraniem środków - kupno
+                    // własnej aukcji jest blokowane bez żadnej mutacji DB/Economy.
+                    BuyOutcome pre = checkPreBuy(l, buyerId);
+                    if (pre != null) {
+                        onMain(() -> result.complete(BuyResult.fail(pre)));
                         return;
                     }
                     hexCore.async(() -> listings.tryReserve(listingId, buyerId, reservedUntil))
@@ -296,14 +708,28 @@ public final class AuctionService {
                                 economy.withdraw(buyerId, buyerName, l.price(), "auction-buy-" + listingId)
                                         .whenComplete((wd, wdErr) -> {
                                             if (wdErr != null || wd == null || !wd.success()) {
-                                                hexCore.asyncRun(() -> listings.releaseReservation(listingId, buyerId))
-                                                        .exceptionally(ex -> {
-                                                            logger.log(Level.SEVERE,
-                                                                    "release after withdraw fail failed", ex);
-                                                            return null;
+                                                // Rozdziel brak środków od technicznego błędu ekonomii.
+                                                boolean notEnough = wd != null && !wd.success()
+                                                        && "NOT_ENOUGH_FUNDS".equals(wd.reason());
+                                                BuyOutcome econFail = notEnough
+                                                        ? BuyOutcome.NOT_ENOUGH_MONEY : BuyOutcome.ECONOMY_ERROR;
+                                                // Zwolnienie rezerwacji MUSI być POTWIERDZONE booleanem: false/null/
+                                                // wyjątek -> aukcja mogła utknąć w RESERVED -> stan krytyczny
+                                                // (COMPENSATION_FAILED). Tylko potwierdzone true daje econFail (punkt #6).
+                                                hexCore.async(() ->
+                                                                listings.releaseReservation(listingId, buyerId))
+                                                        .whenComplete((released, relErr) -> {
+                                                            BuyOutcome relOut = reservationReleaseBuyOutcome(
+                                                                    released, relErr, econFail);
+                                                            if (relOut == BuyOutcome.COMPENSATION_FAILED) {
+                                                                logger.log(Level.SEVERE, "AUKCJA: zwolnienie "
+                                                                        + "rezerwacji po nieudanym pobraniu środków "
+                                                                        + "nie zostało potwierdzone (aukcja "
+                                                                        + listingId + ", wynik=" + released
+                                                                        + ") - wymagana ręczna korekta", relErr);
+                                                            }
+                                                            onMain(() -> result.complete(BuyResult.fail(relOut)));
                                                         });
-                                                onMain(() -> result.complete(
-                                                        BuyResult.fail(BuyOutcome.NOT_ENOUGH_MONEY)));
                                                 return;
                                             }
                                             finalizePurchase(buyer, buyerId, l, cfg, result);
@@ -316,80 +742,152 @@ public final class AuctionService {
     private void finalizePurchase(Player buyer, UUID buyerId, AuctionListing l,
                                   AuctionConfig cfg, CompletableFuture<BuyResult> result) {
         long now = System.currentTimeMillis();
-        BigDecimal feePct = cfg.saleFeePercent() == null ? BigDecimal.ZERO : cfg.saleFeePercent();
-        BigDecimal net = l.price()
-                .multiply(BigDecimal.ONE.subtract(feePct.divide(new BigDecimal("100"), 8, RoundingMode.HALF_UP)))
-                .setScale(2, RoundingMode.HALF_UP);
+        // Podatek jest pobierany przy WYSTAWIENIU, więc sprzedawca dostaje pełną
+        // cenę (kupujący płaci brutto, netto sprzedawcy = brutto - podatek z góry).
         BigDecimal price = l.price();
+        BigDecimal sellerPayout = price;
         String buyerName = buyer.getName();
         UUID sellerId = l.sellerUuid();
         long listingId = l.id();
 
         hexCore.async(() -> listings.markSoldWithSellerClaimTx(
-                        listingId, buyerId, now, sellerId, net, "auction-sold-" + listingId))
+                        listingId, buyerId, now, sellerId, sellerPayout, "auction-sold-" + listingId))
                 .whenComplete((claimIdOpt, txErr) -> {
                     if (txErr != null || claimIdOpt == null || claimIdOpt.isEmpty()) {
-                        // Refund the buyer (full price) - reservation is gone because tx failed.
-                        economy.deposit(buyerId, buyerName, price, "auction-buy-refund-" + listingId)
-                                .exceptionally(ex -> {
-                                    logger.log(Level.SEVERE,
-                                            "buyer refund failed after sold-tx failure for listing "
-                                                    + listingId, ex);
-                                    return null;
-                                });
-                        hexCore.asyncRun(() -> listings.releaseReservation(listingId, buyerId));
-                        onMain(() -> result.complete(BuyResult.fail(BuyOutcome.DB_FAILED)));
+                        // SOLD nie doszło do skutku (sprzedawca NIE dostał claim) -> zwrot kupującego.
+                        refundBuyerAfterSoldFailure(buyer, buyerId, buyerName, l, price, result);
                         return;
                     }
-                    onMain(() -> {
-                        ItemStack item = null;
-                        try {
-                            item = ItemSerializer.deserialize(l.itemBlob());
-                        } catch (Throwable t) {
-                            logger.log(Level.WARNING, "could not deserialize listing item " + listingId, t);
-                        }
-                        if (item == null) {
-                            // Buyer paid but item is unreadable: store the money as a recovery claim.
-                            hexCore.async(() -> claims.insertMoney(buyerId, price,
-                                    "auction-item-recovery-" + listingId, listingId,
-                                    System.currentTimeMillis()))
-                                    .exceptionally(ex -> {
-                                        logger.log(Level.SEVERE,
-                                                "recovery money claim insert failed for buyer "
-                                                        + buyerId, ex);
-                                        return -1L;
-                                    });
-                            result.complete(BuyResult.ok(l));
-                            return;
-                        }
-                        var leftover = buyer.getInventory().addItem(item);
-                        for (ItemStack rest : leftover.values()) {
-                            claimItemAsync(buyerId, rest,
-                                    "auction-buy-overflow-" + listingId, listingId);
-                        }
-                        audit.log(audit.builder()
-                                .actor(buyerId, buyer.getName())
-                                .action(AuditAction.AUCTION_LISTING_BOUGHT)
-                                .market(AuditAction.MARKET_AUCTION)
-                                .listingId(listingId)
-                                .unitPrice(price)
-                                .total(price)
-                                .result(AuditAction.RESULT_OK));
-                        result.complete(BuyResult.ok(l));
-                    });
+                    onMain(() -> deliverPurchasedItem(buyer, buyerId, l, price, result));
                 });
+    }
+
+    /**
+     * Punkt #1: nieudana transakcja SOLD po pobraniu środków. Zwrot jest w PEŁNI
+     * śledzony (deposit -> money-claim -> terminal), rezerwacja zwalniana i logowana,
+     * a wynik kupna kończy się DOPIERO po ustaleniu statusu zwrotu. Bez podwójnej wypłaty.
+     */
+    private void refundBuyerAfterSoldFailure(Player buyer, UUID buyerId, String buyerName,
+                                             AuctionListing l, BigDecimal price,
+                                             CompletableFuture<BuyResult> result) {
+        long txId = System.nanoTime();
+        long listingId = l.id();
+        // Zwolnienie rezerwacji jest ŚLEDZONE (logowane przy błędzie) - niezależne od zwrotu,
+        // więc jego niepowodzenie nie powoduje podwójnej wypłaty.
+        hexCore.asyncRun(() -> listings.releaseReservation(listingId, buyerId))
+                .exceptionally(ex -> {
+                    logger.log(Level.SEVERE, "AUKCJA: zwolnienie rezerwacji po nieudanej "
+                            + "transakcji sprzedaży nie powiodło się (aukcja " + listingId + ")", ex);
+                    return null;
+                });
+        RefundCompensation.compensate(
+                () -> economy.deposit(buyerId, buyerName, price, "auction-buy-refund-" + listingId)
+                        .thenApply(r -> r != null && r.success()),
+                () -> hexCore.async(() -> claims.insertMoney(buyerId, price,
+                                "auction-buy-refund-claim-" + listingId, listingId, System.currentTimeMillis()))
+                        .thenApply(cid -> cid != null && cid >= 0))
+                .whenComplete((status, cErr) -> onMain(() -> {
+                    RefundCompensation.Status s = (cErr != null || status == null)
+                            ? RefundCompensation.Status.FAILED : status;
+                    if (s == RefundCompensation.Status.FAILED) {
+                        logSevereCompensationFailure(txId, buyerId, price,
+                                ItemRefundStatus.FAILED, RefundCompensation.Status.FAILED);
+                    }
+                    auditBuy(buyerId, buyerName, listingId, price, refundAuditResult(s),
+                            "transakcja sprzedaży nieudana - zwrot środków="
+                                    + s.name().toLowerCase(java.util.Locale.ROOT));
+                    result.complete(BuyResult.compensated(refundOutcome(s), l));
+                }));
+    }
+
+    /**
+     * Punkt #2/#3: dostawa przedmiotu po udanej transakcji SOLD (wątek główny).
+     *  - przedmiot nieodczytywalny -> ŚLEDZONY zwrot pieniędzy (REFUNDED/REFUND_PENDING/COMPENSATION_FAILED),
+     *  - przedmiot odczytywalny -> dostawa ALL-OR-NOTHING (OK_DELIVERED / OK_ITEM_CLAIMED / COMPENSATION_FAILED).
+     * Nigdy nie zwracamy fałszywego OK; audyt nie ma RESULT_OK gdy dostawa/kompensacja padła.
+     */
+    private void deliverPurchasedItem(Player buyer, UUID buyerId, AuctionListing l,
+                                      BigDecimal price, CompletableFuture<BuyResult> result) {
+        long txId = System.nanoTime();
+        long listingId = l.id();
+        String buyerName = buyer.getName();
+        ItemStack item = null;
+        try {
+            item = ItemSerializer.deserialize(l.itemBlob());
+        } catch (Throwable t) {
+            logger.log(Level.WARNING, "AUKCJA: nie można odczytać przedmiotu aukcji " + listingId, t);
+        }
+        if (item == null) {
+            RefundCompensation.compensate(
+                    () -> economy.deposit(buyerId, buyerName, price, "auction-item-recovery-" + listingId)
+                            .thenApply(r -> r != null && r.success()),
+                    () -> hexCore.async(() -> claims.insertMoney(buyerId, price,
+                                    "auction-item-recovery-claim-" + listingId, listingId,
+                                    System.currentTimeMillis()))
+                            .thenApply(cid -> cid != null && cid >= 0))
+                    .whenComplete((status, cErr) -> onMain(() -> {
+                        RefundCompensation.Status s = (cErr != null || status == null)
+                                ? RefundCompensation.Status.FAILED : status;
+                        if (s == RefundCompensation.Status.FAILED) {
+                            logSevereCompensationFailure(txId, buyerId, price,
+                                    ItemRefundStatus.FAILED, RefundCompensation.Status.FAILED);
+                        }
+                        auditBuy(buyerId, buyerName, listingId, price, refundAuditResult(s),
+                                "przedmiot nieodczytywalny - odzysk środków="
+                                        + s.name().toLowerCase(java.util.Locale.ROOT));
+                        result.complete(BuyResult.compensated(refundOutcome(s), l));
+                    }));
+            return;
+        }
+        returnItemTracked(buyer, buyerId, item, "auction-buy-overflow-" + listingId)
+                .whenComplete((is, e) -> onMain(() -> {
+                    ItemRefundStatus st = (e != null || is == null) ? ItemRefundStatus.FAILED : is;
+                    BuyOutcome outcome = deliveryOutcome(st);
+                    boolean failed = outcome == BuyOutcome.COMPENSATION_FAILED;
+                    if (failed) {
+                        logSevereCompensationFailure(txId, buyerId, price,
+                                ItemRefundStatus.FAILED, RefundCompensation.Status.REFUNDED);
+                    }
+                    auditBuy(buyerId, buyerName, listingId, price,
+                            failed ? AuditAction.RESULT_FAILED : AuditAction.RESULT_OK,
+                            "dostawa=" + st.name().toLowerCase(java.util.Locale.ROOT));
+                    BuyResult br = switch (outcome) {
+                        case OK_DELIVERED -> BuyResult.delivered(l);
+                        case OK_ITEM_CLAIMED -> BuyResult.itemClaimed(l);
+                        default -> BuyResult.compensated(BuyOutcome.COMPENSATION_FAILED, l);
+                    };
+                    result.complete(br);
+                }));
+    }
+
+    private void auditBuy(UUID uuid, String name, long listingId, BigDecimal price,
+                          String result, String reason) {
+        audit.log(audit.builder()
+                .actor(uuid, name)
+                .action(AuditAction.AUCTION_LISTING_BOUGHT)
+                .market(AuditAction.MARKET_AUCTION)
+                .listingId(listingId)
+                .unitPrice(price)
+                .total(price)
+                .result(result)
+                .reason(reason));
     }
 
     // ---------------------------------------------------------------- cancel
 
     public CompletableFuture<CancelOutcome> cancel(Player seller, long listingId) {
+        // SERWEROWA autoryzacja. Anulowanie to akcja ODZYSKU (zwrot przedmiotu) - świadomie NIE
+        // przechodzi przez bramkę trybu konserwacji, ale WYMAGA uprawnienia cancel-own (punkt #5).
+        if (!seller.hasPermission(configSupplier.get().permCancelOwn())) {
+            return CompletableFuture.completedFuture(CancelOutcome.NO_PERMISSION);
+        }
         UUID sellerId = seller.getUniqueId();
         CompletableFuture<CancelOutcome> result = new CompletableFuture<>();
 
         hexCore.async(() -> listings.findById(listingId))
                 .whenComplete((opt, err) -> {
                     if (err != null) {
-                        logger.log(Level.WARNING, "cancel findById failed", err);
+                        logger.log(Level.WARNING, "Odczyt aukcji przed anulowaniem nie powiódł się", err);
                         onMain(() -> result.complete(CancelOutcome.NOT_FOUND));
                         return;
                     }
@@ -411,7 +909,7 @@ public final class AuctionService {
                                     "auction-cancelled-" + listingId, System.currentTimeMillis()))
                             .whenComplete((claimOpt, txErr) -> {
                                 if (txErr != null) {
-                                    logger.log(Level.WARNING, "cancel tx failed", txErr);
+                                    logger.log(Level.WARNING, "Transakcja anulowania aukcji nie powiodła się", txErr);
                                     onMain(() -> result.complete(CancelOutcome.NOT_ACTIVE));
                                     return;
                                 }
@@ -435,7 +933,7 @@ public final class AuctionService {
     public CompletableFuture<List<AuctionListing>> listActive(int limit, int offset) {
         return hexCore.async(() -> listings.findActive(limit, offset))
                 .exceptionally(ex -> {
-                    logger.log(Level.WARNING, "listActive failed", ex);
+                    logger.log(Level.WARNING, "Pobranie aktywnych aukcji nie powiodło się", ex);
                     return List.of();
                 });
     }
@@ -443,7 +941,7 @@ public final class AuctionService {
     public CompletableFuture<List<AuctionListing>> listActive(int limit, int offset, SortMode sort) {
         return hexCore.async(() -> listings.findActiveSorted(limit, offset, sort))
                 .exceptionally(ex -> {
-                    logger.log(Level.WARNING, "listActiveSorted failed", ex);
+                    logger.log(Level.WARNING, "Pobranie posortowanych aukcji nie powiodło się", ex);
                     return List.of();
                 });
     }
@@ -451,7 +949,7 @@ public final class AuctionService {
     public CompletableFuture<Integer> countActive() {
         return hexCore.async(listings::countActive)
                 .exceptionally(ex -> {
-                    logger.log(Level.WARNING, "countActive failed", ex);
+                    logger.log(Level.WARNING, "Zliczenie aktywnych aukcji nie powiodło się", ex);
                     return 0;
                 });
     }
@@ -461,16 +959,48 @@ public final class AuctionService {
     public CompletableFuture<List<AuctionListing>> listMine(UUID seller) {
         return hexCore.async(() -> listings.findActiveBySeller(seller))
                 .exceptionally(ex -> {
-                    logger.log(Level.WARNING, "listMine failed", ex);
+                    logger.log(Level.WARNING, "Pobranie własnych aukcji nie powiodło się", ex);
                     return List.of();
+                });
+    }
+
+    public CompletableFuture<List<AuctionListing>> listMine(UUID seller, int limit, int offset) {
+        return hexCore.async(() -> listings.findActiveBySeller(seller, limit, offset))
+                .exceptionally(ex -> {
+                    logger.log(Level.WARNING, "Pobranie strony własnych aukcji nie powiodło się", ex);
+                    return List.of();
+                });
+    }
+
+    public CompletableFuture<Integer> countMine(UUID seller) {
+        return hexCore.async(() -> listings.countActiveBySeller(seller))
+                .exceptionally(ex -> {
+                    logger.log(Level.WARNING, "Zliczenie własnych aukcji nie powiodło się", ex);
+                    return 0;
                 });
     }
 
     public CompletableFuture<List<AuctionClaim>> listClaims(UUID owner, int limit) {
         return hexCore.async(() -> claims.findPendingByOwner(owner, limit))
                 .exceptionally(ex -> {
-                    logger.log(Level.WARNING, "listClaims failed", ex);
+                    logger.log(Level.WARNING, "Pobranie odbiorów nie powiodło się", ex);
                     return List.of();
+                });
+    }
+
+    public CompletableFuture<List<AuctionClaim>> listClaims(UUID owner, int limit, int offset) {
+        return hexCore.async(() -> claims.findPendingByOwner(owner, limit, offset))
+                .exceptionally(ex -> {
+                    logger.log(Level.WARNING, "Pobranie strony odbiorów nie powiodło się", ex);
+                    return List.of();
+                });
+    }
+
+    public CompletableFuture<Integer> countClaims(UUID owner) {
+        return hexCore.async(() -> claims.countPendingByOwner(owner))
+                .exceptionally(ex -> {
+                    logger.log(Level.WARNING, "Zliczenie odbiorów nie powiodło się", ex);
+                    return 0;
                 });
     }
 
@@ -502,13 +1032,23 @@ public final class AuctionService {
                     } else if (claim.isItem()) {
                         payoutItem(claimId, owner, player, claim, result);
                     } else {
-                        // Degenerate: nothing to pay. Just delete so it stops re-appearing.
+                        // Zdegenerowany claim (nic do wypłaty): usuń, by nie wracał. Przy błędzie delete
+                        // CZEKAMY na rollback -> PENDING (retry); nieudany rollback -> krytyczne.
                         hexCore.async(() -> claims.delete(claimId, owner))
                                 .whenComplete((ok, err) -> {
-                                    if (err != null || ok == null || !ok) {
-                                        rollbackClaim(claimId, owner);
+                                    if (err == null && ok != null && ok) {
+                                        onMain(() -> result.complete(ClaimOutcome.OK));
+                                        return;
                                     }
-                                    onMain(() -> result.complete(ClaimOutcome.OK));
+                                    rollbackClaim(claimId, owner).whenComplete((rolled, rbErr) -> onMain(() -> {
+                                        if (rbErr == null && Boolean.TRUE.equals(rolled)) {
+                                            result.complete(ClaimOutcome.DB_FAILED);   // retry możliwy
+                                        } else {
+                                            logger.severe("ODBIÓR: rollback zdegenerowanego claim-a nie powiódł "
+                                                    + "się, claim id " + claimId + " - wymagana ręczna korekta");
+                                            result.complete(ClaimOutcome.COMPENSATION_FAILED);
+                                        }
+                                    }));
                                 });
                     }
                 });
@@ -520,9 +1060,21 @@ public final class AuctionService {
         economy.deposit(owner, name, claim.moneyAmount(), "auction-claim-" + claimId)
                 .whenComplete((depo, err) -> {
                     if (err != null || depo == null || !depo.success()) {
-                        logger.warning("money claim payout failed for " + owner + " amount=" + claim.moneyAmount());
-                        rollbackClaim(claimId, owner);
-                        onMain(() -> result.complete(ClaimOutcome.ECONOMY_FAILED));
+                        logger.warning("ODBIÓR: wypłata środków z claim-a nie powiodła się dla " + owner
+                                + " kwota=" + claim.moneyAmount());
+                        // Czekamy na potwierdzony rollback CLAIMING->PENDING. Dopiero wtedy ECONOMY_FAILED
+                        // (gracz może spróbować ponownie). Gdy rollback padnie -> claim zostaje w CLAIMING
+                        // (bez ryzyka podwójnej wypłaty) -> COMPENSATION_FAILED + SEVERE do ręcznej korekty.
+                        rollbackClaim(claimId, owner).whenComplete((rolled, rbErr) -> onMain(() -> {
+                            if (rbErr == null && Boolean.TRUE.equals(rolled)) {
+                                result.complete(ClaimOutcome.ECONOMY_FAILED);
+                            } else {
+                                logger.severe("ODBIÓR: rollback claim-a pieniężnego po nieudanej wypłacie "
+                                        + "nie powiódł się, claim id " + claimId
+                                        + " - wynik techniczny (wymagana ręczna korekta)");
+                                result.complete(ClaimOutcome.COMPENSATION_FAILED);
+                            }
+                        }));
                         return;
                     }
                     hexCore.async(() -> claims.delete(claimId, owner))
@@ -530,8 +1082,9 @@ public final class AuctionService {
                                 if (dErr != null || ok == null || !ok) {
                                     // Could not delete - economy paid out though. To avoid double pay
                                     // we DO NOT roll back. Operator will see the leftover CLAIMING row.
-                                    logger.severe("claim delete failed after successful deposit, claim id "
-                                            + claimId + " stays in CLAIMING (manual cleanup needed)");
+                                    logger.severe("ODBIÓR: usunięcie claim-a po udanej wypłacie środków nie "
+                                            + "powiodło się, claim id " + claimId
+                                            + " pozostaje w CLAIMING (wymagana ręczna korekta)");
                                 }
                                 onMain(() -> result.complete(ClaimOutcome.OK));
                             });
@@ -539,14 +1092,16 @@ public final class AuctionService {
     }
 
     /**
-     * Item payout is all-or-nothing on the inventory side.
-     *
-     * Why: the previous behaviour added items first, then tried to spill the
-     * remainder into a new claim. If the remainder insert failed it tried to
-     * give the items back, which could duplicate them and leaves an
-     * inconsistent claim row. Here we use {@link InventoryFit#tryAddFullOrRevert}
-     * to either place every unit of the stack or none at all. Only after the
-     * inventory has actually accepted the stack do we delete the claim row.
+     * Wypłata przedmiotu jest all-or-nothing po stronie ekwipunku - przez {@link InventoryFit#tryAddFull}
+     * (pełny tri-state, punkt przeglądu). Mapowanie:
+     *  - {@code ADDED_FULLY}     -> całość dodana; USUŃ claim. Gdy delete padnie, claim zostaje w CLAIMING
+     *    (NIGDY z powrotem na PENDING po wydaniu przedmiotu) + SEVERE do ręcznej korekty;
+     *  - {@code NOT_FIT_REVERTED}-> ekwipunek bezpiecznie przywrócony; śledzony rollback CLAIMING->PENDING,
+     *    z oczekiwaniem. Dopiero po UDANYM rollbacku zwróć {@code INVENTORY_FULL}. Gdy rollback padnie,
+     *    NIE meldujemy fałszywie "ekwipunek pełny" - wynik {@code COMPENSATION_FAILED} + log admina;
+     *  - {@code STATE_UNCERTAIN} -> część przedmiotu mogła już leżeć w ekwipunku. NIE usuwamy i NIE cofamy
+     *    claim-a (zostaje w CLAIMING -> brak ponownej wypłaty -> brak duplikacji). Wynik
+     *    {@code COMPENSATION_FAILED}, rate-limitowany SEVERE, krytyczny komunikat - ręczna korekta.
      */
     private void payoutItem(long claimId, UUID owner, Player player,
                              AuctionClaim claim, CompletableFuture<ClaimOutcome> result) {
@@ -555,44 +1110,128 @@ public final class AuctionService {
             try {
                 item = ItemSerializer.deserialize(claim.itemBlob());
             } catch (Throwable t) {
-                logger.log(Level.WARNING, "could not deserialize claim item " + claimId, t);
-                rollbackClaim(claimId, owner);
-                result.complete(ClaimOutcome.DB_FAILED);
+                logger.log(Level.WARNING, "ODBIÓR: nie można odczytać przedmiotu claim-a " + claimId, t);
+                rollbackThenComplete(claimId, owner, ClaimOutcome.DB_FAILED,
+                        "przedmiot nieodczytywalny", result);
                 return;
             }
             if (item == null) {
-                rollbackClaim(claimId, owner);
-                result.complete(ClaimOutcome.DB_FAILED);
+                rollbackThenComplete(claimId, owner, ClaimOutcome.DB_FAILED,
+                        "przedmiot null", result);
                 return;
             }
-            boolean placed = InventoryFit.tryAddFullOrRevert(player, item);
-            if (!placed) {
-                // Nothing was placed in the inventory. Put the claim back to
-                // PENDING and let the player free up space and try again.
-                rollbackClaim(claimId, owner);
-                result.complete(ClaimOutcome.INVENTORY_FULL);
-                return;
-            }
-            hexCore.async(() -> claims.delete(claimId, owner))
-                    .whenComplete((ok, dErr) -> {
-                        if (dErr != null || ok == null || !ok) {
-                            // Items already sit in the inventory; we cannot
-                            // safely take them back. Log and leave the row
-                            // (it stays in CLAIMING for manual cleanup).
-                            logger.severe("claim delete failed after item payout, claim id "
-                                    + claimId + " stays in CLAIMING (manual cleanup needed)");
-                        }
-                        onMain(() -> result.complete(ClaimOutcome.OK));
-                    });
+            InventoryFit.Result addResult = InventoryFit.tryAddFull(player, item);
+            resolveItemPayout(addResult,
+                    () -> hexCore.async(() -> claims.delete(claimId, owner)),
+                    () -> rollbackClaim(claimId, owner),
+                    () -> logger.severe("ODBIÓR: usunięcie claim-a po wydaniu przedmiotu nie powiodło się, "
+                            + "claim id " + claimId + " pozostaje w CLAIMING (wymagana ręczna korekta)"),
+                    () -> logger.severe("ODBIÓR: rollback claim-a po pełnym ekwipunku nie powiódł się, "
+                            + "claim id " + claimId + " - wynik techniczny (wymagana ręczna korekta)"),
+                    () -> logSevereClaimUncertain(claimId, owner))
+                    .whenComplete((outcome, e) -> onMain(() -> result.complete(
+                            (e != null || outcome == null) ? ClaimOutcome.COMPENSATION_FAILED : outcome)));
         });
     }
 
-    private void rollbackClaim(long claimId, UUID owner) {
-        hexCore.async(() -> claims.rollback(claimId, owner))
+    /**
+     * Czyste/asynchroniczne mapowanie tri-state ekwipunku na terminalny wynik odbioru claim-a (testowalne):
+     *  - {@code ADDED_FULLY}      -> deleteClaim(); ZAWSZE OK (delete-fail -> onDeleteFailed, claim zostaje
+     *    CLAIMING - NIGDY z powrotem na PENDING po wydaniu przedmiotu);
+     *  - {@code NOT_FIT_REVERTED} -> rollbackClaim() i OCZEKANIE; ok -> INVENTORY_FULL, błąd ->
+     *    onRollbackFailed + COMPENSATION_FAILED (nie fałszywe "ekwipunek pełny");
+     *  - {@code STATE_UNCERTAIN}  -> onUncertain; COMPENSATION_FAILED; NIE woła deleteClaim ani rollbackClaim
+     *    (claim zostaje w CLAIMING -> brak ponownej wypłaty -> brak duplikacji).
+     * Future zawsze kończy się terminalnie.
+     */
+    public static CompletableFuture<ClaimOutcome> resolveItemPayout(
+            InventoryFit.Result addResult,
+            java.util.function.Supplier<CompletableFuture<Boolean>> deleteClaim,
+            java.util.function.Supplier<CompletableFuture<Boolean>> rollbackClaim,
+            Runnable onDeleteFailed,
+            Runnable onRollbackFailed,
+            Runnable onUncertain) {
+        switch (addResult) {
+            case ADDED_FULLY: {
+                CompletableFuture<Boolean> del;
+                try {
+                    CompletableFuture<Boolean> f = deleteClaim.get();
+                    del = f == null ? CompletableFuture.completedFuture(false) : f.exceptionally(ex -> false);
+                } catch (Throwable t) {
+                    del = CompletableFuture.completedFuture(false);
+                }
+                return del.thenApply(ok -> {
+                    if (!Boolean.TRUE.equals(ok)) {
+                        onDeleteFailed.run();          // przedmiot już wydany, delete padł -> zostaje CLAIMING
+                    }
+                    return ClaimOutcome.OK;
+                });
+            }
+            case NOT_FIT_REVERTED: {
+                CompletableFuture<Boolean> rb;
+                try {
+                    CompletableFuture<Boolean> f = rollbackClaim.get();
+                    rb = f == null ? CompletableFuture.completedFuture(false) : f.exceptionally(ex -> false);
+                } catch (Throwable t) {
+                    rb = CompletableFuture.completedFuture(false);
+                }
+                return rb.thenApply(ok -> {
+                    if (Boolean.TRUE.equals(ok)) {
+                        return ClaimOutcome.INVENTORY_FULL;
+                    }
+                    onRollbackFailed.run();
+                    return ClaimOutcome.COMPENSATION_FAILED;
+                });
+            }
+            case STATE_UNCERTAIN:
+            default:
+                onUncertain.run();
+                return CompletableFuture.completedFuture(ClaimOutcome.COMPENSATION_FAILED);
+        }
+    }
+
+    /** Śledzony rollback CLAIMING -&gt; PENDING. Zwraca true tylko przy potwierdzonym cofnięciu. */
+    private CompletableFuture<Boolean> rollbackClaim(long claimId, UUID owner) {
+        return hexCore.async(() -> claims.rollback(claimId, owner))
                 .exceptionally(ex -> {
-                    logger.log(Level.SEVERE, "claim rollback failed for " + claimId, ex);
+                    logger.log(Level.SEVERE, "ODBIÓR: rollback claim-a nie powiódł się dla " + claimId, ex);
                     return false;
                 });
+    }
+
+    /**
+     * Cofnij claim CLAIMING-&gt;PENDING i domknij wynik dopiero po POTWIERDZONYM rollbacku:
+     * rollback OK -&gt; {@code retryFail} (claim wrócił, można spróbować ponownie); rollback nieudany -&gt;
+     * claim zostaje w CLAIMING, {@code COMPENSATION_FAILED} + SEVERE do ręcznej korekty.
+     */
+    private void rollbackThenComplete(long claimId, UUID owner, ClaimOutcome retryFail,
+                                      String failContext, CompletableFuture<ClaimOutcome> result) {
+        rollbackClaim(claimId, owner).whenComplete((rolled, rbErr) -> onMain(() -> {
+            if (rbErr == null && Boolean.TRUE.equals(rolled)) {
+                result.complete(retryFail);
+            } else {
+                logger.severe("ODBIÓR: rollback claim-a nie powiódł się (" + failContext + "), claim id "
+                        + claimId + " - wymagana ręczna korekta");
+                result.complete(ClaimOutcome.COMPENSATION_FAILED);
+            }
+        }));
+    }
+
+    private final java.util.concurrent.atomic.AtomicLong lastClaimUncertainLogAt =
+            new java.util.concurrent.atomic.AtomicLong(0L);
+
+    /**
+     * Rate-limitowany (60s) SEVERE dla niepewnego stanu ekwipunku przy odbiorze claim-a.
+     * Zawiera claim-id i UUID gracza, ale BEZ sekretów i BEZ pełnych danych NBT.
+     */
+    private void logSevereClaimUncertain(long claimId, UUID owner) {
+        long now = System.currentTimeMillis();
+        long last = lastClaimUncertainLogAt.get();
+        if (now - last >= 60_000L && lastClaimUncertainLogAt.compareAndSet(last, now)) {
+            logger.severe("ODBIÓR CLAIM: niepewny stan ekwipunku - claim=" + claimId
+                    + " gracz=" + owner
+                    + " - claim pozostaje w stanie CLAIMING; wymagana ręczna kontrola (bez danych NBT)");
+        }
     }
 
     // ---------------------------------------------------------------- expiry
@@ -607,14 +1246,17 @@ public final class AuctionService {
             listings.releaseStaleReservations(now);
             List<AuctionListing> due = listings.findExpired(now, batchSize);
             if (due.isEmpty()) return 0;
-            int processed = listings.expireBatchWithClaimsTx(due, now);
+            // Audytujemy WYŁĄCZNIE aukcje faktycznie przestawione na EXPIRED (nie te w międzyczasie
+            // kupione/anulowane) - repo zwraca rzeczywiście przetworzone obiekty.
+            List<AuctionListing> expired = listings.expireBatchWithClaimsTx(due, now);
+            int processed = expired.size();
             if (processed > 0) {
                 audit.log(audit.builder()
                         .action(AuditAction.AUCTION_CLEANUP)
                         .market(AuditAction.MARKET_AUCTION)
                         .amount((long) processed)
                         .result(AuditAction.RESULT_OK));
-                for (AuctionListing l : due) {
+                for (AuctionListing l : expired) {
                     audit.log(audit.builder()
                             .actor(l.sellerUuid(), l.sellerName())
                             .action(AuditAction.AUCTION_LISTING_EXPIRED)
@@ -625,7 +1267,7 @@ public final class AuctionService {
             }
             return processed;
         }).exceptionally(ex -> {
-            logger.log(Level.WARNING, "expire sweep failed", ex);
+            logger.log(Level.WARNING, "Skanowanie wygasłych aukcji nie powiodło się", ex);
             return 0;
         });
     }

@@ -37,6 +37,11 @@ public final class AuctionConfirmGui {
                                 placeholders("id", String.valueOf(listingId)));
                         return;
                     }
+                    // Nie otwieramy okna zakupu dla własnej aukcji.
+                    if (target.sellerUuid().equals(player.getUniqueId())) {
+                        messages.send(player, "auction.own-listing");
+                        return;
+                    }
                     render(plugin, player, target, cfg.get(), service, economy, messages);
                 })
         );
@@ -69,13 +74,22 @@ public final class AuctionConfirmGui {
             if (id == null) return;
             service.buy(ctx.player(), id).thenAccept(res -> Bukkit.getScheduler().runTask(plugin, () -> {
                 switch (res.outcome()) {
-                    case OK -> messages.send(ctx.player(), "auction.bought",
+                    // Sukces WYŁĄCZNIE dla faktycznie dostarczonego/odłożonego przedmiotu.
+                    case OK_DELIVERED -> messages.send(ctx.player(), "auction.bought",
                             placeholders("price", economy.format(res.pricePaid())));
+                    case OK_ITEM_CLAIMED -> messages.send(ctx.player(), "auction.bought-claimed",
+                            placeholders("price", economy.format(res.pricePaid())));
+                    case REFUNDED -> messages.send(ctx.player(), "auction.buy-refunded");
+                    case REFUND_PENDING -> messages.send(ctx.player(), "auction.buy-refund-pending");
+                    case COMPENSATION_FAILED -> messages.send(ctx.player(), "auction.buy-compensation-failed");
                     case NOT_ENOUGH_MONEY -> messages.send(ctx.player(), "auction.not-enough-money");
-                    case OWN_LISTING -> messages.send(ctx.player(), "auction.listing-not-yours");
+                    case OWN_LISTING -> messages.send(ctx.player(), "auction.own-listing");
                     case ECONOMY_UNAVAILABLE -> messages.send(ctx.player(), "common.economy-missing");
+                    case ECONOMY_ERROR -> messages.send(ctx.player(), "common.economy-error");
+                    case FEATURE_DISABLED -> messages.send(ctx.player(), "common.feature-disabled");
+                    case NO_PERMISSION -> messages.send(ctx.player(), "common.no-permission");
                     case NOT_ACTIVE -> messages.send(ctx.player(), "auction.listing-not-active");
-                    case DB_FAILED -> messages.send(ctx.player(), "common.schema-not-ready");
+                    case DB_FAILED -> messages.send(ctx.player(), "common.db-error");
                 }
             }));
         });

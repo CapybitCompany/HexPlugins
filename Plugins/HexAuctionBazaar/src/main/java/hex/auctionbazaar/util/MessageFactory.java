@@ -23,6 +23,11 @@ public final class MessageFactory {
         this.prefix = Objects.requireNonNull(prefix, "prefix");
     }
 
+    /** Czy klucz istnieje w załadowanych wiadomościach (np. do lokalizacji tokenów z bezpiecznym fallbackiem). */
+    public boolean has(String path) {
+        return messages.get().has(path);
+    }
+
     public String raw(String path, Map<String, String> placeholders) {
         String template = messages.get().get(path);
         if (placeholders != null) {

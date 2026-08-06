@@ -27,7 +27,6 @@ public record BazaarConfig(
         List<Long> quantityOptions,
         boolean autoRefreshEnabled,
         int autoRefreshIntervalTicks,
-        long snapshotCacheMs,
         Map<String, CategoryConfig> categories,
         String permOpen,
         String permBuy,

@@ -1,34 +1,121 @@
 # Konfiguracja HexAuctionBazaar. Domyślnie w języku polskim.
+#
+# enabled: globalny przełącznik = TRYB KONSERWACJI, gdy ustawiony na false.
+#   enabled:false oznacza:
+#     - żadnych NOWYCH komercyjnych mutacji: aukcji, kupna, sprzedaży ani zleceń
+#       (egzekwowane SERWEROWO w usługach - także dla GUI otwartego przed reloadem);
+#     - zatrzymane zadania wygasania (Aukcji/Rynku); po ponownym włączeniu startują dokładnie raz;
+#     - komendy /hexauction reload, /hexauction admin dbstatus oraz przegląd/naprawa configu działają;
+#     - DOZWOLONE bezpieczne akcje ODZYSKU, aby NIE uwięzić przedmiotów/środków gracza:
+#         * anulowanie własnej aukcji i zlecenia (zwrot przedmiotów/zarezerwowanych środków),
+#         * odbiór oczekujących claim-ów, podgląd własnych aukcji/zleceń.
+#       Wyjątek ten jest bezpieczny DB-owo (transakcyjny zwrot) i chroniony właściwą permisją.
+#   Zmiana wartości obowiązuje po /hexauction reload lub /hexbazaar reload.
 enabled: true
 debug: false
-prefix: "&8[&6Hex&eRynek&8] &r"
+# Globalny prefix widoczny przed każdą wiadomością pluginu.
+prefix: "&0[&4HEX &6RYNEK&0] &r"
 
 economy:
   # true  = plugin wyłączy się na starcie, gdy brak HexEconomyApi
   # false = plugin się załaduje, ale kupno/sprzedaż pozostaną wyłączone
   required: true
 
+# Połączenie z bazą danych.
+# HexAuctionBazaar korzysta ze WSPÓLNEGO połączenia MySQL z HexCore
+# (HexApi.db() / DatabaseService). Dane hosta, użytkownika i hasła znajdują się
+# WYŁĄCZNIE w plugins/HexCore/db.yml i NIE są tutaj duplikowane. Ten plugin nie
+# tworzy własnej puli połączeń ani nie zamyka puli HexCore.
+#
+# Tabele używane przez HexAuctionBazaar (prefiks tabel pochodzi z HexCore):
+#   <prefix>hex_auction_listings   - aukcje Domu Aukcyjnego
+#   <prefix>hex_auction_claims     - odbiory (przedmioty/pieniądze) do wypłaty
+#   <prefix>hex_bazaar_orders       - zlecenia i oferty Rynku (księga zleceń)
+#   <prefix>hex_bazaar_stock        - stany magazynowe i ostatnie ceny Rynku
+#   <prefix>hex_bazaar_transactions - dziennik transakcji magazynu systemowego Rynku
+#   <prefix>hex_market_audit_log   - log audytowy rynku
+database:
+  # Dostawca połączenia. Obecnie akceptowane jest wyłącznie HEXCORE
+  # (nieznana wartość -> ostrzeżenie i bezpieczna wartość zapasowa HEXCORE).
+  provider: "HEXCORE"
+  # true  = przy braku/niesprawnej bazie plugin wyłączy się przy starcie.
+  # false = plugin się załaduje, ale transakcje Aukcji/Rynku pozostaną wyłączone.
+  required: true
+  # Wykonaj przy starcie asynchroniczną kontrolę stanu bazy (SELECT 1) przez HexCore
+  # zanim utworzymy/aktualizujemy schemat tabel.
+  health-check-on-startup: true
+
+# Wpisywanie własnej ceny/ilości (tabliczka z awaryjnym przejściem na czat).
+# Sekundy poniżej są ograniczone do zakresu 0..3600 (ochrona przed przepełnieniem przy przeliczaniu na ticki).
+input:
+  # Po ilu sekundach pokazać wskazówkę „wpisz na czacie”, gdy edytor tabliczki nie ruszył.
+  fallback-hint-seconds: 4
+  # Po ilu sekundach anulować oczekiwanie na wpisanie wartości.
+  timeout-seconds: 30
+
 auction:
   enabled: true
+  # Czas życia aukcji. Wartości sekundowe są walidowane do zakresu 1..315360000 (~10 lat);
+  # chroni to przed przepełnieniem terminu (expiresAt nigdy nie będzie ujemny).
   default-duration-seconds: 86400
+  # Zapasowy limit aktywnych aukcji, gdy brak sekcji listing-limits (kompatybilność wstecz).
   max-active-listings-per-player: 10
+  # Limit aktywnych aukcji rozdzielany przez rangi LuckPerms (progi uprawnień).
+  # Gracz dostaje NAJWYŻSZY limit spośród pasujących progów; brak progu -> default.
+  # Kolejność progów w YAML nie wpływa na wynik. Aktywne i zarezerwowane aukcje
+  # liczą się do limitu.
+  # Przykład LuckPerms: /lp group vip permission set hexauction.limit.vip true
+  #                     /lp group premium permission set hexauction.limit.premium true
+  listing-limits:
+    default: 10
+    tiers:
+      vip:
+        permission: "hexauction.limit.vip"
+        max-active-listings: 20
+      premium:
+        permission: "hexauction.limit.premium"
+        max-active-listings: 30
   min-price: 1
   max-price: 1000000000
+  # Stała opłata za wystawienie (oprócz podatku). Pobierana z góry przy wystawieniu.
   listing-fee: 0
-  sale-fee-percent: 0
+  # Podatek od sprzedaży (procent 0..100).
+  #  - Pobierany Z GÓRY przy WYSTAWIENIU aukcji (razem z listing-fee).
+  #  - NIE jest zwracany przy anulowaniu ani wygaśnięciu aukcji.
+  #  - Kupujący płaci pełną cenę (brutto); przy sprzedaży sprzedawca dostaje jako
+  #    claim PEŁNY brutto (claim NIE jest kwotą netto).
+  #  - Rzeczywisty wynik ekonomiczny sprzedawcy = brutto - podatek - listing-fee
+  #    (podatek i opłata zostały pobrane wcześniej przy wystawieniu).
+  sale-fee-percent: 10
+  # Różne stawki podatku wg rangi LuckPerms (progi uprawnień). Gracz płaci
+  # NAJNIŻSZY pasujący podatek; brak progu -> sale-fee-percent.
+  # Przykład LuckPerms: /lp group vip permission set hexauction.tax.vip true
+  #                     /lp group premium permission set hexauction.tax.premium true
+  # (np. domyślnie Gracz 10%, VIP 8%, Premium 5%).
+  sale-fee-tiers:
+    vip:
+      permission: "hexauction.tax.vip"
+      sale-fee-percent: 8
+    premium:
+      permission: "hexauction.tax.premium"
+      sale-fee-percent: 5
+  # Czas rezerwacji aukcji podczas kupna (1..315360000 s; ochrona przed przepełnieniem terminu).
   reservation-ttl-seconds: 30
   expiry-scan-interval-ticks: 1200
-  # Presety cen wystawienia dostępne w GUI (obok "Własna cena" na znaku).
-  sell-price-presets: [100, 500, 1000, 5000, 25000, 100000]
   gui:
     title: "&8&lDom Aukcyjny"
-    page-size: 45
     my-listings-title: "&8Moje aukcje"
     claims-title: "&8Odbiór przedmiotów"
     confirm-title: "&8Potwierdź zakup"
     sell-title: "&8Wystaw przedmiot"
     frame-material: BLACK_STAINED_GLASS_PANE
-    # slot-y (0..53) kluczowych przycisków w GUI Domu Aukcyjnego
+    # Wspólna, rozstawiona powierzchnia przedmiotów dla widoków:
+    # Przeglądaj / Moje aukcje / Odbiór przedmiotów. Pojemność strony wynika z
+    # liczby prawidłowych slotów (klucz "page-size" jest już nieużywany/ignorowany).
+    # Reguły: sloty 0..53, bez duplikatów, bez kolizji z nawigacją/kontrolkami.
+    # Nieprawidłowy układ -> polskie ostrzeżenie i bezpieczna, symetryczna siatka.
+    item-slots: [10, 12, 14, 16, 19, 21, 23, 25, 28, 30, 32, 34]
+    # slot-y (0..53) kluczowych przycisków w głównym GUI Domu Aukcyjnego (Przeglądaj)
     slot-prev-page: 45
     slot-next-page: 53
     slot-refresh: 49
@@ -37,6 +124,11 @@ auction:
     slot-sell-help: 48
     slot-sort: 50
     slot-empty-state: 22
+    # slot-y nawigacji dla widoków stronicowanych (Odbiór przedmiotów / Moje aukcje).
+    paged-slot-back: 45
+    paged-slot-prev-page: 48
+    paged-slot-next-page: 50
+    paged-slot-page-info: 49
   permissions:
     open: hexauction.open
     sell: hexauction.sell
@@ -46,13 +138,25 @@ auction:
 
 bazaar:
   enabled: true
-  # true = tylko surowe przedmioty (bez NBT/enchantow) mogą trafić do bazaru
+  # require-plain-item dotyczy WYŁĄCZNIE natychmiastowej sprzedaży (instant-sell: /hexbazaar sell oraz
+  # sprzedaż z GUI Rynku):
+  #   true  = instant-sell przyjmuje tylko surowe przedmioty (bez NBT, nazwy, lore, enchantów,
+  #           CustomModelData); przedmioty z metadanymi są pomijane i nie da się ich sprzedać hurtem;
+  #   false = instant-sell przyjmuje pasujący materiał niezależnie od metadanych (metadane przepadają,
+  #           bo magazyn systemowy księguje tylko materiał i ilość).
+  #
+  # UWAGA: ten przełącznik NIE dotyczy zleceń/ofert Rynku (SELL-order z księgi zleceń). Oferty SPRZEDAŻY
+  # ZAWSZE przyjmują wyłącznie surowe (plain) przedmioty, niezależnie od tej opcji. Wynika to z bezpieczeństwa
+  # (anty-dupe/metadane): zlecenie utrwala jedynie materiał i ilość, więc zwrot przy anulowaniu/wygaśnięciu
+  # jest rekonstruowany jako new ItemStack(materiał, ilość). Dopuszczenie przedmiotów z NBT do SELL-order
+  # cicho utraciłoby ich metadane - dlatego przedmioty z metadanymi w ogóle nie trafiają do SELL-order.
   require-plain-item: true
   # maks. jednocześnie otwartych zleceń/ofert na gracza
   max-orders-per-player: 14
-  # Czas życia zlecenia w sekundach. 0 = zlecenia nie wygasają.
+  # Czas życia zlecenia w sekundach. 0 = zlecenia nie wygasają (max 315360000 s ~10 lat;
+  # ochrona przed przepełnieniem terminu expiresAt).
   order-expiry-seconds: 604800    # 7 dni
-  # Co ile tickow uruchamia się skaner wygasania.
+  # Co ile ticków uruchamia się skaner wygasania.
   order-expiry-scan-interval-ticks: 6000  # 5 minut
   pricing:
     elasticity: 0.5
@@ -60,7 +164,7 @@ bazaar:
     buy-sell-spread-percent: 5
     max-step-per-transaction-percent: 5
   gui:
-    title: "&8&lBazar"
+    title: "&8&lRynek"
     item-title: "&8%display%"
     quantity-title: "&8Wybierz ilość"
     orders-title: "&8Moje zlecenia"
@@ -68,12 +172,15 @@ bazaar:
     frame-material: GRAY_STAINED_GLASS_PANE
     # Presety ilości: 1, 64 (stack), 576 (rząd = 9 stacków), niestandardowa (znak).
     quantity-options: [1, 64, 576]
-    # Auto-refresh GUI (tylko gdy otwarte). Interval w tickach - 20 tickow = 1 sec.
-    auto-refresh-enabled: true
+    # Auto-refresh GUI (tylko gdy otwarte). Domyślnie wyłączony - aktualizuje ceny
+    # w miejscu (bez ponownego otwierania ekwipunku). Interwał w tickach - 20 ticków = 1 sekunda.
+    auto-refresh-enabled: false
     auto-refresh-interval-ticks: 60
-    # TTL snapshotu rynku - powyzej tego czasu snapshot jest odswiezony z DB.
-    snapshot-cache-ms: 1500
   # Kategorie do bocznej nawigacji w głównym GUI Bazaru.
+  # GUI ma dokładnie 5 slotów kategorii: WIDOCZNYCH jest pierwszych 5 (kolejność z pliku).
+  # Przedmioty przypisane do kategorii spoza tych 5 (lub do nieznanej kategorii) trafiają do
+  # PIERWSZEJ widocznej kategorii, aby zawsze były osiągalne w GUI. Brak sekcji categories ->
+  # tworzona jest bezpieczna domyślna kategoria 'ogólne'. Nieznany materiał kategorii -> CHEST.
   categories:
     blocks:
       display-name: "&eBloki"

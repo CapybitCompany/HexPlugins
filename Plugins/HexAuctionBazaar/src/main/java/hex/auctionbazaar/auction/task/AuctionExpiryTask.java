@@ -36,7 +36,7 @@ public final class AuctionExpiryTask {
 
     private void sweep() {
         service.expireDueListings(500).exceptionally(ex -> {
-            plugin.getLogger().log(Level.WARNING, "expiry sweep failed", ex);
+            plugin.getLogger().log(Level.WARNING, "Skanowanie wygasłych aukcji nie powiodło się", ex);
             return 0;
         });
     }

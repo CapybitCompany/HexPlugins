@@ -16,6 +16,7 @@ public final class AuditAction {
     public static final String BAZAAR_ORDER_PARTIAL_FILL = "BAZAAR_ORDER_PARTIAL_FILL";
     public static final String BAZAAR_ORDER_FILLED = "BAZAAR_ORDER_FILLED";
     public static final String BAZAAR_ORDER_CANCELLED = "BAZAAR_ORDER_CANCELLED";
+    public static final String BAZAAR_ORDER_REMOVED = "BAZAAR_ORDER_REMOVED";
     public static final String BAZAAR_REFUND = "BAZAAR_REFUND";
 
     public static final String ADMIN_RELOAD = "ADMIN_RELOAD";

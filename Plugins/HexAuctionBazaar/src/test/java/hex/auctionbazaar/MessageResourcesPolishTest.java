@@ -86,7 +86,7 @@ class MessageResourcesPolishTest {
         String text = Files.readString(p, StandardCharsets.UTF_8);
         assertTrue(text.contains("claim-reasons"),
                 "musi zawierac sekcje mapowan przyjaznych powodow claim-ow");
-        assertTrue(text.contains("Zakup z Bazaru"),
+        assertTrue(text.contains("Zakup z Rynku"),
                 "przyjazny tekst dla bazaar-buy-overflow");
         assertTrue(text.contains("Wypłata"),
                 "przyjazny tekst z 'Wypłata' (diacritic)");

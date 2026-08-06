@@ -84,6 +84,21 @@ public final class BazaarOrderRepository {
                 BazaarOrderRepository::map, owner.toString(), limit);
     }
 
+    /** Stronicowany (LIMIT/OFFSET) widok WSZYSTKICH zleceń gracza (najnowsze pierwsze). */
+    public List<BazaarOrder> pageByOwner(UUID owner, int limit, int offset) {
+        return db.query(
+                "SELECT * FROM " + t() + " WHERE owner_uuid=? ORDER BY id DESC LIMIT ? OFFSET ?",
+                BazaarOrderRepository::map, owner.toString(), limit, offset);
+    }
+
+    /** Liczba WSZYSTKICH zleceń gracza (do stronicowania). */
+    public int countByOwner(UUID owner) {
+        return db.queryOne(
+                "SELECT COUNT(*) AS c FROM " + t() + " WHERE owner_uuid=?",
+                rs -> rs.getInt("c"), owner.toString()
+        ).orElse(0);
+    }
+
     public List<BazaarOrder> findOpenByOwner(UUID owner, int limit) {
         return db.query(
                 "SELECT * FROM " + t() + " WHERE owner_uuid=? AND state IN (?, ?) ORDER BY id DESC LIMIT ?",
@@ -118,6 +133,31 @@ public final class BazaarOrderRepository {
     }
 
     /**
+     * Stronicowana (LIMIT/OFFSET) porcja otwartych zleceń KUPNA w kolejności dopasowania
+     * (najwyższa cena, potem najstarsze id). Używane przez podgląd, który skanuje kolejne
+     * strony aż do pokrycia ilości lub przekroczenia limitu ceny - bez sztywnego cap-u.
+     */
+    public List<BazaarOrder> pageOpenBuyOrders(String itemKey, int limit, int offset) {
+        return db.query(
+                "SELECT * FROM " + t() + " WHERE item_key=? AND side=? AND state IN (?, ?) " +
+                        "ORDER BY price_per_unit DESC, id ASC LIMIT ? OFFSET ?",
+                BazaarOrderRepository::map, itemKey, OrderSide.BUY.name(),
+                OrderState.ACTIVE.name(), OrderState.PARTIALLY_FILLED.name(), limit, offset);
+    }
+
+    /**
+     * Stronicowana (LIMIT/OFFSET) porcja otwartych ofert SPRZEDAŻY w kolejności dopasowania
+     * (najniższa cena, potem najstarsze id). Używane przez podgląd skanujący kolejne strony.
+     */
+    public List<BazaarOrder> pageOpenSellOffers(String itemKey, int limit, int offset) {
+        return db.query(
+                "SELECT * FROM " + t() + " WHERE item_key=? AND side=? AND state IN (?, ?) " +
+                        "ORDER BY price_per_unit ASC, id ASC LIMIT ? OFFSET ?",
+                BazaarOrderRepository::map, itemKey, OrderSide.SELL.name(),
+                OrderState.ACTIVE.name(), OrderState.PARTIALLY_FILLED.name(), limit, offset);
+    }
+
+    /**
      * Najlepsze aktywne zlecenie kupna dla danego przedmiotu:
      * najwyzsza cena, potem najstarsze id.
      */
@@ -142,19 +182,28 @@ public final class BazaarOrderRepository {
     }
 
     /**
-     * Atomowo zdejmij "fillAmount" z zlecenia. Zwraca true przy powodzeniu.
-     * Jesli po zdjeciu ilosc == 0 - status ustawia sie na FILLED,
-     * w przeciwnym razie PARTIALLY_FILLED. Uzywane w transakcji zewnetrznej.
+     * Atomowo zdejmij "fillAmount" ze zlecenia. Zwraca true przy powodzeniu.
+     * Po JEDNYM odjęciu: ilość &lt;= 0 -&gt; FILLED, w przeciwnym razie PARTIALLY_FILLED.
+     * Używane w transakcji zewnętrznej.
+     *
+     * WAŻNE (MySQL/MariaDB): w pojedynczym UPDATE przypisania w SET są liczone
+     * OD LEWEJ DO PRAWEJ, więc kolejna zależność od {@code amount_remaining} widzi
+     * już ZAKTUALIZOWANĄ wartość. Dlatego {@code state} MUSI być wyliczony PRZED
+     * zmniejszeniem {@code amount_remaining} - inaczej CASE zobaczyłby wartość po
+     * odjęciu i błędnie ustawiał FILLED (np. 100-50 dawałoby 0 zamiast 50).
+     * WHERE gwarantuje {@code amount_remaining >= fillAmount}, więc po odjęciu
+     * wynik nigdy nie jest ujemny.
      */
     public static boolean tryFillPortionTx(Db tx, long orderId, long fillAmount, long now) {
         String tbl = tx.t(TABLE);
         int updated = tx.update(
-                "UPDATE " + tbl + " SET amount_remaining=amount_remaining-?, " +
+                "UPDATE " + tbl + " SET " +
                         "state=CASE WHEN amount_remaining-?<=0 THEN ? ELSE ? END, " +
+                        "amount_remaining=amount_remaining-?, " +
                         "updated_at=? " +
                         "WHERE id=? AND amount_remaining>=? AND state IN (?, ?)",
-                fillAmount, fillAmount, OrderState.FILLED.name(), OrderState.PARTIALLY_FILLED.name(),
-                now, orderId, fillAmount,
+                fillAmount, OrderState.FILLED.name(), OrderState.PARTIALLY_FILLED.name(),
+                fillAmount, now, orderId, fillAmount,
                 OrderState.ACTIVE.name(), OrderState.PARTIALLY_FILLED.name());
         return updated == 1;
     }
@@ -210,6 +259,19 @@ public final class BazaarOrderRepository {
             }
             return snap;
         });
+    }
+
+    /**
+     * Usuń wyłącznie ANULOWANY wpis zlecenia danego właściciela (archiwizacja
+     * widocznego wpisu historii). Guard state=CANCELLED sprawia, że ACTIVE /
+     * PARTIALLY_FILLED nigdy nie zostaną usunięte tą ścieżką. Zwraca true gdy
+     * usunięto dokładnie jeden wiersz.
+     */
+    public boolean deleteCancelledByOwner(long orderId, UUID owner) {
+        int updated = db.update(
+                "DELETE FROM " + t() + " WHERE id=? AND owner_uuid=? AND state=?",
+                orderId, owner.toString(), OrderState.CANCELLED.name());
+        return updated == 1;
     }
 
     /** Wyczysc reserved_money do zera po zaksiegowaniu zwrotu. */

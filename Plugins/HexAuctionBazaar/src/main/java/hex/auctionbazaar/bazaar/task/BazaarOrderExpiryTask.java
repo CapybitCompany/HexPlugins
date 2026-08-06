@@ -32,7 +32,7 @@ public final class BazaarOrderExpiryTask {
         stop();
         BazaarConfig c = cfg.get();
         if (c.orderExpirySeconds() <= 0) {
-            plugin.getLogger().info("Bazaar order expiry wylaczone (order-expiry-seconds=0)");
+            plugin.getLogger().info("Wygasanie zleceń Rynku jest wyłączone (order-expiry-seconds=0).");
             return;
         }
         int interval = Math.max(200, c.orderExpiryScanIntervalTicks());
@@ -48,7 +48,7 @@ public final class BazaarOrderExpiryTask {
 
     private void sweep() {
         service.expireDueOrders(200).exceptionally(ex -> {
-            plugin.getLogger().log(Level.WARNING, "order expiry sweep failed", ex);
+            plugin.getLogger().log(Level.WARNING, "Skanowanie wygasłych zleceń Rynku nie powiodło się", ex);
             return 0;
         });
     }
