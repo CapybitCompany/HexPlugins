@@ -16,6 +16,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
@@ -30,9 +31,9 @@ import static hex.auctionbazaar.util.MessageFactory.placeholders;
 /**
  * Menu pojedynczego przedmiotu w Bazarze.
  * Uklad:
- *  - slot 4: przedmiot z lore (aktualne ceny, stan magazynu)
- *  - lewa polowa BUY (10, 11, 12, 19): 4 przyciski (1, 64, 576, wlasna ilosc)
- *  - prawa polowa SELL (14, 15, 16, 23): 4 przyciski (1, 64, 576, wlasna ilosc)
+ *  - slot 4: przedmiot z lore (aktualne ceny)
+ *  - lewa polowa BUY (10, 11, 12 + custom 20 pod "64"): 4 przyciski (1, 64, 576, wlasna ilosc)
+ *  - prawa polowa SELL (14, 15, 16 + custom 24 pod "64"): 4 przyciski (1, 64, 576, wlasna ilosc)
  *  - slot 39: BUY ORDER (kreator - PAPER)
  *  - slot 41: SELL OFFER (kreator - WRITABLE_BOOK)
  *  - slot 40: MOJE ZLECENIA
@@ -52,10 +53,10 @@ public final class BazaarItemGui {
     private static final int SLOT_SELL_OFFER_CREATE = 41;
     private static final int SLOT_CLOSE = 53;
 
-    // Sloty BUY: 4 przyciski dla ilosci 1, 64, 576, custom.
-    private static final int[] BUY_SLOTS = {10, 11, 12, 19};
-    // Sloty SELL: 4 przyciski dla ilosci 1, 64, 576, custom.
-    private static final int[] SELL_SLOTS = {14, 15, 16, 23};
+    // Sloty BUY: 3 presety (1, 64, 576) w rzędzie + custom-tabliczka wyśrodkowana POD "64".
+    private static final int[] BUY_SLOTS = {10, 11, 12, 20};
+    // Sloty SELL: 3 presety (1, 64, 576) w rzędzie + custom-tabliczka wyśrodkowana POD "64".
+    private static final int[] SELL_SLOTS = {14, 15, 16, 24};
 
     public static void open(Plugin plugin, Player player, String itemKey,
                             Supplier<BazaarConfig> cfg, BazaarService service,
@@ -106,9 +107,9 @@ public final class BazaarItemGui {
                 lore.add(LegacyFormat.component(messages.raw("bazaar.gui.lore-sell",
                         placeholders("price", economy.format(price.sellPrice())))));
             }
-            lore.add(LegacyFormat.component(messages.raw("bazaar.gui.lore-category",
-                    placeholders("category", item.category()))));
             meta.lore(lore);
+            // Ukrywamy modyfikatory atrybutów (np. obrażenia miecza) - w menu liczy się cena, nie staty.
+            meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
             info.setItemMeta(meta);
         }
         return info;
@@ -221,6 +222,8 @@ public final class BazaarItemGui {
                     placeholders("total", economy.format(total)))));
             lore.add(LegacyFormat.component(messages.raw("bazaar.gui.quantity-preset-lore", null)));
             meta.lore(lore);
+            // Przyciski ilości używają materiału przedmiotu - chowamy jego staty (np. obrażenia).
+            meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
             btn.setItemMeta(meta);
         }
         return btn;

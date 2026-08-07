@@ -41,12 +41,10 @@ public final class AuctionSellGui {
 
     // Ekran wyboru ceny.
     private static final int SLOT_ITEM_PREVIEW = 13;
-    private static final int SLOT_INFO = 22;
     private static final int SLOT_CUSTOM_PRICE = 31;
     private static final int SLOT_BACK = 40;
 
     // Ekran podsumowania.
-    private static final int SLOT_SUMMARY_INFO = 22;
     private static final int SLOT_CONFIRM = 29;
     private static final int SLOT_CHANGE_PRICE = 33;
 
@@ -66,12 +64,6 @@ public final class AuctionSellGui {
         holder.bindInventory(inv);
 
         inv.setItem(SLOT_ITEM_PREVIEW, itemPreview(player, messages));
-
-        inv.setItem(SLOT_INFO, GuiFrame.button(Material.PAPER,
-                messages.raw("auction.gui.sell-price-info-1", null),
-                List.of(messages.raw("auction.gui.sell-price-info-2",
-                        placeholders("min", cfg.minPrice().toPlainString(),
-                                "max", cfg.maxPrice().toPlainString())))));
 
         ItemStack custom = GuiFrame.button(Material.OAK_SIGN,
                 messages.raw("auction.gui.sell-price-custom-title", null),
@@ -183,11 +175,6 @@ public final class AuctionSellGui {
                 placeholders("net", economy.format(economicNet))));
         summaryLore.add("");
         summaryLore.add(messages.raw("auction.gui.sell-summary-hint", null));
-
-        inv.setItem(SLOT_SUMMARY_INFO, GuiFrame.button(Material.GOLD_INGOT,
-                messages.raw("auction.gui.sell-summary-gross",
-                        placeholders("gross", economy.format(tax.gross()))),
-                summaryLore));
 
         ItemStack confirm = GuiFrame.button(Material.LIME_WOOL,
                 messages.raw("auction.gui.sell-confirm-button",

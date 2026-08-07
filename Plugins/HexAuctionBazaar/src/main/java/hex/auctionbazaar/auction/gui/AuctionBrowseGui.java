@@ -93,8 +93,6 @@ public final class AuctionBrowseGui {
                         placeholders("seller", l.sellerName() == null ? "?" : l.sellerName()))));
                 lore.add(LegacyFormat.component(messages.raw("auction.gui.listing-price",
                         placeholders("price", economy.format(l.price())))));
-                lore.add(LegacyFormat.component(messages.raw("auction.gui.listing-id",
-                        placeholders("id", String.valueOf(l.id())))));
                 lore.add(Component.empty());
                 if (own) {
                     // Własna aukcja jest wizualnie oznaczona i zablokowana do kupna.

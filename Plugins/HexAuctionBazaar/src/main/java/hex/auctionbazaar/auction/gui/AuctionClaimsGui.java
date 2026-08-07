@@ -118,7 +118,7 @@ public final class AuctionClaimsGui {
         }
 
         if (total == 0) {
-            inv.setItem(itemSlots.get(itemSlots.size() / 2), GuiFrame.button(Material.BARRIER,
+            inv.setItem(cfg.slotEmptyState(), GuiFrame.button(Material.BARRIER,
                     messages.raw("auction.gui.claims-empty-title", null),
                     List.of(messages.raw("auction.gui.claims-empty-lore-1", null))));
         }
