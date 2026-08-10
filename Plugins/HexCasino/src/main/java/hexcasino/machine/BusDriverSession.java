@@ -4,6 +4,8 @@ import hexcasino.config.CasinoConfig;
 import org.bukkit.Location;
 import org.bukkit.inventory.Inventory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public final class BusDriverSession {
@@ -26,7 +28,9 @@ public final class BusDriverSession {
     private double currentWin;
     private boolean ending;
     private boolean suppressCloseReopen;
+    private boolean actionLocked;
     private Location lockedLocation;
+    private final List<BusDriverService.Card> cards = new ArrayList<>();
 
     public BusDriverSession(UUID playerId, CasinoConfig.Machine machine, Inventory inventory, int multiplierIndex) {
         this.playerId = playerId;
@@ -111,11 +115,37 @@ public final class BusDriverSession {
         this.suppressCloseReopen = suppressCloseReopen;
     }
 
+    public boolean actionLocked() {
+        return actionLocked;
+    }
+
+    public void actionLocked(boolean actionLocked) {
+        this.actionLocked = actionLocked;
+    }
+
     public Location lockedLocation() {
         return lockedLocation;
     }
 
     public void lockedLocation(Location lockedLocation) {
         this.lockedLocation = lockedLocation;
+    }
+
+    public void clearCards() {
+        cards.clear();
+        currentCard = null;
+    }
+
+    public void addCard(BusDriverService.Card card) {
+        cards.add(card);
+        currentCard = card;
+    }
+
+    public BusDriverService.Card card(int index) {
+        return index >= 0 && index < cards.size() ? cards.get(index) : null;
+    }
+
+    public List<BusDriverService.Card> cards() {
+        return List.copyOf(cards);
     }
 }

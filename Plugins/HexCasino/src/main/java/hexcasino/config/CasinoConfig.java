@@ -145,16 +145,26 @@ public record CasinoConfig(
             int exitSlot,
             int infoSlot,
             List<Integer> progressSlots,
+            List<Integer> suitSlots,
             GuiItem filler,
             GuiItem balanceItem,
             GuiItem startItem,
             GuiItem noFundsItem,
+            GuiItem redItem,
+            GuiItem blackItem,
             GuiItem lowerItem,
             GuiItem higherItem,
+            GuiItem betweenItem,
+            GuiItem outsideItem,
+            GuiItem heartsItem,
+            GuiItem diamondsItem,
+            GuiItem clubsItem,
+            GuiItem spadesItem,
             GuiItem cashoutItem,
             GuiItem cashoutUnavailableItem,
             GuiItem multiplierItem,
             GuiItem exitItem,
+            GuiItem multiplierLockedItem,
             GuiItem infoItem,
             GuiItem progressPendingItem,
             GuiItem progressCompleteItem,
@@ -187,7 +197,19 @@ public record CasinoConfig(
     ) {
     }
 
-    public record GuiItem(Material material, String name, List<String> lore, boolean hideTooltip, boolean hideAdditionalTooltip) {
+    public record GuiItem(
+            Material material,
+            String name,
+            List<String> lore,
+            boolean hideTooltip,
+            boolean hideAdditionalTooltip,
+            String headId,
+            String headOwner,
+            String headTexture
+    ) {
+        public GuiItem(Material material, String name, List<String> lore, boolean hideTooltip, boolean hideAdditionalTooltip) {
+            this(material, name, lore, hideTooltip, hideAdditionalTooltip, null, null, null);
+        }
     }
 
     public record WinningLine(String id, String name, List<Integer> slots) {
@@ -214,6 +236,7 @@ public record CasinoConfig(
             String noPermission,
             String usage,
             String machineBusy,
+            String machineUnavailable,
             String alreadyPlaying,
             String noFundsActionbar,
             String economyUnavailableActionbar,

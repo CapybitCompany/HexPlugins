@@ -16,13 +16,13 @@ public final class CasinoConfigLoader {
 
     public CasinoConfig load(FileConfiguration config, Logger logger) {
         Map<String, CasinoConfig.Machine> machines = loadMachines(config, logger);
-        CasinoConfig.ParticleSetting idleParticles = particleSetting(config, "idle-particles", Particle.HAPPY_VILLAGER,
+        CasinoConfig.ParticleSetting idleParticles = particleSetting(config, "idle-particles", Particle.DUST,
                 60, 255, 60, 1.0F, 10, 3, 0.25D, 0.25D, 0.25D, 0.06D, 1.4D, logger);
         CasinoConfig.ParticleSetting occupiedParticles = particleSetting(config, "occupied-particles", Particle.DUST,
                 255, 35, 35, 1.15F, 10, 3, 0.25D, 0.25D, 0.25D, 0.06D, 1.4D, logger);
 
         CasinoConfig.SlotMachine slotMachine = new CasinoConfig.SlotMachine(
-                positiveDoubles(config.getDoubleList("slot-machine.bet-per-line-options"), List.of(1.0D, 2.0D, 5.0D, 10.0D)),
+                positiveDoubles(config.getDoubleList("slot-machine.bet-per-line-options"), List.of(1.0D, 2.0D, 5.0D, 10.0D, 20.0D)),
                 positiveInts(config.getIntegerList("slot-machine.line-options"), List.of(1, 3, 5)),
                 Math.max(0.01D, config.getDouble("slot-machine.default-bet-per-line", 1.0D)),
                 Math.max(1, config.getInt("slot-machine.default-lines", 5)),
@@ -40,7 +40,7 @@ public final class CasinoConfigLoader {
                 ),
                 new CasinoConfig.WinAssist(
                         config.getBoolean("slot-machine.win-assist.enabled", true),
-                        clampPercent(config.getDouble("slot-machine.win-assist.chance-percent", 35.0D))
+                        clampPercent(config.getDouble("slot-machine.win-assist.chance-percent", 37.0D))
                 )
         );
 
@@ -122,7 +122,7 @@ public final class CasinoConfigLoader {
                     config.getDouble(path + "player-location.x", block.x() + 0.5D),
                     config.getDouble(path + "player-location.y", block.y() + 1.0D),
                     config.getDouble(path + "player-location.z", block.z() + 0.5D),
-                    (float) config.getDouble(path + "player-location.yaw", 90.0D),
+                    (float) config.getDouble(path + "player-location.yaw", 180.0D),
                     (float) config.getDouble(path + "player-location.pitch", 0.0D)
             );
             machines.put(id, new CasinoConfig.Machine(
@@ -260,7 +260,7 @@ public final class CasinoConfigLoader {
                 machines,
                 positiveDoubles(config.getDoubleList("bus-driver.multiplier-options"), List.of(1.0D, 2.0D, 5.0D, 10.0D)),
                 Math.max(0.01D, config.getDouble("bus-driver.default-multiplier", 1.0D)),
-                positiveDoubles(config.getDoubleList("bus-driver.round-payout-multipliers"), List.of(1.5D, 2.5D, 4.0D, 7.0D, 12.0D)),
+                positiveDoubles(config.getDoubleList("bus-driver.round-payout-multipliers"), List.of(1.5D, 2.5D, 4.0D, 7.0D)),
                 Math.max(1, config.getInt("bus-driver.result-subtitle-ticks", 40)),
                 new CasinoConfig.ExitVelocity(
                         config.getBoolean("bus-driver.exit-velocity.enabled", true),
@@ -276,8 +276,8 @@ public final class CasinoConfigLoader {
                 config.getString("bus-driver.gui.title", "&cBUS DRIVER"),
                 normalizeGuiSize(config.getInt("bus-driver.gui.size", 54)),
                 config.getInt("bus-driver.gui.card-slot", 22),
-                config.getInt("bus-driver.gui.lower-slot", 30),
-                config.getInt("bus-driver.gui.higher-slot", 32),
+                config.getInt("bus-driver.gui.lower-slot", 12),
+                config.getInt("bus-driver.gui.higher-slot", 14),
                 config.getInt("bus-driver.gui.cashout-slot", 40),
                 config.getInt("bus-driver.gui.multiplier-slot", 41),
                 config.getInt("bus-driver.gui.balance-slot", 46),
@@ -285,15 +285,31 @@ public final class CasinoConfigLoader {
                 config.getInt("bus-driver.gui.info-slot", 53),
                 config.isList("bus-driver.gui.progress-slots") ? config.getIntegerList("bus-driver.gui.progress-slots")
                         : List.of(11, 12, 13, 14, 15),
+                config.isList("bus-driver.gui.suit-slots") ? config.getIntegerList("bus-driver.gui.suit-slots")
+                        : List.of(10, 11, 15, 16),
                 guiItem(config, "bus-driver.gui.filler", Material.BLACK_STAINED_GLASS_PANE, "", List.of(), true, logger),
                 guiItem(config, "bus-driver.gui.balance-item", Material.BUNDLE, "&aŚrodki: &f{balance_display}", List.of(), false, logger),
                 guiItem(config, "bus-driver.gui.start-item", Material.LIME_DYE, "&a&lROZPOCZNIJ",
-                        List.of("&c&m--------------------", "&fKoszt wejścia: &a{total_cost}",
+                        List.of("&c&m--------------------", "&fStawka: &a{total_cost}$",
                                 "&c&m--------------------", "&7Mnożnik: &f{multiplier}"), false, logger),
                 guiItem(config, "bus-driver.gui.no-funds-item", Material.RED_DYE, "&cBrak środków",
                         List.of("&c&m--------------------", "&7Wymagane: &f{total_cost}$", "&7Twoje środki: &f{balance_display}"), false, logger),
-                guiItem(config, "bus-driver.gui.lower-item", Material.RED_DYE, "&c&lNIŻEJ", List.of(), false, logger),
-                guiItem(config, "bus-driver.gui.higher-item", Material.LIME_DYE, "&a&lWYŻEJ", List.of(), false, logger),
+                guiItem(config, "bus-driver.gui.red-item", Material.RED_BUNDLE, "&c&lCZERWONA", List.of(), false, logger),
+                guiItem(config, "bus-driver.gui.black-item", Material.BLACK_BUNDLE, "&8&lCZARNA", List.of(), false, logger),
+                guiItem(config, "bus-driver.gui.lower-item", Material.PLAYER_HEAD, "&c&lNIZEJ", List.of(), false,
+                        "9335", null, "a3852bf616f31ed67c37de4b0baa2c5f8d8fca82e72dbcafcba66956a81c4", logger),
+                guiItem(config, "bus-driver.gui.higher-item", Material.PLAYER_HEAD, "&a&lWYZEJ", List.of(), false,
+                        "10192", null, "5da027477197c6fd7ad33014546de392b4a51c634ea68c8b7bcc0131c83e3f", logger),
+                guiItem(config, "bus-driver.gui.between-item", Material.ENDER_EYE, "&b&lPOMIEDZY", List.of(), false, logger),
+                guiItem(config, "bus-driver.gui.outside-item", Material.ENDER_PEARL, "&5&lPOZA", List.of(), false, logger),
+                guiItem(config, "bus-driver.gui.hearts-item", Material.PLAYER_HEAD, "&c&lKIER", List.of(), false,
+                        "67606", null, "a64ddfe9a5319cfe81ce856ca2fb3b8495d735d8337b010b695b462e6ddf6999", logger),
+                guiItem(config, "bus-driver.gui.diamonds-item", Material.PLAYER_HEAD, "&d&lKARO", List.of(), false,
+                        "67607", null, "3f237bdc9fc3e54466b62f544ef39c190b84fecd36103f5946f844a9a0828063", logger),
+                guiItem(config, "bus-driver.gui.clubs-item", Material.PLAYER_HEAD, "&8&lTREFL", List.of(), false,
+                        "67605", null, "473a0503b96d052c12680e71faefed703b7333373defa80854598b2777b4f28b", logger),
+                guiItem(config, "bus-driver.gui.spades-item", Material.PLAYER_HEAD, "&8&lPIK", List.of(), false,
+                        "67608", null, "8f89f34902a3e7816feda65d7c5686a2e42b0cc4f284d0e45e8e6da5f77846dc", logger),
                 guiItem(config, "bus-driver.gui.cashout-item", Material.GOLD_INGOT, "&e&lWYPŁAĆ",
                         List.of("&c&m--------------------", "&7Aktualna wygrana: &a{current_win}$"), false, logger),
                 guiItem(config, "bus-driver.gui.cashout-unavailable-item", Material.GRAY_DYE, "&7Brak wygranej do wypłaty", List.of(), false, logger),
@@ -301,13 +317,17 @@ public final class CasinoConfigLoader {
                         List.of("&c&m--------------------", "&eLPM: &fZmień mnożnik",
                                 "&c&m--------------------", "&7Mnożnik: &f{multiplier}"), false, logger),
                 guiItem(config, "bus-driver.gui.exit-item", Material.BARRIER, "&cWyjście", List.of(), false, logger),
+                guiItem(config, "bus-driver.gui.multiplier-locked-item", Material.WHITE_DYE, "&fStawka gry:",
+                        List.of("&c&m--------------------", "&7Mnoznik: &f{multiplier}"), false, logger),
                 guiItem(config, "bus-driver.gui.info-item", Material.PAPER, "&fBus Driver",
-                        List.of("&c&m--------------------", "&7Zgadnij czy kolejna karta będzie wyżej albo niżej.", "{round_payouts}"), false, logger),
+                        List.of("&c&m--------------------", "&7Twoja aktualna stawka: &f{total_cost}$",
+                                "&c&m--------------------", "&ePotencjalne wygrane:", "{round_payouts}",
+                                "&c&m--------------------", "&7Aktualna wygrana: &a{current_win}$"), false, logger),
                 guiItem(config, "bus-driver.gui.progress-pending-item", Material.GRAY_STAINED_GLASS_PANE, "&7Runda {round}",
                         List.of("&7Wypłata: &f{x}x"), false, logger),
                 guiItem(config, "bus-driver.gui.progress-complete-item", Material.LIME_STAINED_GLASS_PANE, "&aRunda {round}",
                         List.of("&7Wypłata: &a{x}x"), false, logger),
-                config.getString("bus-driver.gui.info-item.round-line", "&eRunda {round}: &a{x}x")
+                config.getString("bus-driver.gui.info-item.round-line", "&e{round}. runda: &a{x}$")
         );
     }
 
@@ -318,7 +338,7 @@ public final class CasinoConfigLoader {
                 "world",
                 Material.MAGENTA_GLAZED_TERRACOTTA,
                 block,
-                new CasinoConfig.PlayerLocation(x + 0.5D, y + 1.0D, z + 0.5D, 90.0F, 0.0F)
+                new CasinoConfig.PlayerLocation(x + 0.5D, y + 1.0D, z + 0.5D, 180.0F, 0.0F)
         );
     }
 
@@ -363,13 +383,48 @@ public final class CasinoConfigLoader {
                                          List<String> fallbackLore,
                                          boolean fallbackHideTooltip,
                                          Logger logger) {
+        return guiItem(config, path, fallbackMaterial, fallbackName, fallbackLore, fallbackHideTooltip,
+                null, null, null, logger);
+    }
+
+    private CasinoConfig.GuiItem guiItem(FileConfiguration config,
+                                         String path,
+                                         Material fallbackMaterial,
+                                         String fallbackName,
+                                         List<String> fallbackLore,
+                                         boolean fallbackHideTooltip,
+                                         String fallbackHeadId,
+                                         String fallbackHeadOwner,
+                                         String fallbackHeadTexture,
+                                         Logger logger) {
+        String headId = blankToNull(config.getString(path + ".head-id", fallbackHeadId));
+        String headOwner = blankToNull(config.getString(path + ".head-owner",
+                config.getString(path + ".skull-owner",
+                        config.getString(path + ".owner", fallbackHeadOwner))));
+        String headTexture = blankToNull(config.getString(path + ".head-texture",
+                config.getString(path + ".texture",
+                        config.getString(path + ".skin-url", fallbackHeadTexture))));
+        Material loadedMaterial = material(config.getString(path + ".material", fallbackMaterial.name()), fallbackMaterial, logger);
+        if (fallbackMaterial == Material.PLAYER_HEAD && (headId != null || headOwner != null || headTexture != null)) {
+            loadedMaterial = Material.PLAYER_HEAD;
+        }
         return new CasinoConfig.GuiItem(
-                material(config.getString(path + ".material", fallbackMaterial.name()), fallbackMaterial, logger),
+                loadedMaterial,
                 config.getString(path + ".name", fallbackName),
                 config.isList(path + ".lore") ? config.getStringList(path + ".lore") : fallbackLore,
                 config.getBoolean(path + ".hide-tooltip", fallbackHideTooltip),
-                config.getBoolean(path + ".hide-additional-tooltip", false)
+                config.getBoolean(path + ".hide-additional-tooltip", false),
+                headId,
+                headOwner,
+                headTexture
         );
+    }
+
+    private String blankToNull(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim();
     }
 
     private List<CasinoConfig.WinningLine> loadWinningLines(FileConfiguration config) {
@@ -424,6 +479,7 @@ public final class CasinoConfigLoader {
                 config.getString("messages.no-permission", "&cNie masz uprawnień."),
                 config.getString("messages.usage", "&7Użycie: &f/hexcasino reload"),
                 config.getString("messages.machine-busy", "&cTa maszyna jest aktualnie zajęta."),
+                config.getString("messages.machine-unavailable", "&cTa maszyna jest chwilowo niedostępna."),
                 config.getString("messages.already-playing", "&cJuż korzystasz z innej maszyny."),
                 config.getString("messages.no-funds-actionbar", "&cNie masz wystarczających środków. Wymagane: &f{total_cost}$"),
                 config.getString("messages.economy-unavailable-actionbar", "&cEkonomia jest chwilowo niedostępna."),

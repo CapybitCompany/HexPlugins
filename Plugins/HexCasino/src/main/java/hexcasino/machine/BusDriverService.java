@@ -26,11 +26,17 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.profile.PlayerProfile;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
+import java.net.URI;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -43,6 +49,13 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Supplier;
 
 public final class BusDriverService implements Listener {
+
+    private enum Stage {
+        COLOR,
+        HIGH_LOW,
+        BETWEEN_OUTSIDE,
+        SUIT
+    }
 
     private final JavaPlugin plugin;
     private final Supplier<CasinoConfig> configSupplier;
@@ -150,6 +163,10 @@ public final class BusDriverService implements Listener {
             return;
         }
 
+        if (session.actionLocked()) {
+            return;
+        }
+
         if (session.state() == BusDriverSession.State.IDLE) {
             if (slot == gui.multiplierSlot() && event.getClick().isLeftClick()) {
                 Bukkit.getScheduler().runTask(plugin, () -> {
@@ -162,10 +179,13 @@ public final class BusDriverService implements Listener {
                 return;
             }
             if (slot == gui.cardSlot()) {
+                session.actionLocked(true);
                 Bukkit.getScheduler().runTask(plugin, () -> {
                     BusDriverSession current = sessionsByPlayer.get(player.getUniqueId());
                     if (current != null && current.state() == BusDriverSession.State.IDLE) {
                         startGame(player, current);
+                    } else {
+                        session.actionLocked(false);
                     }
                 });
             }
@@ -176,12 +196,48 @@ public final class BusDriverService implements Listener {
             return;
         }
 
-        if (slot == gui.lowerSlot()) {
-            Bukkit.getScheduler().runTask(plugin, () -> guess(player, session, false));
-        } else if (slot == gui.higherSlot()) {
-            Bukkit.getScheduler().runTask(plugin, () -> guess(player, session, true));
-        } else if (slot == gui.cashoutSlot()) {
-            Bukkit.getScheduler().runTask(plugin, () -> cashout(player, session));
+        if (slot == gui.cashoutSlot()) {
+            session.actionLocked(true);
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                BusDriverSession current = sessionsByPlayer.get(player.getUniqueId());
+                if (current == session && current.state() == BusDriverSession.State.PLAYING) {
+                    cashout(player, current);
+                } else {
+                    session.actionLocked(false);
+                }
+            });
+            return;
+        }
+
+        Stage stage = stage(session);
+        if (stage == Stage.SUIT) {
+            int suitIndex = gui.suitSlots().indexOf(slot);
+            if (suitIndex >= 0 && suitIndex < Suit.values().length) {
+                session.actionLocked(true);
+                Suit suit = Suit.values()[suitIndex];
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    BusDriverSession current = sessionsByPlayer.get(player.getUniqueId());
+                    if (current == session && current.state() == BusDriverSession.State.PLAYING) {
+                        chooseSuit(player, current, suit);
+                    } else {
+                        session.actionLocked(false);
+                    }
+                });
+            }
+            return;
+        }
+
+        if (slot == gui.lowerSlot() || slot == gui.higherSlot()) {
+            session.actionLocked(true);
+            boolean rightChoice = slot == gui.higherSlot();
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                BusDriverSession current = sessionsByPlayer.get(player.getUniqueId());
+                if (current == session && current.state() == BusDriverSession.State.PLAYING) {
+                    choose(player, current, rightChoice);
+                } else {
+                    session.actionLocked(false);
+                }
+            });
         }
     }
 
@@ -287,7 +343,7 @@ public final class BusDriverService implements Listener {
             CasinoConfig config = configSupplier.get();
             play(player, config.sounds().close());
             if (config.busDriver().exitVelocity().enabled()) {
-                Vector velocity = player.getLocation().getDirection()
+                Vector velocity = directionFromYaw(session.machine().playerLocation().yaw())
                         .multiply(-config.busDriver().exitVelocity().backwardsStrength());
                 velocity.setY(config.busDriver().exitVelocity().y());
                 player.setVelocity(velocity);
@@ -305,74 +361,117 @@ public final class BusDriverService implements Listener {
         if (balance.isEmpty()) {
             player.sendActionBar(Text.component(config.messages().economyUnavailableActionbar()));
             play(player, config.sounds().noFunds());
+            session.actionLocked(false);
             return;
         }
         if (balance.getAsDouble() + 0.0001D < cost) {
             player.sendActionBar(Text.component(config.messages().noFundsActionbar(), placeholders(player, session, balance)));
             play(player, config.sounds().noFunds());
             render(session, player);
+            session.actionLocked(false);
             return;
         }
         if (!CasinoEconomy.dispatch(config.economy().removeCommand(), player, cost)) {
             player.sendActionBar(Text.component(config.messages().economyUnavailableActionbar()));
             play(player, config.sounds().noFunds());
+            session.actionLocked(false);
             return;
         }
 
         session.state(BusDriverSession.State.PLAYING);
         session.stake(cost);
-        session.currentCard(randomCard());
+        session.clearCards();
         session.completedRounds(0);
         session.currentWin(0.0D);
+        session.actionLocked(false);
         play(player, config.sounds().spinStart());
         render(session, player);
     }
 
-    private void guess(Player player, BusDriverSession session, boolean higher) {
-        if (session.currentCard() == null) {
+    private void choose(Player player, BusDriverSession session, boolean rightChoice) {
+        Stage stage = stage(session);
+        if (stage == Stage.SUIT) {
+            session.actionLocked(false);
             return;
         }
-        CasinoConfig config = configSupplier.get();
-        Card previous = session.currentCard();
-        Card next = randomCard();
-        int tries = 0;
-        while (next.rank() == previous.rank() && tries < 12) {
-            next = randomCard();
-            tries++;
-        }
-
-        if (next.rank() == previous.rank()) {
-            session.currentCard(next);
-            player.sendActionBar(Text.component("&eRemis. Wybierz ponownie."));
+        if (!stageReady(session, stage)) {
+            resetRound(session);
+            session.actionLocked(false);
             render(session, player);
             return;
         }
 
-        boolean correct = higher ? next.rank() > previous.rank() : next.rank() < previous.rank();
-        session.currentCard(next);
+        Card next = drawComparableCard(session, stage);
+        boolean correct = switch (stage) {
+            case COLOR -> next.red() != rightChoice; // left = red, right = black
+            case HIGH_LOW -> rightChoice
+                    ? next.rank() > session.currentCard().rank()
+                    : next.rank() < session.currentCard().rank();
+            case BETWEEN_OUTSIDE -> {
+                Card first = session.card(0);
+                Card second = session.card(1);
+                int low = Math.min(first.rank(), second.rank());
+                int high = Math.max(first.rank(), second.rank());
+                boolean between = next.rank() > low && next.rank() < high;
+                yield rightChoice ? !between : between; // left = between, right = outside
+            }
+            case SUIT -> false;
+        };
+        resolveChoice(player, session, correct, next);
+    }
+
+    private void chooseSuit(Player player, BusDriverSession session, Suit suit) {
+        if (!stageReady(session, Stage.SUIT)) {
+            resetRound(session);
+            session.actionLocked(false);
+            render(session, player);
+            return;
+        }
+        Card next = randomCard();
+        resolveChoice(player, session, next.suit() == suit, next);
+    }
+
+    private Card drawComparableCard(BusDriverSession session, Stage stage) {
+        Card next = randomCard();
+        if (stage == Stage.HIGH_LOW && session.currentCard() != null) {
+            int tries = 0;
+            while (next.rank() == session.currentCard().rank() && tries < 12) {
+                next = randomCard();
+                tries++;
+            }
+        }
+        return next;
+    }
+
+    private void resolveChoice(Player player, BusDriverSession session, boolean correct, Card next) {
+        CasinoConfig config = configSupplier.get();
+        session.addCard(next);
         if (!correct) {
             play(player, config.sounds().lose());
-            showResult(session, player, false, 0.0D);
+            showDecisionFeedback(session, player, false, next, 0.0D, false);
             return;
         }
 
         int completed = session.completedRounds() + 1;
         session.completedRounds(completed);
-        double win = session.stake() * config.busDriver().roundPayoutMultipliers().get(completed - 1);
+        List<Double> payouts = config.busDriver().roundPayoutMultipliers();
+        double win = session.stake() * payouts.get(Math.min(completed - 1, payouts.size() - 1));
         session.currentWin(win);
-        play(player, config.sounds().winSmall());
-        if (completed >= config.busDriver().roundPayoutMultipliers().size()) {
+        int maxRounds = Math.min(4, payouts.size());
+        play(player, completed >= maxRounds
+                ? config.sounds().winBig()
+                : config.sounds().winSmall());
+        if (completed >= maxRounds) {
             CasinoEconomy.dispatch(config.economy().addCommand(), player, win);
-            play(player, config.sounds().winBig());
-            showResult(session, player, true, win);
+            showDecisionFeedback(session, player, true, next, win, false);
             return;
         }
-        player.sendActionBar(Text.component("&aTrafione. Możesz wypłacić &f" + CasinoEconomy.money(win) + "$&a albo grać dalej."));
-        render(session, player);
+        showDecisionFeedback(session, player, true, next, win, true);
     }
 
     private void cashout(Player player, BusDriverSession session) {
         if (session.currentWin() <= 0.0D) {
+            session.actionLocked(false);
             return;
         }
         CasinoConfig config = configSupplier.get();
@@ -381,8 +480,51 @@ public final class BusDriverService implements Listener {
         showResult(session, player, true, session.currentWin());
     }
 
+    private void showDecisionFeedback(BusDriverSession session,
+                                      Player player,
+                                      boolean correct,
+                                      Card revealedCard,
+                                      double amount,
+                                      boolean continuePlaying) {
+        if (player == null || !player.isOnline()) {
+            session.actionLocked(false);
+            return;
+        }
+        CasinoConfig config = configSupplier.get();
+        session.state(BusDriverSession.State.SHOWING_RESULT);
+        session.lockedLocation(player.getLocation().clone());
+        session.suppressCloseReopen(true);
+        player.closeInventory();
+        String title = correct ? "§aDOBRZE" : "§cBLEDNIE";
+        String subtitle = "§7Karta: §f" + revealedCard.label()
+                + (amount > 0.0D ? " §8| §a" + CasinoEconomy.money(amount) + "$" : "");
+        player.sendTitle(title, subtitle, 0, config.busDriver().resultSubtitleTicks(), 0);
+
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            BusDriverSession current = sessionsByPlayer.get(session.playerId());
+            Player online = Bukkit.getPlayer(session.playerId());
+            if (current != session || online == null || !online.isOnline()) {
+                return;
+            }
+            session.suppressCloseReopen(false);
+            session.lockedLocation(null);
+            if (continuePlaying) {
+                session.state(BusDriverSession.State.PLAYING);
+                session.actionLocked(false);
+                render(session, online);
+                online.openInventory(session.inventory());
+                return;
+            }
+            resetRound(session);
+            session.actionLocked(false);
+            render(session, online);
+            online.openInventory(session.inventory());
+        }, config.busDriver().resultSubtitleTicks());
+    }
+
     private void showResult(BusDriverSession session, Player player, boolean win, double amount) {
         if (player == null || !player.isOnline()) {
+            session.actionLocked(false);
             return;
         }
         CasinoConfig config = configSupplier.get();
@@ -406,14 +548,19 @@ public final class BusDriverService implements Listener {
             }
             session.suppressCloseReopen(false);
             session.lockedLocation(null);
-            session.state(BusDriverSession.State.IDLE);
-            session.currentCard(null);
-            session.completedRounds(0);
-            session.currentWin(0.0D);
-            session.stake(0.0D);
+            resetRound(session);
+            session.actionLocked(false);
             render(session, online);
             online.openInventory(session.inventory());
         }, config.busDriver().resultSubtitleTicks());
+    }
+
+    private void resetRound(BusDriverSession session) {
+        session.state(BusDriverSession.State.IDLE);
+        session.clearCards();
+        session.completedRounds(0);
+        session.currentWin(0.0D);
+        session.stake(0.0D);
     }
 
     private void render(BusDriverSession session, Player player) {
@@ -422,7 +569,6 @@ public final class BusDriverService implements Listener {
         for (int slot = 0; slot < session.inventory().getSize(); slot++) {
             session.inventory().setItem(slot, filler.clone());
         }
-        renderProgress(session);
         renderControls(session, player);
     }
 
@@ -448,14 +594,14 @@ public final class BusDriverService implements Listener {
         OptionalDouble balance = CasinoEconomy.balance(player, config);
         Map<String, String> placeholders = placeholders(player, session, balance);
         set(session.inventory(), gui.balanceSlot(), item(gui.balanceItem(), placeholders));
-        set(session.inventory(), gui.multiplierSlot(), item(gui.multiplierItem(), placeholders));
+        set(session.inventory(), gui.multiplierSlot(), item(session.state() == BusDriverSession.State.IDLE
+                ? gui.multiplierItem()
+                : gui.multiplierLockedItem(), placeholders));
         set(session.inventory(), gui.exitSlot(), item(gui.exitItem(), placeholders));
-        set(session.inventory(), gui.infoSlot(), infoItem(gui.infoItem(), gui.infoRoundLine(), placeholders));
+        set(session.inventory(), gui.infoSlot(), infoItem(gui.infoItem(), gui.infoRoundLine(), placeholders, session));
 
         if (session.state() == BusDriverSession.State.PLAYING) {
-            set(session.inventory(), gui.cardSlot(), cardItem(session.currentCard(), placeholders));
-            set(session.inventory(), gui.lowerSlot(), item(gui.lowerItem(), placeholders));
-            set(session.inventory(), gui.higherSlot(), item(gui.higherItem(), placeholders));
+            renderStageChoices(session, gui, placeholders);
             set(session.inventory(), gui.cashoutSlot(), session.currentWin() > 0.0D
                     ? item(gui.cashoutItem(), placeholders)
                     : item(gui.cashoutUnavailableItem(), placeholders));
@@ -467,7 +613,72 @@ public final class BusDriverService implements Listener {
         player.updateInventory();
     }
 
-    private ItemStack infoItem(CasinoConfig.GuiItem config, String roundLine, Map<String, String> placeholders) {
+    private void renderStageChoices(BusDriverSession session,
+                                    CasinoConfig.BusDriverGui gui,
+                                    Map<String, String> placeholders) {
+        Stage stage = stage(session);
+        set(session.inventory(), gui.cardSlot(), stageInfoItem(stage, session, placeholders));
+        if (stage == Stage.SUIT) {
+            Suit[] suits = Suit.values();
+            for (int index = 0; index < gui.suitSlots().size() && index < suits.length; index++) {
+                set(session.inventory(), gui.suitSlots().get(index), suitChoiceItem(gui, suits[index]));
+            }
+            return;
+        }
+        CasinoConfig.GuiItem left = switch (stage) {
+            case COLOR -> withHiddenAdditionalTooltip(gui.redItem());
+            case HIGH_LOW -> withHiddenAdditionalTooltip(gui.lowerItem());
+            case BETWEEN_OUTSIDE -> withHiddenAdditionalTooltip(gui.betweenItem());
+            case SUIT -> gui.lowerItem();
+        };
+        CasinoConfig.GuiItem right = switch (stage) {
+            case COLOR -> withHiddenAdditionalTooltip(gui.blackItem());
+            case HIGH_LOW -> withHiddenAdditionalTooltip(gui.higherItem());
+            case BETWEEN_OUTSIDE -> withHiddenAdditionalTooltip(gui.outsideItem());
+            case SUIT -> gui.higherItem();
+        };
+        set(session.inventory(), gui.lowerSlot(), item(left, placeholders));
+        set(session.inventory(), gui.higherSlot(), item(right, placeholders));
+    }
+
+    private ItemStack stageInfoItem(Stage stage, BusDriverSession session, Map<String, String> placeholders) {
+        CasinoConfig.GuiItem config = switch (stage) {
+            case COLOR -> new CasinoConfig.GuiItem(Material.PAPER, "&fKolor", List.of("&7Wybierz kolor pierwszej karty."), false, true);
+            case HIGH_LOW -> new CasinoConfig.GuiItem(Material.PAPER, "&fWyzej / Nizej",
+                    List.of("&7Poprzednia karta: &f{current_card}"), false, true);
+            case BETWEEN_OUTSIDE -> new CasinoConfig.GuiItem(Material.PAPER, "&fPomiedzy / Poza",
+                    List.of("&7Zakres: &f{first_card} &7- &f{second_card}"), false, true);
+            case SUIT -> new CasinoConfig.GuiItem(Material.PAPER, "&fZnak",
+                    List.of("&7Wybierz znak kolejnej karty."), false, true);
+        };
+        return item(config, placeholders);
+    }
+
+    private ItemStack suitChoiceItem(CasinoConfig.BusDriverGui gui, Suit suit) {
+        CasinoConfig.GuiItem config = switch (suit) {
+            case HEARTS -> gui.heartsItem();
+            case DIAMONDS -> gui.diamondsItem();
+            case CLUBS -> gui.clubsItem();
+            case SPADES -> gui.spadesItem();
+        };
+        return item(withHiddenAdditionalTooltip(config), Map.of());
+    }
+
+    private CasinoConfig.GuiItem withHiddenAdditionalTooltip(CasinoConfig.GuiItem config) {
+        return new CasinoConfig.GuiItem(
+                config.material(),
+                config.name(),
+                config.lore(),
+                config.hideTooltip(),
+                true,
+                config.headId(),
+                config.headOwner(),
+                config.headTexture()
+        );
+    }
+
+    private ItemStack infoItem(CasinoConfig.GuiItem config, String roundLine, Map<String, String> placeholders,
+                               BusDriverSession session) {
         ItemStack stack = new ItemStack(config.material());
         ItemMeta meta = stack.getItemMeta();
         if (meta != null) {
@@ -475,7 +686,7 @@ public final class BusDriverService implements Listener {
             List<net.kyori.adventure.text.Component> lore = new ArrayList<>();
             for (String line : config.lore()) {
                 if ("{round_payouts}".equals(line)) {
-                    lore.addAll(roundPayoutLines(roundLine));
+                    lore.addAll(roundPayoutLines(roundLine, session));
                 } else {
                     lore.add(Text.component(line, placeholders));
                 }
@@ -487,14 +698,15 @@ public final class BusDriverService implements Listener {
         return stack;
     }
 
-    private List<net.kyori.adventure.text.Component> roundPayoutLines(String roundLine) {
+    private List<net.kyori.adventure.text.Component> roundPayoutLines(String roundLine, BusDriverSession session) {
         CasinoConfig config = configSupplier.get();
         List<net.kyori.adventure.text.Component> lines = new ArrayList<>();
         List<Double> payouts = config.busDriver().roundPayoutMultipliers();
+        double stake = session.stake() > 0.0D ? session.stake() : multiplier(config, session);
         for (int index = 0; index < payouts.size(); index++) {
             lines.add(Text.component(roundLine, Map.of(
                     "round", Integer.toString(index + 1),
-                    "x", CasinoEconomy.money(payouts.get(index))
+                    "x", CasinoEconomy.money(stake * payouts.get(index))
             )));
         }
         return lines;
@@ -518,15 +730,106 @@ public final class BusDriverService implements Listener {
     }
 
     private ItemStack item(CasinoConfig.GuiItem config, Map<String, String> placeholders) {
-        ItemStack stack = new ItemStack(config.material());
+        ItemStack stack = baseItem(config);
         ItemMeta meta = stack.getItemMeta();
         if (meta != null) {
+            applyHeadProfile(meta, config);
             meta.displayName(Text.component(config.name(), placeholders));
             meta.lore(config.lore().isEmpty() ? null : Text.lore(config.lore(), placeholders));
             applyFlags(meta, config);
             stack.setItemMeta(meta);
         }
         return stack;
+    }
+
+    private ItemStack baseItem(CasinoConfig.GuiItem config) {
+        if (!isBlank(config.headTexture())) {
+            return new ItemStack(config.material());
+        }
+        ItemStack head = headDatabaseItem(config.headId());
+        if (head != null) {
+            return head;
+        }
+        return new ItemStack(config.material());
+    }
+
+    private ItemStack headDatabaseItem(String headId) {
+        if (isBlank(headId)) {
+            return null;
+        }
+        try {
+            Class<?> apiClass = Class.forName("me.arcaniax.hdb.api.HeadDatabaseAPI");
+            Object api = apiClass.getDeclaredConstructor().newInstance();
+            Object item = apiClass.getMethod("getItemHead", String.class).invoke(api, headId);
+            if (item instanceof ItemStack stack && !stack.getType().isAir()) {
+                return stack.clone();
+            }
+        } catch (Throwable ignored) {
+            // HeadDatabase is optional. If it is absent or the id is invalid, fall back to the configured material.
+        }
+        return null;
+    }
+
+    private void applyHeadProfile(ItemMeta meta, CasinoConfig.GuiItem config) {
+        if (!(meta instanceof SkullMeta skullMeta)) {
+            return;
+        }
+        URL textureUrl = textureUrl(config.headTexture());
+        if (textureUrl != null) {
+            PlayerProfile profile = Bukkit.createPlayerProfile(
+                    UUID.nameUUIDFromBytes(config.headTexture().getBytes(StandardCharsets.UTF_8))
+            );
+            profile.getTextures().setSkin(textureUrl);
+            skullMeta.setOwnerProfile(profile);
+            return;
+        }
+        if (!isBlank(config.headOwner())) {
+            skullMeta.setOwner(config.headOwner());
+        }
+    }
+
+    private URL textureUrl(String raw) {
+        if (isBlank(raw)) {
+            return null;
+        }
+        String value = raw.trim();
+        String decoded = decodedTextureUrl(value);
+        if (decoded != null) {
+            value = decoded;
+        } else if (value.contains("textures.minecraft.net/texture/") && !value.startsWith("http")) {
+            value = "https://" + value;
+        } else if (!value.startsWith("http://") && !value.startsWith("https://")) {
+            value = "https://textures.minecraft.net/texture/" + value;
+        }
+        try {
+            return URI.create(value).toURL();
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private String decodedTextureUrl(String value) {
+        try {
+            String decoded = new String(Base64.getDecoder().decode(value), StandardCharsets.UTF_8);
+            String marker = "\"url\"";
+            int markerIndex = decoded.indexOf(marker);
+            if (markerIndex < 0) {
+                return null;
+            }
+            int colon = decoded.indexOf(':', markerIndex + marker.length());
+            int firstQuote = decoded.indexOf('"', colon + 1);
+            int secondQuote = decoded.indexOf('"', firstQuote + 1);
+            if (colon < 0 || firstQuote < 0 || secondQuote < 0) {
+                return null;
+            }
+            return decoded.substring(firstQuote + 1, secondQuote).replace("\\/", "/");
+        } catch (IllegalArgumentException ignored) {
+            return null;
+        }
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
     }
 
     private void applyFlags(ItemMeta meta, CasinoConfig.GuiItem config) {
@@ -617,12 +920,48 @@ public final class BusDriverService implements Listener {
         values.put("current_win", CasinoEconomy.money(session.currentWin()));
         values.put("completed_rounds", Integer.toString(session.completedRounds()));
         values.put("next_round", Integer.toString(nextRound));
+        values.put("stage", stage(session).name().toLowerCase(Locale.ROOT));
+        values.put("current_card", label(session.currentCard()));
+        values.put("first_card", label(session.card(0)));
+        values.put("second_card", label(session.card(1)));
         return values;
     }
 
     private double multiplier(CasinoConfig config, BusDriverSession session) {
         return config.busDriver().multiplierOptions()
                 .get(Math.min(session.multiplierIndex(), config.busDriver().multiplierOptions().size() - 1));
+    }
+
+    private Stage stage(BusDriverSession session) {
+        int completed = session.completedRounds();
+        if (completed <= 0) {
+            return Stage.COLOR;
+        }
+        if (completed == 1) {
+            return Stage.HIGH_LOW;
+        }
+        if (completed == 2) {
+            return Stage.BETWEEN_OUTSIDE;
+        }
+        return Stage.SUIT;
+    }
+
+    private boolean stageReady(BusDriverSession session, Stage stage) {
+        return switch (stage) {
+            case COLOR -> true;
+            case HIGH_LOW -> session.currentCard() != null;
+            case BETWEEN_OUTSIDE -> session.card(0) != null && session.card(1) != null;
+            case SUIT -> session.currentCard() != null;
+        };
+    }
+
+    private String label(Card card) {
+        return card == null ? "-" : card.label();
+    }
+
+    private Vector directionFromYaw(float yaw) {
+        double radians = Math.toRadians(yaw);
+        return new Vector(-Math.sin(radians), 0.0D, Math.cos(radians)).normalize();
     }
 
     private int optionIndex(List<Double> options, double preferred) {

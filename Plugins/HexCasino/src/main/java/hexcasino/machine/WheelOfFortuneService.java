@@ -44,6 +44,8 @@ import java.util.function.Supplier;
 
 public final class WheelOfFortuneService implements Listener {
 
+    private static final boolean TEMPORARILY_UNAVAILABLE = true;
+
     private final JavaPlugin plugin;
     private final Supplier<CasinoConfig> configSupplier;
     private final Map<MachineKey, CasinoConfig.Machine> machinesByLocation = new LinkedHashMap<>();
@@ -230,6 +232,11 @@ public final class WheelOfFortuneService implements Listener {
 
     private void openMachine(Player player, CasinoConfig.Machine machine) {
         CasinoConfig config = configSupplier.get();
+        if (TEMPORARILY_UNAVAILABLE) {
+            player.sendActionBar(Text.component(config.messages().machineUnavailable()));
+            play(player, config.sounds().noFunds());
+            return;
+        }
         if (sessionsByPlayer.containsKey(player.getUniqueId())) {
             player.sendActionBar(Text.component(config.messages().alreadyPlaying()));
             return;
@@ -565,7 +572,7 @@ public final class WheelOfFortuneService implements Listener {
 
     private void startParticles() {
         CasinoConfig config = configSupplier.get();
-        if (config.idleParticles().enabled() && config.idleParticles().count() > 0) {
+        if (!TEMPORARILY_UNAVAILABLE && config.idleParticles().enabled() && config.idleParticles().count() > 0) {
             idleParticleTask = Bukkit.getScheduler().runTaskTimer(plugin,
                     () -> spawnMachineParticles(false),
                     0L,
@@ -583,7 +590,8 @@ public final class WheelOfFortuneService implements Listener {
         CasinoConfig config = configSupplier.get();
         CasinoConfig.ParticleSetting setting = occupied ? config.occupiedParticles() : config.idleParticles();
         for (CasinoConfig.Machine machine : config.wheelOfFortune().machines().values()) {
-            if (occupiedMachines.containsKey(machine.id()) != occupied) {
+            boolean unavailableOrOccupied = TEMPORARILY_UNAVAILABLE || occupiedMachines.containsKey(machine.id());
+            if (unavailableOrOccupied != occupied) {
                 continue;
             }
             World world = Bukkit.getWorld(machine.world());

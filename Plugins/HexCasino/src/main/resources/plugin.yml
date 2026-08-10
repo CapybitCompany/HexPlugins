@@ -4,7 +4,7 @@ main: hexcasino.HexCasinoPlugin
 api-version: '1.21.11'
 description: Configurable casino games for Hex lobby.
 authors: [HexDevTeam]
-softdepend: [PlaceholderAPI]
+softdepend: [PlaceholderAPI, HeadDatabase]
 
 commands:
   hexcasino:
