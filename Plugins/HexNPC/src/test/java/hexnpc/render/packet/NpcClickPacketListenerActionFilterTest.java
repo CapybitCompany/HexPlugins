@@ -1,5 +1,6 @@
 package hexnpc.render.packet;
 
+import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity.InteractAction;
 import org.junit.jupiter.api.Test;
 
@@ -18,6 +19,12 @@ class NpcClickPacketListenerActionFilterTest {
     void interactIsAccepted() {
         assertTrue(NpcClickPacketListener.shouldHandle(InteractAction.INTERACT),
                 "INTERACT muss als CLICK-Trigger akzeptiert werden");
+    }
+
+    @Test
+    void offHandInteractIsRejectedToAvoidDoubleFire() {
+        assertFalse(NpcClickPacketListener.shouldHandle(InteractAction.INTERACT, InteractionHand.OFF_HAND),
+                "OFF_HAND INTERACT wuerde zusammen mit MAIN_HAND pro Klick doppelt feuern");
     }
 
     @Test

@@ -4,6 +4,7 @@ import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import hexnpc.HexNpcPlugin;
 import hexnpc.model.InteractionTrigger;
@@ -49,7 +50,7 @@ public final class NpcClickPacketListener extends PacketListenerAbstract {
         // Rechtsklick auf eine Entity sendet zwei Pakete: INTERACT_AT und INTERACT.
         // Wir reagieren nur auf INTERACT, sonst feuert der Trigger doppelt.
         // ATTACK ist Linksklick und gehört nicht zu CLICK-Interaktion.
-        if (!shouldHandle(wrapper.getAction())) {
+        if (!shouldHandle(wrapper.getAction(), wrapper.getHand())) {
             return;
         }
         Optional<NpcId> id = renderer.lookupByEntityId(wrapper.getEntityId());
@@ -90,6 +91,11 @@ public final class NpcClickPacketListener extends PacketListenerAbstract {
      * </ul>
      */
     static boolean shouldHandle(WrapperPlayClientInteractEntity.InteractAction action) {
-        return action == WrapperPlayClientInteractEntity.InteractAction.INTERACT;
+        return shouldHandle(action, InteractionHand.MAIN_HAND);
+    }
+
+    static boolean shouldHandle(WrapperPlayClientInteractEntity.InteractAction action, InteractionHand hand) {
+        return action == WrapperPlayClientInteractEntity.InteractAction.INTERACT
+                && hand == InteractionHand.MAIN_HAND;
     }
 }

@@ -6,7 +6,7 @@ import org.bukkit.entity.Player;
 
 /**
  * Extension point for NPC action types. Bundled handlers cover
- * console-command / player-command / message. AuctionHouse, Bazaar,
+ * console-command / player-command / message / clickable-message. AuctionHouse, Bazaar,
  * NPC-Shop, Quest plugins register their own handlers at enable time
  * via the {@code NpcActionRegistry} exposed on Bukkit's ServicesManager.
  */

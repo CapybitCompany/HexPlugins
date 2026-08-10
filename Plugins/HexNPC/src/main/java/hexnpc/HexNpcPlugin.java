@@ -1,6 +1,7 @@
 package hexnpc;
 
 import com.github.retrooper.packetevents.event.PacketListenerCommon;
+import hexnpc.action.ClickableMessageHandler;
 import hexnpc.action.ConsoleCommandHandler;
 import hexnpc.action.MessageHandler;
 import hexnpc.action.PlayerCommandHandler;
@@ -74,6 +75,7 @@ public class HexNpcPlugin extends JavaPlugin {
     private DailyBuyLimitService buyLimitService;
     private SignInputService signInputService;
     private ShopAuditLog shopAuditLog;
+    private ClickableMessageHandler clickableMessageHandler;
 
     // Rebuilt every reload.
     private YamlNpcStorage storage;
@@ -93,7 +95,9 @@ public class HexNpcPlugin extends JavaPlugin {
 
         // Built once: action registry survives reload so external plugins keep theirs.
         this.actionRegistry = new NpcActionRegistry();
+        this.clickableMessageHandler = new ClickableMessageHandler();
         actionRegistry.register(new MessageHandler());
+        actionRegistry.register(clickableMessageHandler);
         actionRegistry.register(new ConsoleCommandHandler());
         actionRegistry.register(new PlayerCommandHandler());
         actionRegistry.register(new ShopActionHandler(this::shopService));
@@ -192,6 +196,10 @@ public class HexNpcPlugin extends JavaPlugin {
         if (actionRegistry != null) {
             getServer().getServicesManager().unregister(NpcActionRegistry.class, actionRegistry);
             actionRegistry = null;
+        }
+        if (clickableMessageHandler != null) {
+            clickableMessageHandler.clear();
+            clickableMessageHandler = null;
         }
         if (skinResolver != null) {
             skinResolver.shutdown();
@@ -498,6 +506,12 @@ public class HexNpcPlugin extends JavaPlugin {
         HexNpcCommand executor = new HexNpcCommand(this);
         command.setExecutor(executor);
         command.setTabCompleter(executor);
+        var replyCommand = getCommand("hexnpcreply");
+        if (replyCommand == null) {
+            getLogger().severe("Command 'hexnpcreply' missing from plugin.yml.");
+            return false;
+        }
+        replyCommand.setExecutor(clickableMessageHandler);
         return true;
     }
 
