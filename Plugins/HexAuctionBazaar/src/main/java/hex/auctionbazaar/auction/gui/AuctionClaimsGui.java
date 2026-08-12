@@ -1,13 +1,11 @@
 package hex.auctionbazaar.auction.gui;
 
-import hex.auctionbazaar.HexAuctionBazaarPlugin;
 import hex.auctionbazaar.auction.model.AuctionClaim;
 import hex.auctionbazaar.auction.service.AuctionService;
 import hex.auctionbazaar.bridge.EconomyBridge;
 import hex.auctionbazaar.config.AuctionConfig;
 import hex.auctionbazaar.gui.GuiFrame;
 import hex.auctionbazaar.gui.GuiHolder;
-import hex.auctionbazaar.util.ClaimReasonTranslator;
 import hex.auctionbazaar.util.ItemSerializer;
 import hex.auctionbazaar.util.LegacyFormat;
 import hex.auctionbazaar.util.MessageFactory;
@@ -20,7 +18,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -64,14 +61,9 @@ public final class AuctionClaimsGui {
         Inventory inv = Bukkit.createInventory(holder, 54, LegacyFormat.component(cfg.claimsTitle()));
         holder.bindInventory(inv);
 
-        HexAuctionBazaarPlugin main = plugin instanceof HexAuctionBazaarPlugin p ? p : null;
-        ClaimReasonTranslator translator = main == null ? null
-                : new ClaimReasonTranslator(() -> main.config().messages());
-
         for (int i = 0; i < list.size() && i < capacity; i++) {
             AuctionClaim c = list.get(i);
             int slot = itemSlots.get(i);
-            String friendlyReason = translator == null ? c.reason() : translator.friendly(c.reason());
             ItemStack icon;
             if (c.isMoney()) {
                 icon = new ItemStack(Material.GOLD_INGOT);
@@ -79,7 +71,7 @@ public final class AuctionClaimsGui {
                 if (meta != null) {
                     meta.displayName(LegacyFormat.component(messages.raw("auction.gui.claim-money-name",
                             MessageFactory.placeholders("amount", economy.format(c.moneyAmount())))));
-                    meta.lore(claimLore(messages, friendlyReason));
+                    meta.lore(claimLore(messages));
                     icon.setItemMeta(meta);
                 }
             } else {
@@ -88,7 +80,7 @@ public final class AuctionClaimsGui {
                 icon = item;
                 ItemMeta meta = icon.getItemMeta();
                 if (meta != null) {
-                    meta.lore(claimLore(messages, friendlyReason));
+                    meta.lore(claimLore(messages));
                     icon.setItemMeta(meta);
                 }
             }
@@ -118,7 +110,7 @@ public final class AuctionClaimsGui {
         }
 
         if (total == 0) {
-            inv.setItem(itemSlots.get(itemSlots.size() / 2), GuiFrame.button(Material.BARRIER,
+            inv.setItem(cfg.slotEmptyState(), GuiFrame.button(Material.BARRIER,
                     messages.raw("auction.gui.claims-empty-title", null),
                     List.of(messages.raw("auction.gui.claims-empty-lore-1", null))));
         }
@@ -133,11 +125,7 @@ public final class AuctionClaimsGui {
         player.openInventory(inv);
     }
 
-    private static List<Component> claimLore(MessageFactory messages, String friendlyReason) {
-        List<Component> lore = new ArrayList<>();
-        lore.add(LegacyFormat.component(messages.raw("auction.gui.claim-reason",
-                MessageFactory.placeholders("reason", friendlyReason))));
-        lore.add(LegacyFormat.component(messages.raw("auction.gui.claim-collect-hint", null)));
-        return lore;
+    private static List<Component> claimLore(MessageFactory messages) {
+        return List.of(LegacyFormat.component(messages.raw("auction.gui.claim-collect-hint", null)));
     }
 }

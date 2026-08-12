@@ -4,6 +4,7 @@ import hex.auctionbazaar.auction.model.AuctionListing;
 import hex.auctionbazaar.auction.service.AuctionService;
 import hex.auctionbazaar.bridge.EconomyBridge;
 import hex.auctionbazaar.config.AuctionConfig;
+import hex.auctionbazaar.gui.GuiFrame;
 import hex.auctionbazaar.gui.GuiHolder;
 import hex.auctionbazaar.util.ItemSerializer;
 import hex.auctionbazaar.util.LegacyFormat;
@@ -95,6 +96,7 @@ public final class AuctionConfirmGui {
         });
         holder.setSlotAction(15, ctx -> ctx.player().closeInventory());
 
+        GuiFrame.fillEmpty(inv, GuiFrame.materialOrDefault(cfg.frameMaterial(), Material.BLACK_STAINED_GLASS_PANE));
         player.openInventory(inv);
     }
 

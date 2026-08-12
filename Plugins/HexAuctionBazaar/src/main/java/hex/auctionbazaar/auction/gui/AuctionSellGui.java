@@ -41,7 +41,6 @@ public final class AuctionSellGui {
 
     // Ekran wyboru ceny.
     private static final int SLOT_ITEM_PREVIEW = 13;
-    private static final int SLOT_INFO = 22;
     private static final int SLOT_CUSTOM_PRICE = 31;
     private static final int SLOT_BACK = 40;
 
@@ -67,12 +66,6 @@ public final class AuctionSellGui {
 
         inv.setItem(SLOT_ITEM_PREVIEW, itemPreview(player, messages));
 
-        inv.setItem(SLOT_INFO, GuiFrame.button(Material.PAPER,
-                messages.raw("auction.gui.sell-price-info-1", null),
-                List.of(messages.raw("auction.gui.sell-price-info-2",
-                        placeholders("min", cfg.minPrice().toPlainString(),
-                                "max", cfg.maxPrice().toPlainString())))));
-
         ItemStack custom = GuiFrame.button(Material.OAK_SIGN,
                 messages.raw("auction.gui.sell-price-custom-title", null),
                 List.of(messages.raw("auction.gui.sell-price-custom-lore-1", null),
@@ -84,8 +77,7 @@ public final class AuctionSellGui {
                 cfgSup, service, economy, messages));
 
         ItemStack back = GuiFrame.button(Material.BARRIER,
-                messages.raw("auction.gui.back", null),
-                List.of(messages.raw("auction.gui.back-lore", null)));
+                messages.raw("auction.gui.back", null));
         inv.setItem(SLOT_BACK, back);
         holder.setSlotAction(SLOT_BACK, ctx -> AuctionBrowseGui.open(plugin, ctx.player(),
                 cfgSup, service, economy, messages));
@@ -170,7 +162,7 @@ public final class AuctionSellGui {
         inv.setItem(SLOT_ITEM_PREVIEW, itemPreview(player, messages));
 
         List<String> summaryLore = new ArrayList<>();
-        summaryLore.add(messages.raw("auction.gui.sell-summary-gross",
+        summaryLore.add(messages.raw("auction.gui.sell-summary-price",
                 placeholders("gross", economy.format(tax.gross()))));
         if (fee.signum() > 0) {
             summaryLore.add(messages.raw("auction.gui.sell-summary-fee",
@@ -181,8 +173,6 @@ public final class AuctionSellGui {
                         "tax", economy.format(tax.tax()))));
         summaryLore.add(messages.raw("auction.gui.sell-summary-net",
                 placeholders("net", economy.format(economicNet))));
-        summaryLore.add("");
-        summaryLore.add(messages.raw("auction.gui.sell-summary-hint", null));
 
         inv.setItem(SLOT_SUMMARY_INFO, GuiFrame.button(Material.GOLD_INGOT,
                 messages.raw("auction.gui.sell-summary-gross",
@@ -191,8 +181,7 @@ public final class AuctionSellGui {
 
         ItemStack confirm = GuiFrame.button(Material.LIME_WOOL,
                 messages.raw("auction.gui.sell-confirm-button",
-                        placeholders("gross", economy.format(tax.gross()))),
-                summaryLore);
+                        placeholders("gross", economy.format(tax.gross()))));
         inv.setItem(SLOT_CONFIRM, confirm);
         final BigDecimal shownPct = pct;
         holder.setSlotAction(SLOT_CONFIRM, ctx -> submitSell(plugin, ctx.player(), price, shownPct, cfgSup,
@@ -206,8 +195,7 @@ public final class AuctionSellGui {
                 cfgSup, service, economy, messages));
 
         ItemStack back = GuiFrame.button(Material.BARRIER,
-                messages.raw("auction.gui.back", null),
-                List.of(messages.raw("auction.gui.back-lore", null)));
+                messages.raw("auction.gui.back", null));
         inv.setItem(SLOT_BACK, back);
         holder.setSlotAction(SLOT_BACK, ctx -> AuctionBrowseGui.open(plugin, ctx.player(),
                 cfgSup, service, economy, messages));

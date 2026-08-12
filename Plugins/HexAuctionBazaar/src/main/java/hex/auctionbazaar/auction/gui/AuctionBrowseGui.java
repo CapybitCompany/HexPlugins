@@ -93,8 +93,6 @@ public final class AuctionBrowseGui {
                         placeholders("seller", l.sellerName() == null ? "?" : l.sellerName()))));
                 lore.add(LegacyFormat.component(messages.raw("auction.gui.listing-price",
                         placeholders("price", economy.format(l.price())))));
-                lore.add(LegacyFormat.component(messages.raw("auction.gui.listing-id",
-                        placeholders("id", String.valueOf(l.id())))));
                 lore.add(Component.empty());
                 if (own) {
                     // Własna aukcja jest wizualnie oznaczona i zablokowana do kupna.
@@ -147,17 +145,6 @@ public final class AuctionBrowseGui {
                                     AuctionConfig cfg, AuctionService service, EconomyBridge economy,
                                     MessageFactory messages, int page, AuctionService.SortMode sort,
                                     int currentPage, int totalPages, int total) {
-        // Refresh
-        ItemStack refresh = GuiFrame.button(Material.CLOCK,
-                messages.raw("auction.gui.refresh", null),
-                List.of(messages.raw("auction.gui.page-info",
-                        placeholders("page", String.valueOf(currentPage),
-                                "total", String.valueOf(totalPages),
-                                "count", String.valueOf(total)))));
-        inv.setItem(cfg.slotRefresh(), refresh);
-        holder.setSlotAction(cfg.slotRefresh(),
-                ctx -> open(plugin, ctx.player(), () -> cfg, service, economy, messages, page, sort));
-
         // Prev / Next
         boolean hasPrev = page > 0;
         boolean hasNext = (page + 1) < totalPages;
@@ -180,8 +167,8 @@ public final class AuctionBrowseGui {
         ItemStack mine = GuiFrame.button(Material.WRITABLE_BOOK,
                 messages.raw("auction.gui.my-listings", null),
                 List.of(messages.raw("auction.gui.my-listings-lore", null)));
-        inv.setItem(cfg.slotMyListings(), mine);
-        holder.setSlotAction(cfg.slotMyListings(),
+        inv.setItem(cfg.slotSellHelp(), mine);
+        holder.setSlotAction(cfg.slotSellHelp(),
                 ctx -> AuctionMyListingsGui.open(plugin, ctx.player(), () -> cfg, service, economy, messages,
                         0, page, sort));
 
@@ -199,8 +186,8 @@ public final class AuctionBrowseGui {
                 messages.raw("auction.gui.sell-help", null),
                 List.of(messages.raw("auction.gui.sell-help-lore-1", null),
                         messages.raw("auction.gui.sell-help-lore-2", null)));
-        inv.setItem(cfg.slotSellHelp(), sellHelp);
-        holder.setSlotAction(cfg.slotSellHelp(),
+        inv.setItem(cfg.slotRefresh(), sellHelp);
+        holder.setSlotAction(cfg.slotRefresh(),
                 ctx -> AuctionSellGui.open(plugin, ctx.player(), () -> cfg, service, economy, messages));
 
         // Sortowanie

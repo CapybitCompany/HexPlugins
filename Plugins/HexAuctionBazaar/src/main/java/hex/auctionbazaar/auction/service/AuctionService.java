@@ -18,8 +18,10 @@ import hex.auctionbazaar.util.RefundCompensation;
 import hex.auctionbazaar.util.SaleFeeResolver;
 import hex.auctionbazaar.util.SaleTax;
 import hex.economy.api.EconomyResult;
+import hex.auctionbazaar.util.LegacyFormat;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
@@ -758,8 +760,26 @@ public final class AuctionService {
                         refundBuyerAfterSoldFailure(buyer, buyerId, buyerName, l, price, result);
                         return;
                     }
-                    onMain(() -> deliverPurchasedItem(buyer, buyerId, l, price, result));
+                    onMain(() -> {
+                        notifySellerSold(l, price);
+                        deliverPurchasedItem(buyer, buyerId, l, price, result);
+                    });
                 });
+    }
+
+    private void notifySellerSold(AuctionListing listing, BigDecimal price) {
+        Player seller = Bukkit.getPlayer(listing.sellerUuid());
+        if (seller == null || !seller.isOnline()) {
+            return;
+        }
+        seller.playSound(seller.getLocation(), Sound.BLOCK_ANVIL_USE, 0.8f, 0.85f);
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (seller.isOnline()) {
+                seller.playSound(seller.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.7f, 1.15f);
+            }
+        }, 8L);
+        seller.sendActionBar(LegacyFormat.component(
+                "&0[&4HEX &6AUCTIONHOUSE&0] &fSprzedano przedmiot za &e" + economy.format(price) + "&f!"));
     }
 
     /**

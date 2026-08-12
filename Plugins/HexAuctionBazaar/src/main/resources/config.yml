@@ -169,7 +169,7 @@ bazaar:
     quantity-title: "&8Wybierz ilość"
     orders-title: "&8Moje zlecenia"
     order-create-title: "&8Twórz zlecenie"
-    frame-material: GRAY_STAINED_GLASS_PANE
+    frame-material: BLACK_STAINED_GLASS_PANE
     # Presety ilości: 1, 64 (stack), 576 (rząd = 9 stacków), niestandardowa (znak).
     quantity-options: [1, 64, 576]
     # Auto-refresh GUI (tylko gdy otwarte). Domyślnie wyłączony - aktualizuje ceny

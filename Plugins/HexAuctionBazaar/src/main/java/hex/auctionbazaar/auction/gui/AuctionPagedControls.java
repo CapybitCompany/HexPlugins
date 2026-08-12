@@ -33,8 +33,7 @@ final class AuctionPagedControls {
                        IntConsumer openPage, Runnable back) {
         // Wróć (BARRIER) do głównego Domu Aukcyjnego.
         ItemStack backBtn = GuiFrame.button(Material.BARRIER,
-                messages.raw("auction.gui.back", null),
-                List.of(messages.raw("auction.gui.back-lore", null)));
+                messages.raw("auction.gui.back", null));
         inv.setItem(cfg.pagedSlotBack(), backBtn);
         holder.setSlotAction(cfg.pagedSlotBack(), ctx -> back.run());
 

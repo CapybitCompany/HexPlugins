@@ -43,8 +43,7 @@ public final class BazaarMainGui {
     // Dolny wiersz kontrolek.
     private static final int SLOT_PREV_PAGE = 45;
     private static final int SLOT_ORDERS = 48;
-    private static final int SLOT_REFRESH = 49;
-    private static final int SLOT_CLOSE = 50;
+    private static final int SLOT_REFRESH = 50;
     private static final int SLOT_NEXT_PAGE = 53;
     // Lewa kolumna dla kategorii.
     private static final int[] CATEGORY_SLOTS = {0, 9, 18, 27, 36};
@@ -97,7 +96,7 @@ public final class BazaarMainGui {
         renderItems(inv, holder, plugin, cfg, snapshot, economy, messages, activeCategory, service, safePage);
         renderControls(inv, holder, plugin, player, cfg, service, economy, messages,
                 activeCategory, safePage, totalPages);
-        GuiFrame.fillEmpty(inv, GuiFrame.materialOrDefault(cfg.frameMaterial(), Material.GRAY_STAINED_GLASS_PANE));
+        GuiFrame.fillEmpty(inv, Material.BLACK_STAINED_GLASS_PANE);
 
         player.openInventory(inv);
 
@@ -204,11 +203,7 @@ public final class BazaarMainGui {
                         placeholders("price", economy.format(snap.price().sellPrice())))));
                 lore.add(LegacyFormat.component(messages.raw("bazaar.gui.lore-stock",
                         placeholders("stock", String.valueOf(snap.stock())))));
-                lore.add(LegacyFormat.component(messages.raw("bazaar.gui.lore-spread",
-                        placeholders("spread", snap.spread().toPlainString()))));
             }
-            lore.add(LegacyFormat.component(messages.raw("bazaar.gui.lore-category",
-                    placeholders("category", item.category()))));
             lore.add(Component.empty());
             lore.add(LegacyFormat.component(messages.raw("bazaar.gui.lore-click", null)));
             meta.lore(lore);
@@ -233,11 +228,6 @@ public final class BazaarMainGui {
         inv.setItem(SLOT_REFRESH, refresh);
         holder.setSlotAction(SLOT_REFRESH,
                 ctx -> open(plugin, ctx.player(), () -> cfg, service, economy, messages, activeCategory, page));
-
-        ItemStack close = GuiFrame.button(Material.BARRIER,
-                messages.raw("bazaar.gui.close", null));
-        inv.setItem(SLOT_CLOSE, close);
-        holder.setSlotAction(SLOT_CLOSE, ctx -> ctx.player().closeInventory());
 
         boolean hasPrev = page > 0;
         boolean hasNext = (page + 1) < totalPages;

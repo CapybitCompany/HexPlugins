@@ -430,7 +430,7 @@ public final class ConfigLoader {
                 c.getString("bazaar.gui.quantity-title", "&8Wybierz ilość"),
                 c.getString("bazaar.gui.orders-title", "&8Moje zlecenia"),
                 c.getString("bazaar.gui.order-create-title", "&8Twórz zlecenie"),
-                c.getString("bazaar.gui.frame-material", "GRAY_STAINED_GLASS_PANE"),
+                c.getString("bazaar.gui.frame-material", "BLACK_STAINED_GLASS_PANE"),
                 loadQuantityOptions(c),
                 c.getBoolean("bazaar.gui.auto-refresh-enabled", false),
                 Math.max(20, c.getInt("bazaar.gui.auto-refresh-interval-ticks", 60)),

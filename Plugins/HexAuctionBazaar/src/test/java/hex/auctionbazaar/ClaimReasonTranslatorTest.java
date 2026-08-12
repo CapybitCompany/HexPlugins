@@ -1,5 +1,6 @@
 package hex.auctionbazaar;
 
+import hex.auctionbazaar.config.MessagesConfig;
 import hex.auctionbazaar.util.ClaimReasonTranslator;
 import org.junit.jupiter.api.Test;
 
@@ -55,6 +56,16 @@ class ClaimReasonTranslatorTest {
         m.put("claim-reasons.auction-sold", "Wypłata za sprzedaną aukcję");
         assertEquals("Wypłata za sprzedaną aukcję",
                 ClaimReasonTranslator.friendlyFor("auction-sold-42", fromMap(m), "F"));
+    }
+
+    @Test
+    void instanceTranslatorIgnoresMissingMessageFallbackAndUsesShorterPrefix() {
+        Map<String, String> m = new HashMap<>();
+        m.put("claim-reasons.auction-sold", "Wypłata za sprzedaną aukcję");
+        m.put("claim-reasons.default", "Odbiór z rynku");
+        ClaimReasonTranslator translator = new ClaimReasonTranslator(() -> new MessagesConfig(m));
+
+        assertEquals("Wypłata za sprzedaną aukcję", translator.friendly("auction-sold-7"));
     }
 
     @Test

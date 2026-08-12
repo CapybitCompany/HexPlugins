@@ -214,7 +214,7 @@ public final class BazaarOrderCreateGui {
         inv.setItem(SLOT_CLOSE, close);
         holder.setSlotAction(SLOT_CLOSE, ctx -> ctx.player().closeInventory());
 
-        GuiFrame.fillEmpty(inv, GuiFrame.materialOrDefault(c.frameMaterial(), Material.GRAY_STAINED_GLASS_PANE));
+        GuiFrame.fillEmpty(inv, Material.BLACK_STAINED_GLASS_PANE);
         player.openInventory(inv);
     }
 

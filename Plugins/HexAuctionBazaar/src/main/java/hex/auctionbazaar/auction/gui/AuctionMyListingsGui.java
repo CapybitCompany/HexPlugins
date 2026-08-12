@@ -74,8 +74,6 @@ public final class AuctionMyListingsGui {
             ItemMeta meta = icon.getItemMeta();
             if (meta != null) {
                 List<Component> lore = new ArrayList<>();
-                lore.add(LegacyFormat.component(messages.raw("auction.gui.mine-id",
-                        placeholders("id", String.valueOf(l.id())))));
                 lore.add(LegacyFormat.component(messages.raw("auction.gui.mine-status",
                         placeholders("status", statusLabel(messages, l)))));
                 lore.add(LegacyFormat.component(messages.raw("auction.gui.mine-price",
@@ -113,7 +111,7 @@ public final class AuctionMyListingsGui {
         }
 
         if (total == 0) {
-            inv.setItem(itemSlots.get(itemSlots.size() / 2), GuiFrame.button(Material.BARRIER,
+            inv.setItem(cfg.slotEmptyState(), GuiFrame.button(Material.BARRIER,
                     messages.raw("auction.gui.mine-empty-title", null),
                     List.of(messages.raw("auction.gui.mine-empty-lore-1", null),
                             messages.raw("auction.gui.mine-empty-lore-2", null))));

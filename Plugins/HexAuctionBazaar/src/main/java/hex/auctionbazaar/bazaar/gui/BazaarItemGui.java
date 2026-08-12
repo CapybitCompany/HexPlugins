@@ -50,7 +50,6 @@ public final class BazaarItemGui {
     private static final int SLOT_ORDERS = 40;
     private static final int SLOT_BUY_ORDER_CREATE = 39;
     private static final int SLOT_SELL_OFFER_CREATE = 41;
-    private static final int SLOT_CLOSE = 53;
 
     // Sloty BUY: 4 przyciski dla ilosci 1, 64, 576, custom.
     private static final int[] BUY_SLOTS = {10, 11, 12, 19};
@@ -87,7 +86,7 @@ public final class BazaarItemGui {
         renderOrderCreators(inv, holder, plugin, item, cfg, service, economy, messages);
         renderControls(inv, holder, plugin, item, cfg, service, economy, messages);
 
-        GuiFrame.fillEmpty(inv, GuiFrame.materialOrDefault(c.frameMaterial(), Material.GRAY_STAINED_GLASS_PANE));
+        GuiFrame.fillEmpty(inv, Material.BLACK_STAINED_GLASS_PANE);
         player.openInventory(inv);
         // Menu przedmiotu odświeżamy WYŁĄCZNIE manualnie (przycisk zegara) - bezpieczny
         // in-place refresh sum na przyciskach ilości nie jest tu zrobiony celowo (punkt #4).
@@ -106,8 +105,6 @@ public final class BazaarItemGui {
                 lore.add(LegacyFormat.component(messages.raw("bazaar.gui.lore-sell",
                         placeholders("price", economy.format(price.sellPrice())))));
             }
-            lore.add(LegacyFormat.component(messages.raw("bazaar.gui.lore-category",
-                    placeholders("category", item.category()))));
             meta.lore(lore);
             info.setItemMeta(meta);
         }
@@ -296,10 +293,6 @@ public final class BazaarItemGui {
         holder.setSlotAction(SLOT_REFRESH, ctx -> open(plugin, ctx.player(), item.key(),
                 cfg, service, economy, messages));
 
-        ItemStack close = GuiFrame.button(Material.BARRIER,
-                messages.raw("bazaar.gui.close", null));
-        inv.setItem(SLOT_CLOSE, close);
-        holder.setSlotAction(SLOT_CLOSE, ctx -> ctx.player().closeInventory());
     }
 
     private static void handleBuyOutcome(Player player, BazaarItemConfig item,

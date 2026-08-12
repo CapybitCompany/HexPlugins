@@ -31,7 +31,8 @@ public final class ClaimReasonTranslator {
         }
         String candidate = rawReason;
         while (!candidate.isEmpty()) {
-            String value = messages.get().get("claim-reasons." + candidate);
+            String path = "claim-reasons." + candidate;
+            String value = messages.get().has(path) ? messages.get().get(path) : null;
             if (value != null && !value.isEmpty()) return value;
             int lastDash = candidate.lastIndexOf('-');
             if (lastDash <= 0) break;
