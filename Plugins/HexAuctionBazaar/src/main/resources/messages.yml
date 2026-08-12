@@ -275,9 +275,9 @@ bazaar:
     sell-offer-lore-2: "&7Kliknij aby otworzyć kreator"
     lore-buy: "&7Kupno: &e<price>"
     lore-sell: "&7Sprzedaż: &e<price>"
+    # Stan magazynu i spread widoczne WYŁĄCZNIE dla adminów (operator = admin) - do regulacji rynku.
     lore-stock: "&7Stan magazynu: &f<stock>"
     lore-spread: "&7Spread: &f<spread>"
-    lore-category: "&7Kategoria: &f<category>"
     lore-click: "&aKliknij aby otworzyć menu"
     lore-total: "&7Razem: &e<total>"
     lore-amount: "&7Ilość: &f<amount>"

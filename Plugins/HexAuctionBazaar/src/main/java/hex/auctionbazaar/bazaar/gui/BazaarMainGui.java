@@ -14,6 +14,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
@@ -89,11 +90,15 @@ public final class BazaarMainGui {
         holder.putState("category", activeCategory);
         holder.putState("page", page);
 
+        // Stan magazynu i spread są danymi administracyjnymi (regulacja rynku) - pokazujemy je
+        // WYŁĄCZNIE administratorom (operator liczony jako admin), a zwykli gracze ich nie widzą.
+        boolean admin = player.hasPermission(cfg.permAdmin()) || player.isOp();
+
         renderCategories(inv, holder, plugin, player, cfg, service, economy, messages, activeCategory);
         int totalMatching = countCategoryItems(cfg, activeCategory);
         int totalPages = Math.max(1, (int) Math.ceil(totalMatching / (double) ITEM_SLOTS.length));
         int safePage = Math.min(page, totalPages - 1);
-        renderItems(inv, holder, plugin, cfg, snapshot, economy, messages, activeCategory, service, safePage);
+        renderItems(inv, holder, plugin, cfg, snapshot, economy, messages, activeCategory, service, safePage, admin);
         renderControls(inv, holder, plugin, player, cfg, service, economy, messages,
                 activeCategory, safePage, totalPages);
         GuiFrame.fillEmpty(inv, Material.BLACK_STAINED_GLASS_PANE);
@@ -101,27 +106,27 @@ public final class BazaarMainGui {
         player.openInventory(inv);
 
         // Auto-refresh W MIEJSCU (bez ponownego otwierania): aktualizujemy jedynie
-        // ikony przedmiotów (cena/stan/spread) w tym samym inventory. Ticker trzyma
+        // ikony przedmiotów (cena; stan/spread tylko dla adminów) w tym samym inventory. Ticker trzyma
         // maks. jedną sesję na gracza i sam ją usuwa przy zamknięciu/wejściu gdzie indziej.
         HexAuctionBazaarPlugin main = plugin instanceof HexAuctionBazaarPlugin p ? p : null;
         if (main != null && main.autoRefreshTicker() != null) {
             main.autoRefreshTicker().register(player, holder, inv, handle ->
                     service.marketSnapshot().thenAccept(fresh -> handle.runMain(() -> {
                         if (!handle.isCurrent()) return;   // veraltete/zamknięte -> verwerfen
-                        refreshItemsInPlace(inv, cfg, fresh, economy, messages, activeCategory, safePage);
+                        refreshItemsInPlace(inv, cfg, fresh, economy, messages, activeCategory, safePage, admin);
                     })));
         }
     }
 
     /**
      * Aktualizacja W MIEJSCU: nadpisuje wyłącznie ikony przedmiotów w slotach
-     * {@link #ITEM_SLOTS} (cena/stan/spread). Nie rusza kategorii, nawigacji,
+     * {@link #ITEM_SLOTS} (cena; stan/spread tylko dla adminów). Nie rusza kategorii, nawigacji,
      * akcji slotów (pozostają w holderze) ani nie otwiera inventory na nowo.
      */
     private static void refreshItemsInPlace(Inventory inv, BazaarConfig cfg,
                                             Map<String, BazaarService.Snapshot> snapshot,
                                             EconomyBridge economy, MessageFactory messages,
-                                            String activeCategory, int page) {
+                                            String activeCategory, int page, boolean admin) {
         int startIdx = page * ITEM_SLOTS.length;
         int cursor = 0;
         int categoryIdx = 0;
@@ -131,7 +136,7 @@ public final class BazaarMainGui {
             if (cursor >= ITEM_SLOTS.length) break;
             int slot = ITEM_SLOTS[cursor++];
             BazaarService.Snapshot snap = snapshot.get(item.key());
-            inv.setItem(slot, buildItemIcon(item, snap, economy, messages));
+            inv.setItem(slot, buildItemIcon(item, snap, economy, messages, admin));
         }
     }
 
@@ -165,7 +170,7 @@ public final class BazaarMainGui {
     private static void renderItems(Inventory inv, GuiHolder holder, Plugin plugin, BazaarConfig cfg,
                                      Map<String, BazaarService.Snapshot> snapshot,
                                      EconomyBridge economy, MessageFactory messages,
-                                     String activeCategory, BazaarService service, int page) {
+                                     String activeCategory, BazaarService service, int page, boolean admin) {
         int startIdx = page * ITEM_SLOTS.length;
         int cursor = 0;
         int categoryIdx = 0;
@@ -176,7 +181,7 @@ public final class BazaarMainGui {
             if (cursor >= ITEM_SLOTS.length) break;
             int slot = ITEM_SLOTS[cursor++];
             BazaarService.Snapshot snap = snapshot.get(item.key());
-            inv.setItem(slot, buildItemIcon(item, snap, economy, messages));
+            inv.setItem(slot, buildItemIcon(item, snap, economy, messages, admin));
             final String key = item.key();
             holder.setSlotAction(slot, ctx -> BazaarItemGui.open(plugin, ctx.player(), key,
                     () -> cfg, service, economy, messages));
@@ -190,7 +195,7 @@ public final class BazaarMainGui {
     }
 
     private static ItemStack buildItemIcon(BazaarItemConfig item, BazaarService.Snapshot snap,
-                                            EconomyBridge economy, MessageFactory messages) {
+                                            EconomyBridge economy, MessageFactory messages, boolean admin) {
         ItemStack icon = new ItemStack(item.material());
         ItemMeta meta = icon.getItemMeta();
         if (meta != null) {
@@ -201,12 +206,16 @@ public final class BazaarMainGui {
                         placeholders("price", economy.format(snap.price().buyPrice())))));
                 lore.add(LegacyFormat.component(messages.raw("bazaar.gui.lore-sell",
                         placeholders("price", economy.format(snap.price().sellPrice())))));
-                lore.add(LegacyFormat.component(messages.raw("bazaar.gui.lore-stock",
-                        placeholders("stock", String.valueOf(snap.stock())))));
+                if (admin) {
+                    lore.add(LegacyFormat.component(messages.raw("bazaar.gui.lore-stock",
+                            placeholders("stock", String.valueOf(snap.stock())))));
+                }
             }
             lore.add(Component.empty());
             lore.add(LegacyFormat.component(messages.raw("bazaar.gui.lore-click", null)));
             meta.lore(lore);
+            // Ukrywamy modyfikatory atrybutów (np. obrażenia miecza) - w GUI liczy się cena, nie staty.
+            meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
             icon.setItemMeta(meta);
         }
         return icon;

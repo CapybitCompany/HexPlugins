@@ -45,7 +45,6 @@ public final class AuctionSellGui {
     private static final int SLOT_BACK = 40;
 
     // Ekran podsumowania.
-    private static final int SLOT_SUMMARY_INFO = 22;
     private static final int SLOT_CONFIRM = 29;
     private static final int SLOT_CHANGE_PRICE = 33;
 
@@ -173,11 +172,6 @@ public final class AuctionSellGui {
                         "tax", economy.format(tax.tax()))));
         summaryLore.add(messages.raw("auction.gui.sell-summary-net",
                 placeholders("net", economy.format(economicNet))));
-
-        inv.setItem(SLOT_SUMMARY_INFO, GuiFrame.button(Material.GOLD_INGOT,
-                messages.raw("auction.gui.sell-summary-gross",
-                        placeholders("gross", economy.format(tax.gross()))),
-                summaryLore));
 
         ItemStack confirm = GuiFrame.button(Material.LIME_WOOL,
                 messages.raw("auction.gui.sell-confirm-button",

@@ -4,6 +4,7 @@ import hex.auctionbazaar.util.LegacyFormat;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -66,6 +67,9 @@ public final class GuiFrame {
                 meta.lore(LegacyFormat.components(lore));
             }
             // Interaktywne przyciski ZAWSZE zachowują tooltip - nigdy nie chowamy go tutaj.
+            // Ukrywamy jedynie modyfikatory atrybutów (np. „+7 obrażeń" na mieczu użytym jako
+            // ikona kategorii/przycisku), aby w GUI widoczna była tylko nazwa i opis.
+            meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
             s.setItemMeta(meta);
         }
         return s;
