@@ -140,6 +140,7 @@ public final class CustomItemRegistryService {
             applyGlint(meta);
         }
         meta.addItemFlags(ItemFlag.values());
+        clearJukeboxTooltip(meta);
 
         PersistentDataContainer data = meta.getPersistentDataContainer();
         data.set(itemIdKey, PersistentDataType.STRING, definition.id());
@@ -176,6 +177,20 @@ public final class CustomItemRegistryService {
             storage.addStoredEnchant(enchantment, 1, true);
         } else {
             meta.addEnchant(enchantment, 1, true);
+        }
+    }
+
+    private void clearJukeboxTooltip(ItemMeta meta) {
+        for (Method method : meta.getClass().getMethods()) {
+            if (!"setJukeboxPlayable".equals(method.getName()) || method.getParameterCount() != 1) {
+                continue;
+            }
+            try {
+                method.invoke(meta, new Object[]{null});
+            } catch (ReflectiveOperationException | RuntimeException ignored) {
+                // Some test/runtime ItemMeta implementations do not expose mutable item components.
+            }
+            return;
         }
     }
 }

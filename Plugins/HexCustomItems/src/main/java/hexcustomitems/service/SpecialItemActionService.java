@@ -10,6 +10,9 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
 import org.bukkit.Registry;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.block.Block;
 import org.bukkit.entity.AbstractArrow;
 import org.bukkit.entity.Arrow;
@@ -55,10 +58,11 @@ public final class SpecialItemActionService {
     private final NamespacedKey projectilePullStrengthKey;
     private final NamespacedKey projectileSlowTicksKey;
     private final NamespacedKey projectileSlowAmplifierKey;
+    private final NamespacedKey goldenHeartMaxAbsorptionKey;
     private final Random random = new Random();
     private final Map<UUID, Long> miningLuckUntil = new HashMap<>();
     private final Map<UUID, Long> fallProtectionUntil = new HashMap<>();
-    private final Map<UUID, Integer> goldenHearts = new HashMap<>();
+    private final Map<UUID, Double> goldenHeartAbsorption = new HashMap<>();
 
     public SpecialItemActionService(
             JavaPlugin plugin,
@@ -78,6 +82,7 @@ public final class SpecialItemActionService {
         this.projectilePullStrengthKey = new NamespacedKey(plugin, "special_projectile_pull_strength");
         this.projectileSlowTicksKey = new NamespacedKey(plugin, "special_projectile_slow_ticks");
         this.projectileSlowAmplifierKey = new NamespacedKey(plugin, "special_projectile_slow_amplifier");
+        this.goldenHeartMaxAbsorptionKey = new NamespacedKey(plugin, "golden_heart_max_absorption");
     }
 
     public boolean execute(Player player, EquipmentSlot hand, CustomItemDefinition definition, SpecialAction action) {
@@ -170,33 +175,70 @@ public final class SpecialItemActionService {
         int addHearts = Math.max(1, integer(action, "hearts", 1));
         int duration = Math.max(1, integer(action, "duration-seconds", 10));
         UUID playerId = player.getUniqueId();
-        int currentHearts = goldenHearts.getOrDefault(playerId, 0);
-        if (currentHearts >= maxHearts) {
+        double maxCustomAbsorption = maxHearts * 2.0D;
+        double currentCustomAbsorption = goldenHeartAbsorption.getOrDefault(playerId, 0.0D);
+        if (currentCustomAbsorption >= maxCustomAbsorption) {
             messages.sendLimitReached(player);
             return false;
         }
-        int grantedHearts = Math.min(addHearts, maxHearts - currentHearts);
-        double grantedAbsorption = grantedHearts * 2.0D;
-        goldenHearts.put(playerId, currentHearts + grantedHearts);
-        player.setAbsorptionAmount(player.getAbsorptionAmount() + grantedAbsorption);
+
+        double grantedAbsorption = Math.min(addHearts * 2.0D, maxCustomAbsorption - currentCustomAbsorption);
+        double currentAbsorption = Math.max(0.0D, player.getAbsorptionAmount());
+        double targetAbsorption = currentAbsorption + grantedAbsorption;
+        if (!ensureMaxAbsorption(player, targetAbsorption)) {
+            plugin.getLogger().warning("Nie udało się podnieść MAX_ABSORPTION dla " + player.getName() + ".");
+            messages.sendLimitReached(player);
+            return false;
+        }
+
+        goldenHeartAbsorption.put(playerId, currentCustomAbsorption + grantedAbsorption);
+        player.setAbsorptionAmount(targetAbsorption);
+        refreshHealth(player);
         Bukkit.getScheduler().runTaskLater(plugin,
-                () -> expireGoldenHearts(playerId, grantedHearts, grantedAbsorption),
+                () -> expireGoldenHearts(playerId, grantedAbsorption),
                 duration * 20L);
         return true;
     }
 
-    private void expireGoldenHearts(UUID playerId, int hearts, double absorption) {
-        int currentHearts = goldenHearts.getOrDefault(playerId, 0);
-        int remainingHearts = Math.max(0, currentHearts - hearts);
-        if (remainingHearts == 0) {
-            goldenHearts.remove(playerId);
+    private void expireGoldenHearts(UUID playerId, double absorption) {
+        double currentCustomAbsorption = goldenHeartAbsorption.getOrDefault(playerId, 0.0D);
+        double remainingCustomAbsorption = Math.max(0.0D, currentCustomAbsorption - absorption);
+        if (remainingCustomAbsorption <= 0.0D) {
+            goldenHeartAbsorption.remove(playerId);
         } else {
-            goldenHearts.put(playerId, remainingHearts);
+            goldenHeartAbsorption.put(playerId, remainingCustomAbsorption);
         }
 
         Player player = Bukkit.getPlayer(playerId);
         if (player != null && player.isOnline()) {
             player.setAbsorptionAmount(Math.max(0.0D, player.getAbsorptionAmount() - absorption));
+            ensureMaxAbsorption(player, player.getAbsorptionAmount());
+            refreshHealth(player);
+        }
+    }
+
+    private boolean ensureMaxAbsorption(Player player, double targetAbsorption) {
+        AttributeInstance attribute = player.getAttribute(Attribute.MAX_ABSORPTION);
+        if (attribute == null) {
+            return true;
+        }
+        attribute.removeModifier(goldenHeartMaxAbsorptionKey);
+        double extra = Math.max(0.0D, targetAbsorption - attribute.getValue());
+        if (extra > 0.0D) {
+            attribute.addTransientModifier(new AttributeModifier(
+                    goldenHeartMaxAbsorptionKey,
+                    extra,
+                    AttributeModifier.Operation.ADD_NUMBER
+            ));
+        }
+        return true;
+    }
+
+    private void refreshHealth(Player player) {
+        try {
+            player.sendHealthUpdate();
+        } catch (UnsupportedOperationException ignored) {
+            // Mock/test implementations may not support packet-level health refreshes.
         }
     }
 

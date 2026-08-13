@@ -7,6 +7,7 @@ import hexcustomitems.support.TestConfig;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -31,6 +33,9 @@ class CustomItemRegistryServiceTest extends PluginTestBase {
         Map<String, CustomItemDefinition> items = new LinkedHashMap<>();
         items.put("jump_potion", TestConfig.selfPotionItem("jump_potion", Material.POTION, "jump_boost", 5, 0));
         items.put("cookie", TestConfig.selfPotionItem("cookie", Material.COOKIE, "invisibility", 15, 3));
+        items.put("ancient_scale", new CustomItemDefinition("ancient_scale", "hex:ancient_scale", 10005,
+                Material.DISC_FRAGMENT_5, "<white>Scale", List.of("<gray>Crafting material"),
+                true, true, false, null, 0, 64, 0, List.of()));
         HexCustomItemsConfig config = TestConfig.withItems(items);
         registry = new CustomItemRegistryService(plugin, config);
         idKey = new NamespacedKey(plugin, "hexcustomitem_id");
@@ -87,5 +92,13 @@ class CustomItemRegistryServiceTest extends PluginTestBase {
     void createItemForChargedItemForcesSingleStack() {
         ItemStack cookie = registry.createItem(registry.findById("cookie"), 10);
         assertEquals(1, cookie.getAmount());
+    }
+
+    @Test
+    void discFragmentCustomItemsHideAdditionalVanillaTooltip() {
+        ItemStack scale = registry.createItem(registry.findById("ancient_scale"), 1);
+        ItemMeta meta = scale.getItemMeta();
+
+        assertTrue(meta.hasItemFlag(ItemFlag.HIDE_ADDITIONAL_TOOLTIP));
     }
 }
