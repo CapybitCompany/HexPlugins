@@ -12,6 +12,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -76,6 +77,7 @@ public final class MenuService {
             inventory.setItem(ItemsMenu.SLOT_NEXT, navButton(Material.ARROW, "<yellow>Następna strona »", ACTION_NEXT));
         }
         inventory.setItem(ItemsMenu.SLOT_INFO, infoButton(page, pageCount, viewer, targetId));
+        fillEmpty(inventory);
 
         menu.open(viewer);
     }
@@ -123,13 +125,33 @@ public final class MenuService {
             meta.displayName(TextUtil.itemName("<gold>Otrzymuje: <yellow>" + forWhom, Map.of(), null));
             meta.lore(TextUtil.itemLore(
                     List.of("<gray>Strona <yellow>" + (page + 1) + "<gray>/<yellow>" + pageCount,
-                            "<gray>Kliknij przedmiot, aby dać <yellow>1",
-                            "<gray>Shift+klik: <yellow>" + configSupplier.get().menuShiftGiveAmount()),
+                            "<gray>LPM: <yellow>1",
+                            "<gray>PPM: <yellow>ilość z configu itemu"),
                     Map.of(), null));
             meta.getPersistentDataContainer().set(actionKey, PersistentDataType.STRING, ACTION_INFO);
             stack.setItemMeta(meta);
         }
         return stack;
+    }
+
+    private void fillEmpty(Inventory inventory) {
+        ItemStack filler = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
+        ItemMeta meta = filler.getItemMeta();
+        if (meta != null) {
+            meta.displayName(Component.empty());
+            meta.addItemFlags(ItemFlag.values());
+            try {
+                meta.getClass().getMethod("setHideTooltip", boolean.class).invoke(meta, true);
+            } catch (ReflectiveOperationException ignored) {
+                // Paper-only quality detail; safe to ignore on older test APIs.
+            }
+            filler.setItemMeta(meta);
+        }
+        for (int i = 0; i < inventory.getSize(); i++) {
+            if (inventory.getItem(i) == null) {
+                inventory.setItem(i, filler);
+            }
+        }
     }
 
     private OfflinePlayer resolvePapiContext(Player viewer, UUID targetId) {

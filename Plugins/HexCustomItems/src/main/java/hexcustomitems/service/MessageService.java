@@ -77,6 +77,26 @@ public final class MessageService {
         send(sender, configSupplier.get().messages().dropBlocked(), Map.of());
     }
 
+    public void sendCombatBlocked(CommandSender sender) {
+        send(sender, configSupplier.get().messages().combatBlocked(), Map.of());
+    }
+
+    public void sendLimitReached(CommandSender sender) {
+        send(sender, configSupplier.get().messages().limitReached(), Map.of());
+    }
+
+    public void sendNoTarget(CommandSender sender) {
+        send(sender, configSupplier.get().messages().noTarget(), Map.of());
+    }
+
+    public void sendAlreadyActive(CommandSender sender) {
+        send(sender, configSupplier.get().messages().alreadyActive(), Map.of());
+    }
+
+    public void sendAnvilBlocked(CommandSender sender) {
+        send(sender, configSupplier.get().messages().anvilBlocked(), Map.of());
+    }
+
     /** Cooldown-Hinweis als Actionbar - kein Chat-Spam beim wiederholten Klicken. */
     public void sendCooldownActive(Player player, long seconds) {
         Component text = TextUtil.parse(

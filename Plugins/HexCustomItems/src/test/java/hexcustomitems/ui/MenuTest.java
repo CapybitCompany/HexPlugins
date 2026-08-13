@@ -68,18 +68,18 @@ class MenuTest extends PluginTestBase {
     void commandOpensItemsMenuForSelf() {
         PlayerMock viewer = server.addPlayer();
         viewer.setOp(true);
-        viewer.performCommand("hexcustomitems menu");
+        viewer.performCommand("hexcustomitem adminpanel");
 
         ItemsMenu menu = assertInstanceOf(ItemsMenu.class, viewer.getOpenInventory().getTopInventory().getHolder());
         assertNull(menu.targetId(), "Ohne Ziel gibt man an sich selbst");
     }
 
     @Test
-    void commandWithTargetSetsTargetId() {
+    void directMenuOpenWithTargetSetsTargetId() {
+        setupWithItems(3);
         PlayerMock viewer = server.addPlayer();
         PlayerMock target = server.addPlayer();
-        viewer.setOp(true);
-        viewer.performCommand("hexcustomitems menu " + target.getName());
+        menuService.open(viewer, target.getUniqueId(), 0);
 
         ItemsMenu menu = (ItemsMenu) viewer.getOpenInventory().getTopInventory().getHolder();
         assertEquals(target.getUniqueId(), menu.targetId());
@@ -126,15 +126,15 @@ class MenuTest extends PluginTestBase {
     }
 
     @Test
-    void shiftClickGivesConfiguredAmount() {
+    void rightClickGivesConfiguredItemStackAmount() {
         setupWithItems(3);
         PlayerMock viewer = server.addPlayer();
         PlayerMock target = server.addPlayer();
         menuService.open(viewer, target.getUniqueId(), 0);
 
-        click(viewer, 0, ClickType.SHIFT_LEFT);
+        click(viewer, 0, ClickType.RIGHT);
 
-        assertEquals(config.menuShiftGiveAmount(), countPaper(target.getInventory()));
+        assertEquals(config.items().get("test_0").adminPanelStack(), countPaper(target.getInventory()));
     }
 
     @Test

@@ -2,15 +2,9 @@ package hexcustomitems;
 
 import hexcustomitems.config.HexCustomItemsConfig;
 import hexcustomitems.config.HexCustomItemsConfigLoader;
-import hexcustomitems.service.ActionExecutor;
-import hexcustomitems.service.CooldownService;
 import hexcustomitems.service.CooldownStore;
 import hexcustomitems.service.CustomItemRegistryService;
-import hexcustomitems.service.CustomItemUseService;
-import hexcustomitems.service.MessageService;
-import hexcustomitems.service.UsePolicyService;
 import hexcustomitems.support.TestConfig;
-import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,7 +15,6 @@ import org.mockbukkit.mockbukkit.entity.PlayerMock;
 
 import java.io.File;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -50,27 +43,27 @@ class PluginSmokeTest {
     }
 
     @Test
-    void listCommandNamesItems() {
+    void adminPanelCommandOpensMenu() {
         PlayerMock player = server.addPlayer();
         player.setOp(true);
-        player.performCommand("hexcustomitems list");
-        assertTrue(TestConfig.plain(player.nextComponentMessage()).contains("jump_potion"));
+        player.performCommand("hexcustomitem adminpanel");
+        assertTrue(player.getOpenInventory().getTopInventory().getSize() > 0);
     }
 
     @Test
     void giveCommandDeliversManagedItem() {
         PlayerMock player = server.addPlayer();
         player.setOp(true);
-        player.performCommand("hexcustomitems give jump_potion " + player.getName());
+        player.performCommand("hexcustomitem hex:red_heart " + player.getName() + " 1");
 
         CustomItemRegistryService registry = registry();
         boolean hasManaged = false;
         for (ItemStack stack : player.getInventory().getContents()) {
-            if (stack != null && "jump_potion".equals(registry.resolveItemId(stack))) {
+            if (stack != null && "hex:red_heart".equals(registry.resolveItemId(stack))) {
                 hasManaged = true;
             }
         }
-        assertTrue(hasManaged, "Spieler sollte jump_potion erhalten");
+        assertTrue(hasManaged, "Spieler sollte red_heart erhalten");
     }
 
     /**
@@ -81,24 +74,14 @@ class PluginSmokeTest {
     @Test
     void cooldownPersistenceRoundTrips() {
         PlayerMock player = server.addPlayer();
-        HexCustomItemsConfig config = new HexCustomItemsConfigLoader(plugin).load();
-        CustomItemRegistryService registry = new CustomItemRegistryService(plugin, config);
-        CooldownService cooldowns = new CooldownService();
-        MessageService messages = new MessageService(() -> config);
-        UsePolicyService policy = new UsePolicyService(() -> config, location -> Optional.empty());
-        ActionExecutor executor = new ActionExecutor(plugin, messages);
-        CustomItemUseService useService = new CustomItemUseService(registry, cooldowns, policy, executor, messages);
-
-        ItemStack item = registry.createItem(registry.findById("jump_potion"), 1);
-        player.getInventory().setItemInMainHand(item);
-        useService.tryUseItem(player, EquipmentSlot.HAND, item); // jump_potion hat cooldown-seconds: 5
+        plugin.cooldownService().apply(player.getUniqueId(), "hex:phoenix_heart", 300);
 
         CooldownStore store = new CooldownStore(plugin, "cooldowns.yml"); // wie onDisable
-        store.write(cooldowns.snapshot());
+        store.write(plugin.cooldownService().snapshot());
 
         Map<UUID, Map<String, Long>> reloaded = store.read();           // wie onEnable
         assertTrue(reloaded.containsKey(player.getUniqueId()), "Cooldown sollte gespeichert sein");
-        assertTrue(reloaded.get(player.getUniqueId()).containsKey("jump_potion"));
+        assertTrue(reloaded.get(player.getUniqueId()).containsKey("hex:phoenix_heart"));
     }
 
     @Test

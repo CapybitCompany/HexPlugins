@@ -47,15 +47,15 @@ class ReloadTest extends PluginTestBase {
     @Test
     void reloadSwitchesCooldownFileAndKeepsActiveCooldowns() {
         UUID id = UUID.randomUUID();
-        plugin.cooldownService().apply(id, "jump_potion", 300); // aktiver In-Memory-Cooldown
+        plugin.cooldownService().apply(id, "hex:phoenix_heart", 300); // aktiver In-Memory-Cooldown
 
         editConfig(yaml -> yaml.set("cooldowns.file", "custom-cooldowns.yml"));
         PlayerMock admin = server.addPlayer();
         admin.setOp(true);
-        admin.performCommand("hexcustomitems reload");
+        admin.performCommand("hexcustomitem reload");
 
         // Cooldown darf durch Reload nicht verloren gehen.
-        assertTrue(plugin.cooldownService().remainingSeconds(id, "jump_potion") > 0,
+        assertTrue(plugin.cooldownService().remainingSeconds(id, "hex:phoenix_heart") > 0,
                 "Aktiver Cooldown sollte den Reload überleben");
 
         // onDisable muss die NEUE Datei nutzen.
@@ -68,20 +68,11 @@ class ReloadTest extends PluginTestBase {
     }
 
     @Test
-    void removedLegacyCommandStopsGivingAfterReload() {
+    void giveCommandUsesCustomItemId() {
         PlayerMock player = server.addPlayer();
         player.setOp(true);
 
-        // Vor Reload: Legacy-Command vergibt das Item.
-        player.performCommand("hex_item_potkaskoku " + player.getName());
-        assertEquals(1, countManaged(player, "jump_potion"), "Vor Reload sollte der Legacy-Command geben");
-
-        // Legacy-Command aus der Config entfernen und neu laden.
-        editConfig(yaml -> yaml.set("legacy-commands.hex_item_potkaskoku", null));
-        player.performCommand("hexcustomitems reload");
-
-        // Nach Reload: derselbe Command darf kein weiteres Item mehr geben.
-        player.performCommand("hex_item_potkaskoku " + player.getName());
-        assertEquals(1, countManaged(player, "jump_potion"), "Entfernter Legacy-Command darf nichts mehr geben");
+        player.performCommand("hexcustomitem hex:coin_3 " + player.getName() + " 1");
+        assertEquals(1, countManaged(player, "hex:coin_3"));
     }
 }

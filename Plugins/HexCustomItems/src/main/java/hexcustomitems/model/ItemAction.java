@@ -8,7 +8,7 @@ package hexcustomitems.model;
  * durchlaufen müssen (z.B. später zurückkehrende Angriffs-Items).
  */
 public sealed interface ItemAction
-        permits CommandAction, SelfPotionAction, MessageAction, SoundAction {
+        permits CommandAction, SelfPotionAction, MessageAction, SoundAction, SpecialAction {
 
     boolean offensive();
 }

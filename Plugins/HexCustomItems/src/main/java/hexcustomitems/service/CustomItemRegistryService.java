@@ -4,13 +4,18 @@ import hexcustomitems.config.HexCustomItemsConfig;
 import hexcustomitems.model.CustomItemDefinition;
 import hexcustomitems.util.TextUtil;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -22,6 +27,7 @@ public final class CustomItemRegistryService {
     private final NamespacedKey itemIdKey;
     private final NamespacedKey chargesKey;
     private final AtomicReference<Map<String, CustomItemDefinition>> itemsRef = new AtomicReference<>(Map.of());
+    private final AtomicReference<Map<String, String>> keyByIdRef = new AtomicReference<>(Map.of());
 
     public CustomItemRegistryService(JavaPlugin plugin, HexCustomItemsConfig initialConfig) {
         this.itemIdKey = new NamespacedKey(plugin, "hexcustomitem_id");
@@ -31,6 +37,7 @@ public final class CustomItemRegistryService {
 
     public void updateConfig(HexCustomItemsConfig config) {
         this.itemsRef.set(config.items());
+        this.keyByIdRef.set(config.itemIds());
     }
 
     public Map<String, CustomItemDefinition> allItems() {
@@ -41,7 +48,18 @@ public final class CustomItemRegistryService {
         if (id == null || id.isBlank()) {
             return null;
         }
-        return itemsRef.get().get(id.toLowerCase(Locale.ROOT));
+        String normalized = id.toLowerCase(Locale.ROOT);
+        CustomItemDefinition byKey = itemsRef.get().get(normalized);
+        if (byKey != null) {
+            return byKey;
+        }
+        String key = keyByIdRef.get().get(normalized);
+        return key == null ? null : itemsRef.get().get(key);
+    }
+
+    public CustomItemDefinition findByStack(ItemStack itemStack) {
+        String id = resolveItemId(itemStack);
+        return id == null ? null : findById(id);
     }
 
     public ItemStack createItem(CustomItemDefinition definition, int amount) {
@@ -114,6 +132,13 @@ public final class CustomItemRegistryService {
 
         meta.displayName(TextUtil.itemName(definition.name(), placeholders, papiContext));
         meta.lore(TextUtil.itemLore(definition.lore(), placeholders, papiContext));
+        if (definition.modelData() > 0) {
+            meta.setCustomModelData(definition.modelData());
+        }
+        if (definition.glint()) {
+            applyGlint(meta);
+        }
+        meta.addItemFlags(ItemFlag.values());
 
         PersistentDataContainer data = meta.getPersistentDataContainer();
         data.set(itemIdKey, PersistentDataType.STRING, definition.id());
@@ -122,5 +147,24 @@ public final class CustomItemRegistryService {
         }
 
         item.setItemMeta(meta);
+    }
+
+    private void applyGlint(ItemMeta meta) {
+        try {
+            Method method = meta.getClass().getMethod("setEnchantmentGlintOverride", Boolean.class);
+            method.invoke(meta, Boolean.TRUE);
+            return;
+        } catch (ReflectiveOperationException ignored) {
+            // Older test/API surface: fall back to a hidden harmless enchant where possible.
+        }
+        Enchantment enchantment = Registry.ENCHANTMENT.get(NamespacedKey.minecraft("unbreaking"));
+        if (enchantment == null) {
+            return;
+        }
+        if (meta instanceof EnchantmentStorageMeta storage) {
+            storage.addStoredEnchant(enchantment, 1, true);
+        } else {
+            meta.addEnchant(enchantment, 1, true);
+        }
     }
 }

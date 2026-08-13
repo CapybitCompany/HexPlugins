@@ -88,7 +88,7 @@ public final class CustomItemsMenuListener implements Listener {
             return;
         }
 
-        int amount = event.isShiftClick() ? configSupplier.get().menuShiftGiveAmount() : 1;
+        int amount = event.isRightClick() ? definition.adminPanelStack() : 1;
         giveService.giveTo(target, definition, amount);
     }
 

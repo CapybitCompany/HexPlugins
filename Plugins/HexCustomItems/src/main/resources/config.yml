@@ -1,249 +1,485 @@
-# ===========================================================================
-# HexCustomItems 2.1 - szablon custom itemów dla SMP (MC 1.21.11)
-# Cała oprawa tekstowa używa formatu MiniMessage:
-#   https://docs.advntr.dev/minimessage/format.html
-# Przykłady: <gold>, <red>, <gradient:a:b>, <bold>, </...>
-# Jeśli zainstalowany jest PlaceholderAPI, w nazwach/lore działają też %papi%.
-# ===========================================================================
-
-prefix: "<dark_gray>[<gold>HexItems<dark_gray>]<white> "
+prefix: "&8[&6HexItems&8]&f "
 
 permissions:
   give: "hex.items.give"
   reload: "hex.items.reload"
-  # Domyślny poziom dla dynamicznie rejestrowanych permisji itemów (te z polem 'permission:').
-  # Dozwolone: true | op | false | not-op
   item-default: "true"
 
 settings:
   max-give-amount: 64
-  menu-title: "<gold>Custom Itemy"
-  # Ile sztuk daje shift+klik w menu.
+  adminpanel-title: "&8Custom Itemy"
   menu-shift-give-amount: 16
 
 messages:
-  no-permission: "<red>Brak uprawnień."
-  use-no-permission: "<red>Nie możesz użyć tego przedmiotu."
-  player-not-found: "<red>Ten gracz nie jest online."
-  invalid-number: "<red>Niepoprawna liczba."
-  item-not-found: "<red>Nie znaleziono przedmiotu: <yellow><item_id></yellow>."
-  usage-main: "<gray>Użycie: <yellow>/hexcustomitems <give|reload|list|menu>"
-  usage-give: "<gray>Użycie: <yellow>/hexcustomitems give <item_id> <player> [amount]"
-  reloaded: "<green>Konfiguracja HexCustomItems została przeładowana."
-  given-sender: "<green>Dano <yellow><amount>x <item_name> <green>graczowi <yellow><target><green>."
-  given-target: "<gray>Otrzymałeś <yellow><amount>x <item_name><gray>."
-  list-header: "<gray>Dostępne przedmioty: <yellow><items>"
-  cooldown-active: "<red>Musisz odczekać <yellow><time>s <red>zanim użyjesz ponownie."
-  drop-blocked: "<red>Nie możesz wyrzucić tego przedmiotu."
+  no-permission: "&cBrak uprawnień."
+  use-no-permission: "&cNie możesz użyć tego przedmiotu."
+  player-not-found: "&cTen gracz nie jest online."
+  invalid-number: "&cNiepoprawna liczba."
+  item-not-found: "&cNie znaleziono przedmiotu: &e<item_id>&c."
+  usage-main: "&7Użycie: &e/hexcustomitem <reload|adminpanel|id player ilość>"
+  usage-give: "&7Użycie: &e/hexcustomitem <item_id> <player> <ilość>"
+  reloaded: "&aKonfiguracja HexCustomItems została przeładowana."
+  given-sender: "&aDano &e<amount>x <item_name> &agraczowi &e<target>&a."
+  given-target: "&7Otrzymałeś &e<amount>x <item_name>&7."
+  list-header: "&7Dostępne przedmioty: &e<items>"
+  cooldown-active: "&cMusisz odczekać &e<time>s&c."
+  drop-blocked: "&cNie możesz wyrzucić tego przedmiotu."
+  combat-blocked: "&cNie możesz użyć tego przedmiotu podczas walki."
+  limit-reached: "&cOsiągnąłeś limit dla tego przedmiotu."
+  no-target: "&cNie znaleziono celu."
+  already-active: "&cTen efekt jest już aktywny."
+  anvil-blocked: "&cNie możesz użyć tego przedmiotu w kowadle."
 
-# Domyślne dźwięki używane tylko przy migracji starej sekcji 'effect' (backward-compat).
 sounds:
-  consume: "item.book.page_turn"
-  drink: "entity.generic.drink"
+  consume: "minecraft:item.book.page_turn"
+  drink: "minecraft:entity.generic.drink"
 
-# ---------------------------------------------------------------------------
-# Warstwa Guard/Policy dla akcji oznaczonych 'offensive: true'.
-# Domyślna konfiguracja nie ma itemów offensywnych, ale gdy wrócą, będą
-# respektować PvP świata oraz (opcjonalnie) regiony HexCore.
-#   respect-pvp   - jeśli PvP świata jest wyłączone, akcje offensywne są blokowane
-#   fail-closed   - gdy brak informacji o regionie: true = blokuj, false = pozwól
-# HexCore jest miękką zależnością (softdepend) - bez niego działa sam PvP-check.
-# Region HexCore traktowany jest jako strefa bezpieczna, gdy w jego meta jest
-#   pvp=false lub safe=true lub safezone=true.
-# ---------------------------------------------------------------------------
 region-awareness:
   enabled: true
   fail-closed: false
   respect-pvp: true
-  blocked-message: "<red>Nie możesz użyć tego przedmiotu tutaj."
+  blocked-message: "&cNie możesz użyć tego przedmiotu tutaj."
 
-# ---------------------------------------------------------------------------
-# Cooldowny mogą przetrwać restart. Zapis do pliku przy wyłączeniu, wczytanie
-# przy starcie (wygasłe wpisy są pomijane). Bez schedulera - leniwe czyszczenie.
-# ---------------------------------------------------------------------------
 cooldowns:
   persist: true
   file: "cooldowns.yml"
 
-# ---------------------------------------------------------------------------
-# Config-getriebene recepty. Rejestrowane przy starcie, podmieniane przy reload.
-# Klucz = id itemu (musi istnieć w sekcji items).
-#   type: shaped | shapeless
-#   shaped:    'shape' (do 3 wierszy) + 'ingredients' (znak -> materiał)
-#   shapeless: 'ingredients' jako lista materiałów
-# ---------------------------------------------------------------------------
 recipes:
   enabled: true
   items:
-    jump_potion:
-      type: shaped
+    efficiency_6_book:
+      result: "hex:efficiency_6_book"
       amount: 1
       shape:
-        - " R "
-        - " B "
-        - " R "
+        - "LLL"
+        - "EBE"
+        - "LLL"
       ingredients:
-        R: RABBIT_FOOT
-        B: POTION
-    hex_coin_1:
-      type: shapeless
+        L:
+          material: LEATHER
+          amount: 1
+        E:
+          material: ENCHANTED_BOOK
+          enchantment: efficiency
+          enchantment-level: 5
+          amount: 1
+        B:
+          material: DISC_FRAGMENT_5
+          custom-item: "hex:ancient_scale"
+          amount: 1
+    darkness_powder:
+      result: "hex:darkness_powder"
       amount: 1
+      shape:
+        - " G "
+        - "GGG"
+        - " G "
       ingredients:
-        - PAPER
-        - GOLD_NUGGET
+        G:
+          material: GUNPOWDER
+          amount: 8
+    spider_grenade:
+      result: "hex:spider_grenade"
+      amount: 1
+      shape:
+        - " A "
+        - " F "
+        - " W "
+      ingredients:
+        A:
+          material: ARROW
+          amount: 16
+        F:
+          material: FIREWORK_ROCKET
+          amount: 16
+        W:
+          material: COBWEB
+          amount: 8
+    phoenix_heart:
+      result: "hex:phoenix_heart"
+      amount: 1
+      shape:
+        - "FFF"
+        - "FBF"
+        - "FFF"
+      ingredients:
+        F:
+          material: FEATHER
+          amount: 10
+        B:
+          material: BLAZE_POWDER
+          amount: 10
+    butcher_hook:
+      result: "hex:butcher_hook"
+      amount: 1
+      shape:
+        - "  S"
+        - "IRS"
+        - "  S"
+      ingredients:
+        S:
+          material: DISC_FRAGMENT_5
+          custom-item: "hex:ancient_scale"
+          amount: 1
+        I:
+          material: IRON_INGOT
+          amount: 1
+        R:
+          material: FISHING_ROD
+          amount: 1
+    kinetic_charge:
+      result: "hex:kinetic_charge"
+      amount: 1
+      shape:
+        - "   "
+        - "FRF"
+        - "   "
+      ingredients:
+        F:
+          material: FEATHER
+          amount: 16
+        R:
+          material: RABBIT_FOOT
+          amount: 8
 
-# ---------------------------------------------------------------------------
-# Legacy-komendy (config-driven). Klucz = nazwa komendy (musi istnieć w plugin.yml),
-# wartość = id itemu. Jeśli komenda nie istnieje w plugin.yml, pojawi się ostrzeżenie.
-# ---------------------------------------------------------------------------
-legacy-commands:
-  hex_item_potkaskoku: jump_potion
-  hex_item_ciastkoniewidka: invisibility_cookie
-  hex_item_hexcoin1: hex_coin_1
-  hex_item_hexcoins2: hex_coin_2
-  hex_item_hexcoins3: hex_coin_3
-  hex_item_hexcoins5: hex_coin_5
-  hex_item_potkaspeedu: speed_potion
+mob-drops:
+  enabled: true
+  drops:
+    GUARDIAN:
+      - item: "hex:ancient_scale"
+        chance: 45.0
+        amount: 1
+    PUFFERFISH:
+      - item: "hex:ancient_scale"
+        chance: 20.0
+        amount: 1
+    DROWNED:
+      - item: "hex:ancient_scale"
+        chance: 12.0
+        amount: 1
+    CREEPER:
+      - item: "hex:darkness_powder"
+        chance: 1.0
+        amount: 1
+    SPIDER:
+      - item: "hex:spider_grenade"
+        chance: 1.0
+        amount: 1
+    CAVE_SPIDER:
+      - item: "hex:spider_grenade"
+        chance: 5.0
+        amount: 1
 
-# ---------------------------------------------------------------------------
-# Definicje przedmiotów.
-#
-# Pola wspólne:
-#   material, name, lore, drop-protection (Q blokuje wyrzucenie)
-#   permission        - opcjonalny node; brak = item wolny dla wszystkich
-#   cooldown-seconds  - odstęp między użyciami (0 = brak)
-#   charges           - liczba użyć na jeden przedmiot (0 = zwykły stack)
-#                       w lore można użyć <charges> oraz <max_charges>
-#
-# System 'actions' (wykonywane po kolei, PPM). Typy:
-#   COMMAND      executor: CONSOLE|PLAYER, commands: [lista]
-#                placeholdery: %player% %uuid% %item_id% %world% %x% %y% %z% %amount%
-#   SELF_POTION  potion, duration-seconds, amplifier
-#   MESSAGE      message (MiniMessage, %papi% dla nutzujacego)
-#   SOUND        sound, volume, pitch
-# Każda akcja może mieć 'offensive: true' -> przechodzi przez Guard (regiony/PvP).
-#
-# Backward-compat: jeśli item nie ma 'actions', a ma starą sekcję 'effect'
-# (type: SELF_POTION lub HEX_COINS), zostanie ona automatycznie zmigrowana.
-# ---------------------------------------------------------------------------
 items:
-  jump_potion:
-    material: "POTION"
-    name: "<gold>Mikstura Skoku"
+  boss_ticket:
+    ID: "hex:boss_ticket"
+    model-data: 10001
+    material: PAPER
+    name: "&6Bilet na Bossa"
     lore:
-      - "<white>Skok II - 7 sekund"
-    drop-protection: false
-    cooldown-seconds: 5
+      - "&7Wejdź dzięki temu na eventową arenę."
+    can-drop: false
+    can-use-in-anvil: false
+    adminpanel-stack: 1
+
+  red_heart:
+    ID: "hex:red_heart"
+    model-data: 10002
+    material: RED_DYE
+    name: "&fCzerwone Serce"
+    lore:
+      - "&7Użyj &6PPM&7, aby dostać dodatkowe serce &c(max 5)"
+    can-drop: true
+    can-use-in-anvil: false
+    adminpanel-stack: 1
     actions:
-      - type: SELF_POTION
-        potion: "JUMP_BOOST"
-        duration-seconds: 7
-        amplifier: 1
+      - type: RED_HEART
+        max: 5
       - type: SOUND
-        sound: "entity.generic.drink"
-        volume: 1.0
-        pitch: 1.0
+        sound: "minecraft:entity.experience_orb.pickup"
+
+  golden_heart:
+    ID: "hex:golden_heart"
+    model-data: 10003
+    material: YELLOW_DYE
+    name: "&fZłote Serce"
+    lore:
+      - "&7Użyj &6PPM&7, aby dostać tymczasową tarczę &c(max 10)"
+    can-drop: true
+    can-use-in-anvil: false
+    adminpanel-stack: 1
+    actions:
+      - type: GOLDEN_HEART
+        hearts: 1
+        max: 10
+        duration-seconds: 10
+        requires-out-of-combat: true
+      - type: SOUND
+        sound: "minecraft:block.anvil.land"
+
+  efficiency_6_book:
+    ID: "hex:efficiency_6_book"
+    model-data: 10004
+    material: ENCHANTED_BOOK
+    name: "&bEnchanted Book"
+    lore:
+      - "&7Efficiency VI"
+    can-drop: true
+    can-use-in-anvil: true
+    adminpanel-stack: 1
+
+  ancient_scale:
+    ID: "hex:ancient_scale"
+    model-data: 10005
+    material: DISC_FRAGMENT_5
+    name: "&fŁuska"
+    lore:
+      - "&7Pradawna łuska &c(Do dalszego craftingu)"
+    can-drop: true
+    can-use-in-anvil: true
+    adminpanel-stack: 64
+
+  afk_key:
+    ID: "hex:afk_key"
+    model-data: 10006
+    material: TRIAL_KEY
+    name: "&eKlucz AFK"
+    lore:
+      - "&7Służy do otwarcia &eSkrzyni AFK&7."
+    can-drop: false
+    can-use-in-anvil: false
+    adminpanel-stack: 1
+
+  epic_key:
+    ID: "hex:epic_key"
+    model-data: 10007
+    material: TRIAL_KEY
+    name: "&5Epicki klucz"
+    lore:
+      - "&7Służy do otwarcia &5Epickiej Skrzyni&7."
+    can-drop: false
+    can-use-in-anvil: false
+    adminpanel-stack: 1
+
+  premium_key:
+    ID: "hex:premium_key"
+    model-data: 10008
+    material: TRIAL_KEY
+    name: "&cKlucz Premium"
+    lore:
+      - "&7Służy do otwarcia &cSkrzyni Premium&7."
+    can-drop: false
+    can-use-in-anvil: false
+    adminpanel-stack: 1
+
+  darkness_powder:
+    ID: "hex:darkness_powder"
+    model-data: 10009
+    material: GUNPOWDER
+    name: "&fProszek ciemności"
+    lore:
+      - "&7Wciśnij &6PPM&7, aby wywołać u pobliskich graczy ciemność &c(2 sek.)"
+    can-drop: true
+    can-use-in-anvil: false
+    glint: true
+    cooldown-seconds: 5
+    adminpanel-stack: 16
+    actions:
+      - type: DARKNESS_POWDER
+        radius: 5
+        duration-seconds: 2
+        sound: "minecraft:entity.vex.charge"
+        offensive: true
+
+  spider_grenade:
+    ID: "hex:spider_grenade"
+    model-data: 10010
+    material: COBWEB
+    name: "&fPajęczy Granat"
+    lore:
+      - "&7Wciśnij &6PPM&7, aby rzucić lepką pajęczynę."
+    can-drop: true
+    can-use-in-anvil: false
+    cooldown-seconds: 30
+    adminpanel-stack: 16
+    actions:
+      - type: SPIDER_GRENADE
+        velocity: 1.4
+        offensive: true
+
+  phoenix_heart:
+    ID: "hex:phoenix_heart"
+    model-data: 10011
+    material: BLAZE_POWDER
+    name: "&fSerce Feniksa"
+    lore:
+      - "&7Zapewnia regenerację poza walką &c(5 min.)"
+    can-drop: true
+    can-use-in-anvil: false
+    cooldown-seconds: 300
+    adminpanel-stack: 16
+    actions:
+      - type: PHOENIX_HEART
+        duration-seconds: 300
+        amplifier: 0
+        requires-out-of-combat: true
+      - type: SOUND
+        sound: "minecraft:item.firecharge.use"
+
+  butcher_hook:
+    ID: "hex:butcher_hook"
+    model-data: 10012
+    material: LEAD
+    name: "&fHaczyk Rzeźnika"
+    lore:
+      - "&7Trafiony gracz zostaje przyciągnięty do rzucającego."
+    can-drop: true
+    can-use-in-anvil: false
+    cooldown-seconds: 15
+    adminpanel-stack: 16
+    actions:
+      - type: BUTCHER_HOOK
+        velocity: 2.2
+        offensive: true
+
+  mining_luck:
+    ID: "hex:mining_luck"
+    model-data: 10013
+    material: IRON_INGOT
+    name: "&fGórniczy Łut Szczęścia"
+    lore:
+      - "&7Użyj &6PPM&7, aby zwiększyć szansę &e(20%) &7na dodatkową rudę/surowiec &c(3 min.)"
+    can-drop: true
+    can-use-in-anvil: false
+    glint: true
+    cooldown-seconds: 180
+    adminpanel-stack: 16
+    actions:
+      - type: SOUND
+        sound: "minecraft:block.enchantment_table.use"
+      - type: SOUND
+        sound: "minecraft:block.amethyst_block.fall"
+        delay-ticks: 10
+      - type: MINING_LUCK
+        duration-seconds: 180
+
+  hunter_skull:
+    ID: "hex:hunter_skull"
+    model-data: 10014
+    material: SKELETON_SKULL
+    name: "&fCzaszka Łowcy"
+    lore:
+      - "&7Artefakt wskazujący drogę do najbliższego wroga"
+    can-drop: true
+    can-use-in-anvil: false
+    cooldown-seconds: 300
+    adminpanel-stack: 16
+    actions:
+      - type: HUNTER_SKULL
+        duration-seconds: 10
+        max-distance: 512
+        sound: "minecraft:entity.wither.spawn"
+
+  kinetic_charge:
+    ID: "hex:kinetic_charge"
+    model-data: 10015
+    material: RABBIT_FOOT
+    name: "&fŁadunek Kinetyczny"
+    lore:
+      - "&7Zwiększa prędkość ruchu &c(5 sekund) i wyrzuca Cię do przodu"
+    can-drop: true
+    can-use-in-anvil: false
+    glint: true
+    cooldown-seconds: 120
+    adminpanel-stack: 16
+    actions:
+      - type: SOUND
+        sound: "minecraft:entity.player.attack.knockback"
+      - type: SOUND
+        sound: "minecraft:entity.wind_charge.wind_burst"
+        delay-ticks: 10
+      - type: KINETIC_CHARGE
+        velocity: 1.7
+        speed-duration-seconds: 5
 
   invisibility_cookie:
-    material: "COOKIE"
-    name: "<gold>Ciastko Niewidka"
+    ID: "hex:invisibility_cookie"
+    model-data: 10016
+    material: COOKIE
+    name: "&fCiastko niewidzialności"
     lore:
-      - "<white>Niewidzialność - 20 sekund"
-      - "<gray>Ładunki: <yellow><charges></yellow>/<yellow><max_charges></yellow>"
-    drop-protection: false
-    cooldown-seconds: 15
-    charges: 3
+      - "&7Na 10 sekund stajesz się niewidzialny"
+    can-drop: true
+    can-use-in-anvil: false
+    glint: true
+    cooldown-seconds: 60
+    adminpanel-stack: 16
     actions:
-      - type: SELF_POTION
-        potion: "INVISIBILITY"
-        duration-seconds: 20
-        amplifier: 0
-      - type: MESSAGE
-        message: "<gray>Zniknąłeś... na chwilę."
-      - type: SOUND
-        sound: "entity.generic.drink"
-        volume: 1.0
-        pitch: 1.2
-
-  speed_potion:
-    material: "POTION"
-    name: "<gold>Mikstura Prędkości"
-    lore:
-      - "<white>Speed II - 10 sekund"
-    drop-protection: false
-    cooldown-seconds: 8
-    actions:
-      - type: SELF_POTION
-        potion: "SPEED"
+      - type: INVISIBILITY_COOKIE
         duration-seconds: 10
-        amplifier: 1
+        requires-out-of-combat: true
       - type: SOUND
-        sound: "entity.generic.drink"
-        volume: 1.0
-        pitch: 1.0
+        sound: "minecraft:entity.generic.eat"
 
-  hex_coin_1:
-    material: "PAPER"
-    name: "<gold>Hex-Coin<white>(1)"
+  coin_1:
+    ID: "hex:coin_1"
+    model-data: 10017
+    material: PAPER
+    name: "&dBonus &f- 1 &eHex&f-&eCoin"
     lore:
-      - "<white>1 Hex-Coin (Kliknij PPM)"
-    drop-protection: true
+      - "&7Użyj &6PPM&7, aby dodać Hex-Coin"
+    can-drop: false
+    can-use-in-anvil: false
+    adminpanel-stack: 1
     actions:
       - type: COMMAND
         executor: CONSOLE
         commands:
           - "eco give %player% 1"
-      - type: MESSAGE
-        message: "<green>Wymieniono na <yellow>1 Hex-Coin<green>!"
       - type: SOUND
-        sound: "item.book.page_turn"
-        volume: 1.0
-        pitch: 1.0
-
-  hex_coin_2:
-    material: "PAPER"
-    name: "<gold>Hex-Coinsy<white>(2)"
-    lore:
-      - "<white>2 Hex-Coinsy (Kliknij PPM)"
-    drop-protection: true
-    actions:
-      - type: COMMAND
-        executor: CONSOLE
-        commands:
-          - "eco give %player% 2"
+        sound: "minecraft:item.book.page_turn"
       - type: SOUND
-        sound: "item.book.page_turn"
-        volume: 1.0
-        pitch: 1.0
+        sound: "minecraft:entity.player.levelup"
+        delay-ticks: 20
 
-  hex_coin_3:
-    material: "PAPER"
-    name: "<gold>Hex-Coinsy<white>(3)"
+  coin_3:
+    ID: "hex:coin_3"
+    model-data: 10018
+    material: PAPER
+    name: "&dBonus &f- 3 &eHex&f-&eCoins"
     lore:
-      - "<white>3 Hex-Coinsy (Kliknij PPM)"
-    drop-protection: true
+      - "&7Użyj &6PPM&7, aby dodać Hex-Coins"
+    can-drop: false
+    can-use-in-anvil: false
+    adminpanel-stack: 1
     actions:
       - type: COMMAND
         executor: CONSOLE
         commands:
           - "eco give %player% 3"
       - type: SOUND
-        sound: "item.book.page_turn"
-        volume: 1.0
-        pitch: 1.0
+        sound: "minecraft:item.book.page_turn"
+      - type: SOUND
+        sound: "minecraft:entity.player.levelup"
+        delay-ticks: 20
 
-  hex_coin_5:
-    material: "PAPER"
-    name: "<gold>Hex-Coinsy<white>(5)"
+  coin_6:
+    ID: "hex:coin_6"
+    model-data: 10019
+    material: PAPER
+    name: "&dBonus &f- 6 &eHex&f-&eCoins"
     lore:
-      - "<white>5 Hex-Coinsów (Kliknij PPM)"
-    drop-protection: true
+      - "&7Użyj &6PPM&7, aby dodać Hex-Coins"
+    can-drop: false
+    can-use-in-anvil: false
+    adminpanel-stack: 1
     actions:
       - type: COMMAND
         executor: CONSOLE
         commands:
-          - "eco give %player% 5"
+          - "eco give %player% 6"
       - type: SOUND
-        sound: "item.book.page_turn"
-        volume: 1.0
-        pitch: 1.0
+        sound: "minecraft:item.book.page_turn"
+      - type: SOUND
+        sound: "minecraft:entity.player.levelup"
+        delay-ticks: 20

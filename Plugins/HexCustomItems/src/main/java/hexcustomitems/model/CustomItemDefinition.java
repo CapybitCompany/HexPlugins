@@ -14,24 +14,50 @@ import java.util.Objects;
  * funktionieren.
  */
 public record CustomItemDefinition(
+        String key,
         String id,
+        int modelData,
         Material material,
         String name,
         List<String> lore,
-        boolean dropProtection,
+        boolean canDrop,
+        boolean canUseInAnvil,
+        boolean glint,
         String permission,
         int cooldownSeconds,
+        int adminPanelStack,
         int charges,
         List<ItemAction> actions
 ) {
+    public CustomItemDefinition(
+            String id,
+            Material material,
+            String name,
+            List<String> lore,
+            boolean dropProtection,
+            String permission,
+            int cooldownSeconds,
+            int charges,
+            List<ItemAction> actions
+    ) {
+        this(id, id, 0, material, name, lore, !dropProtection, false, false,
+                permission, cooldownSeconds, 1, charges, actions);
+    }
+
     public CustomItemDefinition {
+        key = Objects.requireNonNull(key, "key").toLowerCase(java.util.Locale.ROOT);
         id = Objects.requireNonNull(id, "id");
+        modelData = Math.max(0, modelData);
         material = Objects.requireNonNull(material, "material");
         name = Objects.requireNonNull(name, "name");
         lore = List.copyOf(Objects.requireNonNull(lore, "lore"));
         actions = List.copyOf(Objects.requireNonNull(actions, "actions"));
         cooldownSeconds = Math.max(0, cooldownSeconds);
+        adminPanelStack = Math.max(1, adminPanelStack);
         charges = Math.max(0, charges);
+        if (key.isBlank()) {
+            throw new IllegalArgumentException("key cannot be blank");
+        }
         if (id.isBlank()) {
             throw new IllegalArgumentException("id cannot be blank");
         }
@@ -49,6 +75,11 @@ public record CustomItemDefinition(
     /** True, wenn eine Permission konfiguriert wurde (sonst frei nutzbar). */
     public boolean hasPermission() {
         return permission != null && !permission.isBlank();
+    }
+
+    /** Existing listener compatibility: true means Q/drop should be blocked. */
+    public boolean dropProtection() {
+        return !canDrop;
     }
 
     /** True, wenn mindestens eine Aktion offensiv ist und die Guard-Prüfung durchlaufen muss. */

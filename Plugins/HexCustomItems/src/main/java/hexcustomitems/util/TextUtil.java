@@ -5,11 +5,13 @@ import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.OfflinePlayer;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * Zentrale Text-Umwandlung auf Basis von Adventure/MiniMessage.
@@ -21,6 +23,8 @@ import java.util.Map;
 public final class TextUtil {
 
     private static final MiniMessage MINI = MiniMessage.miniMessage();
+    private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacyAmpersand();
+    private static final Pattern LEGACY_COLOR = Pattern.compile(".*&[0-9a-fk-orA-FK-OR].*");
 
     private TextUtil() {
     }
@@ -40,7 +44,11 @@ public final class TextUtil {
         if (text == null) {
             return Component.empty();
         }
-        return MINI.deserialize(PapiSupport.apply(papiContext, text), toResolvers(placeholders));
+        String processed = PapiSupport.apply(papiContext, text);
+        if (LEGACY_COLOR.matcher(processed).matches()) {
+            return LEGACY.deserialize(applyPlainPlaceholders(processed, placeholders));
+        }
+        return MINI.deserialize(processed, toResolvers(placeholders));
     }
 
     /** Parst eine MiniMessage-Zeile mit einem beliebigen TagResolver (z.B. Component-Platzhalter). */
@@ -78,5 +86,16 @@ public final class TextUtil {
             builder.resolver(Placeholder.unparsed(entry.getKey(), entry.getValue()));
         }
         return builder.build();
+    }
+
+    private static String applyPlainPlaceholders(String text, Map<String, String> placeholders) {
+        if (placeholders == null || placeholders.isEmpty()) {
+            return text;
+        }
+        String result = text;
+        for (Map.Entry<String, String> entry : placeholders.entrySet()) {
+            result = result.replace("<" + entry.getKey() + ">", entry.getValue());
+        }
+        return result;
     }
 }

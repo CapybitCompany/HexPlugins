@@ -1,44 +1,19 @@
 name: HexCustomItems
-version: '2.1.0'
+version: '3.0.0'
 main: hexcustomitems.HexCustomItemsPlugin
 api-version: '1.21'
-description: Szablon custom itemów HEX (SMP) - akcje, cooldowny, menu, recepty, regiony
+description: Custom itemy HEX - ID, modele, akcje, cooldowny, crafting i dropy
 authors: [HexDevTeam]
-softdepend: [HexCore, PlaceholderAPI]
+softdepend: [HexCore, PlaceholderAPI, HexPvpSmp]
 
 commands:
-  hexcustomitems:
-    description: Zarządzanie pluginem HexCustomItems
-    usage: /hexcustomitems <give|reload|list|menu>
-    aliases: [hci]
-  hex_item_potkaskoku:
-    description: Daje item jump_potion
-    usage: /hex_item_potkaskoku <player> [amount]
-  hex_item_ciastkoniewidka:
-    description: Daje item invisibility_cookie
-    usage: /hex_item_ciastkoniewidka <player> [amount]
-  hex_item_hexcoin1:
-    description: Daje item hex_coin_1
-    usage: /hex_item_hexcoin1 <player> [amount]
-  hex_item_hexcoins2:
-    description: Daje item hex_coin_2
-    usage: /hex_item_hexcoins2 <player> [amount]
-  hex_item_hexcoins3:
-    description: Daje item hex_coin_3
-    usage: /hex_item_hexcoins3 <player> [amount]
-  hex_item_hexcoins5:
-    description: Daje item hex_coin_5
-    usage: /hex_item_hexcoins5 <player> [amount]
-  hex_item_potkaspeedu:
-    description: Daje item speed_potion
-    usage: /hex_item_potkaspeedu <player> [amount]
+  hexcustomitem:
+    description: Zarządzanie HexCustomItems
+    usage: /hexcustomitem <reload|adminpanel|item_id player ilość>
 
-# Item-Permissions sind config-getrieben: ein Item ohne 'permission:' ist frei nutzbar,
-# ein Item mit 'permission:' bekommt seinen Node beim Enable/Reload dynamisch registriert
-# (Default via permissions.item-default). Daher hier keine statische use.*-Liste nötig.
 permissions:
   hex.items.give:
-    description: Pozwala dawać custom itemy i otwierać menu
+    description: Pozwala dawać custom itemy i otwierać panel admina
     default: op
   hex.items.reload:
     description: Pozwala przeładować konfigurację HexCustomItems

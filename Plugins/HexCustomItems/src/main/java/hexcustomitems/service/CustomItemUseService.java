@@ -77,7 +77,9 @@ public final class CustomItemUseService {
             return true;
         }
 
-        actionExecutor.execute(player, definition, 1);
+        if (!actionExecutor.execute(player, hand, definition, 1)) {
+            return true;
+        }
         consume(player, hand, definition);
         cooldownService.apply(player.getUniqueId(), itemId, definition.cooldownSeconds());
         return true;

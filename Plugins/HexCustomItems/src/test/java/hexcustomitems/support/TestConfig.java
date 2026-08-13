@@ -44,7 +44,8 @@ public final class TestConfig {
     public static CustomItemDefinition commandItem(String id, Material material, CommandExecutorType executor,
                                                    List<String> commands, boolean offensive) {
         List<ItemAction> actions = List.of(new CommandAction(executor, commands, offensive));
-        return new CustomItemDefinition(id, material, "<gold>" + id, List.of(), false, null, 0, 0, actions);
+        return new CustomItemDefinition(id, id, 0, material, "<gold>" + id, List.of(),
+                true, false, false, null, 0, 16, 0, actions);
     }
 
     public static CustomItemDefinition item(String id, Material material, String permission,

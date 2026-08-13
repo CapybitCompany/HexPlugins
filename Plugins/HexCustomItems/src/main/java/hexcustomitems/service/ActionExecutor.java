@@ -8,9 +8,11 @@ import hexcustomitems.model.MessageAction;
 import hexcustomitems.model.PotionEffectSpec;
 import hexcustomitems.model.SelfPotionAction;
 import hexcustomitems.model.SoundAction;
+import hexcustomitems.model.SpecialAction;
 import hexcustomitems.util.PlaceholderUtil;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 
@@ -26,26 +28,39 @@ public final class ActionExecutor {
     private final JavaPlugin plugin;
     private final MessageService messageService;
     private final CommandDispatcher commandDispatcher;
+    private final SpecialItemActionService specialActions;
 
     public ActionExecutor(JavaPlugin plugin, MessageService messageService) {
-        this(plugin, messageService, CommandDispatcher.BUKKIT);
+        this(plugin, messageService, CommandDispatcher.BUKKIT, null);
     }
 
     public ActionExecutor(JavaPlugin plugin, MessageService messageService, CommandDispatcher commandDispatcher) {
+        this(plugin, messageService, commandDispatcher, null);
+    }
+
+    public ActionExecutor(JavaPlugin plugin, MessageService messageService,
+                          CommandDispatcher commandDispatcher, SpecialItemActionService specialActions) {
         this.plugin = Objects.requireNonNull(plugin, "plugin");
         this.messageService = Objects.requireNonNull(messageService, "messageService");
         this.commandDispatcher = Objects.requireNonNull(commandDispatcher, "commandDispatcher");
+        this.specialActions = specialActions;
     }
 
-    public void execute(Player user, CustomItemDefinition definition, int amount) {
+    public boolean execute(Player user, EquipmentSlot hand, CustomItemDefinition definition, int amount) {
         for (ItemAction action : definition.actions()) {
             switch (action) {
                 case CommandAction command -> runCommands(user, definition, command, amount);
                 case SelfPotionAction potion -> applyPotion(user, potion);
                 case MessageAction message -> messageService.sendActionMessage(user, message.message());
                 case SoundAction sound -> playSound(user, sound);
+                case SpecialAction special -> {
+                    if (specialActions == null || !specialActions.execute(user, hand, definition, special)) {
+                        return false;
+                    }
+                }
             }
         }
+        return true;
     }
 
     private void runCommands(Player user, CustomItemDefinition definition, CommandAction action, int amount) {
@@ -79,7 +94,13 @@ public final class ActionExecutor {
         if (action.sound().isBlank()) {
             return;
         }
-        user.playSound(user.getLocation(), action.sound(), action.volume(), action.pitch());
+        if (action.delayTicks() <= 0) {
+            user.playSound(user.getLocation(), action.sound(), action.volume(), action.pitch());
+            return;
+        }
+        plugin.getServer().getScheduler().runTaskLater(plugin,
+                () -> user.playSound(user.getLocation(), action.sound(), action.volume(), action.pitch()),
+                action.delayTicks());
     }
 
     private Map<String, String> commandPlaceholders(Player user, CustomItemDefinition definition, int amount) {
