@@ -2,6 +2,8 @@ package hexchests.config;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.EntityType;
 
 import java.util.List;
 import java.util.Map;
@@ -52,8 +54,10 @@ public record HexChestsConfig(
     }
 
     public record OpeningGui(
+            int size,
             int durationTicks,
             int tickIntervalTicks,
+            int maxTickIntervalTicks,
             int rollingSlot,
             int resultSlot,
             List<Integer> sideSlots,
@@ -109,12 +113,27 @@ public record HexChestsConfig(
 
     public record RewardDefinition(
             String id,
+            String customItemId,
             Material material,
             String displayName,
             int amount,
             double chance,
             List<String> lore,
+            Map<Enchantment, Integer> enchantments,
+            Integer customModelData,
+            List<RewardItemDefinition> items,
             List<String> commands
+    ) {
+    }
+
+    public record RewardItemDefinition(
+            Material material,
+            int amount,
+            String displayName,
+            List<String> lore,
+            Map<Enchantment, Integer> enchantments,
+            Integer customModelData,
+            EntityType spawnerType
     ) {
     }
 }

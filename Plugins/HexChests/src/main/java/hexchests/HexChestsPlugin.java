@@ -15,6 +15,7 @@ public class HexChestsPlugin extends JavaPlugin {
     private final AtomicReference<HexChestsConfig> configRef = new AtomicReference<>();
 
     private KeyService keyService;
+    private CustomItemsBridge customItemsBridge;
     private ChestService chestService;
     private HexChestsListener listener;
 
@@ -26,8 +27,9 @@ public class HexChestsPlugin extends JavaPlugin {
             return;
         }
 
-        this.keyService = new KeyService(this, configRef::get);
-        this.chestService = new ChestService(this, configRef::get, keyService);
+        this.customItemsBridge = new CustomItemsBridge(this);
+        this.keyService = new KeyService(this, configRef::get, customItemsBridge);
+        this.chestService = new ChestService(this, configRef::get, keyService, customItemsBridge);
         this.listener = new HexChestsListener(chestService);
         getServer().getPluginManager().registerEvents(listener, this);
 
@@ -55,6 +57,7 @@ public class HexChestsPlugin extends JavaPlugin {
             chestService = null;
         }
         keyService = null;
+        customItemsBridge = null;
         getLogger().info("HexChests disabled.");
     }
 

@@ -1,0 +1,20 @@
+name: HexCustomItems
+version: '3.0.0'
+main: hexcustomitems.HexCustomItemsPlugin
+api-version: '1.21'
+description: Custom itemy HEX - ID, modele, akcje, cooldowny, crafting i dropy
+authors: [HexDevTeam]
+softdepend: [HexCore, PlaceholderAPI, HexPvpSmp]
+
+commands:
+  hexcustomitem:
+    description: Zarządzanie HexCustomItems
+    usage: /hexcustomitem <reload|adminpanel|item_id player ilość>
+
+permissions:
+  hex.items.give:
+    description: Pozwala dawać custom itemy i otwierać panel admina
+    default: op
+  hex.items.reload:
+    description: Pozwala przeładować konfigurację HexCustomItems
+    default: op

@@ -5,14 +5,17 @@
     <option name="linkedExternalProjectsSettings">
       <GradleProjectSettings>
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="gradleHome" value="" />
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/plugins" />
             <option value="$PROJECT_DIR$/plugins/DbExample" />
+            <option value="$PROJECT_DIR$/plugins/HexAfkZone" />
+            <option value="$PROJECT_DIR$/plugins/HexChests" />
             <option value="$PROJECT_DIR$/plugins/HexCore" />
+            <option value="$PROJECT_DIR$/plugins/HexDailyRewards" />
             <option value="$PROJECT_DIR$/plugins/HexPortals" />
+            <option value="$PROJECT_DIR$/plugins/HexVelocityFallback" />
             <option value="$PROJECT_DIR$/plugins/Minigames" />
             <option value="$PROJECT_DIR$/plugins/UiExample" />
           </set>

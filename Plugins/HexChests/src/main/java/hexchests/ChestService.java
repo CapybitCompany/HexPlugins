@@ -7,10 +7,15 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.CreatureSpawner;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BlockStateMeta;
+import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
@@ -31,12 +36,17 @@ public final class ChestService {
     private final JavaPlugin plugin;
     private final Supplier<HexChestsConfig> configSupplier;
     private final KeyService keyService;
+    private final CustomItemsBridge customItems;
     private final Map<UUID, OpeningSession> openings = new LinkedHashMap<>();
 
-    public ChestService(JavaPlugin plugin, Supplier<HexChestsConfig> configSupplier, KeyService keyService) {
+    public ChestService(JavaPlugin plugin,
+                        Supplier<HexChestsConfig> configSupplier,
+                        KeyService keyService,
+                        CustomItemsBridge customItems) {
         this.plugin = Objects.requireNonNull(plugin, "plugin");
         this.configSupplier = Objects.requireNonNull(configSupplier, "configSupplier");
         this.keyService = Objects.requireNonNull(keyService, "keyService");
+        this.customItems = Objects.requireNonNull(customItems, "customItems");
     }
 
     public Optional<HexChestsConfig.ChestDefinition> chestAt(Block block) {
@@ -61,12 +71,11 @@ public final class ChestService {
     }
 
     public void handleRightClick(Player player, HexChestsConfig.ChestDefinition chest, ItemStack hand) {
-        Optional<String> keyId = keyService.keyId(hand);
-        if (keyId.isEmpty()) {
+        if (keyService.keyId(hand).isEmpty()) {
             openPreview(player, chest);
             return;
         }
-        if (!keyId.get().equals(chest.requiredKey())) {
+        if (!keyService.isExpectedKey(hand, chest)) {
             player.sendActionBar(Text.component(configSupplier.get().messages().wrongKeyActionbar(), placeholders(chest, null)));
             play(player, configSupplier.get().sounds().wrongKey());
             return;
@@ -108,7 +117,7 @@ public final class ChestService {
         HexChestsConfig config = configSupplier.get();
         Map<String, String> placeholders = placeholders(chest, null);
         HexChestsGuiHolder holder = new HexChestsGuiHolder(player.getUniqueId(), chest.id(), HexChestsGuiHolder.Mode.OPENING);
-        Inventory inventory = Bukkit.createInventory(holder, config.gui().size(),
+        Inventory inventory = Bukkit.createInventory(holder, config.gui().opening().size(),
                 Text.legacy(config.gui().openingTitle(), placeholders));
         holder.setInventory(inventory);
         fill(inventory, config.gui().filler(), placeholders);
@@ -121,27 +130,7 @@ public final class ChestService {
 
         OpeningSession session = new OpeningSession(player.getUniqueId(), chest.id(), reward.get(), inventory);
         openings.put(player.getUniqueId(), session);
-        BukkitTask task = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
-            private int elapsed;
-
-            @Override
-            public void run() {
-                Player online = Bukkit.getPlayer(session.playerId());
-                if (online == null || !online.isOnline()) {
-                    finishSilently(session.playerId());
-                    return;
-                }
-                if (elapsed >= configSupplier.get().gui().opening().durationTicks()) {
-                    finishOpening(online, session);
-                    return;
-                }
-                animateOpening(session);
-                playOpeningTick(online, configSupplier.get().sounds().openingTick(), elapsed,
-                        configSupplier.get().gui().opening().durationTicks());
-                elapsed += configSupplier.get().gui().opening().tickIntervalTicks();
-            }
-        }, 0L, config.gui().opening().tickIntervalTicks());
-        session.task(task);
+        scheduleOpeningTick(session, 0);
         return true;
     }
 
@@ -195,9 +184,9 @@ public final class ChestService {
             session.task().cancel();
         }
         openings.remove(session.playerId());
-        setIndicators(session.inventory(), placeholders(configSupplier.get().chests().get(session.chestId()), session.reward()));
-        set(session.inventory(), configSupplier.get().gui().opening().resultSlot(), rewardItem(session.reward(), totalChance(List.of(session.reward()))));
         HexChestsConfig.ChestDefinition chest = configSupplier.get().chests().get(session.chestId());
+        setIndicators(session.inventory(), placeholders(chest, session.reward()));
+        set(session.inventory(), configSupplier.get().gui().opening().resultSlot(), rewardItem(session.reward(), totalChance(List.of(session.reward()))));
         award(player, chest, session.reward());
         Map<String, String> placeholders = placeholders(chest, session.reward());
         player.sendActionBar(Text.component(configSupplier.get().messages().rewardActionbar(), placeholders));
@@ -217,25 +206,91 @@ public final class ChestService {
         if (chest == null || chest.rewards().isEmpty()) {
             return;
         }
+        double totalChance = totalChance(chest.rewards());
         for (int slot : configSupplier.get().gui().opening().sideSlots()) {
-            set(session.inventory(), slot, rewardItem(randomReward(chest.rewards()), totalChance(chest.rewards())));
+            set(session.inventory(), slot, rewardItem(randomReward(chest.rewards()), totalChance));
         }
         setIndicators(session.inventory(), placeholders(chest, null));
         set(session.inventory(), configSupplier.get().gui().opening().rollingSlot(),
-                rewardItem(randomReward(chest.rewards()), totalChance(chest.rewards())));
+                rewardItem(randomReward(chest.rewards()), totalChance));
+    }
+
+    private void scheduleOpeningTick(OpeningSession session, int elapsed) {
+        HexChestsConfig.OpeningGui opening = configSupplier.get().gui().opening();
+        int duration = opening.durationTicks();
+        if (elapsed >= duration) {
+            BukkitTask task = Bukkit.getScheduler().runTask(plugin, () -> finishScheduledOpening(session));
+            session.task(task);
+            return;
+        }
+
+        int delay = openingDelay(opening, elapsed, duration);
+        BukkitTask task = Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (session.finished() || openings.get(session.playerId()) != session) {
+                return;
+            }
+            Player online = Bukkit.getPlayer(session.playerId());
+            if (online == null || !online.isOnline()) {
+                finishSilently(session.playerId());
+                return;
+            }
+            animateOpening(session);
+            playOpeningTick(online, configSupplier.get().sounds().openingTick(), elapsed, duration);
+            scheduleOpeningTick(session, elapsed + delay);
+        }, delay);
+        session.task(task);
+    }
+
+    private void finishScheduledOpening(OpeningSession session) {
+        if (session.finished() || openings.get(session.playerId()) != session) {
+            return;
+        }
+        Player player = Bukkit.getPlayer(session.playerId());
+        if (player == null || !player.isOnline()) {
+            finishSilently(session.playerId());
+            return;
+        }
+        finishOpening(player, session);
+    }
+
+    private int openingDelay(HexChestsConfig.OpeningGui opening, int elapsed, int duration) {
+        int min = Math.max(1, opening.tickIntervalTicks());
+        int max = Math.max(min, opening.maxTickIntervalTicks());
+        float progress = duration <= 0 ? 1.0F : Math.min(1.0F, elapsed / (float) duration);
+        return min + Math.round((max - min) * progress * progress);
     }
 
     private void award(Player player, HexChestsConfig.ChestDefinition chest, HexChestsConfig.RewardDefinition reward) {
         Map<String, String> placeholders = placeholders(chest, reward);
         placeholders.put("player", player.getName());
         placeholders.put("uuid", player.getUniqueId().toString());
-        if (reward.commands().isEmpty()) {
-            Map<Integer, ItemStack> leftovers = player.getInventory().addItem(new ItemStack(reward.material(), reward.amount()));
-            if (!leftovers.isEmpty()) {
-                player.sendMessage(Text.component(configSupplier.get().messages().withPrefix(configSupplier.get().messages().inventoryFull())));
+
+        if (reward.customItemId() != null) {
+            if (!customItems.give(player, reward.customItemId(), reward.amount())) {
+                plugin.getLogger().warning("HexChests: failed to give custom item " + reward.customItemId()
+                        + " to " + player.getName() + ".");
+                player.sendMessage(Text.component(configSupplier.get().messages()
+                        .withPrefix(configSupplier.get().messages().inventoryFull())));
             }
             return;
         }
+
+        if (reward.commands().isEmpty()) {
+            boolean fullFit = true;
+            if (reward.items().isEmpty()) {
+                fullFit = addItem(player, vanillaRewardItem(reward, reward.amount()));
+            } else {
+                for (HexChestsConfig.RewardItemDefinition item : reward.items()) {
+                    fullFit &= addItem(player, vanillaRewardItem(item, item.amount(), reward, reward.items().size() == 1));
+                }
+            }
+            if (!fullFit) {
+                player.sendMessage(Text.component(configSupplier.get().messages()
+                        .withPrefix(configSupplier.get().messages().inventoryFull())));
+            }
+            return;
+        }
+
         for (String raw : reward.commands()) {
             String command = Text.apply(raw, placeholders).trim();
             if (command.isEmpty()) {
@@ -281,22 +336,125 @@ public final class ChestService {
 
     private ItemStack rewardItem(HexChestsConfig.RewardDefinition reward, double totalChance) {
         int amount = Math.max(1, Math.min(reward.amount(), reward.material().getMaxStackSize()));
-        ItemStack stack = new ItemStack(reward.material(), amount);
+        ItemStack stack = previewStack(reward, amount);
+        applyRewardPreviewMeta(stack, reward, totalChance);
+        return stack;
+    }
+
+    private ItemStack previewStack(HexChestsConfig.RewardDefinition reward, int amount) {
+        if (reward.customItemId() != null) {
+            return customItems.createItem(reward.customItemId(), amount, null)
+                    .orElseGet(() -> vanillaRewardItem(reward, amount));
+        }
+        if (!reward.items().isEmpty()) {
+            HexChestsConfig.RewardItemDefinition first = reward.items().getFirst();
+            int previewAmount = Math.max(1, Math.min(first.amount(), first.material().getMaxStackSize()));
+            return vanillaRewardItem(first, previewAmount, reward, reward.items().size() == 1);
+        }
+        return vanillaRewardItem(reward, amount);
+    }
+
+    private boolean addItem(Player player, ItemStack stack) {
+        Map<Integer, ItemStack> leftovers = player.getInventory().addItem(stack);
+        return leftovers.isEmpty();
+    }
+
+    private ItemStack vanillaRewardItem(HexChestsConfig.RewardDefinition reward, int amount) {
+        ItemStack stack = new ItemStack(reward.material(), Math.max(1, amount));
         ItemMeta meta = stack.getItemMeta();
         if (meta != null) {
             Map<String, String> placeholders = placeholders(null, reward);
-            placeholders.put("chance", chancePercent(reward, totalChance));
-            meta.displayName(Text.component(reward.displayName(), placeholders));
-            List<String> lore = new ArrayList<>(reward.lore());
-            if (!lore.isEmpty()) {
-                lore.add("");
+            if (reward.displayName() != null) {
+                meta.displayName(Text.component(reward.displayName(), placeholders));
             }
-            lore.add("&7Szansa: &f{chance}%");
-            meta.lore(Text.lore(lore, placeholders));
-            meta.addItemFlags(ItemFlag.values());
+            if (!reward.lore().isEmpty()) {
+                meta.lore(Text.lore(reward.lore(), placeholders));
+            }
+            if (reward.customModelData() != null) {
+                meta.setCustomModelData(reward.customModelData());
+            }
+            applyEnchantments(meta, reward.enchantments());
             stack.setItemMeta(meta);
         }
         return stack;
+    }
+
+    private ItemStack vanillaRewardItem(HexChestsConfig.RewardItemDefinition item,
+                                        int amount,
+                                        HexChestsConfig.RewardDefinition reward,
+                                        boolean useRewardDisplay) {
+        ItemStack stack = new ItemStack(item.material(), Math.max(1, amount));
+        ItemMeta meta = stack.getItemMeta();
+        if (meta != null) {
+            Map<String, String> placeholders = placeholders(null, reward);
+            String displayName = item.displayName() != null
+                    ? item.displayName()
+                    : useRewardDisplay ? reward.displayName() : null;
+            if (displayName != null) {
+                meta.displayName(Text.component(displayName, placeholders));
+            }
+            if (!item.lore().isEmpty()) {
+                meta.lore(Text.lore(item.lore(), placeholders));
+            }
+            if (item.customModelData() != null) {
+                meta.setCustomModelData(item.customModelData());
+            }
+            applyEnchantments(meta, item.enchantments());
+            applySpawnerType(meta, item);
+            stack.setItemMeta(meta);
+        }
+        return stack;
+    }
+
+    private void applySpawnerType(ItemMeta meta, HexChestsConfig.RewardItemDefinition item) {
+        if (item.spawnerType() == null || !(meta instanceof BlockStateMeta blockStateMeta)) {
+            return;
+        }
+        BlockState state = blockStateMeta.getBlockState();
+        if (state instanceof CreatureSpawner spawner) {
+            spawner.setSpawnedType(item.spawnerType());
+            blockStateMeta.setBlockState(spawner);
+        }
+    }
+
+    private void applyRewardPreviewMeta(ItemStack stack, HexChestsConfig.RewardDefinition reward, double totalChance) {
+        ItemMeta meta = stack.getItemMeta();
+        if (meta == null) {
+            return;
+        }
+        Map<String, String> placeholders = placeholders(null, reward);
+        placeholders.put("chance", chancePercent(reward, totalChance));
+        if (reward.displayName() != null) {
+            meta.displayName(Text.component(reward.displayName(), placeholders));
+        }
+
+        List<String> lore = new ArrayList<>();
+        if (!reward.lore().isEmpty()) {
+            lore.addAll(reward.lore());
+        } else if (reward.items().size() > 1) {
+            lore.addAll(bundleLore(reward));
+        }
+        if (!lore.isEmpty()) {
+            lore.add("");
+        }
+        lore.add("&7Szansa: &f{chance}%");
+        meta.lore(Text.lore(lore, placeholders));
+        applyEnchantments(meta, reward.enchantments());
+        stack.setItemMeta(meta);
+    }
+
+    private void applyEnchantments(ItemMeta meta, Map<Enchantment, Integer> enchantments) {
+        if (enchantments.isEmpty()) {
+            return;
+        }
+        for (Map.Entry<Enchantment, Integer> entry : enchantments.entrySet()) {
+            int level = Math.max(1, entry.getValue());
+            if (meta instanceof EnchantmentStorageMeta storage) {
+                storage.addStoredEnchant(entry.getKey(), level, true);
+            } else {
+                meta.addEnchant(entry.getKey(), level, true);
+            }
+        }
     }
 
     private String chancePercent(HexChestsConfig.RewardDefinition reward, double totalChance) {
@@ -304,6 +462,22 @@ public final class ChestService {
             return "0.0";
         }
         return String.format(Locale.US, "%.1f", (reward.chance() / totalChance) * 100.0D);
+    }
+
+    private List<String> bundleLore(HexChestsConfig.RewardDefinition reward) {
+        List<String> lore = new ArrayList<>();
+        lore.add("&7Zawiera:");
+        for (HexChestsConfig.RewardItemDefinition item : reward.items()) {
+            lore.add("&8- &f" + itemLabel(item) + " &7x" + item.amount());
+        }
+        return lore;
+    }
+
+    private String itemLabel(HexChestsConfig.RewardItemDefinition item) {
+        if (item.displayName() != null) {
+            return item.displayName();
+        }
+        return item.material().name().toLowerCase(Locale.ROOT).replace('_', ' ');
     }
 
     private void fill(Inventory inventory, HexChestsConfig.GuiItem item, Map<String, String> placeholders) {
@@ -360,9 +534,19 @@ public final class ChestService {
         values.put("chest_name", chest == null ? "" : chest.displayName());
         values.put("key", chest == null ? "" : chest.requiredKey());
         values.put("reward", reward == null ? "" : reward.id());
-        values.put("reward_name", reward == null ? "" : reward.displayName());
+        values.put("reward_name", reward == null ? "" : rewardLabel(reward));
         values.put("amount", reward == null ? "" : Integer.toString(reward.amount()));
         return values;
+    }
+
+    private String rewardLabel(HexChestsConfig.RewardDefinition reward) {
+        if (reward.displayName() != null) {
+            return reward.displayName();
+        }
+        if (reward.customItemId() != null) {
+            return reward.customItemId();
+        }
+        return reward.id();
     }
 
     private void hideTooltip(ItemMeta meta) {
