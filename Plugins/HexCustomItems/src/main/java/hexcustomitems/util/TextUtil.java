@@ -31,7 +31,7 @@ public final class TextUtil {
 
     /** Parst eine MiniMessage-Zeile ohne Platzhalter. */
     public static Component parse(String text) {
-        return MINI.deserialize(text == null ? "" : text);
+        return parse(text, Map.of(), null);
     }
 
     /** Parst eine MiniMessage-Zeile mit &lt;key&gt;-Platzhaltern aus der Map (unparsed = sicher für Namen/Zahlen). */
@@ -56,7 +56,11 @@ public final class TextUtil {
         if (text == null) {
             return Component.empty();
         }
-        return MINI.deserialize(text, resolver == null ? TagResolver.empty() : resolver);
+        TagResolver safeResolver = resolver == null ? TagResolver.empty() : resolver;
+        if (LEGACY_COLOR.matcher(text).matches()) {
+            return MINI.deserialize(legacyToMini(text), safeResolver);
+        }
+        return MINI.deserialize(text, safeResolver);
     }
 
     /** Item-Anzeigename: geparst und ohne das Standard-Kursiv der Vanilla-Items. */
@@ -97,5 +101,50 @@ public final class TextUtil {
             result = result.replace("<" + entry.getKey() + ">", entry.getValue());
         }
         return result;
+    }
+
+    private static String legacyToMini(String text) {
+        StringBuilder out = new StringBuilder(text.length() + 32);
+        for (int i = 0; i < text.length(); i++) {
+            char current = text.charAt(i);
+            if (current == '&' && i + 1 < text.length()) {
+                String tag = legacyTag(text.charAt(++i));
+                if (tag != null) {
+                    out.append(tag);
+                    continue;
+                }
+                out.append('&').append(text.charAt(i));
+                continue;
+            }
+            out.append(current);
+        }
+        return out.toString();
+    }
+
+    private static String legacyTag(char code) {
+        return switch (Character.toLowerCase(code)) {
+            case '0' -> "<black>";
+            case '1' -> "<dark_blue>";
+            case '2' -> "<dark_green>";
+            case '3' -> "<dark_aqua>";
+            case '4' -> "<dark_red>";
+            case '5' -> "<dark_purple>";
+            case '6' -> "<gold>";
+            case '7' -> "<gray>";
+            case '8' -> "<dark_gray>";
+            case '9' -> "<blue>";
+            case 'a' -> "<green>";
+            case 'b' -> "<aqua>";
+            case 'c' -> "<red>";
+            case 'd' -> "<light_purple>";
+            case 'e' -> "<yellow>";
+            case 'f' -> "<white>";
+            case 'l' -> "<bold>";
+            case 'm' -> "<strikethrough>";
+            case 'n' -> "<underlined>";
+            case 'o' -> "<italic>";
+            case 'r' -> "<reset>";
+            default -> null;
+        };
     }
 }

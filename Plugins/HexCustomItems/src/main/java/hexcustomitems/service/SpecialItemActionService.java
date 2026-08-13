@@ -2,6 +2,7 @@ package hexcustomitems.service;
 
 import hexcustomitems.model.CustomItemDefinition;
 import hexcustomitems.model.SpecialAction;
+import hexcustomitems.util.TextUtil;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -10,13 +11,14 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
 import org.bukkit.Registry;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
+import org.bukkit.entity.AbstractArrow;
+import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.FishHook;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Snowball;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.block.BlockDropItemEvent;
@@ -48,9 +50,15 @@ public final class SpecialItemActionService {
     private final CombatIntegrationService combatIntegration;
     private final MessageService messages;
     private final NamespacedKey projectileKey;
+    private final NamespacedKey projectileWebRadiusKey;
+    private final NamespacedKey projectileWebLayersKey;
+    private final NamespacedKey projectilePullStrengthKey;
+    private final NamespacedKey projectileSlowTicksKey;
+    private final NamespacedKey projectileSlowAmplifierKey;
     private final Random random = new Random();
     private final Map<UUID, Long> miningLuckUntil = new HashMap<>();
     private final Map<UUID, Long> fallProtectionUntil = new HashMap<>();
+    private final Map<UUID, Integer> goldenHearts = new HashMap<>();
 
     public SpecialItemActionService(
             JavaPlugin plugin,
@@ -65,6 +73,11 @@ public final class SpecialItemActionService {
         this.combatIntegration = combatIntegration;
         this.messages = messages;
         this.projectileKey = new NamespacedKey(plugin, "special_projectile");
+        this.projectileWebRadiusKey = new NamespacedKey(plugin, "special_projectile_web_radius");
+        this.projectileWebLayersKey = new NamespacedKey(plugin, "special_projectile_web_layers");
+        this.projectilePullStrengthKey = new NamespacedKey(plugin, "special_projectile_pull_strength");
+        this.projectileSlowTicksKey = new NamespacedKey(plugin, "special_projectile_slow_ticks");
+        this.projectileSlowAmplifierKey = new NamespacedKey(plugin, "special_projectile_slow_amplifier");
     }
 
     public boolean execute(Player player, EquipmentSlot hand, CustomItemDefinition definition, SpecialAction action) {
@@ -133,6 +146,16 @@ public final class SpecialItemActionService {
         }
     }
 
+    public void handleProjectileDamage(EntityDamageByEntityEvent event) {
+        if (!(event.getDamager() instanceof Projectile projectile)) {
+            return;
+        }
+        String kind = projectile.getPersistentDataContainer().get(projectileKey, PersistentDataType.STRING);
+        if (PROJECTILE_HOOK.equals(kind)) {
+            event.setCancelled(true);
+        }
+    }
+
     private boolean redHeart(Player player, SpecialAction action) {
         int max = integer(action, "max", 5);
         if (!playerDataService.addRedHeart(player, max)) {
@@ -143,24 +166,38 @@ public final class SpecialItemActionService {
     }
 
     private boolean goldenHeart(Player player, SpecialAction action) {
-        int maxHearts = integer(action, "max", 10);
-        int addHearts = integer(action, "hearts", 1);
-        int duration = integer(action, "duration-seconds", 10);
-        double maxAbsorption = maxHearts * 2.0D;
-        double current = player.getAbsorptionAmount();
-        if (current >= maxAbsorption) {
+        int maxHearts = Math.max(1, integer(action, "max", 10));
+        int addHearts = Math.max(1, integer(action, "hearts", 1));
+        int duration = Math.max(1, integer(action, "duration-seconds", 10));
+        UUID playerId = player.getUniqueId();
+        int currentHearts = goldenHearts.getOrDefault(playerId, 0);
+        if (currentHearts >= maxHearts) {
             messages.sendLimitReached(player);
             return false;
         }
-        double add = Math.min(addHearts * 2.0D, maxAbsorption - current);
-        player.setAbsorptionAmount(current + add);
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            if (!player.isOnline()) {
-                return;
-            }
-            player.setAbsorptionAmount(Math.max(0.0D, player.getAbsorptionAmount() - add));
-        }, duration * 20L);
+        int grantedHearts = Math.min(addHearts, maxHearts - currentHearts);
+        double grantedAbsorption = grantedHearts * 2.0D;
+        goldenHearts.put(playerId, currentHearts + grantedHearts);
+        player.setAbsorptionAmount(player.getAbsorptionAmount() + grantedAbsorption);
+        Bukkit.getScheduler().runTaskLater(plugin,
+                () -> expireGoldenHearts(playerId, grantedHearts, grantedAbsorption),
+                duration * 20L);
         return true;
+    }
+
+    private void expireGoldenHearts(UUID playerId, int hearts, double absorption) {
+        int currentHearts = goldenHearts.getOrDefault(playerId, 0);
+        int remainingHearts = Math.max(0, currentHearts - hearts);
+        if (remainingHearts == 0) {
+            goldenHearts.remove(playerId);
+        } else {
+            goldenHearts.put(playerId, remainingHearts);
+        }
+
+        Player player = Bukkit.getPlayer(playerId);
+        if (player != null && player.isOnline()) {
+            player.setAbsorptionAmount(Math.max(0.0D, player.getAbsorptionAmount() - absorption));
+        }
     }
 
     private boolean darkness(Player player, SpecialAction action) {
@@ -181,6 +218,8 @@ public final class SpecialItemActionService {
         Snowball snowball = player.launchProjectile(Snowball.class);
         snowball.setVelocity(player.getLocation().getDirection().normalize().multiply(decimal(action, "velocity", 1.4D)));
         snowball.getPersistentDataContainer().set(projectileKey, PersistentDataType.STRING, PROJECTILE_SPIDER);
+        snowball.getPersistentDataContainer().set(projectileWebRadiusKey, PersistentDataType.INTEGER, integer(action, "web-radius", 2));
+        snowball.getPersistentDataContainer().set(projectileWebLayersKey, PersistentDataType.INTEGER, integer(action, "web-layers", 2));
         player.getWorld().playSound(player.getLocation(), "minecraft:entity.snowball.throw", 1.0F, 1.0F);
         Bukkit.getScheduler().runTaskLater(plugin,
                 () -> player.getWorld().playSound(player.getLocation(), "minecraft:block.cobweb.break", 0.8F, 1.0F),
@@ -196,10 +235,18 @@ public final class SpecialItemActionService {
     }
 
     private boolean butcherHook(Player player, SpecialAction action) {
-        FishHook hook = player.launchProjectile(FishHook.class);
-        hook.setVelocity(player.getLocation().getDirection().normalize().multiply(decimal(action, "velocity", 2.2D)));
+        Arrow hook = player.launchProjectile(Arrow.class);
+        hook.setVelocity(player.getEyeLocation().getDirection().normalize().multiply(decimal(action, "velocity", 3.2D)));
+        hook.setDamage(0.0D);
+        hook.setCritical(false);
+        hook.setPickupStatus(AbstractArrow.PickupStatus.DISALLOWED);
         hook.getPersistentDataContainer().set(projectileKey, PersistentDataType.STRING, PROJECTILE_HOOK);
-        player.getWorld().playSound(player.getLocation(), "minecraft:block.chain.place", 1.0F, 1.0F);
+        hook.getPersistentDataContainer().set(projectilePullStrengthKey, PersistentDataType.DOUBLE, decimal(action, "pull-strength", 2.7D));
+        hook.getPersistentDataContainer().set(projectileSlowTicksKey, PersistentDataType.INTEGER, integer(action, "slow-duration-seconds", 3) * 20);
+        hook.getPersistentDataContainer().set(projectileSlowAmplifierKey, PersistentDataType.INTEGER, integer(action, "slow-amplifier", 3));
+        player.getWorld().playSound(player.getLocation(), "minecraft:entity.arrow.shoot", 1.0F, 0.85F);
+        player.getWorld().playSound(player.getLocation(), "minecraft:entity.fishing_bobber.throw", 1.0F, 0.7F);
+        player.getWorld().playSound(player.getLocation(), "minecraft:block.chain.place", 1.0F, 1.15F);
         return true;
     }
 
@@ -220,7 +267,7 @@ public final class SpecialItemActionService {
         }
         play(player, string(action, "sound", "minecraft:entity.wither.spawn"), 1.0F, 1.0F);
         play(target, string(action, "sound", "minecraft:entity.wither.spawn"), 1.0F, 1.0F);
-        target.sendMessage(Component.text("§cZostałeś oznaczony przez §f" + player.getName() + "§c."));
+        target.sendActionBar(TextUtil.parse("&cZostales oznaczony przez &f" + player.getName() + "&c."));
         int taskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
             private int ticks;
 
@@ -241,12 +288,22 @@ public final class SpecialItemActionService {
     }
 
     private boolean kineticCharge(Player player, SpecialAction action) {
-        double velocity = decimal(action, "velocity", 1.7D);
+        double horizontalVelocity = decimal(action, "horizontal-velocity", decimal(action, "velocity", 3.4D));
+        double baseUpwardVelocity = decimal(action, "base-upward-velocity", 0.35D);
+        double upwardLookScale = decimal(action, "upward-look-scale", 0.35D);
+        double maxUpwardVelocity = decimal(action, "max-upward-velocity", 0.75D);
         Vector direction = player.getLocation().getDirection().normalize();
-        player.setVelocity(direction.multiply(velocity).setY(Math.max(0.25D, direction.getY() * velocity + 0.2D)));
+        Vector horizontal = new Vector(direction.getX(), 0.0D, direction.getZ());
+        if (horizontal.lengthSquared() <= 0.0001D) {
+            Location facing = player.getLocation();
+            facing.setPitch(0.0F);
+            horizontal = facing.getDirection();
+        }
+        double upwardVelocity = Math.min(maxUpwardVelocity, baseUpwardVelocity + Math.max(0.0D, direction.getY()) * upwardLookScale);
+        player.setVelocity(horizontal.normalize().multiply(horizontalVelocity).setY(Math.max(0.2D, upwardVelocity)));
         int duration = integer(action, "speed-duration-seconds", 5);
         player.addPotionEffect(new PotionEffect(effect("speed"), duration * 20, 1, true, true, true));
-        fallProtectionUntil.put(player.getUniqueId(), System.currentTimeMillis() + 6000L);
+        fallProtectionUntil.put(player.getUniqueId(), System.currentTimeMillis() + 10000L);
         return true;
     }
 
@@ -259,11 +316,21 @@ public final class SpecialItemActionService {
     private void handleSpiderImpact(Projectile projectile, ProjectileHitEvent event) {
         Location center = impactLocation(projectile, event);
         List<Block> changed = new ArrayList<>();
-        for (BlockFace face : List.of(BlockFace.SELF, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST, BlockFace.WEST)) {
-            Block block = center.getBlock().getRelative(face);
-            if (block.getType().isAir()) {
-                block.setType(Material.COBWEB, false);
-                changed.add(block);
+        int radius = Math.max(1, projectileInteger(projectile, projectileWebRadiusKey, 2));
+        int layers = Math.max(1, projectileInteger(projectile, projectileWebLayersKey, 2));
+        for (int y = 0; y < layers; y++) {
+            int layerRadius = Math.max(0, radius - y);
+            for (int x = -layerRadius; x <= layerRadius; x++) {
+                for (int z = -layerRadius; z <= layerRadius; z++) {
+                    if (Math.abs(x) + Math.abs(z) > layerRadius) {
+                        continue;
+                    }
+                    Block block = center.getBlock().getRelative(x, y, z);
+                    if (block.getType().isAir()) {
+                        block.setType(Material.COBWEB, false);
+                        changed.add(block);
+                    }
+                }
             }
         }
         center.getWorld().playSound(center, "minecraft:block.cobweb.break", 1.0F, 0.8F);
@@ -287,11 +354,16 @@ public final class SpecialItemActionService {
         }
         Vector pull = shooter.getLocation().toVector().subtract(target.getLocation().toVector());
         if (pull.lengthSquared() > 0.0D) {
-            target.setVelocity(pull.normalize().multiply(1.8D).setY(0.35D));
+            double strength = projectileDouble(projectile, projectilePullStrengthKey, 2.7D);
+            target.setVelocity(pull.normalize().multiply(strength).setY(0.42D));
         }
-        target.addPotionEffect(new PotionEffect(effect("slowness"), 20, 1, true, true, true));
-        play(shooter, "minecraft:item.totem.use", 1.0F, 1.3F);
-        play(target, "minecraft:item.totem.use", 1.0F, 1.3F);
+        int slowTicks = projectileInteger(projectile, projectileSlowTicksKey, 60);
+        int slowAmplifier = projectileInteger(projectile, projectileSlowAmplifierKey, 3);
+        target.addPotionEffect(new PotionEffect(effect("slowness"), slowTicks, slowAmplifier, true, true, true));
+        play(shooter, "minecraft:block.chain.break", 1.0F, 1.0F);
+        play(target, "minecraft:block.chain.break", 1.0F, 1.0F);
+        play(shooter, "minecraft:entity.fishing_bobber.retrieve", 1.0F, 0.8F);
+        play(target, "minecraft:entity.fishing_bobber.retrieve", 1.0F, 0.8F);
     }
 
     private Location impactLocation(Projectile projectile, ProjectileHitEvent event) {
@@ -361,6 +433,16 @@ public final class SpecialItemActionService {
         } catch (NumberFormatException ex) {
             return fallback;
         }
+    }
+
+    private int projectileInteger(Projectile projectile, NamespacedKey key, int fallback) {
+        Integer value = projectile.getPersistentDataContainer().get(key, PersistentDataType.INTEGER);
+        return value == null ? fallback : value;
+    }
+
+    private double projectileDouble(Projectile projectile, NamespacedKey key, double fallback) {
+        Double value = projectile.getPersistentDataContainer().get(key, PersistentDataType.DOUBLE);
+        return value == null ? fallback : value;
     }
 
     private boolean bool(SpecialAction action, String key, boolean fallback) {

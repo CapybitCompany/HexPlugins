@@ -19,7 +19,7 @@ public final class CustomItemsInteractListener implements Listener {
         this.useService = Objects.requireNonNull(useService, "useService");
     }
 
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
     public void onInteract(PlayerInteractEvent event) {
         if (event.getHand() != EquipmentSlot.HAND) {
             return;

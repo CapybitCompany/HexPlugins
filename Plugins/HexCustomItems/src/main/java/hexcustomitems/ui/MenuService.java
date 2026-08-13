@@ -141,9 +141,9 @@ public final class MenuService {
             meta.displayName(Component.empty());
             meta.addItemFlags(ItemFlag.values());
             try {
-                meta.getClass().getMethod("setHideTooltip", boolean.class).invoke(meta, true);
-            } catch (ReflectiveOperationException ignored) {
-                // Paper-only quality detail; safe to ignore on older test APIs.
+                meta.setHideTooltip(true);
+            } catch (NoSuchMethodError | UnsupportedOperationException ignored) {
+                // Best-effort on older Bukkit-compatible runtimes.
             }
             filler.setItemMeta(meta);
         }

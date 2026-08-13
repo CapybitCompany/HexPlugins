@@ -188,7 +188,7 @@ items:
     material: RED_DYE
     name: "&fCzerwone Serce"
     lore:
-      - "&7Użyj &6PPM&7, aby dostać dodatkowe serce &c(max 5)"
+      - "&7Użyj &6PPM&7, aby dostać trwałe dodatkowe serce &c(max 5)"
     can-drop: true
     can-use-in-anvil: false
     adminpanel-stack: 1
@@ -204,7 +204,7 @@ items:
     material: YELLOW_DYE
     name: "&fZłote Serce"
     lore:
-      - "&7Użyj &6PPM&7, aby dostać tymczasową tarczę &c(max 10)"
+      - "&7Użyj &6PPM&7, aby dostać tymczasowe złote serce &c(max 10)"
     can-drop: true
     can-use-in-anvil: false
     adminpanel-stack: 1
@@ -305,6 +305,8 @@ items:
     actions:
       - type: SPIDER_GRENADE
         velocity: 1.4
+        web-radius: 2
+        web-layers: 2
         offensive: true
 
   phoenix_heart:
@@ -330,16 +332,20 @@ items:
     ID: "hex:butcher_hook"
     model-data: 10012
     material: LEAD
-    name: "&fHaczyk Rzeźnika"
+    name: "&fHak Rzemieślnika"
     lore:
-      - "&7Trafiony gracz zostaje przyciągnięty do rzucającego."
+      - "&7Wciśnij &6PPM&7, aby wystrzelić hak."
+      - "&7Trafiony gracz zostaje gwałtownie przyciągnięty."
     can-drop: true
     can-use-in-anvil: false
     cooldown-seconds: 15
     adminpanel-stack: 16
     actions:
       - type: BUTCHER_HOOK
-        velocity: 2.2
+        velocity: 3.2
+        pull-strength: 2.7
+        slow-duration-seconds: 3
+        slow-amplifier: 3
         offensive: true
 
   mining_luck:
@@ -386,7 +392,7 @@ items:
     material: RABBIT_FOOT
     name: "&fŁadunek Kinetyczny"
     lore:
-      - "&7Zwiększa prędkość ruchu &c(5 sekund) i wyrzuca Cię do przodu"
+      - "&7Zwiększa prędkość ruchu &c(5 sekund)&7 i wyrzuca Cię do przodu"
     can-drop: true
     can-use-in-anvil: false
     glint: true
@@ -399,7 +405,11 @@ items:
         sound: "minecraft:entity.wind_charge.wind_burst"
         delay-ticks: 10
       - type: KINETIC_CHARGE
-        velocity: 1.7
+        velocity: 3.4
+        horizontal-velocity: 3.4
+        base-upward-velocity: 0.35
+        upward-look-scale: 0.35
+        max-upward-velocity: 0.75
         speed-duration-seconds: 5
 
   invisibility_cookie:

@@ -11,6 +11,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.PrepareAnvilEvent;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
@@ -66,6 +67,14 @@ public final class CustomItemsAnvilListener implements Listener {
         }
         CustomItemDefinition secondDef = registryService.findByStack(inventory.getSecondItem());
         if (isEfficiencyBook(secondDef)) {
+            ItemStack first = inventory.getFirstItem();
+            if (canApplyEfficiency(first) && event.getWhoClicked() instanceof Player player) {
+                event.setCancelled(true);
+                ItemStack efficiencyResult = efficiencyResult(first);
+                takeOne(inventory, 0);
+                takeOne(inventory, 1);
+                giveOrDrop(player, efficiencyResult);
+            }
             return;
         }
         CustomItemDefinition firstDef = registryService.findByStack(inventory.getFirstItem());
@@ -92,9 +101,40 @@ public final class CustomItemsAnvilListener implements Listener {
         return switch (stack.getType()) {
             case WOODEN_PICKAXE, STONE_PICKAXE, IRON_PICKAXE, GOLDEN_PICKAXE, DIAMOND_PICKAXE, NETHERITE_PICKAXE,
                  WOODEN_AXE, STONE_AXE, IRON_AXE, GOLDEN_AXE, DIAMOND_AXE, NETHERITE_AXE,
-                 WOODEN_SHOVEL, STONE_SHOVEL, IRON_SHOVEL, GOLDEN_SHOVEL, DIAMOND_SHOVEL, NETHERITE_SHOVEL -> true;
+                 WOODEN_SHOVEL, STONE_SHOVEL, IRON_SHOVEL, GOLDEN_SHOVEL, DIAMOND_SHOVEL, NETHERITE_SHOVEL,
+                 WOODEN_HOE, STONE_HOE, IRON_HOE, GOLDEN_HOE, DIAMOND_HOE, NETHERITE_HOE -> true;
             default -> false;
         };
+    }
+
+    private ItemStack efficiencyResult(ItemStack first) {
+        ItemStack result = first.clone();
+        ItemMeta meta = result.getItemMeta();
+        if (meta != null) {
+            meta.addEnchant(efficiency(), 6, true);
+            result.setItemMeta(meta);
+        }
+        return result;
+    }
+
+    private void takeOne(AnvilInventory inventory, int slot) {
+        ItemStack stack = inventory.getItem(slot);
+        if (stack == null || stack.getType() == Material.AIR) {
+            return;
+        }
+        if (stack.getAmount() <= 1) {
+            inventory.setItem(slot, null);
+            return;
+        }
+        stack.setAmount(stack.getAmount() - 1);
+        inventory.setItem(slot, stack);
+    }
+
+    private void giveOrDrop(Player player, ItemStack item) {
+        var overflow = player.getInventory().addItem(item);
+        for (ItemStack leftover : overflow.values()) {
+            player.getWorld().dropItemNaturally(player.getLocation(), leftover);
+        }
     }
 
     private Enchantment efficiency() {

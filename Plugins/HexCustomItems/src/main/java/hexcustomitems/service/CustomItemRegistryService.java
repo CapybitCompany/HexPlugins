@@ -135,6 +135,7 @@ public final class CustomItemRegistryService {
         if (definition.modelData() > 0) {
             meta.setCustomModelData(definition.modelData());
         }
+        applySpecialBookMeta(meta, definition);
         if (definition.glint()) {
             applyGlint(meta);
         }
@@ -147,6 +148,16 @@ public final class CustomItemRegistryService {
         }
 
         item.setItemMeta(meta);
+    }
+
+    private void applySpecialBookMeta(ItemMeta meta, CustomItemDefinition definition) {
+        if (!"hex:efficiency_6_book".equals(definition.id()) || !(meta instanceof EnchantmentStorageMeta storage)) {
+            return;
+        }
+        Enchantment enchantment = Registry.ENCHANTMENT.get(NamespacedKey.minecraft("efficiency"));
+        if (enchantment != null) {
+            storage.addStoredEnchant(enchantment, 6, true);
+        }
     }
 
     private void applyGlint(ItemMeta meta) {

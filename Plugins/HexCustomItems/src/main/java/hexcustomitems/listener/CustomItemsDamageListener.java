@@ -3,6 +3,7 @@ package hexcustomitems.listener;
 import hexcustomitems.service.SpecialItemActionService;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 
 public final class CustomItemsDamageListener implements Listener {
@@ -16,5 +17,10 @@ public final class CustomItemsDamageListener implements Listener {
     @EventHandler
     public void onDamage(EntityDamageEvent event) {
         specialActions.handleFallDamage(event);
+    }
+
+    @EventHandler
+    public void onProjectileDamage(EntityDamageByEntityEvent event) {
+        specialActions.handleProjectileDamage(event);
     }
 }
