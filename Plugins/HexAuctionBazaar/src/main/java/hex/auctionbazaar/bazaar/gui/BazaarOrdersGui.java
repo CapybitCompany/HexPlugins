@@ -8,6 +8,7 @@ import hex.auctionbazaar.bazaar.service.BazaarService;
 import hex.auctionbazaar.bridge.EconomyBridge;
 import hex.auctionbazaar.config.BazaarConfig;
 import hex.auctionbazaar.gui.GuiFrame;
+import hex.auctionbazaar.gui.GuiHeads;
 import hex.auctionbazaar.gui.GuiHolder;
 import hex.auctionbazaar.util.LegacyFormat;
 import hex.auctionbazaar.util.MessageFactory;
@@ -130,15 +131,14 @@ public final class BazaarOrdersGui {
                     List.of(messages.raw("bazaar.gui.orders-empty-lore", null))));
         }
 
-        ItemStack back = GuiFrame.button(Material.BARRIER, messages.raw("bazaar.gui.back", null));
+        ItemStack back = GuiHeads.back(messages.raw("bazaar.gui.back", null));
         inv.setItem(SLOT_BACK, back);
         holder.setSlotAction(SLOT_BACK,
                 ctx -> BazaarMainGui.open(plugin, ctx.player(), cfg, service, economy, messages));
 
         // Poprzednia strona (tylko gdy istnieje).
         if (page > 0) {
-            inv.setItem(SLOT_PREV, GuiFrame.button(Material.ARROW,
-                    messages.raw("bazaar.gui.prev-page", null)));
+            inv.setItem(SLOT_PREV, GuiHeads.previousPage(messages.raw("bazaar.gui.prev-page", null)));
             holder.setSlotAction(SLOT_PREV,
                     ctx -> open(plugin, ctx.player(), cfg, service, economy, messages, page - 1));
         }
@@ -152,8 +152,7 @@ public final class BazaarOrdersGui {
                 ctx -> open(plugin, ctx.player(), cfg, service, economy, messages, page));
         // Następna strona (tylko gdy istnieje).
         if (page < totalPages - 1) {
-            inv.setItem(SLOT_NEXT, GuiFrame.button(Material.ARROW,
-                    messages.raw("bazaar.gui.next-page", null)));
+            inv.setItem(SLOT_NEXT, GuiHeads.nextPage(messages.raw("bazaar.gui.next-page", null)));
             holder.setSlotAction(SLOT_NEXT,
                     ctx -> open(plugin, ctx.player(), cfg, service, economy, messages, page + 1));
         }

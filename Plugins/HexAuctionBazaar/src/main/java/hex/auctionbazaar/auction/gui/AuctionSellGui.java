@@ -5,6 +5,7 @@ import hex.auctionbazaar.auction.service.AuctionService;
 import hex.auctionbazaar.bridge.EconomyBridge;
 import hex.auctionbazaar.config.AuctionConfig;
 import hex.auctionbazaar.gui.GuiFrame;
+import hex.auctionbazaar.gui.GuiHeads;
 import hex.auctionbazaar.gui.GuiHolder;
 import hex.auctionbazaar.gui.SignPrompt;
 import hex.auctionbazaar.util.LegacyFormat;
@@ -75,8 +76,7 @@ public final class AuctionSellGui {
         holder.setSlotAction(SLOT_CUSTOM_PRICE, ctx -> promptCustomPrice(plugin, ctx.player(),
                 cfgSup, service, economy, messages));
 
-        ItemStack back = GuiFrame.button(Material.BARRIER,
-                messages.raw("auction.gui.back", null));
+        ItemStack back = GuiHeads.back(messages.raw("auction.gui.back", null));
         inv.setItem(SLOT_BACK, back);
         holder.setSlotAction(SLOT_BACK, ctx -> AuctionBrowseGui.open(plugin, ctx.player(),
                 cfgSup, service, economy, messages));
@@ -188,8 +188,7 @@ public final class AuctionSellGui {
         holder.setSlotAction(SLOT_CHANGE_PRICE, ctx -> promptCustomPrice(plugin, ctx.player(),
                 cfgSup, service, economy, messages));
 
-        ItemStack back = GuiFrame.button(Material.BARRIER,
-                messages.raw("auction.gui.back", null));
+        ItemStack back = GuiHeads.back(messages.raw("auction.gui.back", null));
         inv.setItem(SLOT_BACK, back);
         holder.setSlotAction(SLOT_BACK, ctx -> AuctionBrowseGui.open(plugin, ctx.player(),
                 cfgSup, service, economy, messages));
@@ -231,6 +230,7 @@ public final class AuctionSellGui {
                         case BUSY -> messages.send(player, "auction.sell-busy");
                         case FEATURE_DISABLED -> { messages.send(player, "common.feature-disabled"); player.closeInventory(); }
                         case NO_PERMISSION -> { messages.send(player, "common.no-permission"); player.closeInventory(); }
+                        case ITEM_NOT_ALLOWED -> { messages.send(player, "auction.item-not-allowed"); player.closeInventory(); }
                         case COMPENSATION_FAILED -> { messages.send(player, "auction.compensation-failed"); player.closeInventory(); }
                         case NO_ITEM -> { messages.send(player, "auction.sell-flow.item-mismatch"); player.closeInventory(); }
                         case INVALID_PRICE -> {

@@ -89,6 +89,7 @@ public final class AuctionConfirmGui {
                     case ECONOMY_ERROR -> messages.send(ctx.player(), "common.economy-error");
                     case FEATURE_DISABLED -> messages.send(ctx.player(), "common.feature-disabled");
                     case NO_PERMISSION -> messages.send(ctx.player(), "common.no-permission");
+                    case ITEM_NOT_ALLOWED -> messages.send(ctx.player(), "auction.item-not-allowed");
                     case NOT_ACTIVE -> messages.send(ctx.player(), "auction.listing-not-active");
                     case DB_FAILED -> messages.send(ctx.player(), "common.db-error");
                 }

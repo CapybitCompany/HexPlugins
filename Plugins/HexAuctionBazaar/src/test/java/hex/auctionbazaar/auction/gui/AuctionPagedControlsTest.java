@@ -62,7 +62,7 @@ class AuctionPagedControlsTest {
     }
 
     @Test
-    void backButtonIsBarrierAndRunsBackAction() {
+    void backButtonIsHeadAndRunsBackAction() {
         Inventory inv = (Inventory) inv();
         GuiHolder holder = (GuiHolder) inv.getHolder();
         AtomicBoolean back = new AtomicBoolean(false);
@@ -70,7 +70,7 @@ class AuctionPagedControlsTest {
                 "auction.gui.claims-page-info", p -> {}, () -> back.set(true));
 
         int backSlot = config.auction().pagedSlotBack();
-        assertEquals(Material.BARRIER, inv.getItem(backSlot).getType(), "Wróć to BARRIER");
+        assertEquals(Material.PLAYER_HEAD, inv.getItem(backSlot).getType());
         Player player = server.addPlayer("Nav");
         holder.actionAt(backSlot).run(new GuiHolder.ClickContext(holder, player, backSlot, false, false));
         assertTrue(back.get(), "kliknięcie Wróć wykonuje akcję powrotu");
@@ -82,8 +82,8 @@ class AuctionPagedControlsTest {
         GuiHolder holder = (GuiHolder) inv.getHolder();
         AuctionPagedControls.render(inv, holder, config.auction(), messages, 0, 3, 91,
                 "auction.gui.claims-page-info", p -> {}, () -> {});
-        assertEquals(Material.GRAY_DYE, inv.getItem(config.auction().pagedSlotPrevPage()).getType());
-        assertEquals(Material.ARROW, inv.getItem(config.auction().pagedSlotNextPage()).getType());
+        assertEquals(Material.PLAYER_HEAD, inv.getItem(config.auction().pagedSlotPrevPage()).getType());
+        assertEquals(Material.PLAYER_HEAD, inv.getItem(config.auction().pagedSlotNextPage()).getType());
         assertNull(holder.actionAt(config.auction().pagedSlotPrevPage()), "brak akcji prev na 1. stronie");
         assertNotNull(holder.actionAt(config.auction().pagedSlotNextPage()));
     }
@@ -95,8 +95,8 @@ class AuctionPagedControlsTest {
         AtomicInteger target = new AtomicInteger(-1);
         AuctionPagedControls.render(inv, holder, config.auction(), messages, 1, 3, 91,
                 "auction.gui.claims-page-info", target::set, () -> {});
-        assertEquals(Material.ARROW, inv.getItem(config.auction().pagedSlotPrevPage()).getType());
-        assertEquals(Material.ARROW, inv.getItem(config.auction().pagedSlotNextPage()).getType());
+        assertEquals(Material.PLAYER_HEAD, inv.getItem(config.auction().pagedSlotPrevPage()).getType());
+        assertEquals(Material.PLAYER_HEAD, inv.getItem(config.auction().pagedSlotNextPage()).getType());
         Player player = server.addPlayer("Nav");
         holder.actionAt(config.auction().pagedSlotNextPage())
                 .run(new GuiHolder.ClickContext(holder, player,
@@ -110,8 +110,8 @@ class AuctionPagedControlsTest {
         GuiHolder holder = (GuiHolder) inv.getHolder();
         AuctionPagedControls.render(inv, holder, config.auction(), messages, 2, 3, 91,
                 "auction.gui.claims-page-info", p -> {}, () -> {});
-        assertEquals(Material.ARROW, inv.getItem(config.auction().pagedSlotPrevPage()).getType());
-        assertEquals(Material.GRAY_DYE, inv.getItem(config.auction().pagedSlotNextPage()).getType());
+        assertEquals(Material.PLAYER_HEAD, inv.getItem(config.auction().pagedSlotPrevPage()).getType());
+        assertEquals(Material.PLAYER_HEAD, inv.getItem(config.auction().pagedSlotNextPage()).getType());
         assertNull(holder.actionAt(config.auction().pagedSlotNextPage()), "brak akcji next na ostatniej");
     }
 }

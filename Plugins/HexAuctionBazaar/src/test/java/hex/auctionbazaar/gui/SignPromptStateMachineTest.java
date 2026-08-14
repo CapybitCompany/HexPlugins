@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -74,6 +75,20 @@ class SignPromptStateMachineTest {
 
         transport.runScheduled(1L);   // tick otwarcia edytora
         assertEquals(1, transport.openEditorCalls);
+    }
+
+    @Test
+    void activeSessionSignIsRecognizedForOpeningCompatibility() {
+        Location signLoc = new Location(player.getWorld(), 10, 80, 10);
+        transport.handleLocation = signLoc;
+        prompt.promptNumber(player, "cena", v -> {});
+
+        assertTrue(prompt.isActiveSessionSign(player.getUniqueId(), signLoc),
+                "aktywna tabliczka promptu gracza jest rozpoznana");
+        assertFalse(prompt.isActiveSessionSign(UUID.randomUUID(), signLoc),
+                "tabliczka innego gracza nie jest uznana za aktywną sesję");
+        assertFalse(prompt.isActiveSessionSign(player.getUniqueId(), new Location(player.getWorld(), 11, 80, 10)),
+                "inna lokalizacja nie jest tabliczką tej sesji");
     }
 
     @Test
@@ -306,6 +321,7 @@ class SignPromptStateMachineTest {
     private static final class FakeTransport implements SignPromptTransport {
         boolean prepareReturnsHandle = true;
         SignPromptTransport.OpenResult openResult = SignPromptTransport.OpenResult.OPENED;
+        Location handleLocation;
         final List<String> events = new ArrayList<>();
         final List<Scheduled> scheduled = new ArrayList<>();
         final List<Component> messages = new ArrayList<>();
@@ -323,7 +339,7 @@ class SignPromptStateMachineTest {
         public Optional<SignHandle> prepareSign(Player player, List<String> lines) {
             events.add("prepareSign");
             if (!prepareReturnsHandle) return Optional.empty();
-            handle = new FakeHandle();
+            handle = new FakeHandle(handleLocation);
             return Optional.of(handle);
         }
 
@@ -365,11 +381,16 @@ class SignPromptStateMachineTest {
     }
 
     private static final class FakeHandle implements SignPromptTransport.SignHandle {
+        private final Location location;
         int restoreCount = 0;
+
+        FakeHandle(Location location) {
+            this.location = location;
+        }
 
         @Override
         public Location location() {
-            return null;
+            return location;
         }
 
         @Override

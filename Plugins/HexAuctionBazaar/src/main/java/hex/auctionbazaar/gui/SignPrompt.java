@@ -2,6 +2,7 @@ package hex.auctionbazaar.gui;
 
 import hex.auctionbazaar.util.MessageFactory;
 import io.papermc.paper.event.player.AsyncChatEvent;
+import io.papermc.paper.event.player.PlayerOpenSignEvent;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -282,15 +283,21 @@ public final class SignPrompt implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = false)
     public void onSignChange(SignChangeEvent event) {
-        Session s = sessions.get(event.getPlayer().getUniqueId());
-        if (s == null || s.handle == null) return;
-        if (!event.getBlock().getLocation().equals(s.handle.location())) return;
+        if (!isActiveSessionSign(event.getPlayer().getUniqueId(), event.getBlock().getLocation())) return;
         event.setCancelled(true);
         List<String> submitted = new java.util.ArrayList<>(4);
         for (int i = 0; i < 4; i++) {
             submitted.add(event.getLine(i));
         }
         handleSignInput(event.getPlayer(), submitted);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
+    public void onSignOpen(PlayerOpenSignEvent event) {
+        if (event.getSign() == null) return;
+        if (isActiveSessionSign(event.getPlayer().getUniqueId(), event.getSign().getLocation())) {
+            event.setCancelled(false);
+        }
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
@@ -332,6 +339,12 @@ public final class SignPrompt implements Listener {
             }
         }
         return false;
+    }
+
+    boolean isActiveSessionSign(UUID uid, Location loc) {
+        if (uid == null || loc == null) return false;
+        Session s = sessions.get(uid);
+        return s != null && s.handle != null && loc.equals(s.handle.location());
     }
 
     /** Logout: przywróć blok, ale nie wołamy callbacku (gracz offline). */

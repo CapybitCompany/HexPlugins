@@ -52,7 +52,7 @@ class BuyCompensationTest {
     @Test
     void distinctBuyOutcomesDoNotCollapse() {
         // Wszystkie stany są rozłączne; nie ma jednego generycznego "OK".
-        assertEquals(13, BuyOutcome.values().length);
+        assertEquals(14, BuyOutcome.values().length);
         for (BuyOutcome o : BuyOutcome.values()) {
             assertFalse(o.name().equals("OK"), "nie ma zbiorczego OK: " + o);
         }

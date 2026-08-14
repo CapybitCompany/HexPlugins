@@ -2,6 +2,7 @@ package hex.auctionbazaar.auction.gui;
 
 import hex.auctionbazaar.config.AuctionConfig;
 import hex.auctionbazaar.gui.GuiFrame;
+import hex.auctionbazaar.gui.GuiHeads;
 import hex.auctionbazaar.gui.GuiHolder;
 import hex.auctionbazaar.util.MessageFactory;
 import org.bukkit.Material;
@@ -19,7 +20,7 @@ import static hex.auctionbazaar.util.MessageFactory.placeholders;
  * (zwalidowane, bez kolizji z obszarem przedmiotów 0..44).
  *
  * Zasady (punkt #7):
- *  - „Wróć” to zawsze BARRIER,
+ *  - „Wróć” to zawsze custom head,
  *  - „poprzednia/następna” aktywne tylko gdy strona istnieje,
  *  - informacja o stronie pokazuje bieżącą stronę, liczbę stron i liczbę wpisów.
  */
@@ -31,18 +32,15 @@ final class AuctionPagedControls {
     static void render(Inventory inv, GuiHolder holder, AuctionConfig cfg, MessageFactory messages,
                        int page, int totalPages, int total, String pageInfoKey,
                        IntConsumer openPage, Runnable back) {
-        // Wróć (BARRIER) do głównego Domu Aukcyjnego.
-        ItemStack backBtn = GuiFrame.button(Material.BARRIER,
-                messages.raw("auction.gui.back", null));
+        // Wróć do głównego Domu Aukcyjnego.
+        ItemStack backBtn = GuiHeads.back(messages.raw("auction.gui.back", null));
         inv.setItem(cfg.pagedSlotBack(), backBtn);
         holder.setSlotAction(cfg.pagedSlotBack(), ctx -> back.run());
 
         boolean hasPrev = page > 0;
         boolean hasNext = (page + 1) < totalPages;
-        ItemStack prev = GuiFrame.button(hasPrev ? Material.ARROW : Material.GRAY_DYE,
-                messages.raw("auction.gui.prev-page", null));
-        ItemStack next = GuiFrame.button(hasNext ? Material.ARROW : Material.GRAY_DYE,
-                messages.raw("auction.gui.next-page", null));
+        ItemStack prev = GuiHeads.previousPage(messages.raw("auction.gui.prev-page", null));
+        ItemStack next = GuiHeads.nextPage(messages.raw("auction.gui.next-page", null));
         inv.setItem(cfg.pagedSlotPrevPage(), prev);
         inv.setItem(cfg.pagedSlotNextPage(), next);
         if (hasPrev) {

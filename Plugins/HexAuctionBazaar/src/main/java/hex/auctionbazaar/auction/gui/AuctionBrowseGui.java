@@ -5,6 +5,7 @@ import hex.auctionbazaar.auction.service.AuctionService;
 import hex.auctionbazaar.bridge.EconomyBridge;
 import hex.auctionbazaar.config.AuctionConfig;
 import hex.auctionbazaar.gui.GuiFrame;
+import hex.auctionbazaar.gui.GuiHeads;
 import hex.auctionbazaar.gui.GuiHolder;
 import hex.auctionbazaar.util.ItemSerializer;
 import hex.auctionbazaar.util.LegacyFormat;
@@ -148,10 +149,8 @@ public final class AuctionBrowseGui {
         // Prev / Next
         boolean hasPrev = page > 0;
         boolean hasNext = (page + 1) < totalPages;
-        ItemStack prev = GuiFrame.button(hasPrev ? Material.ARROW : Material.GRAY_DYE,
-                messages.raw("auction.gui.prev-page", null));
-        ItemStack next = GuiFrame.button(hasNext ? Material.ARROW : Material.GRAY_DYE,
-                messages.raw("auction.gui.next-page", null));
+        ItemStack prev = GuiHeads.previousPage(messages.raw("auction.gui.prev-page", null));
+        ItemStack next = GuiHeads.nextPage(messages.raw("auction.gui.next-page", null));
         inv.setItem(cfg.slotPrevPage(), prev);
         inv.setItem(cfg.slotNextPage(), next);
         if (hasPrev) {

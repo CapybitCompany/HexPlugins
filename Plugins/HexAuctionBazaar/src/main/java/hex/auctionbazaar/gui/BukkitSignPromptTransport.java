@@ -38,6 +38,8 @@ import java.util.logging.Logger;
 public final class BukkitSignPromptTransport implements SignPromptTransport {
 
     private static final Material SIGN_MATERIAL = Material.OAK_SIGN;
+    private static final String MARKER_NAMESPACE = "hexauctionbazaar";
+    private static final String SESSION_KEY_NAME = "sign_prompt_session";
 
     private final Plugin plugin;
     private final Logger logger;
@@ -46,7 +48,7 @@ public final class BukkitSignPromptTransport implements SignPromptTransport {
     public BukkitSignPromptTransport(Plugin plugin) {
         this.plugin = Objects.requireNonNull(plugin, "plugin");
         this.logger = plugin.getLogger();
-        this.sessionKey = new NamespacedKey(plugin, "sign_prompt_session");
+        this.sessionKey = sessionKey();
     }
 
     @Override
@@ -178,15 +180,33 @@ public final class BukkitSignPromptTransport implements SignPromptTransport {
         return current == SIGN_MATERIAL;
     }
 
-    /** Odczyt markera sesji z PDC bloku (null gdy to nie tabliczka lub brak markera). Nigdy nie rzuca. */
-    private String readMarker(Block block) {
+    /**
+     * Publiczny marker kompatybilności dla pluginów ochrony regionów. Gdy blok ma
+     * {@code hexauctionbazaar:sign_prompt_session}, jest tymczasową tabliczką promptu ceny/ilości.
+     */
+    public static NamespacedKey sessionKey() {
+        return new NamespacedKey(MARKER_NAMESPACE, SESSION_KEY_NAME);
+    }
+
+    /** Czy blok jest tymczasową tabliczką promptu HexAuctionBazaar. Nigdy nie ładuje chunków i nie rzuca. */
+    public static boolean isPromptSign(Block block) {
+        return readPromptMarker(block) != null;
+    }
+
+    /** Odczyt publicznego markera promptu z PDC bloku, albo {@code null}, gdy to nie jest nasza tabliczka. */
+    public static String readPromptMarker(Block block) {
         try {
-            if (block.getState() instanceof Sign sign) {
-                return sign.getPersistentDataContainer().get(sessionKey, PersistentDataType.STRING);
+            if (block != null && block.getState() instanceof Sign sign) {
+                return sign.getPersistentDataContainer().get(sessionKey(), PersistentDataType.STRING);
             }
         } catch (Throwable ignored) {
         }
         return null;
+    }
+
+    /** Odczyt markera sesji z PDC bloku (null gdy to nie tabliczka lub brak markera). Nigdy nie rzuca. */
+    private String readMarker(Block block) {
+        return readPromptMarker(block);
     }
 
     /** Przywrócenie po częściowej awarii prepare (patrz {@link #shouldRestoreAfterPrepareFailure}). */

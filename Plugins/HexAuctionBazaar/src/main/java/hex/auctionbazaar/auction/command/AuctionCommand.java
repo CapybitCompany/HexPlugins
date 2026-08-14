@@ -183,6 +183,7 @@ public final class AuctionCommand implements CommandExecutor, TabCompleter {
                         case BUSY -> plugin.messages().send(p, "auction.sell-busy");
                         case FEATURE_DISABLED -> plugin.messages().send(p, "common.feature-disabled");
                         case NO_PERMISSION -> plugin.messages().send(p, "common.no-permission");
+                        case ITEM_NOT_ALLOWED -> plugin.messages().send(p, "auction.item-not-allowed");
                         case COMPENSATION_FAILED -> plugin.messages().send(p, "auction.compensation-failed");
                         // TAX_CHANGED nie wystąpi z komendy (brak wiązania procentu).
                         case TAX_CHANGED -> plugin.messages().send(p, "auction.economy-error");

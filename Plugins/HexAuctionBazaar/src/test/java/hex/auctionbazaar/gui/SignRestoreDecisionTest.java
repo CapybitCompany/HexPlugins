@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockbukkit.mockbukkit.MockBukkit;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -33,6 +34,12 @@ class SignRestoreDecisionTest {
         String session = "sess-123";
         assertTrue(BukkitSignPromptTransport.shouldRestore(Material.OAK_SIGN, session, session),
                 "nasza tabliczka tej sesji -> przywracamy");
+    }
+
+    @Test
+    void promptMarkerKeyIsStableForProtectionPlugins() {
+        assertEquals("hexauctionbazaar", BukkitSignPromptTransport.sessionKey().getNamespace());
+        assertEquals("sign_prompt_session", BukkitSignPromptTransport.sessionKey().getKey());
     }
 
     @Test

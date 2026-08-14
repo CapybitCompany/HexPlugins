@@ -10,6 +10,7 @@ import hex.auctionbazaar.auction.repository.AuctionListingRepository;
 import hex.auctionbazaar.bridge.EconomyBridge;
 import hex.auctionbazaar.bridge.HexCoreBridge;
 import hex.auctionbazaar.config.AuctionConfig;
+import hex.auctionbazaar.util.CustomItemTradePolicy;
 import hex.auctionbazaar.util.InventoryFit;
 import hex.auctionbazaar.util.ItemSerializer;
 import hex.auctionbazaar.util.ListingLimitResolver;
@@ -65,7 +66,8 @@ public final class AuctionService {
         /** Dom Aukcyjny wyłączony (auction.enabled:false) lub tryb konserwacji - egzekwowane serwerowo. */
         FEATURE_DISABLED,
         /** Brak uprawnień (auction.permissions.sell) - sprawdzane też serwerowo, nie tylko w komendzie/GUI. */
-        NO_PERMISSION
+        NO_PERMISSION,
+        ITEM_NOT_ALLOWED
     }
     /**
      * Wynik kupna. Rozróżnia: dostawę bezpośrednią, dostawę jako claim, zwrot środków
@@ -81,7 +83,8 @@ public final class AuctionService {
         /** Dom Aukcyjny wyłączony (auction.enabled:false) - egzekwowane serwerowo. */
         FEATURE_DISABLED,
         /** Brak uprawnień - sprawdzane też serwerowo. */
-        NO_PERMISSION
+        NO_PERMISSION,
+        ITEM_NOT_ALLOWED
     }
     public enum CancelOutcome {
         OK, NOT_FOUND, NOT_OWNER, NOT_ACTIVE,
@@ -300,6 +303,11 @@ public final class AuctionService {
         ItemStack inHand = seller.getInventory().getItemInMainHand();
         if (inHand == null || inHand.getType() == Material.AIR || inHand.getAmount() <= 0) {
             return CompletableFuture.completedFuture(SellOutcome.fail(SellResult.NO_ITEM, "no item in hand"));
+        }
+        CustomItemTradePolicy.Decision tradeDecision = CustomItemTradePolicy.evaluate(inHand);
+        if (!tradeDecision.allowed()) {
+            return CompletableFuture.completedFuture(
+                    SellOutcome.fail(SellResult.ITEM_NOT_ALLOWED, tradeDecision.reason()));
         }
         if (!economy.isAvailable()) {
             return CompletableFuture.completedFuture(
@@ -701,7 +709,13 @@ public final class AuctionService {
                         onMain(() -> result.complete(BuyResult.fail(pre)));
                         return;
                     }
-                    hexCore.async(() -> listings.tryReserve(listingId, buyerId, reservedUntil))
+                    onMain(() -> {
+                        BuyOutcome itemGate = checkListingItemTradeable(l);
+                        if (itemGate != null) {
+                            result.complete(BuyResult.fail(itemGate));
+                            return;
+                        }
+                        hexCore.async(() -> listings.tryReserve(listingId, buyerId, reservedUntil))
                             .whenComplete((reserved, reserveErr) -> {
                                 if (reserveErr != null || reserved == null || !reserved) {
                                     onMain(() -> result.complete(BuyResult.fail(BuyOutcome.NOT_ACTIVE)));
@@ -737,8 +751,25 @@ public final class AuctionService {
                                             finalizePurchase(buyer, buyerId, l, cfg, result);
                                         });
                             });
+                    });
                 });
         return result;
+    }
+
+    private BuyOutcome checkListingItemTradeable(AuctionListing listing) {
+        ItemStack item;
+        try {
+            item = ItemSerializer.deserialize(listing.itemBlob());
+        } catch (Throwable t) {
+            logger.log(Level.WARNING, "AUKCJA: nie mozna odczytac przedmiotu aukcji "
+                    + listing.id() + " przed kupnem", t);
+            return BuyOutcome.DB_FAILED;
+        }
+        if (item == null) {
+            return BuyOutcome.DB_FAILED;
+        }
+        CustomItemTradePolicy.Decision decision = CustomItemTradePolicy.evaluate(item);
+        return decision.allowed() ? null : BuyOutcome.ITEM_NOT_ALLOWED;
     }
 
     private void finalizePurchase(Player buyer, UUID buyerId, AuctionListing l,

@@ -40,6 +40,7 @@ auction:
   too-many-listings: "&cZa dużo aktywnych aukcji (max <max>)."
   invalid-price: "&cCena musi zawierać się w przedziale <min> - <max>."
   item-not-in-hand: "&cWeź do ręki przedmiot, który chcesz wystawić."
+  item-not-allowed: "&cTego przedmiotu nie można sprzedawać ani kupować w Domu Aukcyjnym."
   air-not-allowed: "&cNie można sprzedać powietrza."
   listing-fee-charged: "&7Opłata za wystawienie: <fee>."
   bought: "&aZakupiono! &7-<price>"

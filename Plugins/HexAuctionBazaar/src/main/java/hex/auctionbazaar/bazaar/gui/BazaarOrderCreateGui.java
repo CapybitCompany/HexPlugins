@@ -9,6 +9,7 @@ import hex.auctionbazaar.bridge.EconomyBridge;
 import hex.auctionbazaar.config.BazaarConfig;
 import hex.auctionbazaar.config.BazaarItemConfig;
 import hex.auctionbazaar.gui.GuiFrame;
+import hex.auctionbazaar.gui.GuiHeads;
 import hex.auctionbazaar.gui.GuiHolder;
 import hex.auctionbazaar.gui.SignPrompt;
 import hex.auctionbazaar.util.LegacyFormat;
@@ -203,8 +204,7 @@ public final class BazaarOrderCreateGui {
         }
 
         // Back / close
-        ItemStack back = GuiFrame.button(Material.BARRIER,
-                messages.raw("bazaar.gui.back", null));
+        ItemStack back = GuiHeads.back(messages.raw("bazaar.gui.back", null));
         inv.setItem(SLOT_BACK, back);
         holder.setSlotAction(SLOT_BACK, ctx -> BazaarItemGui.open(plugin, ctx.player(),
                 item.key(), cfg, service, economy, messages));
