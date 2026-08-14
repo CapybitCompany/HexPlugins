@@ -276,9 +276,14 @@ bus-driver:
         z: 943.5
         yaw: 180.0
         pitch: 0.0
-  multiplier-options: [1, 2, 5, 10]
-  default-multiplier: 1
-  round-payout-multipliers: [1.5, 2.5, 4, 7]
+  bet-options: [5, 20, 30, 50, 100]
+  default-bet: 20
+  target-multiplier-options: [2, 3, 5]
+  default-target-multiplier: 2
+  payout-ladders:
+    x2: [1.25, 2]
+    x3: [1.2, 1.75, 3]
+    x5: [1.15, 1.6, 2.7, 5]
   result-subtitle-ticks: 40
   exit-velocity:
     enabled: true
@@ -314,8 +319,10 @@ bus-driver:
       lore:
         - '&c&m--------------------'
         - '&fStawka: &a{total_cost}$'
+        - '&7Cel: &fx{target_multiplier}'
+        - '&7Pierwszy cashout: &a{next_cashout}$'
         - '&c&m--------------------'
-        - '&7Mnożnik: &f{multiplier}'
+        - '&7Ustawienia: LPM/PPM'
       hide-tooltip: false
     no-funds-item:
       material: RED_DYE
@@ -414,9 +421,11 @@ bus-driver:
       name: '&fUstawienia gry:'
       lore:
         - '&c&m--------------------'
-        - '&eLPM: &fZmień mnożnik'
+        - '&eLPM: &fZmien stawke'
+        - '&ePPM: &fZmien cel'
         - '&c&m--------------------'
-        - '&7Mnożnik: &f{multiplier}'
+        - '&7Stawka: &f{bet}$'
+        - '&7Cel: &fx{target_multiplier}'
       hide-tooltip: false
     exit-item:
       material: BARRIER
@@ -428,7 +437,8 @@ bus-driver:
       name: '&fStawka gry:'
       lore:
         - '&c&m--------------------'
-        - '&7Mnoznik: &f{multiplier}'
+        - '&7Stawka: &f{bet}$'
+        - '&7Cel: &fx{target_multiplier}'
       hide-tooltip: false
     info-item:
       material: PAPER
@@ -436,6 +446,7 @@ bus-driver:
       lore:
         - '&c&m--------------------'
         - '&7Twoja aktualna stawka: &f{total_cost}$'
+        - '&7Cel tej gry: &fx{target_multiplier}'
         - '&c&m--------------------'
         - '&ePotencjalne wygrane:'
         - '{round_payouts}'

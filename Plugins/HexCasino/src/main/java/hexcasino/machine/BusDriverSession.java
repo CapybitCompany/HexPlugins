@@ -21,7 +21,8 @@ public final class BusDriverSession {
     private final Inventory inventory;
 
     private State state = State.IDLE;
-    private int multiplierIndex;
+    private int betIndex;
+    private int targetMultiplierIndex;
     private BusDriverService.Card currentCard;
     private int completedRounds;
     private double stake;
@@ -32,11 +33,16 @@ public final class BusDriverSession {
     private Location lockedLocation;
     private final List<BusDriverService.Card> cards = new ArrayList<>();
 
-    public BusDriverSession(UUID playerId, CasinoConfig.Machine machine, Inventory inventory, int multiplierIndex) {
+    public BusDriverSession(UUID playerId,
+                            CasinoConfig.Machine machine,
+                            Inventory inventory,
+                            int betIndex,
+                            int targetMultiplierIndex) {
         this.playerId = playerId;
         this.machine = machine;
         this.inventory = inventory;
-        this.multiplierIndex = multiplierIndex;
+        this.betIndex = betIndex;
+        this.targetMultiplierIndex = targetMultiplierIndex;
     }
 
     public UUID playerId() {
@@ -59,12 +65,20 @@ public final class BusDriverSession {
         this.state = state;
     }
 
-    public int multiplierIndex() {
-        return multiplierIndex;
+    public int betIndex() {
+        return betIndex;
     }
 
-    public void multiplierIndex(int multiplierIndex) {
-        this.multiplierIndex = multiplierIndex;
+    public void betIndex(int betIndex) {
+        this.betIndex = betIndex;
+    }
+
+    public int targetMultiplierIndex() {
+        return targetMultiplierIndex;
+    }
+
+    public void targetMultiplierIndex(int targetMultiplierIndex) {
+        this.targetMultiplierIndex = targetMultiplierIndex;
     }
 
     public BusDriverService.Card currentCard() {

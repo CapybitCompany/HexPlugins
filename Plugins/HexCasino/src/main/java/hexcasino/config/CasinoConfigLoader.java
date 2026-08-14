@@ -255,12 +255,17 @@ public final class CasinoConfigLoader {
         if (machines.isEmpty()) {
             machines = Map.of("bus-driver-1", defaultMachine("bus-driver-1", 2798, 73, 943));
         }
+        List<Double> targetMultiplierOptions = positiveDoubles(
+                config.getDoubleList("bus-driver.target-multiplier-options"),
+                List.of(2.0D, 3.0D, 5.0D));
 
         return new CasinoConfig.BusDriver(
                 machines,
-                positiveDoubles(config.getDoubleList("bus-driver.multiplier-options"), List.of(1.0D, 2.0D, 5.0D, 10.0D)),
-                Math.max(0.01D, config.getDouble("bus-driver.default-multiplier", 1.0D)),
-                positiveDoubles(config.getDoubleList("bus-driver.round-payout-multipliers"), List.of(1.5D, 2.5D, 4.0D, 7.0D)),
+                positiveDoubles(config.getDoubleList("bus-driver.bet-options"), List.of(5.0D, 20.0D, 30.0D, 50.0D, 100.0D)),
+                Math.max(0.01D, config.getDouble("bus-driver.default-bet", 20.0D)),
+                targetMultiplierOptions,
+                Math.max(0.01D, config.getDouble("bus-driver.default-target-multiplier", 2.0D)),
+                loadBusDriverPayoutLadders(config, targetMultiplierOptions),
                 Math.max(1, config.getInt("bus-driver.result-subtitle-ticks", 40)),
                 new CasinoConfig.ExitVelocity(
                         config.getBoolean("bus-driver.exit-velocity.enabled", true),
@@ -269,6 +274,65 @@ public final class CasinoConfigLoader {
                 ),
                 loadBusDriverGui(config, logger)
         );
+    }
+
+    private Map<Double, List<Double>> loadBusDriverPayoutLadders(FileConfiguration config, List<Double> targetOptions) {
+        Map<Double, List<Double>> ladders = new LinkedHashMap<>();
+        ConfigurationSection section = config.getConfigurationSection("bus-driver.payout-ladders");
+        if (section != null) {
+            for (String key : section.getKeys(false)) {
+                double target = parseTargetMultiplier(key);
+                List<Double> payouts = positiveDoubles(config.getDoubleList("bus-driver.payout-ladders." + key), List.of());
+                if (target > 0.0D && !payouts.isEmpty()) {
+                    ladders.put(target, payouts);
+                }
+            }
+        }
+        for (double target : targetOptions) {
+            if (findLadder(ladders, target) == null) {
+                ladders.put(target, defaultBusDriverLadder(target));
+            }
+        }
+        if (ladders.isEmpty()) {
+            ladders.put(2.0D, List.of(1.25D, 2.0D));
+            ladders.put(3.0D, List.of(1.20D, 1.75D, 3.0D));
+            ladders.put(5.0D, List.of(1.15D, 1.60D, 2.70D, 5.0D));
+        }
+        return Map.copyOf(ladders);
+    }
+
+    private List<Double> findLadder(Map<Double, List<Double>> ladders, double target) {
+        for (Map.Entry<Double, List<Double>> entry : ladders.entrySet()) {
+            if (Math.abs(entry.getKey() - target) < 0.0001D) {
+                return entry.getValue();
+            }
+        }
+        return null;
+    }
+
+    private double parseTargetMultiplier(String key) {
+        String normalized = key == null ? "" : key.trim().toLowerCase(Locale.ROOT);
+        if (normalized.startsWith("x")) {
+            normalized = normalized.substring(1);
+        }
+        try {
+            return Double.parseDouble(normalized);
+        } catch (NumberFormatException ex) {
+            return -1.0D;
+        }
+    }
+
+    private List<Double> defaultBusDriverLadder(double target) {
+        if (Math.abs(target - 2.0D) < 0.0001D) {
+            return List.of(1.25D, 2.0D);
+        }
+        if (Math.abs(target - 3.0D) < 0.0001D) {
+            return List.of(1.20D, 1.75D, 3.0D);
+        }
+        if (Math.abs(target - 5.0D) < 0.0001D) {
+            return List.of(1.15D, 1.60D, 2.70D, 5.0D);
+        }
+        return List.of(Math.max(1.01D, target));
     }
 
     private CasinoConfig.BusDriverGui loadBusDriverGui(FileConfiguration config, Logger logger) {
@@ -291,7 +355,8 @@ public final class CasinoConfigLoader {
                 guiItem(config, "bus-driver.gui.balance-item", Material.BUNDLE, "&aŚrodki: &f{balance_display}", List.of(), false, logger),
                 guiItem(config, "bus-driver.gui.start-item", Material.LIME_DYE, "&a&lROZPOCZNIJ",
                         List.of("&c&m--------------------", "&fStawka: &a{total_cost}$",
-                                "&c&m--------------------", "&7Mnożnik: &f{multiplier}"), false, logger),
+                                "&7Cel: &fx{target_multiplier}", "&7Pierwszy cashout: &a{next_cashout}$",
+                                "&c&m--------------------", "&7Ustawienia: LPM/PPM"), false, logger),
                 guiItem(config, "bus-driver.gui.no-funds-item", Material.RED_DYE, "&cBrak środków",
                         List.of("&c&m--------------------", "&7Wymagane: &f{total_cost}$", "&7Twoje środki: &f{balance_display}"), false, logger),
                 guiItem(config, "bus-driver.gui.red-item", Material.RED_BUNDLE, "&c&lCZERWONA", List.of(), false, logger),
@@ -314,13 +379,14 @@ public final class CasinoConfigLoader {
                         List.of("&c&m--------------------", "&7Aktualna wygrana: &a{current_win}$"), false, logger),
                 guiItem(config, "bus-driver.gui.cashout-unavailable-item", Material.GRAY_DYE, "&7Brak wygranej do wypłaty", List.of(), false, logger),
                 guiItem(config, "bus-driver.gui.multiplier-item", Material.WHITE_DYE, "&fUstawienia gry:",
-                        List.of("&c&m--------------------", "&eLPM: &fZmień mnożnik",
-                                "&c&m--------------------", "&7Mnożnik: &f{multiplier}"), false, logger),
+                        List.of("&c&m--------------------", "&eLPM: &fZmien stawke", "&ePPM: &fZmien cel",
+                                "&c&m--------------------", "&7Stawka: &f{bet}$", "&7Cel: &fx{target_multiplier}"), false, logger),
                 guiItem(config, "bus-driver.gui.exit-item", Material.BARRIER, "&cWyjście", List.of(), false, logger),
                 guiItem(config, "bus-driver.gui.multiplier-locked-item", Material.WHITE_DYE, "&fStawka gry:",
-                        List.of("&c&m--------------------", "&7Mnoznik: &f{multiplier}"), false, logger),
+                        List.of("&c&m--------------------", "&7Stawka: &f{bet}$", "&7Cel: &fx{target_multiplier}"), false, logger),
                 guiItem(config, "bus-driver.gui.info-item", Material.PAPER, "&fBus Driver",
                         List.of("&c&m--------------------", "&7Twoja aktualna stawka: &f{total_cost}$",
+                                "&7Cel tej gry: &fx{target_multiplier}",
                                 "&c&m--------------------", "&ePotencjalne wygrane:", "{round_payouts}",
                                 "&c&m--------------------", "&7Aktualna wygrana: &a{current_win}$"), false, logger),
                 guiItem(config, "bus-driver.gui.progress-pending-item", Material.GRAY_STAINED_GLASS_PANE, "&7Runda {round}",

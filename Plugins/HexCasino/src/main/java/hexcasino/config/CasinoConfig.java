@@ -124,9 +124,11 @@ public record CasinoConfig(
 
     public record BusDriver(
             Map<String, Machine> machines,
-            List<Double> multiplierOptions,
-            double defaultMultiplier,
-            List<Double> roundPayoutMultipliers,
+            List<Double> betOptions,
+            double defaultBet,
+            List<Double> targetMultiplierOptions,
+            double defaultTargetMultiplier,
+            Map<Double, List<Double>> payoutLadders,
             int resultSubtitleTicks,
             ExitVelocity exitVelocity,
             BusDriverGui gui

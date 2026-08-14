@@ -168,11 +168,18 @@ public final class BusDriverService implements Listener {
         }
 
         if (session.state() == BusDriverSession.State.IDLE) {
-            if (slot == gui.multiplierSlot() && event.getClick().isLeftClick()) {
+            if (slot == gui.multiplierSlot() && (event.getClick().isLeftClick() || event.getClick().isRightClick())) {
+                boolean rightClick = event.getClick().isRightClick();
                 Bukkit.getScheduler().runTask(plugin, () -> {
                     BusDriverSession current = sessionsByPlayer.get(player.getUniqueId());
                     if (current != null && current.state() == BusDriverSession.State.IDLE) {
-                        current.multiplierIndex(nextIndex(current.multiplierIndex(), config.busDriver().multiplierOptions().size()));
+                        if (rightClick) {
+                            current.targetMultiplierIndex(nextIndex(
+                                    current.targetMultiplierIndex(),
+                                    config.busDriver().targetMultiplierOptions().size()));
+                        } else {
+                            current.betIndex(nextIndex(current.betIndex(), config.busDriver().betOptions().size()));
+                        }
                         render(current, player);
                     }
                 });
@@ -325,7 +332,8 @@ public final class BusDriverService implements Listener {
                 player.getUniqueId(),
                 machine,
                 inventory,
-                optionIndex(config.busDriver().multiplierOptions(), config.busDriver().defaultMultiplier())
+                optionIndex(config.busDriver().betOptions(), config.busDriver().defaultBet()),
+                optionIndex(config.busDriver().targetMultiplierOptions(), config.busDriver().defaultTargetMultiplier())
         );
         sessionsByPlayer.put(player.getUniqueId(), session);
         occupiedMachines.put(machine.id(), player.getUniqueId());
@@ -357,7 +365,7 @@ public final class BusDriverService implements Listener {
     private void startGame(Player player, BusDriverSession session) {
         CasinoConfig config = configSupplier.get();
         OptionalDouble balance = CasinoEconomy.balance(player, config);
-        double cost = multiplier(config, session);
+        double cost = bet(config, session);
         if (balance.isEmpty()) {
             player.sendActionBar(Text.component(config.messages().economyUnavailableActionbar()));
             play(player, config.sounds().noFunds());
@@ -454,7 +462,7 @@ public final class BusDriverService implements Listener {
 
         int completed = session.completedRounds() + 1;
         session.completedRounds(completed);
-        List<Double> payouts = config.busDriver().roundPayoutMultipliers();
+        List<Double> payouts = payoutLadder(config, session);
         double win = session.stake() * payouts.get(Math.min(completed - 1, payouts.size() - 1));
         session.currentWin(win);
         int maxRounds = Math.min(4, payouts.size());
@@ -575,7 +583,7 @@ public final class BusDriverService implements Listener {
     private void renderProgress(BusDriverSession session) {
         CasinoConfig config = configSupplier.get();
         CasinoConfig.BusDriverGui gui = config.busDriver().gui();
-        List<Double> payouts = config.busDriver().roundPayoutMultipliers();
+        List<Double> payouts = payoutLadder(config, session);
         for (int index = 0; index < gui.progressSlots().size() && index < payouts.size(); index++) {
             Map<String, String> values = Map.of(
                     "round", Integer.toString(index + 1),
@@ -605,7 +613,7 @@ public final class BusDriverService implements Listener {
             set(session.inventory(), gui.cashoutSlot(), session.currentWin() > 0.0D
                     ? item(gui.cashoutItem(), placeholders)
                     : item(gui.cashoutUnavailableItem(), placeholders));
-        } else if (balance.isPresent() && balance.getAsDouble() + 0.0001D >= multiplier(config, session)) {
+        } else if (balance.isPresent() && balance.getAsDouble() + 0.0001D >= bet(config, session)) {
             set(session.inventory(), gui.cardSlot(), item(gui.startItem(), placeholders));
         } else {
             set(session.inventory(), gui.cardSlot(), item(gui.noFundsItem(), placeholders));
@@ -701,8 +709,8 @@ public final class BusDriverService implements Listener {
     private List<net.kyori.adventure.text.Component> roundPayoutLines(String roundLine, BusDriverSession session) {
         CasinoConfig config = configSupplier.get();
         List<net.kyori.adventure.text.Component> lines = new ArrayList<>();
-        List<Double> payouts = config.busDriver().roundPayoutMultipliers();
-        double stake = session.stake() > 0.0D ? session.stake() : multiplier(config, session);
+        List<Double> payouts = payoutLadder(config, session);
+        double stake = session.stake() > 0.0D ? session.stake() : bet(config, session);
         for (int index = 0; index < payouts.size(); index++) {
             lines.add(Text.component(roundLine, Map.of(
                     "round", Integer.toString(index + 1),
@@ -907,16 +915,21 @@ public final class BusDriverService implements Listener {
 
     private Map<String, String> placeholders(Player player, BusDriverSession session, OptionalDouble balance) {
         CasinoConfig config = configSupplier.get();
-        double multiplier = multiplier(config, session);
-        int nextRound = Math.min(session.completedRounds() + 1, config.busDriver().roundPayoutMultipliers().size());
+        double bet = bet(config, session);
+        double targetMultiplier = targetMultiplier(config, session);
+        List<Double> payouts = payoutLadder(config, session);
+        int nextRound = Math.min(session.completedRounds() + 1, payouts.size());
         Map<String, String> values = new LinkedHashMap<>();
         values.put("player", player.getName());
         values.put("uuid", player.getUniqueId().toString());
         values.put("balance", balance.isPresent() ? CasinoEconomy.money(balance.getAsDouble()) : "0");
         values.put("balance_display", balance.isPresent() ? CasinoEconomy.money(balance.getAsDouble()) : "-");
-        values.put("multiplier", CasinoEconomy.money(multiplier));
-        values.put("bet_per_line", CasinoEconomy.money(multiplier));
-        values.put("total_cost", CasinoEconomy.money(multiplier));
+        values.put("bet", CasinoEconomy.money(bet));
+        values.put("target_multiplier", CasinoEconomy.money(targetMultiplier));
+        values.put("multiplier", CasinoEconomy.money(targetMultiplier));
+        values.put("bet_per_line", CasinoEconomy.money(bet));
+        values.put("total_cost", CasinoEconomy.money(bet));
+        values.put("next_cashout", CasinoEconomy.money(bet * payouts.get(Math.min(nextRound - 1, payouts.size() - 1))));
         values.put("current_win", CasinoEconomy.money(session.currentWin()));
         values.put("completed_rounds", Integer.toString(session.completedRounds()));
         values.put("next_round", Integer.toString(nextRound));
@@ -927,9 +940,24 @@ public final class BusDriverService implements Listener {
         return values;
     }
 
-    private double multiplier(CasinoConfig config, BusDriverSession session) {
-        return config.busDriver().multiplierOptions()
-                .get(Math.min(session.multiplierIndex(), config.busDriver().multiplierOptions().size() - 1));
+    private double bet(CasinoConfig config, BusDriverSession session) {
+        return config.busDriver().betOptions()
+                .get(Math.min(session.betIndex(), config.busDriver().betOptions().size() - 1));
+    }
+
+    private double targetMultiplier(CasinoConfig config, BusDriverSession session) {
+        return config.busDriver().targetMultiplierOptions()
+                .get(Math.min(session.targetMultiplierIndex(), config.busDriver().targetMultiplierOptions().size() - 1));
+    }
+
+    private List<Double> payoutLadder(CasinoConfig config, BusDriverSession session) {
+        double target = targetMultiplier(config, session);
+        for (Map.Entry<Double, List<Double>> entry : config.busDriver().payoutLadders().entrySet()) {
+            if (Math.abs(entry.getKey() - target) < 0.0001D) {
+                return entry.getValue();
+            }
+        }
+        return config.busDriver().payoutLadders().values().iterator().next();
     }
 
     private Stage stage(BusDriverSession session) {
