@@ -12,6 +12,7 @@ import hexnpc.model.NpcDefinition;
 import hexnpc.model.NpcId;
 import hexnpc.render.NpcRenderer;
 import hexnpc.service.NpcInteractionService;
+import hexnpc.service.NpcItemUseSuppressor;
 import hexnpc.service.NpcService;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -28,17 +29,24 @@ import java.util.UUID;
 public final class NpcClickPacketListener extends PacketListenerAbstract {
 
     private final HexNpcPlugin plugin;
+    private final NpcItemUseSuppressor itemUseSuppressor;
 
-    public NpcClickPacketListener(HexNpcPlugin plugin) {
+    public NpcClickPacketListener(HexNpcPlugin plugin, NpcItemUseSuppressor itemUseSuppressor) {
         super(PacketListenerPriority.NORMAL);
         this.plugin = Objects.requireNonNull(plugin, "plugin");
+        this.itemUseSuppressor = Objects.requireNonNull(itemUseSuppressor, "itemUseSuppressor");
     }
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
+        if (isUseItemPacket(event.getPacketType())) {
+            cancelSuppressedItemUse(event);
+            return;
+        }
         if (event.getPacketType() != PacketType.Play.Client.INTERACT_ENTITY) {
             return;
         }
+
         NpcRenderer renderer = plugin.renderer();
         NpcService npcService = plugin.npcService();
         NpcInteractionService interactionService = plugin.interactionService();
@@ -47,24 +55,30 @@ public final class NpcClickPacketListener extends PacketListenerAbstract {
         }
 
         WrapperPlayClientInteractEntity wrapper = new WrapperPlayClientInteractEntity(event);
-        // Rechtsklick auf eine Entity sendet zwei Pakete: INTERACT_AT und INTERACT.
-        // Wir reagieren nur auf INTERACT, sonst feuert der Trigger doppelt.
-        // ATTACK ist Linksklick und gehört nicht zu CLICK-Interaktion.
-        if (!shouldHandle(wrapper.getAction(), wrapper.getHand())) {
-            return;
-        }
         Optional<NpcId> id = renderer.lookupByEntityId(wrapper.getEntityId());
         if (id.isEmpty()) {
             return;
         }
+
         UUID playerId = event.getUser().getUUID();
         if (playerId == null) {
             return;
         }
+
         Optional<NpcDefinition> npc = npcService.find(id.get());
         if (npc.isEmpty()) {
             return;
         }
+
+        event.setCancelled(true);
+        if (isNpcRightClick(wrapper.getAction(), wrapper.getHand())) {
+            itemUseSuppressor.suppress(playerId);
+            clearActiveItem(playerId);
+        }
+        if (!shouldHandle(wrapper.getAction(), wrapper.getHand())) {
+            return;
+        }
+
         // Packets arrive on netty threads. Bukkit entity / scheduler work needs main thread.
         plugin.getServer().getScheduler().runTask(plugin, () -> {
             Player player = Bukkit.getPlayer(playerId);
@@ -81,14 +95,27 @@ public final class NpcClickPacketListener extends PacketListenerAbstract {
         });
     }
 
+    private void cancelSuppressedItemUse(PacketReceiveEvent event) {
+        UUID playerId = event.getUser().getUUID();
+        if (playerId != null && itemUseSuppressor.shouldCancelUse(playerId)) {
+            event.setCancelled(true);
+            clearActiveItem(playerId);
+        }
+    }
+
+    private void clearActiveItem(UUID playerId) {
+        plugin.getServer().getScheduler().runTask(plugin, () -> {
+            Player player = Bukkit.getPlayer(playerId);
+            if (player != null && player.isOnline() && player.hasActiveItem()) {
+                player.clearActiveItem();
+            }
+        });
+    }
+
     /**
-     * Entscheidet, welche InteractAction zu unserer CLICK-Interaktion zählt.
-     * <ul>
-     *   <li>{@code INTERACT} – echter Rechtsklick (mainhand). Akzeptiert.</li>
-     *   <li>{@code INTERACT_AT} – Vorab-Paket zum Rechtsklick mit Trefferpunkt. Ignoriert,
-     *       sonst feuert der Trigger zweimal pro Klick.</li>
-     *   <li>{@code ATTACK} – Linksklick. Ignoriert.</li>
-     * </ul>
+     * Decides which InteractAction fires the HexNPC CLICK trigger. Vanilla
+     * right-clicks can send INTERACT_AT and INTERACT; only INTERACT should
+     * trigger the action, but both are NPC right-clicks for item suppression.
      */
     static boolean shouldHandle(WrapperPlayClientInteractEntity.InteractAction action) {
         return shouldHandle(action, InteractionHand.MAIN_HAND);
@@ -97,5 +124,16 @@ public final class NpcClickPacketListener extends PacketListenerAbstract {
     static boolean shouldHandle(WrapperPlayClientInteractEntity.InteractAction action, InteractionHand hand) {
         return action == WrapperPlayClientInteractEntity.InteractAction.INTERACT
                 && hand == InteractionHand.MAIN_HAND;
+    }
+
+    static boolean isNpcRightClick(WrapperPlayClientInteractEntity.InteractAction action, InteractionHand hand) {
+        return (action == WrapperPlayClientInteractEntity.InteractAction.INTERACT
+                || action == WrapperPlayClientInteractEntity.InteractAction.INTERACT_AT)
+                && hand != null;
+    }
+
+    static boolean isUseItemPacket(Object packetType) {
+        return packetType == PacketType.Play.Client.USE_ITEM
+                || packetType == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT;
     }
 }

@@ -1,5 +1,6 @@
 package hexnpc.render.packet;
 
+import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity.InteractAction;
 import org.junit.jupiter.api.Test;
@@ -7,35 +8,42 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * Stellt sicher, dass aus den drei InteractAction-Varianten von
- * WrapperPlayClientInteractEntity nur der echte Rechtsklick durchgelassen wird.
- * Hintergrund: ein Vanilla-Rechtsklick sendet INTERACT_AT + INTERACT, ein
- * Linksklick ATTACK.
- */
 class NpcClickPacketListenerActionFilterTest {
 
     @Test
     void interactIsAccepted() {
         assertTrue(NpcClickPacketListener.shouldHandle(InteractAction.INTERACT),
-                "INTERACT muss als CLICK-Trigger akzeptiert werden");
+                "INTERACT must fire the CLICK trigger");
     }
 
     @Test
-    void offHandInteractIsRejectedToAvoidDoubleFire() {
+    void offHandInteractIsRejectedToAvoidDoubleFireButSuppressesItemUse() {
         assertFalse(NpcClickPacketListener.shouldHandle(InteractAction.INTERACT, InteractionHand.OFF_HAND),
-                "OFF_HAND INTERACT wuerde zusammen mit MAIN_HAND pro Klick doppelt feuern");
+                "OFF_HAND INTERACT would double-fire the trigger");
+        assertTrue(NpcClickPacketListener.isNpcRightClick(InteractAction.INTERACT, InteractionHand.OFF_HAND),
+                "OFF_HAND right-click still suppresses vanilla item use");
     }
 
     @Test
-    void interactAtIsRejectedToAvoidDoubleFire() {
+    void interactAtIsRejectedToAvoidDoubleFireButSuppressesItemUse() {
         assertFalse(NpcClickPacketListener.shouldHandle(InteractAction.INTERACT_AT),
-                "INTERACT_AT würde zusammen mit INTERACT pro Klick doppelt feuern");
+                "INTERACT_AT would double-fire the trigger");
+        assertTrue(NpcClickPacketListener.isNpcRightClick(InteractAction.INTERACT_AT, InteractionHand.MAIN_HAND),
+                "INTERACT_AT also belongs to the same NPC right-click");
     }
 
     @Test
     void attackIsRejected() {
         assertFalse(NpcClickPacketListener.shouldHandle(InteractAction.ATTACK),
-                "Linksklick darf den CLICK-Trigger nicht auslösen");
+                "Left-click must not fire the CLICK trigger");
+        assertFalse(NpcClickPacketListener.isNpcRightClick(InteractAction.ATTACK, null),
+                "ATTACK must not suppress item use");
+    }
+
+    @Test
+    void vanillaUseItemPacketsAreSuppressed() {
+        assertTrue(NpcClickPacketListener.isUseItemPacket(PacketType.Play.Client.USE_ITEM));
+        assertTrue(NpcClickPacketListener.isUseItemPacket(PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT));
+        assertFalse(NpcClickPacketListener.isUseItemPacket(PacketType.Play.Client.INTERACT_ENTITY));
     }
 }

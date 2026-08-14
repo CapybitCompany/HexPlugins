@@ -9,6 +9,7 @@ import hexnpc.command.HexNpcCommand;
 import hexnpc.config.HexNpcConfig;
 import hexnpc.config.HexNpcConfigLoader;
 import hexnpc.integration.HexCoreBridge;
+import hexnpc.listener.NpcItemUseListener;
 import hexnpc.listener.PlayerLifecycleListener;
 import hexnpc.render.NoopNpcRenderer;
 import hexnpc.render.NpcRenderer;
@@ -18,6 +19,7 @@ import hexnpc.render.packet.PacketNpcRenderer;
 import hexnpc.service.DialogueService;
 import hexnpc.service.NpcActionRegistry;
 import hexnpc.service.NpcInteractionService;
+import hexnpc.service.NpcItemUseSuppressor;
 import hexnpc.service.NpcLookAtService;
 import hexnpc.service.NpcProximityService;
 import hexnpc.model.NpcDefinition;
@@ -68,6 +70,7 @@ public class HexNpcPlugin extends JavaPlugin {
     private HttpClient httpClient;
     private PacketListenerCommon packetClickListener;
     private PacketListenerCommon signPacketListener;
+    private NpcItemUseSuppressor itemUseSuppressor;
     private EconomyBridge economyBridge;
     private ShopRegistry shopRegistry;
     private ShopService shopService;
@@ -105,6 +108,7 @@ public class HexNpcPlugin extends JavaPlugin {
                 NpcActionRegistry.class, actionRegistry, this, ServicePriority.Normal);
 
         this.hexCoreBridge = new HexCoreBridge(getLogger());
+        this.itemUseSuppressor = new NpcItemUseSuppressor();
         // Ein HttpClient fuer alle Skin-Aufloesungen (Mojang + MineSkin), einmal gebaut.
         this.httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
         this.skinResolver = new SkinResolver(getLogger(), httpClient);
@@ -147,6 +151,7 @@ public class HexNpcPlugin extends JavaPlugin {
 
         // Listeners registered once. They look up swappable services through this plugin.
         getServer().getPluginManager().registerEvents(new PlayerLifecycleListener(this), this);
+        getServer().getPluginManager().registerEvents(new NpcItemUseListener(itemUseSuppressor), this);
         this.shopInventoryListener = new ShopInventoryListener(shopService);
         getServer().getPluginManager().registerEvents(shopInventoryListener, this);
         getServer().getPluginManager().registerEvents(signInputService, this);
@@ -192,6 +197,10 @@ public class HexNpcPlugin extends JavaPlugin {
         if (signPacketListener != null) {
             PacketEventsBootstrap.unregisterListener(signPacketListener);
             signPacketListener = null;
+        }
+        if (itemUseSuppressor != null) {
+            itemUseSuppressor.clearAll();
+            itemUseSuppressor = null;
         }
         if (actionRegistry != null) {
             getServer().getServicesManager().unregister(NpcActionRegistry.class, actionRegistry);
@@ -433,7 +442,7 @@ public class HexNpcPlugin extends JavaPlugin {
             return;
         }
         try {
-            NpcClickPacketListener listener = new NpcClickPacketListener(this);
+            NpcClickPacketListener listener = new NpcClickPacketListener(this, itemUseSuppressor);
             PacketEventsBootstrap.registerListener(listener);
             packetClickListener = listener;
         } catch (Throwable t) {
