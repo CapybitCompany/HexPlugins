@@ -4,6 +4,8 @@ main: hexpvpsmp.HexPvpSmpPlugin
 api-version: '1.21.11'
 description: PvP SMP combat tag, config-based spawn safezone + no-build protection, command whitelist, combat-log punishment.
 authors: [HexDevTeam]
+softdepend:
+  - HexChests
 
 commands:
   hexpvp:

@@ -109,6 +109,19 @@ public final class InteractionProtectionListener implements Listener {
             return;
         }
 
+        if (rightClickBlock && HexChestsCompatibility.isHandledRewardShulker(
+                plugin.getServer().getPluginManager(), block)) {
+            plugin.debugLog("HexChests reward shulker interact allowed without HexPvpSmp denial at "
+                    + block.getLocation());
+            return;
+        }
+
+        if (rightClickBlock && HexAuctionBazaarCompatibility.isPricePromptSign(block)) {
+            plugin.debugLog("HexAuctionBazaar sign prompt interact allowed without HexPvpSmp denial at "
+                    + block.getLocation());
+            return;
+        }
+
         // 1) Right-clicking a protected block (container / interactable).
         if (rightClickBlock && !bypassesInteract(player) && isBuildProtected(block.getLocation())) {
             Material type = block.getType();
@@ -390,6 +403,9 @@ public final class InteractionProtectionListener implements Listener {
         if (!isEnabled() || bypassesInteract(player)) {
             return;
         }
+        if (HexAuctionBazaarCompatibility.isPricePromptSign(event.getBlock())) {
+            return;
+        }
         if (isBuildProtected(event.getBlock().getLocation())) {
             event.setCancelled(true);
             denyInteract(player);
@@ -404,6 +420,9 @@ public final class InteractionProtectionListener implements Listener {
     public void onSignOpen(PlayerOpenSignEvent event) {
         Player player = event.getPlayer();
         if (!isEnabled() || bypassesInteract(player)) {
+            return;
+        }
+        if (HexAuctionBazaarCompatibility.isPricePromptSign(event.getSign().getBlock())) {
             return;
         }
         if (isBuildProtected(event.getSign().getLocation())) {
