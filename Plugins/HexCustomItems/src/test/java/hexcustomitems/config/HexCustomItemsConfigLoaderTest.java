@@ -39,7 +39,7 @@ class HexCustomItemsConfigLoaderTest extends PluginTestBase {
         HexCustomItemsConfig config = load();
 
         assertEquals("hex:red_heart", config.items().get("red_heart").id());
-        assertEquals(10002, config.items().get("red_heart").modelData());
+        assertEquals(9002, config.items().get("red_heart").modelData());
         assertEquals("red_heart", config.itemIds().get("hex:red_heart"));
     }
 

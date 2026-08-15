@@ -64,7 +64,7 @@ recipes:
           enchantment-level: 5
           amount: 1
         B:
-          material: DISC_FRAGMENT_5
+          material: PRISMARINE_SHARD
           custom-item: "hex:ancient_scale"
           amount: 1
     darkness_powder:
@@ -118,7 +118,7 @@ recipes:
         - "  S"
       ingredients:
         S:
-          material: DISC_FRAGMENT_5
+          material: PRISMARINE_SHARD
           custom-item: "hex:ancient_scale"
           amount: 1
         I:
@@ -173,22 +173,23 @@ mob-drops:
 items:
   boss_ticket:
     ID: "hex:boss_ticket"
-    model-data: 10001
+    model-data: 9001
     material: PAPER
     name: "&6Bilet na Bossa"
     lore:
-      - "&7Wejdź dzięki temu na eventową arenę."
+      - "&7Wejdź na eventową arenę."
     can-drop: false
     can-use-in-anvil: false
     adminpanel-stack: 1
 
   red_heart:
     ID: "hex:red_heart"
-    model-data: 10002
+    model-data: 9002
     material: RED_DYE
     name: "&fCzerwone Serce"
     lore:
-      - "&7Użyj &6PPM&7, aby dostać trwałe dodatkowe serce &c(max 5)"
+      - "&7Użyj &6PPM&7, aby dostać"
+      - "&7trwałe dodatkowe serce &c(max 5)"
     can-drop: true
     can-use-in-anvil: false
     adminpanel-stack: 1
@@ -200,11 +201,12 @@ items:
 
   golden_heart:
     ID: "hex:golden_heart"
-    model-data: 10003
+    model-data: 9003
     material: YELLOW_DYE
     name: "&fZłote Serce"
     lore:
-      - "&7Użyj &6PPM&7, aby dostać tymczasowe złote serce &c(max 10)"
+      - "&7Użyj &6PPM&7, aby dostać "
+      - "&7tymczasowe złote serce &c(max 10))"
     can-drop: true
     can-use-in-anvil: false
     adminpanel-stack: 1
@@ -219,7 +221,7 @@ items:
 
   efficiency_6_book:
     ID: "hex:efficiency_6_book"
-    model-data: 10004
+    model-data: 9004
     material: ENCHANTED_BOOK
     name: "&bEnchanted Book"
     lore:
@@ -230,18 +232,19 @@ items:
 
   ancient_scale:
     ID: "hex:ancient_scale"
-    model-data: 10005
-    material: DISC_FRAGMENT_5
+    model-data: 9005
+    material: PRISMARINE_SHARD
     name: "&fŁuska"
     lore:
-      - "&7Pradawna łuska &c(Do dalszego craftingu)"
+      - "&7Pradawna łuska"
+      - "&c(Do dalszego craftingu)"
     can-drop: true
     can-use-in-anvil: true
     adminpanel-stack: 64
 
   afk_key:
     ID: "hex:afk_key"
-    model-data: 10006
+    model-data: 9006
     material: TRIAL_KEY
     name: "&eKlucz AFK"
     lore:
@@ -252,7 +255,7 @@ items:
 
   epic_key:
     ID: "hex:epic_key"
-    model-data: 10007
+    model-data: 9007
     material: TRIAL_KEY
     name: "&5Epicki klucz"
     lore:
@@ -263,7 +266,7 @@ items:
 
   premium_key:
     ID: "hex:premium_key"
-    model-data: 10008
+    model-data: 9008
     material: TRIAL_KEY
     name: "&cKlucz Premium"
     lore:
@@ -274,11 +277,12 @@ items:
 
   darkness_powder:
     ID: "hex:darkness_powder"
-    model-data: 10009
+    model-data: 9009
     material: GUNPOWDER
     name: "&fProszek ciemności"
     lore:
-      - "&7Wciśnij &6PPM&7, aby wywołać u pobliskich graczy ciemność &c(2 sek.)"
+      - "&7Wciśnij &6PPM&7, aby wywołać"
+      - "&7u pobliskich graczy ciemność &c(2 sek.)"
     can-drop: true
     can-use-in-anvil: false
     glint: true
@@ -293,7 +297,7 @@ items:
 
   spider_grenade:
     ID: "hex:spider_grenade"
-    model-data: 10010
+    model-data: 9010
     material: COBWEB
     name: "&fPajęczy Granat"
     lore:
@@ -311,11 +315,12 @@ items:
 
   phoenix_heart:
     ID: "hex:phoenix_heart"
-    model-data: 10011
+    model-data: 9011
     material: BLAZE_POWDER
     name: "&fSerce Feniksa"
     lore:
-      - "&7Zapewnia regenerację poza walką &c(5 min.)"
+      - "&7Zapewnia regenerację poza walką"
+      - "&c(5 min.)"
     can-drop: true
     can-use-in-anvil: false
     cooldown-seconds: 300
@@ -330,7 +335,7 @@ items:
 
   butcher_hook:
     ID: "hex:butcher_hook"
-    model-data: 10012
+    model-data: 9012
     material: LEAD
     name: "&fHak Rzemieślnika"
     lore:
@@ -350,11 +355,12 @@ items:
 
   mining_luck:
     ID: "hex:mining_luck"
-    model-data: 10013
+    model-data: 9013
     material: IRON_INGOT
     name: "&fGórniczy Łut Szczęścia"
     lore:
-      - "&7Użyj &6PPM&7, aby zwiększyć szansę &e(20%) &7na dodatkową rudę/surowiec &c(3 min.)"
+      - "&7Użyj &6PPM&7, aby zwiększyć szansę &e(20%)"
+      - "&7na dodatkową rudę/surowiec &c(3 min.)"
     can-drop: true
     can-use-in-anvil: false
     glint: true
@@ -371,11 +377,12 @@ items:
 
   hunter_skull:
     ID: "hex:hunter_skull"
-    model-data: 10014
+    model-data: 9014
     material: SKELETON_SKULL
     name: "&fCzaszka Łowcy"
     lore:
-      - "&7Artefakt wskazujący drogę do najbliższego wroga"
+      - "&7Artefakt wskazujący drogę"
+      - "&7do najbliższego wroga"
     can-drop: true
     can-use-in-anvil: false
     cooldown-seconds: 300
@@ -388,11 +395,12 @@ items:
 
   kinetic_charge:
     ID: "hex:kinetic_charge"
-    model-data: 10015
+    model-data: 9015
     material: RABBIT_FOOT
     name: "&fŁadunek Kinetyczny"
     lore:
-      - "&7Zwiększa prędkość ruchu &c(5 sekund)&7 i wyrzuca Cię do przodu"
+      - "&7Zwiększa prędkość ruchu &c(5 sekund)"
+      - "&7i wyrzuca Cię do przodu"
     can-drop: true
     can-use-in-anvil: false
     glint: true
@@ -414,11 +422,11 @@ items:
 
   invisibility_cookie:
     ID: "hex:invisibility_cookie"
-    model-data: 10016
+    model-data: 9016
     material: COOKIE
     name: "&fCiastko niewidzialności"
     lore:
-      - "&7Na 10 sekund stajesz się niewidzialny"
+      - "&7Na 10 sekund zyskujesz niewidzialność"
     can-drop: true
     can-use-in-anvil: false
     glint: true
@@ -433,7 +441,7 @@ items:
 
   coin_1:
     ID: "hex:coin_1"
-    model-data: 10017
+    model-data: 9017
     material: PAPER
     name: "&dBonus &f- 1 &eHex&f-&eCoin"
     lore:
@@ -454,7 +462,7 @@ items:
 
   coin_3:
     ID: "hex:coin_3"
-    model-data: 10018
+    model-data: 9018
     material: PAPER
     name: "&dBonus &f- 3 &eHex&f-&eCoins"
     lore:
@@ -475,7 +483,7 @@ items:
 
   coin_6:
     ID: "hex:coin_6"
-    model-data: 10019
+    model-data: 9019
     material: PAPER
     name: "&dBonus &f- 6 &eHex&f-&eCoins"
     lore:
