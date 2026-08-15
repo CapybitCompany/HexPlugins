@@ -298,7 +298,7 @@ items:
   spider_grenade:
     ID: "hex:spider_grenade"
     model-data: 9010
-    material: COBWEB
+    material: STICK
     name: "&fPajęczy Granat"
     lore:
       - "&7Wciśnij &6PPM&7, aby rzucić lepką pajęczynę."
@@ -378,7 +378,7 @@ items:
   hunter_skull:
     ID: "hex:hunter_skull"
     model-data: 9014
-    material: SKELETON_SKULL
+    material: STICK
     name: "&fCzaszka Łowcy"
     lore:
       - "&7Artefakt wskazujący drogę"
@@ -501,3 +501,23 @@ items:
       - type: SOUND
         sound: "minecraft:entity.player.levelup"
         delay-ticks: 20
+
+  sit:
+    ID: "hex:sit"
+    model-data: 9020
+    material: STICK
+    name: "&fSit"
+    lore: []
+    can-drop: true
+    can-use-in-anvil: false
+    adminpanel-stack: 16
+
+  spin:
+    ID: "hex:spin"
+    model-data: 9021
+    material: STICK
+    name: "&fSpin"
+    lore: []
+    can-drop: true
+    can-use-in-anvil: false
+    adminpanel-stack: 16

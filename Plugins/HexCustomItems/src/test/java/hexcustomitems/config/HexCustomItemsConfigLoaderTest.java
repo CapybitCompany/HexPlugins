@@ -25,13 +25,13 @@ class HexCustomItemsConfigLoaderTest extends PluginTestBase {
     @Test
     void defaultConfigLoadsConfiguredItems() {
         HexCustomItemsConfig config = load();
-        assertEquals(19, config.items().size());
+        assertEquals(21, config.items().size());
         assertTrue(config.items().keySet().containsAll(List.of(
                 "boss_ticket", "red_heart", "golden_heart", "efficiency_6_book",
                 "ancient_scale", "afk_key", "epic_key", "premium_key",
                 "darkness_powder", "spider_grenade", "phoenix_heart", "butcher_hook",
                 "mining_luck", "hunter_skull", "kinetic_charge", "invisibility_cookie",
-                "coin_1", "coin_3", "coin_6")));
+                "coin_1", "coin_3", "coin_6", "sit", "spin")));
     }
 
     @Test
@@ -41,6 +41,10 @@ class HexCustomItemsConfigLoaderTest extends PluginTestBase {
         assertEquals("hex:red_heart", config.items().get("red_heart").id());
         assertEquals(9002, config.items().get("red_heart").modelData());
         assertEquals("red_heart", config.itemIds().get("hex:red_heart"));
+        assertEquals(9020, config.items().get("sit").modelData());
+        assertEquals(Material.STICK, config.items().get("sit").material());
+        assertEquals(9021, config.items().get("spin").modelData());
+        assertEquals(Material.STICK, config.items().get("spin").material());
     }
 
     @Test
