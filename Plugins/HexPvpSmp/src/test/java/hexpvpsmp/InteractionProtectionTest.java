@@ -168,6 +168,16 @@ class InteractionProtectionTest {
     }
 
     @Test
+    void enderChestAllowedEverywhere() {
+        assertFalse(fireUseBlock(spawnBlock(), Material.ENDER_CHEST),
+                "ender chest must be usable in spawn");
+        assertFalse(fireUseBlock(noBuildBlock(), Material.ENDER_CHEST),
+                "ender chest must be usable in no-build");
+        assertFalse(fireUseBlockHolding(spawnBlock(), Material.ENDER_CHEST, Material.ENDER_EYE),
+                "ender chest opens even while holding a blocked item");
+    }
+
+    @Test
     void nonPublicContainerBlockedInSpawn() {
         assertTrue(fireUseBlock(spawnBlock(), Material.BARREL), "barrel in spawn blocked");
     }

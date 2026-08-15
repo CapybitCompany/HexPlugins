@@ -53,6 +53,9 @@ class InteractionRulesTest {
     void craftingTableIsNeverInteractableNorContainer() {
         assertFalse(InteractionRules.isProtectedInteractable(Material.CRAFTING_TABLE, true));
         assertFalse(InteractionRules.isBlockedContainer(Material.CRAFTING_TABLE));
+        assertTrue(InteractionRules.isAlwaysAllowed(Material.CRAFTING_TABLE));
+        assertFalse(InteractionRules.isBlockedContainer(Material.ENDER_CHEST));
+        assertTrue(InteractionRules.isAlwaysAllowed(Material.ENDER_CHEST));
     }
 
     @Test
@@ -61,7 +64,7 @@ class InteractionRulesTest {
                 Material.CHEST, Material.TRAPPED_CHEST, Material.BARREL, Material.HOPPER,
                 Material.DROPPER, Material.DISPENSER, Material.FURNACE, Material.BLAST_FURNACE,
                 Material.SMOKER, Material.BREWING_STAND, Material.SHULKER_BOX,
-                Material.ENDER_CHEST, Material.DECORATED_POT}) {
+                Material.DECORATED_POT}) {
             assertTrue(InteractionRules.isBlockedContainer(m), m + " must be a blocked container");
         }
     }

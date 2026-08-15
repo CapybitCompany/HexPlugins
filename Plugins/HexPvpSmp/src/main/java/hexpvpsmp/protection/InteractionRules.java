@@ -67,7 +67,7 @@ public final class InteractionRules {
 
     /**
      * True for a container block whose inventory access must be blocked inside a
-     * protected region. Crafting tables are not containers and are allowed;
+     * protected region. Crafting tables and ender chests are allowed;
      * public chests are exempted by the caller via the registry.
      */
     public static boolean isBlockedContainer(Material material) {
@@ -88,8 +88,7 @@ public final class InteractionRules {
                  BREWING_STAND,
                  BEACON,
                  CHISELED_BOOKSHELF,
-                 DECORATED_POT,
-                 ENDER_CHEST -> true;
+                 DECORATED_POT -> true;
             default -> false;
         };
     }
@@ -129,11 +128,12 @@ public final class InteractionRules {
 
     /**
      * Blocks that a normal player may always use even inside a protected region.
-     * Checked before container / interactable blocking so a crafting table stays
-     * usable in spawn and no-build. Public chests are handled separately by the
-     * registry (they may hold an inventory but are explicitly whitelisted).
+     * Checked before container / interactable blocking so explicitly allowed
+     * blocks stay usable in spawn and no-build. Public chests are handled
+     * separately by the registry.
      */
     public static boolean isAlwaysAllowed(Material material) {
-        return material == Material.CRAFTING_TABLE;
+        return material == Material.CRAFTING_TABLE
+                || material == Material.ENDER_CHEST;
     }
 }
