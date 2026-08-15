@@ -421,11 +421,11 @@ bus-driver:
       name: '&fUstawienia gry:'
       lore:
         - '&c&m--------------------'
-        - '&eLPM: &fZmien stawke'
-        - '&ePPM: &fZmien cel'
+        - '&eLPM: &fZmień mnożnik'
+        - '&ePPM: &fZmień stawkę'
         - '&c&m--------------------'
+        - '&7Mnożnik: &fx{target_multiplier}'
         - '&7Stawka: &f{bet}$'
-        - '&7Cel: &fx{target_multiplier}'
       hide-tooltip: false
     exit-item:
       material: BARRIER
@@ -433,15 +433,12 @@ bus-driver:
       lore: []
       hide-tooltip: false
     multiplier-locked-item:
-      material: WHITE_DYE
-      name: '&fStawka gry:'
-      lore:
-        - '&c&m--------------------'
-        - '&7Stawka: &f{bet}$'
-        - '&7Cel: &fx{target_multiplier}'
-      hide-tooltip: false
+      material: BLACK_STAINED_GLASS_PANE
+      name: ''
+      lore: []
+      hide-tooltip: true
     info-item:
-      material: PAPER
+      material: PLAYER_HEAD
       name: '&fBus Driver'
       lore:
         - '&c&m--------------------'
@@ -454,6 +451,9 @@ bus-driver:
         - '&7Aktualna wygrana: &a{current_win}$'
       round-line: '&e{round}. runda: &a{x}$'
       hide-tooltip: false
+      hide-additional-tooltip: true
+      head-id: "8767"
+      head-texture: "46ba63344f49dd1c4f5488e926bf3d9e2b29916a6c50d610bb40a5273dc8c82"
     progress-pending-item:
       material: GRAY_STAINED_GLASS_PANE
       name: '&7Runda {round}'
@@ -537,7 +537,7 @@ gui:
     lore: []
     hide-tooltip: true
   info-item:
-    material: PAPER
+    material: PLAYER_HEAD
     name: '&fLegenda Wypłat'
     lore:
       - '&c&m--------------------'
@@ -545,6 +545,9 @@ gui:
       - '{symbol_payouts}'
     symbol-line: '&e{index}. {legend_name} &7(&a{payout}$&7)'
     hide-tooltip: false
+    hide-additional-tooltip: true
+    head-id: "8767"
+    head-texture: "46ba63344f49dd1c4f5488e926bf3d9e2b29916a6c50d610bb40a5273dc8c82"
 
 initial-symbols:
   - gold_nugget

@@ -169,11 +169,11 @@ public final class BusDriverService implements Listener {
 
         if (session.state() == BusDriverSession.State.IDLE) {
             if (slot == gui.multiplierSlot() && (event.getClick().isLeftClick() || event.getClick().isRightClick())) {
-                boolean rightClick = event.getClick().isRightClick();
+                boolean leftClick = event.getClick().isLeftClick();
                 Bukkit.getScheduler().runTask(plugin, () -> {
                     BusDriverSession current = sessionsByPlayer.get(player.getUniqueId());
                     if (current != null && current.state() == BusDriverSession.State.IDLE) {
-                        if (rightClick) {
+                        if (leftClick) {
                             current.targetMultiplierIndex(nextIndex(
                                     current.targetMultiplierIndex(),
                                     config.busDriver().targetMultiplierOptions().size()));

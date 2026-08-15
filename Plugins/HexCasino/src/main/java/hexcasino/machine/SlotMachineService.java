@@ -28,13 +28,19 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.profile.PlayerProfile;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
+import java.net.URI;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -641,9 +647,10 @@ public final class SlotMachineService implements Listener {
     }
 
     private ItemStack infoItem(CasinoConfig.GuiItem config, Map<String, String> placeholders, double betPerLine) {
-        ItemStack stack = new ItemStack(config.material());
+        ItemStack stack = baseItem(config);
         ItemMeta meta = stack.getItemMeta();
         if (meta != null) {
+            applyHeadProfile(meta, config);
             meta.displayName(Text.component(config.name(), placeholders));
             List<net.kyori.adventure.text.Component> lore = new ArrayList<>();
             for (String line : config.lore()) {
@@ -654,12 +661,7 @@ public final class SlotMachineService implements Listener {
                 }
             }
             meta.lore(lore.isEmpty() ? null : lore);
-            if (config.hideAdditionalTooltip()) {
-                meta.addItemFlags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
-            }
-            if (config.hideTooltip()) {
-                hideTooltip(meta);
-            }
+            applyFlags(meta, config);
             stack.setItemMeta(meta);
         }
         return stack;
@@ -708,24 +710,119 @@ public final class SlotMachineService implements Listener {
     }
 
     private ItemStack item(CasinoConfig.GuiItem config, Map<String, String> placeholders) {
-        ItemStack stack = new ItemStack(config.material());
-            ItemMeta meta = stack.getItemMeta();
+        ItemStack stack = baseItem(config);
+        ItemMeta meta = stack.getItemMeta();
         if (meta != null) {
+            applyHeadProfile(meta, config);
             meta.displayName(Text.component(config.name(), placeholders));
             if (config.lore().isEmpty()) {
                 meta.lore(null);
             } else {
                 meta.lore(Text.lore(config.lore(), placeholders));
             }
-            if (config.hideAdditionalTooltip()) {
-                meta.addItemFlags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
-            }
-            if (config.hideTooltip()) {
-                hideTooltip(meta);
-            }
+            applyFlags(meta, config);
             stack.setItemMeta(meta);
         }
         return stack;
+    }
+
+    private ItemStack baseItem(CasinoConfig.GuiItem config) {
+        if (!isBlank(config.headTexture())) {
+            return new ItemStack(config.material());
+        }
+        ItemStack head = headDatabaseItem(config.headId());
+        if (head != null) {
+            return head;
+        }
+        return new ItemStack(config.material());
+    }
+
+    private ItemStack headDatabaseItem(String headId) {
+        if (isBlank(headId)) {
+            return null;
+        }
+        try {
+            Class<?> apiClass = Class.forName("me.arcaniax.hdb.api.HeadDatabaseAPI");
+            Object api = apiClass.getDeclaredConstructor().newInstance();
+            Object item = apiClass.getMethod("getItemHead", String.class).invoke(api, headId);
+            if (item instanceof ItemStack stack && !stack.getType().isAir()) {
+                return stack.clone();
+            }
+        } catch (Throwable ignored) {
+            // HeadDatabase is optional. If it is absent or the id is invalid, fall back to the configured material.
+        }
+        return null;
+    }
+
+    private void applyHeadProfile(ItemMeta meta, CasinoConfig.GuiItem config) {
+        if (!(meta instanceof SkullMeta skullMeta)) {
+            return;
+        }
+        URL textureUrl = textureUrl(config.headTexture());
+        if (textureUrl != null) {
+            PlayerProfile profile = Bukkit.createPlayerProfile(
+                    UUID.nameUUIDFromBytes(config.headTexture().getBytes(StandardCharsets.UTF_8))
+            );
+            profile.getTextures().setSkin(textureUrl);
+            skullMeta.setOwnerProfile(profile);
+            return;
+        }
+        if (!isBlank(config.headOwner())) {
+            skullMeta.setOwner(config.headOwner());
+        }
+    }
+
+    private URL textureUrl(String raw) {
+        if (isBlank(raw)) {
+            return null;
+        }
+        String value = raw.trim();
+        String decoded = decodedTextureUrl(value);
+        if (decoded != null) {
+            value = decoded;
+        } else if (value.contains("textures.minecraft.net/texture/") && !value.startsWith("http")) {
+            value = "https://" + value;
+        } else if (!value.startsWith("http://") && !value.startsWith("https://")) {
+            value = "https://textures.minecraft.net/texture/" + value;
+        }
+        try {
+            return URI.create(value).toURL();
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private String decodedTextureUrl(String value) {
+        try {
+            String decoded = new String(Base64.getDecoder().decode(value), StandardCharsets.UTF_8);
+            String marker = "\"url\"";
+            int markerIndex = decoded.indexOf(marker);
+            if (markerIndex < 0) {
+                return null;
+            }
+            int colon = decoded.indexOf(':', markerIndex + marker.length());
+            int firstQuote = decoded.indexOf('"', colon + 1);
+            int secondQuote = decoded.indexOf('"', firstQuote + 1);
+            if (colon < 0 || firstQuote < 0 || secondQuote < 0) {
+                return null;
+            }
+            return decoded.substring(firstQuote + 1, secondQuote).replace("\\/", "/");
+        } catch (IllegalArgumentException ignored) {
+            return null;
+        }
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
+    }
+
+    private void applyFlags(ItemMeta meta, CasinoConfig.GuiItem config) {
+        if (config.hideAdditionalTooltip()) {
+            meta.addItemFlags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
+        }
+        if (config.hideTooltip()) {
+            hideTooltip(meta);
+        }
     }
 
     private void set(Inventory inventory, int slot, ItemStack item) {
