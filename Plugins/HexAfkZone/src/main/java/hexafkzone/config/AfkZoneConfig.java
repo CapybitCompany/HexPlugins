@@ -3,7 +3,6 @@ package hexafkzone.config;
 import org.bukkit.Location;
 
 import java.util.List;
-import java.util.Map;
 
 public record AfkZoneConfig(
         boolean enabled,
@@ -12,7 +11,7 @@ public record AfkZoneConfig(
         int rewardMessageSeconds,
         Sounds sounds,
         List<RankProfile> rankProfiles,
-        Map<String, RewardGroup> rewardGroups
+        Rewards rewards
 ) {
 
     public record Region(String world, int minX, int maxX, int minY, int maxY, int minZ, int maxZ) {
@@ -57,7 +56,7 @@ public record AfkZoneConfig(
             String id,
             String displayName,
             String color,
-            String rewardGroup,
+            long rewardIntervalSeconds,
             int priority,
             boolean fallbackAccess,
             boolean operatorAccess,
@@ -65,13 +64,20 @@ public record AfkZoneConfig(
     ) {
     }
 
-    public record RewardGroup(String id, List<Milestone> milestones) {
+    public record Rewards(BaseReward base, List<ChanceReward> chanceRewards) {
     }
 
-    public record Milestone(
-            String id,
-            long seconds,
+    public record BaseReward(
             String displayName,
+            int amount,
+            List<String> commands
+    ) {
+    }
+
+    public record ChanceReward(
+            String id,
+            String displayName,
+            double chancePercent,
             int amount,
             List<String> commands
     ) {

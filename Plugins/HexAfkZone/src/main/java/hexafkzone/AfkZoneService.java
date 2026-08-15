@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Supplier;
 
 public final class AfkZoneService {
@@ -117,7 +118,9 @@ public final class AfkZoneService {
             return;
         }
         AfkZoneConfig.RankProfile profile = profileFor(player);
-        AfkSession session = new AfkSession(player.getUniqueId(), profile.id(), profile.rewardGroup(), clock.instant());
+        Instant now = clock.instant();
+        AfkSession session = new AfkSession(player.getUniqueId(), profile.id(), now,
+                now.plusSeconds(profile.rewardIntervalSeconds()));
         sessions.put(player.getUniqueId(), session);
         showZoneSubtitle(player, profile);
         sendTimerActionbar(player, session, profile);
@@ -132,7 +135,7 @@ public final class AfkZoneService {
 
     private void tickSession(Player player, AfkSession session) {
         AfkZoneConfig.RankProfile profile = profile(session.profileId()).orElseGet(() -> profileFor(player));
-        if (tryAwardNextMilestone(player, session, profile)) {
+        if (tryAwardRewardCycle(player, session, profile)) {
             return;
         }
         if (session.rewardMessageUntil() != null && session.rewardMessageUntil().isAfter(clock.instant())) {
@@ -142,24 +145,28 @@ public final class AfkZoneService {
         sendTimerActionbar(player, session, profile);
     }
 
-    private boolean tryAwardNextMilestone(Player player, AfkSession session, AfkZoneConfig.RankProfile profile) {
-        AfkZoneConfig.RewardGroup group = rewardGroup(session.rewardGroupId());
-        long elapsed = elapsedSeconds(session);
-        for (AfkZoneConfig.Milestone milestone : group.milestones()) {
-            if (elapsed < milestone.seconds() || session.claimedMilestones().contains(milestone.id())) {
-                continue;
-            }
-            session.claimedMilestones().add(milestone.id());
-            runCommands(player, session, profile, milestone);
-            playRewardSound(player);
-            Map<String, String> placeholders = placeholders(player, session, profile, milestone);
-            String message = Text.apply(configSupplier.get().messages().rewardActionbar(), placeholders);
-            session.rewardMessage(message);
-            session.rewardMessageUntil(clock.instant().plusSeconds(configSupplier.get().rewardMessageSeconds()));
-            player.sendActionBar(Text.component(message));
-            return true;
+    private boolean tryAwardRewardCycle(Player player, AfkSession session, AfkZoneConfig.RankProfile profile) {
+        Instant now = clock.instant();
+        if (now.isBefore(session.nextRewardAt())) {
+            return false;
         }
-        return false;
+
+        AfkZoneConfig config = configSupplier.get();
+        AfkZoneConfig.Rewards rewards = config.rewards();
+        List<AfkZoneConfig.ChanceReward> awarded = rollChanceRewards(rewards.chanceRewards());
+        Map<String, String> placeholders = placeholders(player, session, profile, awarded);
+        runCommands(rewards.base().commands(), placeholders);
+        for (AfkZoneConfig.ChanceReward reward : awarded) {
+            runCommands(reward.commands(), placeholders);
+        }
+
+        session.nextRewardAt(now.plusSeconds(profile.rewardIntervalSeconds()));
+        playRewardSound(player);
+        String message = Text.apply(config.messages().rewardActionbar(), placeholders);
+        session.rewardMessage(message);
+        session.rewardMessageUntil(now.plusSeconds(config.rewardMessageSeconds()));
+        player.sendActionBar(Text.component(message));
+        return true;
     }
 
     private void showZoneSubtitle(Player player, AfkZoneConfig.RankProfile profile) {
@@ -174,7 +181,7 @@ public final class AfkZoneService {
     }
 
     private void sendTimerActionbar(Player player, AfkSession session, AfkZoneConfig.RankProfile profile) {
-        Map<String, String> placeholders = placeholders(player, session, profile, null);
+        Map<String, String> placeholders = placeholders(player, session, profile, List.of());
         player.sendActionBar(Text.component(configSupplier.get().messages().timerActionbar(), placeholders));
     }
 
@@ -195,12 +202,18 @@ public final class AfkZoneService {
         player.playSound(player.getLocation(), sound.name(), sound.volume(), sound.pitch());
     }
 
-    private void runCommands(Player player,
-                             AfkSession session,
-                             AfkZoneConfig.RankProfile profile,
-                             AfkZoneConfig.Milestone milestone) {
-        Map<String, String> placeholders = placeholders(player, session, profile, milestone);
-        for (String raw : milestone.commands()) {
+    private List<AfkZoneConfig.ChanceReward> rollChanceRewards(List<AfkZoneConfig.ChanceReward> rewards) {
+        List<AfkZoneConfig.ChanceReward> awarded = new java.util.ArrayList<>();
+        for (AfkZoneConfig.ChanceReward reward : rewards) {
+            if (ThreadLocalRandom.current().nextDouble(100.0D) < reward.chancePercent()) {
+                awarded.add(reward);
+            }
+        }
+        return List.copyOf(awarded);
+    }
+
+    private void runCommands(List<String> commands, Map<String, String> placeholders) {
+        for (String raw : commands) {
             String command = Text.apply(raw, placeholders).trim();
             if (command.isEmpty()) {
                 continue;
@@ -215,16 +228,23 @@ public final class AfkZoneService {
     private Map<String, String> placeholders(Player player,
                                              AfkSession session,
                                              AfkZoneConfig.RankProfile profile,
-                                             AfkZoneConfig.Milestone milestone) {
+                                             List<AfkZoneConfig.ChanceReward> awarded) {
         Map<String, String> values = profilePlaceholders(player, profile);
+        AfkZoneConfig.BaseReward baseReward = configSupplier.get().rewards().base();
         values.put("uuid", player.getUniqueId().toString());
         values.put("time", formatElapsed(elapsedSeconds(session)));
         values.put("elapsed_seconds", Long.toString(elapsedSeconds(session)));
-        values.put("group", session.rewardGroupId());
-        values.put("reward_group", session.rewardGroupId());
-        values.put("milestone", milestone == null ? "" : milestone.id());
-        values.put("reward_name", milestone == null ? "" : milestone.displayName());
-        values.put("amount", milestone == null ? "" : Integer.toString(milestone.amount()));
+        values.put("interval", formatElapsed(profile.rewardIntervalSeconds()));
+        values.put("interval_seconds", Long.toString(profile.rewardIntervalSeconds()));
+        values.put("next_reward_in", formatElapsed(nextRewardInSeconds(session)));
+        values.put("group", profile.id());
+        values.put("reward_group", profile.id());
+        values.put("base_reward", baseReward.displayName());
+        values.put("base_amount", Integer.toString(baseReward.amount()));
+        values.put("bonus_rewards", formatBonusRewards(awarded));
+        values.put("reward_name", awarded.isEmpty() ? baseReward.displayName() : awarded.getFirst().displayName());
+        values.put("reward_names", rewardNames(baseReward, awarded));
+        values.put("amount", awarded.isEmpty() ? Integer.toString(baseReward.amount()) : Integer.toString(awarded.getFirst().amount()));
         return values;
     }
 
@@ -237,13 +257,20 @@ public final class AfkZoneService {
         return values;
     }
 
-    private AfkZoneConfig.RewardGroup rewardGroup(String id) {
-        AfkZoneConfig config = configSupplier.get();
-        AfkZoneConfig.RewardGroup group = config.rewardGroups().get(id);
-        if (group != null) {
-            return group;
+    private String formatBonusRewards(List<AfkZoneConfig.ChanceReward> awarded) {
+        if (awarded.isEmpty()) {
+            return "";
         }
-        return config.rewardGroups().getOrDefault("default", new AfkZoneConfig.RewardGroup("default", List.of()));
+        return " + " + String.join(", ", awarded.stream()
+                .map(reward -> reward.displayName() + " x" + reward.amount())
+                .toList());
+    }
+
+    private String rewardNames(AfkZoneConfig.BaseReward baseReward, List<AfkZoneConfig.ChanceReward> awarded) {
+        List<String> names = new java.util.ArrayList<>();
+        names.add(baseReward.displayName());
+        names.addAll(awarded.stream().map(AfkZoneConfig.ChanceReward::displayName).toList());
+        return String.join(", ", names);
     }
 
     private Optional<AfkZoneConfig.RankProfile> profile(String id) {
@@ -277,6 +304,10 @@ public final class AfkZoneService {
 
     private long elapsedSeconds(AfkSession session) {
         return Math.max(0L, Duration.between(session.enteredAt(), clock.instant()).toSeconds());
+    }
+
+    private long nextRewardInSeconds(AfkSession session) {
+        return Math.max(0L, Duration.between(clock.instant(), session.nextRewardAt()).toSeconds());
     }
 
     private String formatElapsed(long seconds) {

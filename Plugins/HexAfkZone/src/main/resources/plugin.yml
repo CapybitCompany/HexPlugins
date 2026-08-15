@@ -2,7 +2,7 @@ name: HexAfkZone
 version: '1.0.0'
 main: hexafkzone.HexAfkZonePlugin
 api-version: '1.21.11'
-description: AFK zone milestones and rewards.
+description: AFK zone timed rewards.
 authors: [HexDevTeam]
 
 commands:
@@ -13,7 +13,7 @@ commands:
 
 permissions:
   hexafkzone.admin:
-    description: Allows reloading HexAfkZone and uses elite AFK profile.
+    description: Allows reloading HexAfkZone and uses admin AFK profile.
     default: op
   hexafkzone.rank.default:
     description: Access marker for default AFK profile.
@@ -32,4 +32,7 @@ permissions:
     default: false
   hexafkzone.rank.elite:
     description: Access marker for Elite AFK profile.
+    default: false
+  hexafkzone.rank.admin:
+    description: Access marker for Admin AFK profile.
     default: false

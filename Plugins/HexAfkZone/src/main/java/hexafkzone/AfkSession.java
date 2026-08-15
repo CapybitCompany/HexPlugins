@@ -1,25 +1,22 @@
 package hexafkzone;
 
 import java.time.Instant;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
 final class AfkSession {
 
     private final UUID playerId;
     private final String profileId;
-    private final String rewardGroupId;
     private final Instant enteredAt;
-    private final Set<String> claimedMilestones = new HashSet<>();
+    private Instant nextRewardAt;
     private Instant rewardMessageUntil;
     private String rewardMessage;
 
-    AfkSession(UUID playerId, String profileId, String rewardGroupId, Instant enteredAt) {
+    AfkSession(UUID playerId, String profileId, Instant enteredAt, Instant nextRewardAt) {
         this.playerId = playerId;
         this.profileId = profileId;
-        this.rewardGroupId = rewardGroupId;
         this.enteredAt = enteredAt;
+        this.nextRewardAt = nextRewardAt;
     }
 
     UUID playerId() {
@@ -30,16 +27,16 @@ final class AfkSession {
         return profileId;
     }
 
-    String rewardGroupId() {
-        return rewardGroupId;
-    }
-
     Instant enteredAt() {
         return enteredAt;
     }
 
-    Set<String> claimedMilestones() {
-        return claimedMilestones;
+    Instant nextRewardAt() {
+        return nextRewardAt;
+    }
+
+    void nextRewardAt(Instant nextRewardAt) {
+        this.nextRewardAt = nextRewardAt;
     }
 
     Instant rewardMessageUntil() {

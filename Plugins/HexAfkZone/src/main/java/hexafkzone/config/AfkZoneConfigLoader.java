@@ -5,10 +5,8 @@ import org.bukkit.configuration.file.FileConfiguration;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.logging.Logger;
 
 public final class AfkZoneConfigLoader {
@@ -22,15 +20,15 @@ public final class AfkZoneConfigLoader {
                 config.getString("messages.reload-success", "&aPrzeladowano konfiguracje."),
                 config.getString("messages.reload-failed", "&cNie udalo sie przeladowac konfiguracji. Sprawdz konsole."),
                 config.getString("messages.zone-subtitle", "{color}STREFA AFK"),
-                config.getString("messages.timer-actionbar", "{color}Jesteś AFK od: &f{time}"),
-                config.getString("messages.reward-actionbar", "{color}Otrzymano: &f{reward_name} x{amount}")
+                config.getString("messages.timer-actionbar", "{color}Jestes AFK od: &f{time}"),
+                config.getString("messages.reward-actionbar", "{color}Otrzymano: &a{base_reward}&7{bonus_rewards}")
         );
         int rewardMessageSeconds = Math.max(1, config.getInt("reward-message-seconds", 3));
         AfkZoneConfig.Sounds sounds = new AfkZoneConfig.Sounds(sound(config.getConfigurationSection("sounds.reward")));
         List<AfkZoneConfig.RankProfile> rankProfiles = rankProfiles(config, logger);
-        Map<String, AfkZoneConfig.RewardGroup> rewardGroups = rewardGroups(config, logger);
+        AfkZoneConfig.Rewards rewards = rewards(config, logger);
         return new AfkZoneConfig(config.getBoolean("enabled", true), region, messages, rewardMessageSeconds,
-                sounds, rankProfiles, rewardGroups);
+                sounds, rankProfiles, rewards);
     }
 
     private AfkZoneConfig.Region region(FileConfiguration config) {
@@ -77,11 +75,16 @@ public final class AfkZoneConfigLoader {
                 continue;
             }
             String id = normalizeId(key);
+            long intervalSeconds = durationSeconds(profile.getString("reward-interval", defaultInterval(id)));
+            if (intervalSeconds <= 0L) {
+                logger.warning("HexAfkZone: invalid reward interval in rank-profiles." + key + ". Using 10m.");
+                intervalSeconds = 600L;
+            }
             profiles.add(new AfkZoneConfig.RankProfile(
                     id,
                     profile.getString("display-name", key),
                     profile.getString("color", "&7"),
-                    normalizeId(profile.getString("reward-group", id)),
+                    intervalSeconds,
                     profile.getInt("priority", 0),
                     profile.getBoolean("fallback-access", false),
                     profile.getBoolean("operator-access", false),
@@ -98,54 +101,65 @@ public final class AfkZoneConfigLoader {
     }
 
     private AfkZoneConfig.RankProfile defaultProfile() {
-        return new AfkZoneConfig.RankProfile("default", "Default", "&7", "default", 0,
+        return new AfkZoneConfig.RankProfile("default", "Default", "&7", 600L, 0,
                 true, false, List.of("hexafkzone.rank.default", "group.default"));
     }
 
-    private Map<String, AfkZoneConfig.RewardGroup> rewardGroups(FileConfiguration config, Logger logger) {
-        Map<String, AfkZoneConfig.RewardGroup> groups = new LinkedHashMap<>();
-        ConfigurationSection section = config.getConfigurationSection("reward-groups");
+    private AfkZoneConfig.Rewards rewards(FileConfiguration config, Logger logger) {
+        ConfigurationSection base = config.getConfigurationSection("rewards.base");
+        int baseAmount = Math.max(0, base == null ? 20 : base.getInt("amount", 20));
+        List<String> baseCommands = base == null ? List.of() : base.getStringList("commands");
+        if (baseCommands.isEmpty()) {
+            baseCommands = List.of("hexeconomy add {player} " + baseAmount);
+        }
+        AfkZoneConfig.BaseReward baseReward = new AfkZoneConfig.BaseReward(
+                base == null ? baseAmount + "$" : base.getString("display-name", baseAmount + "$"),
+                baseAmount,
+                List.copyOf(baseCommands)
+        );
+
+        ConfigurationSection section = config.getConfigurationSection("rewards.chance");
+        List<AfkZoneConfig.ChanceReward> chanceRewards = new ArrayList<>();
         if (section == null) {
-            groups.put("default", new AfkZoneConfig.RewardGroup("default", List.of()));
-            return Map.copyOf(groups);
+            chanceRewards.add(defaultChanceReward("afk_key", "Klucz AFK", 50.0D, "hexcustomitem afk_key {player} 1"));
+            chanceRewards.add(defaultChanceReward("epic_key", "Epicki klucz", 2.0D, "hexcustomitem epic_key {player} 1"));
+            chanceRewards.add(defaultChanceReward("premium_key", "Klucz Premium", 0.1D, "hexcustomitem premium_key {player} 1"));
+            return new AfkZoneConfig.Rewards(baseReward, List.copyOf(chanceRewards));
         }
 
         for (String key : section.getKeys(false)) {
+            ConfigurationSection reward = section.getConfigurationSection(key);
+            if (reward == null) {
+                continue;
+            }
             String id = normalizeId(key);
-            ConfigurationSection group = section.getConfigurationSection(key);
-            groups.put(id, new AfkZoneConfig.RewardGroup(id, milestones(group, "reward-groups." + key, logger)));
-        }
-        return Map.copyOf(groups);
-    }
-
-    private List<AfkZoneConfig.Milestone> milestones(ConfigurationSection group, String label, Logger logger) {
-        ConfigurationSection section = group == null ? null : group.getConfigurationSection("milestones");
-        if (section == null) {
-            return List.of();
-        }
-
-        List<AfkZoneConfig.Milestone> milestones = new ArrayList<>();
-        for (String key : section.getKeys(false)) {
-            long seconds = durationSeconds(key);
-            if (seconds <= 0L) {
-                logger.warning("HexAfkZone: invalid milestone time '" + key + "' in " + label + ".");
-                continue;
+            int amount = Math.max(1, reward.getInt("amount", 1));
+            List<String> commands = reward.getStringList("commands");
+            if (commands.isEmpty()) {
+                logger.warning("HexAfkZone: chance reward '" + key + "' has no commands.");
             }
-            ConfigurationSection milestone = section.getConfigurationSection(key);
-            if (milestone == null) {
-                continue;
-            }
-            int amount = Math.max(1, milestone.getInt("amount", 1));
-            milestones.add(new AfkZoneConfig.Milestone(
-                    key,
-                    seconds,
-                    milestone.getString("display-name", key),
+            chanceRewards.add(new AfkZoneConfig.ChanceReward(
+                    id,
+                    reward.getString("display-name", key),
+                    Math.max(0.0D, Math.min(100.0D, reward.getDouble("chance-percent", 0.0D))),
                     amount,
-                    List.copyOf(milestone.getStringList("commands"))
+                    List.copyOf(commands)
             ));
         }
-        milestones.sort(Comparator.comparingLong(AfkZoneConfig.Milestone::seconds));
-        return List.copyOf(milestones);
+        return new AfkZoneConfig.Rewards(baseReward, List.copyOf(chanceRewards));
+    }
+
+    private AfkZoneConfig.ChanceReward defaultChanceReward(String id, String displayName, double chancePercent, String command) {
+        return new AfkZoneConfig.ChanceReward(id, displayName, chancePercent, 1, List.of(command));
+    }
+
+    private String defaultInterval(String profileId) {
+        return switch (profileId) {
+            case "vip" -> "9m";
+            case "svip" -> "8m";
+            case "elite", "media", "admin" -> "6m";
+            default -> "10m";
+        };
     }
 
     private long durationSeconds(String raw) {

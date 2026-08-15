@@ -22,8 +22,8 @@ messages:
   reload-success: "&aPrzeladowano konfiguracje."
   reload-failed: "&cNie udalo sie przeladowac konfiguracji. Sprawdz konsole."
   zone-subtitle: "{color}STREFA AFK"
-  timer-actionbar: "{color}Jesteś AFK od: &f{time}"
-  reward-actionbar: "{color}Otrzymano: &f{reward_name} x{amount}"
+  timer-actionbar: "{color}Jestes AFK od: &f{time} &8| &7Nagroda za: &f{next_reward_in}"
+  reward-actionbar: "{color}Otrzymales: &a{base_reward}&7{bonus_rewards}"
 
 reward-message-seconds: 3
 
@@ -34,33 +34,23 @@ sounds:
     volume: 0.8
     pitch: 1.0
 
-# Profile decyduja o kolorze komunikatow oraz o tym, z ktorej grupy nagrod korzysta gracz.
-# Operatorzy oraz osoby z hexafkzone.admin przyjmuja profil elite.
+# Profile decyduja o kolorze komunikatow oraz czasie miedzy cyklicznymi nagrodami.
+# Operatorzy oraz osoby z hexafkzone.admin przyjmuja profil admin.
 rank-profiles:
   default:
     display-name: "Default"
     color: "&7"
-    reward-group: "default"
+    reward-interval: "10m"
     priority: 0
     fallback-access: true
     operator-access: false
     permissions:
       - "hexafkzone.rank.default"
       - "group.default"
-  media:
-    display-name: "Media"
-    color: "&d"
-    reward-group: "default"
-    priority: 10
-    fallback-access: false
-    operator-access: false
-    permissions:
-      - "hexafkzone.rank.media"
-      - "group.media"
   vip:
     display-name: "VIP"
     color: "&e"
-    reward-group: "vip"
+    reward-interval: "9m"
     priority: 20
     fallback-access: false
     operator-access: false
@@ -70,7 +60,7 @@ rank-profiles:
   svip:
     display-name: "SVIP"
     color: "&6"
-    reward-group: "svip"
+    reward-interval: "8m"
     priority: 30
     fallback-access: false
     operator-access: false
@@ -80,64 +70,61 @@ rank-profiles:
   elite:
     display-name: "Elita"
     color: "&b"
-    reward-group: "elite"
+    reward-interval: "6m"
     priority: 40
     fallback-access: false
-    operator-access: true
+    operator-access: false
     permissions:
       - "hexafkzone.rank.elita"
       - "hexafkzone.rank.elite"
       - "group.elita"
       - "group.elite"
+  media:
+    display-name: "Media"
+    color: "&d"
+    reward-interval: "6m"
+    priority: 45
+    fallback-access: false
+    operator-access: false
+    permissions:
+      - "hexafkzone.rank.media"
+      - "group.media"
+  admin:
+    display-name: "Admin"
+    color: "&c"
+    reward-interval: "6m"
+    priority: 50
+    fallback-access: false
+    operator-access: true
+    permissions:
+      - "hexafkzone.admin"
+      - "hexafkzone.rank.admin"
+      - "group.admin"
 
-# Milestone'y wpisujesz jako dowolne klucze czasu: 5m, 20m, 1h, 01:30:00.
-# commands wykonuja realna nagrode, a display-name/amount buduja komunikat actionbar.
-reward-groups:
-  default:
-    milestones:
-      5m:
-        display-name: "Diament"
-        amount: 1
-        commands:
-          - "give {player} diamond 1"
-      20m:
-        display-name: "Zloto"
-        amount: 8
-        commands:
-          - "give {player} gold_ingot 8"
-  vip:
-    milestones:
-      5m:
-        display-name: "Diament"
-        amount: 2
-        commands:
-          - "give {player} diamond 2"
-      20m:
-        display-name: "Zloto"
-        amount: 16
-        commands:
-          - "give {player} gold_ingot 16"
-  svip:
-    milestones:
-      5m:
-        display-name: "Diament"
-        amount: 3
-        commands:
-          - "give {player} diamond 3"
-      20m:
-        display-name: "Zloto"
-        amount: 24
-        commands:
-          - "give {player} gold_ingot 24"
-  elite:
-    milestones:
-      5m:
-        display-name: "Blok diamentu"
-        amount: 1
-        commands:
-          - "give {player} diamond_block 1"
-      20m:
-        display-name: "Netherite Scrap"
-        amount: 1
-        commands:
-          - "give {player} netherite_scrap 1"
+# Nagrody sa przyznawane cyklicznie po czasie z profilu gracza.
+# base zawsze wpada, chance sa losowane niezaleznie od siebie przy kazdej wyplacie.
+rewards:
+  base:
+    display-name: "20$"
+    amount: 20
+    commands:
+      - "hexeconomy add {player} 20"
+  chance:
+    afk_key:
+      display-name: "&eKlucz AFK"
+      chance-percent: 50.0
+      amount: 1
+      commands:
+        - "hexcustomitem afk_key {player} 1"
+    epic_key:
+      display-name: "&5Epicki klucz"
+      chance-percent: 2.0
+      amount: 1
+      commands:
+        - "hexcustomitem epic_key {player} 1"
+    premium_key:
+      display-name: "&cKlucz Premium"
+      chance-percent: 0.1
+      amount: 1
+      commands:
+        - "hexcustomitem premium_key {player} 1"
