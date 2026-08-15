@@ -687,9 +687,10 @@ public final class BusDriverService implements Listener {
 
     private ItemStack infoItem(CasinoConfig.GuiItem config, String roundLine, Map<String, String> placeholders,
                                BusDriverSession session) {
-        ItemStack stack = new ItemStack(config.material());
+        ItemStack stack = baseItem(config);
         ItemMeta meta = stack.getItemMeta();
         if (meta != null) {
+            applyHeadProfile(meta, config);
             meta.displayName(Text.component(config.name(), placeholders));
             List<net.kyori.adventure.text.Component> lore = new ArrayList<>();
             for (String line : config.lore()) {
