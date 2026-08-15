@@ -1,0 +1,18 @@
+name: HexCasino
+version: '1.0.0'
+main: hexcasino.HexCasinoPlugin
+api-version: '1.21.11'
+description: Configurable casino games for Hex lobby.
+authors: [HexDevTeam]
+softdepend: [PlaceholderAPI, HeadDatabase]
+
+commands:
+  hexcasino:
+    description: Reloads HexCasino.
+    usage: /hexcasino reload
+    aliases: [casino, hcasino]
+
+permissions:
+  hexcasino.admin:
+    description: Allows reloading HexCasino.
+    default: op

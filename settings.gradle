@@ -12,6 +12,7 @@ include 'plugins:IcebergEvent'
 include 'plugins:AreaEffects'
 include 'plugins:HexElimination'
 include 'plugins:HexCustomItems'
+include 'plugins:HexCasino'
 include 'statsapi'
 
 // Physical folder is 'Plugins/...' (capital P), keep logical Gradle path consistent.
@@ -26,4 +27,5 @@ project(':plugins:IcebergEvent').projectDir = file('Plugins/IcebergEvent')
 project(':plugins:AreaEffects').projectDir = file('Plugins/AreaEffects')
 project(':plugins:HexElimination').projectDir = file('Plugins/HexElimination')
 project(':plugins:HexCustomItems').projectDir = file('Plugins/HexCustomItems')
+project(':plugins:HexCasino').projectDir = file('Plugins/HexCasino')
 project(':statsapi').projectDir = file('StatsApi')
