@@ -2,7 +2,10 @@ package hexcustomitems.service;
 
 import hexcustomitems.config.HexCustomItemsConfig;
 import hexcustomitems.region.RegionQuery;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -32,6 +35,9 @@ public final class UsePolicyService {
     }
 
     public boolean allowsOffensive(Player player) {
+        if (hexPvpSmpBlocksOffensive(player.getLocation())) {
+            return false;
+        }
         HexCustomItemsConfig.RegionAwareness policy = configSupplier.get().regionAwareness();
         if (!policy.enabled()) {
             return true;
@@ -51,5 +57,27 @@ public final class UsePolicyService {
     @SuppressWarnings("deprecation")
     private boolean worldPvpEnabled(Player player) {
         return player.getWorld().getPVP();
+    }
+
+    private boolean hexPvpSmpBlocksOffensive(Location location) {
+        if (location == null) {
+            return false;
+        }
+        Plugin hexPvpSmp = Bukkit.getPluginManager().getPlugin("HexPvpSmp");
+        if (hexPvpSmp == null || !hexPvpSmp.isEnabled()) {
+            return false;
+        }
+        try {
+            Object protectionService = hexPvpSmp.getClass().getMethod("protectionService").invoke(hexPvpSmp);
+            if (protectionService == null) {
+                return false;
+            }
+            Object result = protectionService.getClass()
+                    .getMethod("isSpawnSafezone", Location.class)
+                    .invoke(protectionService, location);
+            return Boolean.TRUE.equals(result);
+        } catch (ReflectiveOperationException | RuntimeException ignored) {
+            return false;
+        }
     }
 }

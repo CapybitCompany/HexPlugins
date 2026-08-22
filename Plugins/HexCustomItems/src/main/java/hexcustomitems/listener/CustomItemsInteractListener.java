@@ -1,6 +1,7 @@
 package hexcustomitems.listener;
 
 import hexcustomitems.service.CustomItemUseService;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -21,6 +22,9 @@ public final class CustomItemsInteractListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
     public void onInteract(PlayerInteractEvent event) {
+        if (event.useItemInHand() == Event.Result.DENY) {
+            return;
+        }
         if (event.getHand() != EquipmentSlot.HAND) {
             return;
         }
