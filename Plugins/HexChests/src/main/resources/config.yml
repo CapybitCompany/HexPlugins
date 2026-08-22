@@ -99,6 +99,9 @@ test-keys:
         - "&8hexchests:test-key"
 
 chests:
+  # display-name/lore are used for preview items and messages.
+  # Awarded vanilla items stay vanilla by default, so they can stack with survival drops.
+  # To customize the awarded ItemStack, set drop-display-name, drop-lore or drop-custom-model-data on a reward/item.
   afk:
     display-name: "&eSkrzynia AFK"
     location:

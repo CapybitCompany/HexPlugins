@@ -187,8 +187,11 @@ public final class HexChestsConfigLoader {
                     Math.max(1, reward.getInt("amount", 1)),
                     chance,
                     reward.contains("lore") ? List.copyOf(reward.getStringList("lore")) : List.of(),
+                    getString(reward, "drop-display-name", "drop_display_name", null),
+                    lore(reward, "drop-lore", "drop_lore"),
                     enchantments(reward, label + "." + key, logger),
                     customModelData(reward),
+                    customModelData(reward, "drop-custom-model-data", "drop_custom_model_data"),
                     rewardItems(reward.getConfigurationSection("items"), label + "." + key, logger),
                     reward.contains("commands") ? List.copyOf(reward.getStringList("commands")) : List.of()
             ));
@@ -275,8 +278,22 @@ public final class HexChestsConfigLoader {
     }
 
     private Integer customModelData(ConfigurationSection section) {
-        int value = section.getInt("custom-model-data", section.getInt("custom_model_data", 0));
+        return customModelData(section, "custom-model-data", "custom_model_data");
+    }
+
+    private Integer customModelData(ConfigurationSection section, String primary, String secondary) {
+        int value = section.getInt(primary, section.getInt(secondary, 0));
         return value > 0 ? value : null;
+    }
+
+    private List<String> lore(ConfigurationSection section, String primary, String secondary) {
+        if (section.contains(primary)) {
+            return List.copyOf(section.getStringList(primary));
+        }
+        if (section.contains(secondary)) {
+            return List.copyOf(section.getStringList(secondary));
+        }
+        return List.of();
     }
 
     private List<HexChestsConfig.RewardItemDefinition> rewardItems(ConfigurationSection section,
@@ -296,8 +313,11 @@ public final class HexChestsConfigLoader {
                     Math.max(1, item.getInt("amount", 1)),
                     item.getString("display-name", null),
                     item.contains("lore") ? List.copyOf(item.getStringList("lore")) : List.of(),
+                    getString(item, "drop-display-name", "drop_display_name", null),
+                    lore(item, "drop-lore", "drop_lore"),
                     enchantments(item, label + ".items." + key, logger),
                     customModelData(item),
+                    customModelData(item, "drop-custom-model-data", "drop_custom_model_data"),
                     entityType(getString(item, "spawner-type", "entity-type", null), label + ".items." + key, logger)
             ));
         }

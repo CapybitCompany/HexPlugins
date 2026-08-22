@@ -186,7 +186,8 @@ public final class ChestService {
         openings.remove(session.playerId());
         HexChestsConfig.ChestDefinition chest = configSupplier.get().chests().get(session.chestId());
         setIndicators(session.inventory(), placeholders(chest, session.reward()));
-        set(session.inventory(), configSupplier.get().gui().opening().resultSlot(), rewardItem(session.reward(), totalChance(List.of(session.reward()))));
+        double totalChance = chest == null ? session.reward().chance() : totalChance(chest.rewards());
+        set(session.inventory(), configSupplier.get().gui().opening().resultSlot(), rewardItem(session.reward(), totalChance));
         award(player, chest, session.reward());
         Map<String, String> placeholders = placeholders(chest, session.reward());
         player.sendActionBar(Text.component(configSupplier.get().messages().rewardActionbar(), placeholders));
@@ -344,14 +345,14 @@ public final class ChestService {
     private ItemStack previewStack(HexChestsConfig.RewardDefinition reward, int amount) {
         if (reward.customItemId() != null) {
             return customItems.createItem(reward.customItemId(), amount, null)
-                    .orElseGet(() -> vanillaRewardItem(reward, amount));
+                    .orElseGet(() -> configuredRewardItem(reward, amount, true));
         }
         if (!reward.items().isEmpty()) {
             HexChestsConfig.RewardItemDefinition first = reward.items().getFirst();
             int previewAmount = Math.max(1, Math.min(first.amount(), first.material().getMaxStackSize()));
-            return vanillaRewardItem(first, previewAmount, reward, reward.items().size() == 1);
+            return configuredRewardItem(first, previewAmount, reward, reward.items().size() == 1, true);
         }
-        return vanillaRewardItem(reward, amount);
+        return configuredRewardItem(reward, amount, true);
     }
 
     private boolean addItem(Player player, ItemStack stack) {
@@ -360,21 +361,34 @@ public final class ChestService {
     }
 
     private ItemStack vanillaRewardItem(HexChestsConfig.RewardDefinition reward, int amount) {
+        return configuredRewardItem(reward, amount, false);
+    }
+
+    private ItemStack configuredRewardItem(HexChestsConfig.RewardDefinition reward, int amount, boolean preview) {
         ItemStack stack = new ItemStack(reward.material(), Math.max(1, amount));
         ItemMeta meta = stack.getItemMeta();
         if (meta != null) {
             Map<String, String> placeholders = placeholders(null, reward);
-            if (reward.displayName() != null) {
-                meta.displayName(Text.component(reward.displayName(), placeholders));
+            String displayName = preview ? reward.displayName() : reward.dropDisplayName();
+            List<String> lore = preview ? reward.lore() : reward.dropLore();
+            Integer customModelData = preview ? reward.customModelData() : reward.dropCustomModelData();
+            boolean changed = false;
+            if (displayName != null) {
+                meta.displayName(Text.component(displayName, placeholders));
+                changed = true;
             }
-            if (!reward.lore().isEmpty()) {
-                meta.lore(Text.lore(reward.lore(), placeholders));
+            if (!lore.isEmpty()) {
+                meta.lore(Text.lore(lore, placeholders));
+                changed = true;
             }
-            if (reward.customModelData() != null) {
-                meta.setCustomModelData(reward.customModelData());
+            if (customModelData != null) {
+                meta.setCustomModelData(customModelData);
+                changed = true;
             }
-            applyEnchantments(meta, reward.enchantments());
-            stack.setItemMeta(meta);
+            changed |= applyEnchantments(meta, reward.enchantments());
+            if (changed) {
+                stack.setItemMeta(meta);
+            }
         }
         return stack;
     }
@@ -383,38 +397,94 @@ public final class ChestService {
                                         int amount,
                                         HexChestsConfig.RewardDefinition reward,
                                         boolean useRewardDisplay) {
+        return configuredRewardItem(item, amount, reward, useRewardDisplay, false);
+    }
+
+    private ItemStack configuredRewardItem(HexChestsConfig.RewardItemDefinition item,
+                                           int amount,
+                                           HexChestsConfig.RewardDefinition reward,
+                                           boolean useRewardDisplay,
+                                           boolean preview) {
         ItemStack stack = new ItemStack(item.material(), Math.max(1, amount));
         ItemMeta meta = stack.getItemMeta();
         if (meta != null) {
             Map<String, String> placeholders = placeholders(null, reward);
-            String displayName = item.displayName() != null
-                    ? item.displayName()
-                    : useRewardDisplay ? reward.displayName() : null;
+            String displayName = itemDisplayName(item, reward, useRewardDisplay, preview);
+            List<String> lore = itemLore(item, reward, useRewardDisplay, preview);
+            Integer customModelData = itemCustomModelData(item, reward, useRewardDisplay, preview);
+            boolean changed = false;
             if (displayName != null) {
                 meta.displayName(Text.component(displayName, placeholders));
+                changed = true;
             }
-            if (!item.lore().isEmpty()) {
-                meta.lore(Text.lore(item.lore(), placeholders));
+            if (!lore.isEmpty()) {
+                meta.lore(Text.lore(lore, placeholders));
+                changed = true;
             }
-            if (item.customModelData() != null) {
-                meta.setCustomModelData(item.customModelData());
+            if (customModelData != null) {
+                meta.setCustomModelData(customModelData);
+                changed = true;
             }
-            applyEnchantments(meta, item.enchantments());
-            applySpawnerType(meta, item);
-            stack.setItemMeta(meta);
+            changed |= applyEnchantments(meta, item.enchantments());
+            changed |= applySpawnerType(meta, item);
+            if (changed) {
+                stack.setItemMeta(meta);
+            }
         }
         return stack;
     }
 
-    private void applySpawnerType(ItemMeta meta, HexChestsConfig.RewardItemDefinition item) {
+    private String itemDisplayName(HexChestsConfig.RewardItemDefinition item,
+                                   HexChestsConfig.RewardDefinition reward,
+                                   boolean useRewardDisplay,
+                                   boolean preview) {
+        if (preview) {
+            return item.displayName() != null
+                    ? item.displayName()
+                    : useRewardDisplay ? reward.displayName() : null;
+        }
+        return item.dropDisplayName() != null
+                ? item.dropDisplayName()
+                : useRewardDisplay ? reward.dropDisplayName() : null;
+    }
+
+    private List<String> itemLore(HexChestsConfig.RewardItemDefinition item,
+                                  HexChestsConfig.RewardDefinition reward,
+                                  boolean useRewardDisplay,
+                                  boolean preview) {
+        if (preview) {
+            return item.lore();
+        }
+        if (!item.dropLore().isEmpty()) {
+            return item.dropLore();
+        }
+        return useRewardDisplay ? reward.dropLore() : List.of();
+    }
+
+    private Integer itemCustomModelData(HexChestsConfig.RewardItemDefinition item,
+                                        HexChestsConfig.RewardDefinition reward,
+                                        boolean useRewardDisplay,
+                                        boolean preview) {
+        if (preview) {
+            return item.customModelData();
+        }
+        if (item.dropCustomModelData() != null) {
+            return item.dropCustomModelData();
+        }
+        return useRewardDisplay ? reward.dropCustomModelData() : null;
+    }
+
+    private boolean applySpawnerType(ItemMeta meta, HexChestsConfig.RewardItemDefinition item) {
         if (item.spawnerType() == null || !(meta instanceof BlockStateMeta blockStateMeta)) {
-            return;
+            return false;
         }
         BlockState state = blockStateMeta.getBlockState();
         if (state instanceof CreatureSpawner spawner) {
             spawner.setSpawnedType(item.spawnerType());
             blockStateMeta.setBlockState(spawner);
+            return true;
         }
+        return false;
     }
 
     private void applyRewardPreviewMeta(ItemStack stack, HexChestsConfig.RewardDefinition reward, double totalChance) {
@@ -443,9 +513,9 @@ public final class ChestService {
         stack.setItemMeta(meta);
     }
 
-    private void applyEnchantments(ItemMeta meta, Map<Enchantment, Integer> enchantments) {
+    private boolean applyEnchantments(ItemMeta meta, Map<Enchantment, Integer> enchantments) {
         if (enchantments.isEmpty()) {
-            return;
+            return false;
         }
         for (Map.Entry<Enchantment, Integer> entry : enchantments.entrySet()) {
             int level = Math.max(1, entry.getValue());
@@ -455,6 +525,7 @@ public final class ChestService {
                 meta.addEnchant(entry.getKey(), level, true);
             }
         }
+        return true;
     }
 
     private String chancePercent(HexChestsConfig.RewardDefinition reward, double totalChance) {

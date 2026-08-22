@@ -1,6 +1,7 @@
 package hexchests;
 
 import hexchests.gui.HexChestsGuiHolder;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
@@ -17,6 +18,7 @@ import org.mockbukkit.mockbukkit.ServerMock;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -25,6 +27,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class HexChestsPluginTest {
+
+    private static final PlainTextComponentSerializer PLAIN = PlainTextComponentSerializer.plainText();
 
     private ServerMock server;
     private HexChestsPlugin plugin;
@@ -152,6 +156,97 @@ class HexChestsPluginTest {
 
         assertFalse(plugin.chestService().hasActiveOpening(player.getUniqueId()));
         assertEquals(List.of("RewardUser afk only 4"), executed);
+    }
+
+    @Test
+    void shouldAwardVanillaItemsByDefaultWhenPreviewMetaIsConfigured() {
+        plugin.getConfig().set("chests.afk.rewards", null);
+        plugin.getConfig().set("chests.afk.rewards.only.material", "EMERALD");
+        plugin.getConfig().set("chests.afk.rewards.only.display-name", "&aSzmaragdy");
+        plugin.getConfig().set("chests.afk.rewards.only.lore", List.of("&7Widoczne tylko w podgladzie"));
+        plugin.getConfig().set("chests.afk.rewards.only.amount", 24);
+        plugin.getConfig().set("chests.afk.rewards.only.chance", 100.0);
+        plugin.saveConfig();
+        assertTrue(plugin.reloadPluginRuntime());
+
+        ItemStack reward = finishAfkOpening("VanillaRewardUser");
+
+        assertEquals(Material.EMERALD, reward.getType());
+        assertEquals(24, reward.getAmount());
+        assertFalse(reward.hasItemMeta() && reward.getItemMeta().hasDisplayName());
+        assertFalse(reward.hasItemMeta() && reward.getItemMeta().hasLore());
+    }
+
+    @Test
+    void shouldApplyDropNameAndLoreOnlyWhenConfiguredForDrop() {
+        plugin.getConfig().set("chests.afk.rewards", null);
+        plugin.getConfig().set("chests.afk.rewards.only.material", "DIAMOND");
+        plugin.getConfig().set("chests.afk.rewards.only.display-name", "&bDiament w podgladzie");
+        plugin.getConfig().set("chests.afk.rewards.only.drop-display-name", "&bDiament nagrody");
+        plugin.getConfig().set("chests.afk.rewards.only.drop-lore", List.of("&7Lore nagrody"));
+        plugin.getConfig().set("chests.afk.rewards.only.amount", 1);
+        plugin.getConfig().set("chests.afk.rewards.only.chance", 100.0);
+        plugin.saveConfig();
+        assertTrue(plugin.reloadPluginRuntime());
+
+        ItemStack reward = finishAfkOpening("CustomRewardUser");
+        ItemMeta meta = reward.getItemMeta();
+
+        assertEquals(Material.DIAMOND, reward.getType());
+        assertNotNull(meta);
+        assertTrue(meta.hasDisplayName());
+        assertTrue(meta.hasLore());
+        assertEquals("Diament nagrody", PLAIN.serialize(meta.displayName()));
+        assertEquals(List.of("Lore nagrody"), meta.lore().stream().map(PLAIN::serialize).toList());
+    }
+
+    @Test
+    void shouldKeepChestChanceOnFinalOpeningItem() {
+        plugin.getConfig().set("chests.afk.rewards", null);
+        plugin.getConfig().set("chests.afk.rewards.common.material", "EMERALD");
+        plugin.getConfig().set("chests.afk.rewards.common.display-name", "&aCommon");
+        plugin.getConfig().set("chests.afk.rewards.common.amount", 1);
+        plugin.getConfig().set("chests.afk.rewards.common.chance", 25.0);
+        plugin.getConfig().set("chests.afk.rewards.rare.material", "DIAMOND");
+        plugin.getConfig().set("chests.afk.rewards.rare.display-name", "&bRare");
+        plugin.getConfig().set("chests.afk.rewards.rare.amount", 1);
+        plugin.getConfig().set("chests.afk.rewards.rare.chance", 75.0);
+        plugin.saveConfig();
+        assertTrue(plugin.reloadPluginRuntime());
+
+        Player player = startAfkOpening("ChanceUser");
+        var session = plugin.chestService().opening(player.getUniqueId()).orElseThrow();
+        double totalChance = plugin.config().chests().get("afk").rewards().stream()
+                .mapToDouble(reward -> reward.chance())
+                .sum();
+        String expectedChance = String.format(Locale.US, "%.1f", (session.reward().chance() / totalChance) * 100.0D);
+
+        plugin.chestService().finishActiveOpening(player);
+
+        ItemStack result = player.getOpenInventory().getTopInventory()
+                .getItem(plugin.config().gui().opening().resultSlot());
+        assertNotNull(result);
+        assertNotNull(result.getItemMeta());
+        List<String> lore = result.getItemMeta().lore().stream().map(PLAIN::serialize).toList();
+        assertTrue(lore.stream().anyMatch(line -> line.contains(expectedChance + "%")));
+        assertFalse(lore.stream().anyMatch(line -> line.contains("100.0%")));
+    }
+
+    private Player startAfkOpening(String playerName) {
+        Player player = server.addPlayer(playerName);
+        player.getInventory().setItemInMainHand(plugin.keyService().createKey("afk", 1));
+        plugin.chestService().handleRightClick(player, plugin.config().chests().get("afk"),
+                player.getInventory().getItemInMainHand());
+        assertTrue(plugin.chestService().hasActiveOpening(player.getUniqueId()));
+        return player;
+    }
+
+    private ItemStack finishAfkOpening(String playerName) {
+        Player player = startAfkOpening(playerName);
+        plugin.chestService().finishActiveOpening(player);
+        ItemStack reward = player.getInventory().getItem(0);
+        assertNotNull(reward);
+        return reward;
     }
 
     private Location location(int x, int y, int z) {

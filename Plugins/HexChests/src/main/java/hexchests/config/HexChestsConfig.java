@@ -119,8 +119,11 @@ public record HexChestsConfig(
             int amount,
             double chance,
             List<String> lore,
+            String dropDisplayName,
+            List<String> dropLore,
             Map<Enchantment, Integer> enchantments,
             Integer customModelData,
+            Integer dropCustomModelData,
             List<RewardItemDefinition> items,
             List<String> commands
     ) {
@@ -131,8 +134,11 @@ public record HexChestsConfig(
             int amount,
             String displayName,
             List<String> lore,
+            String dropDisplayName,
+            List<String> dropLore,
             Map<Enchantment, Integer> enchantments,
             Integer customModelData,
+            Integer dropCustomModelData,
             EntityType spawnerType
     ) {
     }
