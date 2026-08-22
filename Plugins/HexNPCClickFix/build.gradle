@@ -1,0 +1,31 @@
+plugins {
+    id 'java'
+}
+
+group = 'pl.hexnetwork'
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+    maven { url = 'https://repo.purpurmc.org/snapshots' }
+}
+
+dependencies {
+    compileOnly 'org.purpurmc.purpur:purpur-api:1.21.11-R0.1-SNAPSHOT'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 21
+}
+
+tasks.jar {
+    archiveBaseName.set('HexNPCClickFix')
+    archiveVersion.set('')
+}

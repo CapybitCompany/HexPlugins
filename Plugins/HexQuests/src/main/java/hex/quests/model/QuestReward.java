@@ -2,31 +2,31 @@ package hex.quests.model;
 
 import org.bukkit.configuration.ConfigurationSection;
 
-import java.util.Map;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
-public record QuestReward(String type, int amount, String source) {
+public record QuestReward(
+        BigDecimal money,
+        int experience,
+        List<ItemDefinition> items,
+        List<String> consoleCommands
+) {
     public static QuestReward fromConfig(ConfigurationSection section) {
-        return new QuestReward(
-                section.getString("type", ""),
-                section.getInt("amount", 0),
-                section.getString("source", "quest")
-        );
-    }
-
-    public static QuestReward fromMap(Map<?, ?> map) {
-        Object rawType = map.get("type");
-        Object rawAmount = map.get("amount");
-        Object rawSource = map.get("source");
-        return new QuestReward(
-                String.valueOf(rawType != null ? rawType : ""),
-                intValue(rawAmount),
-                String.valueOf(rawSource != null ? rawSource : "quest")
-        );
-    }
-
-    private static int intValue(Object value) {
-        return value instanceof Number number ? number.intValue() : 0;
+        if (section == null) return new QuestReward(BigDecimal.ZERO, 0, List.of(), List.of());
+        BigDecimal money;
+        try { money = new BigDecimal(section.getString("money", "0")); }
+        catch (NumberFormatException ignored) { money = BigDecimal.ZERO; }
+        int experience = Math.max(0, section.getInt("xp", 0));
+        List<ItemDefinition> items = new ArrayList<>();
+        ConfigurationSection itemRoot = section.getConfigurationSection("items");
+        if (itemRoot != null) {
+            for (String key : itemRoot.getKeys(false)) {
+                ConfigurationSection item = itemRoot.getConfigurationSection(key);
+                if (item != null) items.add(ItemDefinition.fromConfig(item, org.bukkit.Material.STONE));
+            }
+        }
+        return new QuestReward(money.max(BigDecimal.ZERO), experience, List.copyOf(items),
+                List.copyOf(section.getStringList("commands")));
     }
 }
-
-

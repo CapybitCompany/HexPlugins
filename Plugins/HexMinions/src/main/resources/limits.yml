@@ -1,8 +1,8 @@
 limits:
   default: 5
   by-town-meta:
-    enabled: true
-    key: "minions.limit"
+    enabled: false
+    key: minions.manual-limit-bonus
   by-permission:
     enabled: true
     values:
@@ -12,11 +12,10 @@ limits:
   by-town-growth:
     enabled: false
     tiers:
-      - min-growth: 0
-        limit: 5
-      - min-growth: 100
-        limit: 7
-      - min-growth: 250
-        limit: 10
-  hard-cap: 30
-
+    - min-growth: 0
+      limit: 5
+    - min-growth: 100
+      limit: 7
+    - min-growth: 250
+      limit: 10
+  hard-cap: 15

@@ -1,0 +1,25 @@
+status: REWARD_MODE_OPERATOR_ENABLED_P0_EVIDENCE_PENDING
+plugin_version: 1.0.0
+source_hash: fe9da040ea0f3f3eb09ddd7ee6f018a376779211bba57d0fa0313d62d9307540
+reel_set_version: v1
+reel_sets_sha256: 2b23e2e74434d26d48e08c04431306845864c93e93739dfd21c6878f0543bcf0
+config_hash: 12cb3b6200f7d654ff104a25b2ea1ed329c3ca30a3a4ecbe8d47274fe96df42e
+paper_version: 1.21.11
+packet_resolver: PacketEvents 2.13.0
+production_variants:
+  - cost: 1
+    frame_ms: 250
+  - cost: 2
+    frame_ms: 225
+  - cost: 5
+    frame_ms: 200
+reports:
+  zero_rng: PASS_LOCAL_STATIC_SCAN
+  deterministic_replay: PASS_LOCAL_SMOKE
+  window_mismatch_regression: PASS_LOCAL_SESSION_TEST
+  network_lag: PENDING_REAL_SERVER
+  visual_stateid: PENDING
+  human_skill_curve: PENDING
+  value_flow: PENDING
+  ui_review: PARTIAL_IMPLEMENTATION_REVIEW
+  legal_review: PENDING

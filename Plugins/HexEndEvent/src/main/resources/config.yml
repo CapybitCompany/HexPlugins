@@ -1,0 +1,35 @@
+event:
+  # Master switch. Domyślnie event jest aktywny; End otwiera się wyłącznie w oknach schedule.
+  enabled: true
+  timezone: "Europe/Warsaw"
+  duration-minutes: 120
+  prepare-before-minutes: 5
+  schedule:
+    - day: TUESDAY
+      time: "18:00"
+    - day: FRIDAY
+      time: "19:00"
+    - day: SUNDAY
+      time: "17:00"
+
+access:
+  block-all-end-environments: true
+  bypass-permission: "hexendevent.bypass"
+  blocked-message-cooldown-seconds: 3
+
+world:
+  end-world: "world_the_end"
+  return-world: "world"
+  reset-before-each-event: true
+  seed-mode: "RANDOM"
+  fixed-seed: 0
+  unload-after-close: true
+
+bossbar:
+  enabled: true
+  update-interval-ticks: 20
+  color: "PURPLE"
+  overlay: "PROGRESS"
+
+runtime:
+  state-file: "runtime.yml"

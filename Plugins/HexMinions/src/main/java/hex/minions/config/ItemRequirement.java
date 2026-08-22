@@ -7,6 +7,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 public record ItemRequirement(
         String id,
+        String specialItemId,
         Material material,
         int amount,
         int customModelData,
@@ -14,14 +15,21 @@ public record ItemRequirement(
         boolean consume
 ) {
     public static ItemRequirement fromConfig(String id, ConfigurationSection section) {
+        String specialItemId = section.getString("special-item", "");
         Material material = Material.matchMaterial(section.getString("material", "STONE"));
         if (material == null) material = Material.STONE;
+        String displayName = section.getString("display-name", specialItemId == null || specialItemId.isBlank() ? material.name() : specialItemId);
+        int configuredAmount = Math.max(1, section.getInt("amount", 1));
+        int normalizedAmount = configuredAmount > 128
+                ? Math.max(192, (int) Math.floor(configuredAmount / 64.0D + 0.5D) * 64)
+                : configuredAmount;
         return new ItemRequirement(
                 id,
+                specialItemId == null ? "" : specialItemId,
                 material,
-                Math.max(1, section.getInt("amount", 1)),
+                normalizedAmount,
                 Math.max(0, section.getInt("custom-model-data", 0)),
-                section.getString("display-name", material.name()),
+                displayName,
                 section.getBoolean("consume", true)
         );
     }

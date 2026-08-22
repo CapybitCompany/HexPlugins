@@ -1,39 +1,331 @@
-schema-version: 1
+schema-version: 2
 
+# Każde zadanie jest niezależną definicją. Trigger to nazwa zdarzenia publikowanego
+# przez HexCore TriggerService. Zewnętrzny plugin custom itemów/mobów może publikować
+# własne triggery i filtrować je np. po custom-item-id lub custom-mob-id.
 quests:
-  daily_miner_01:
-    enabled: true
-    type: DAILY
-    pool: mining_easy
-    weight: 100
-    scope: TOWN_PLAYER
-    title: "Górnicza rozgrzewka"
+  kamienna_dniowka:
+    name: "Kamienna dniówka"
+    description:
+      - "Wykop podstawowe bloki kamienia."
+    icon:
+      material: STONE
     objectives:
-      - id: break_stone
+      - id: stone
         trigger: minecraft.block.break
-        filters:
-          material: STONE
         amount: 128
-    rewards:
-      - type: town.growth.add
-        amount: 1
-        source: quest:daily_miner_01
-
-  daily_ice_beast_01:
-    enabled: true
-    type: DAILY
-    pool: combat_medium
-    weight: 20
-    scope: TOWN_PLAYER
-    title: "Polowanie na Lodowe Bestie"
-    objectives:
-      - id: kill_ice_beasts
-        trigger: custom.mob.kill
         filters:
-          mob-id: hex:ice_beast
-        amount: 10
-    rewards:
-      - type: town.growth.add
-        amount: 2
-        source: quest:daily_ice_beast_01
+          material: [STONE, DEEPSLATE, ANDESITE, DIORITE, GRANITE]
+          player-placed: false
+    reward:
+      money: "1.25"
+      xp: 45
 
+  zapach_drewna:
+    name: "Zapach drewna"
+    description:
+      - "Zdobądź drewno z dowolnego gatunku drzewa."
+    icon:
+      material: IRON_AXE
+    objectives:
+      - id: logs
+        trigger: minecraft.block.break
+        amount: 64
+        filters:
+          tags: LOGS
+          player-placed: false
+    reward:
+      money: "1.00"
+      xp: 45
+
+  czarny_skarb:
+    name: "Czarny skarb"
+    description:
+      - "Wydobądź rudę węgla."
+    icon:
+      material: COAL
+    objectives:
+      - id: coal
+        trigger: minecraft.block.break
+        amount: 32
+        filters:
+          material: [COAL_ORE, DEEPSLATE_COAL_ORE]
+          player-placed: false
+    reward:
+      money: "1.25"
+      xp: 45
+
+  surowy_metal:
+    name: "Surowy metal"
+    description:
+      - "Wydobądź rudy żelaza lub miedzi."
+    icon:
+      material: RAW_IRON
+    objectives:
+      - id: ores
+        trigger: minecraft.block.break
+        amount: 32
+        filters:
+          material: [IRON_ORE, DEEPSLATE_IRON_ORE, COPPER_ORE, DEEPSLATE_COPPER_ORE]
+          player-placed: false
+    reward:
+      money: "1.50"
+      xp: 60
+
+  piaskowa_robota:
+    name: "Piaskowa robota"
+    description:
+      - "Wykop piasek potrzebny do budowy lub szkła."
+    icon:
+      material: SAND
+    objectives:
+      - id: sand
+        trigger: minecraft.block.break
+        amount: 32
+        filters:
+          material: [SAND, RED_SAND]
+          player-placed: false
+    reward:
+      money: "0.75"
+      xp: 30
+
+  polny_bukiet:
+    name: "Polny bukiet"
+    description:
+      - "Zbierz dowolne kwiaty rosnące w świecie."
+    icon:
+      material: POPPY
+    objectives:
+      - id: flowers
+        trigger: minecraft.block.break
+        amount: 10
+        filters:
+          tags: FLOWERS
+          player-placed: false
+    reward:
+      money: "0.50"
+      xp: 30
+
+  dojrzale_plony:
+    name: "Dojrzałe plony"
+    description:
+      - "Zbierz w pełni dojrzałe rośliny uprawne."
+    icon:
+      material: WHEAT
+    objectives:
+      - id: crops
+        trigger: minecraft.block.break
+        amount: 24
+        filters:
+          material: [WHEAT, CARROTS, POTATOES, BEETROOTS, NETHER_WART]
+          mature: true
+    reward:
+      money: "0.75"
+      xp: 45
+
+  nowe_pokolenie:
+    name: "Nowe pokolenie"
+    description:
+      - "Rozmnóż dowolne zwierzęta hodowlane."
+    icon:
+      material: WHEAT
+    objectives:
+      - id: breeding
+        trigger: minecraft.entity.breed
+        amount: 2
+    reward:
+      money: "1.00"
+      xp: 60
+
+  cos_bierze:
+    name: "Coś bierze"
+    description:
+      - "Złów ryby przy użyciu wędki."
+    icon:
+      material: FISHING_ROD
+    objectives:
+      - id: fish
+        trigger: minecraft.fish.catch
+        amount: 3
+        filters:
+          item-type: [COD, SALMON, TROPICAL_FISH, PUFFERFISH]
+    reward:
+      money: "0.75"
+      xp: 45
+
+  cieply_posilek:
+    name: "Ciepły posiłek"
+    description:
+      - "Przygotuj jedzenie i wyjmij je z pieca lub wędzarni."
+    icon:
+      material: COOKED_BEEF
+    objectives:
+      - id: cooked_food
+        trigger: minecraft.furnace.extract
+        amount: 12
+        filters:
+          item-type: [COOKED_BEEF, COOKED_PORKCHOP, COOKED_MUTTON, COOKED_CHICKEN, COOKED_RABBIT, COOKED_COD, COOKED_SALMON, BAKED_POTATO, DRIED_KELP]
+    reward:
+      money: "0.75"
+      xp: 45
+
+  przemysl_ciezki:
+    name: "Przemysł ciężki"
+    description:
+      - "Przetop surowe metale i odbierz sztabki z pieca."
+    icon:
+      material: IRON_INGOT
+    objectives:
+      - id: ingots
+        trigger: minecraft.furnace.extract
+        amount: 64
+        filters:
+          item-type: [IRON_INGOT, COPPER_INGOT, GOLD_INGOT]
+    reward:
+      money: "2.00"
+      xp: 60
+
+  swiatlo_na_droge:
+    name: "Światło na drogę"
+    description:
+      - "Wytwórz lampy z czerwonego kamienia."
+    icon:
+      material: REDSTONE_LAMP
+    objectives:
+      - id: lamps
+        trigger: minecraft.item.craft
+        amount: 4
+        filters:
+          item-type: REDSTONE_LAMP
+    reward:
+      money: "1.00"
+      xp: 30
+
+  imprezowa_atmosfera:
+    name: "Imprezowa atmosfera"
+    description:
+      - "Wytwórz fajerwerki."
+    icon:
+      material: FIREWORK_ROCKET
+    objectives:
+      - id: fireworks
+        trigger: minecraft.item.craft
+        amount: 8
+        filters:
+          item-type: FIREWORK_ROCKET
+    reward:
+      money: "0.75"
+      xp: 30
+
+  left_for_dead:
+    name: "Left For Dead"
+    description:
+      - "Pokonaj zombie i ich podstawowe odmiany."
+    icon:
+      material: ROTTEN_FLESH
+    objectives:
+      - id: zombies
+        trigger: minecraft.entity.kill
+        amount: 15
+        filters:
+          entity-type: [ZOMBIE, HUSK, DROWNED, ZOMBIE_VILLAGER]
+          eligible-kill: true
+    reward:
+      money: "1.25"
+      xp: 45
+
+  kosci_do_szafy:
+    name: "Kości do szafy"
+    description:
+      - "Pokonaj szkielety grasujące po świecie."
+    icon:
+      material: BONE
+    objectives:
+      - id: skeletons
+        trigger: minecraft.entity.kill
+        amount: 10
+        filters:
+          entity-type: [SKELETON, STRAY, BOGGED]
+          eligible-kill: true
+    reward:
+      money: "1.00"
+      xp: 45
+
+  nocny_patrol:
+    name: "Nocny patrol"
+    description:
+      - "Pokonaj dowolne naturalnie pojawiające się potwory."
+    icon:
+      material: IRON_SWORD
+    objectives:
+      - id: monsters
+        trigger: minecraft.entity.kill
+        amount: 30
+        filters:
+          monster: true
+          eligible-kill: true
+    reward:
+      money: "1.50"
+      xp: 60
+
+  oczy_pustki:
+    name: "Oczy pustki"
+    description:
+      - "Pokonuj Endermany i zdobądź z nich perły Endu."
+    icon:
+      material: ENDER_PEARL
+    objectives:
+      - id: pearls
+        trigger: minecraft.entity.kill
+        progress-key: drop-ender-pearl
+        amount: 4
+        filters:
+          entity-type: ENDERMAN
+          eligible-kill: true
+    reward:
+      money: "1.50"
+      xp: 60
+
+  dobry_interes:
+    name: "Dobry interes"
+    description:
+      - "Dokonaj wymian z osadnikami lub wędrownym handlarzem."
+    icon:
+      material: EMERALD
+    objectives:
+      - id: trades
+        trigger: minecraft.player.trade
+        amount: 2
+    reward:
+      money: "0.75"
+      xp: 45
+
+  dluga_wedrowka:
+    name: "Długa wędrówka"
+    description:
+      - "Przemierz świat pieszo bez pojazdów i elytry."
+    icon:
+      material: LEATHER_BOOTS
+    objectives:
+      - id: distance
+        trigger: minecraft.player.walk
+        amount: 10000
+    reward:
+      money: "2.00"
+      xp: 60
+
+  szklana_robota:
+    name: "Szklana robota"
+    description:
+      - "Przetop piasek i odbierz gotowe szkło z pieca."
+    icon:
+      material: GLASS
+    objectives:
+      - id: glass
+        trigger: minecraft.furnace.extract
+        amount: 32
+        filters:
+          item-type: GLASS
+    reward:
+      money: "1.00"
+      xp: 30

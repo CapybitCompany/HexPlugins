@@ -27,7 +27,10 @@ anti_exploit:
     - PLAYER_PLACED_BLOCK
     - UNKNOWN
   private_town_rules:
+    # Legacy switch kept for backwards compatibility; relation-aware keys below are authoritative.
     block_break_collection_enabled: false
+    own_town_block_break_collection_enabled: true
+    foreign_town_block_break_collection_enabled: false
     minion_collection_enabled: true
   debug:
     log_denied_progress: false

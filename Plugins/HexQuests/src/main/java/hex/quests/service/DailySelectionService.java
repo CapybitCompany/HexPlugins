@@ -1,26 +1,31 @@
 package hex.quests.service;
 
 import hex.quests.config.QuestRegistry;
-import hex.quests.database.QuestRepository;
+import hex.quests.database.DailySelectionRepository;
 import hex.quests.model.QuestDefinition;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 public final class DailySelectionService {
-    private final QuestRepository repository;
+    private final BiFunction<LocalDate, List<String>, List<String>> ensureDailySelection;
+    private final Function<LocalDate, List<String>> loadDailySelection;
     private final AtomicReference<Selection> current = new AtomicReference<>(new Selection(LocalDate.MIN, List.of()));
 
-    public DailySelectionService(QuestRepository repository) {
-        this.repository = repository;
+    public DailySelectionService(DailySelectionRepository repository) {
+        this.ensureDailySelection = repository::ensureDailySelection;
+        this.loadDailySelection = repository::loadDailySelection;
     }
 
     public List<String> prepare(LocalDate date, QuestRegistry registry, int count, long seed) {
-        List<String> proposed = choose(registry.weightedCandidates(), count, seed ^ date.toEpochDay());
-        List<String> stored = repository.ensureDailySelection(date, proposed);
+        List<String> proposed = choose(weightedCandidates(registry), count, seed ^ date.toEpochDay());
+        List<String> stored = ensureDailySelection.apply(date, proposed);
         if (stored.size() != count) {
             throw new IllegalStateException("SQL zwrócił " + stored.size() + " zadań dla " + date
                     + ", oczekiwano " + count);
@@ -37,7 +42,7 @@ public final class DailySelectionService {
     public List<String> ids(LocalDate date) {
         Selection selection = current.get();
         if (selection.date.equals(date)) return selection.questIds;
-        return repository.loadDailySelection(date);
+        return loadDailySelection.apply(date);
     }
 
     public List<String> currentIds() {
@@ -69,6 +74,13 @@ public final class DailySelectionService {
             }
         }
         return List.copyOf(selected);
+    }
+
+    private static List<QuestDefinition> weightedCandidates(QuestRegistry registry) {
+        return registry.all().stream()
+                .filter(quest -> quest.type().equalsIgnoreCase("DAILY"))
+                .sorted(Comparator.comparing(QuestDefinition::id))
+                .toList();
     }
 
     private record Selection(LocalDate date, List<String> questIds) {}

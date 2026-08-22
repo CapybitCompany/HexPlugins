@@ -1,0 +1,85 @@
+id: farming.cactus
+aliases:
+- farming_cactus
+- cactus
+- kaktus
+enabled: true
+display:
+  name: '&2Kaktus'
+  category: farming
+  menu_slot: 0
+  icon:
+    material: CACTUS
+tracked_items:
+  base:
+    material: CACTUS
+    amount_value: 1
+valid_sources:
+- MINION_COLLECT
+- NATURAL_CROP_HARVEST
+- CUSTOM_PLUGIN_GRANTED
+sources:
+- trigger: minions.resource.generated
+  amount-from: amount
+  filters:
+    collectionId: farming.cactus
+    resourceId: cactus
+source_rules:
+  NATURAL_CROP_HARVEST:
+    allowed_materials:
+    - CACTUS
+    allowed_worlds:
+    - world
+    - resource_world
+    - mining_world
+    blocked_worlds:
+    - spawn
+    allow_in_town_claims: false
+    deny_player_placed_blocks: true
+    deny_recently_broken_blocks: false
+  MINION_COLLECT:
+    allow_in_town_claims: true
+  CUSTOM_PLUGIN_GRANTED:
+    allow_in_town_claims: true
+levels:
+  1:
+    required: 24
+    display_name: '&2Kaktus I'
+  2:
+    required: 96
+    display_name: '&2Kaktus II'
+  3:
+    required: 768
+    display_name: '&2Kaktus III'
+  4:
+    required: 2304
+    display_name: '&2Kaktus IV'
+  5:
+    required: 6912
+    display_name: '&2Kaktus V'
+  6:
+    required: 32256
+    display_name: '&2Kaktus VI'
+  7:
+    required: 69120
+    display_name: '&2Kaktus VII'
+reward_claim_mode: AUTO
+placeholder:
+  progress_bar:
+    length: 20
+    filled_char: ■
+    empty_char: □
+city_scaling:
+  enabled: true
+  reference-members: 5
+  category: EASY
+  active-hours-per-member-l7: 4
+  manual-rate-per-player: 1105.92
+  reference-addons:
+    1: 8
+    2: 31
+    3: 246
+    4: 738
+    5: 2212
+    6: 10322
+    7: 22119

@@ -49,6 +49,13 @@ public final class QuestRegistry {
                 .toList();
     }
 
+    public List<QuestDefinition> weightedCandidates() {
+        return quests.values().stream()
+                .filter(quest -> quest.type().equalsIgnoreCase("DAILY"))
+                .sorted(Comparator.comparing(QuestDefinition::id))
+                .toList();
+    }
+
     public Set<String> triggerIds() {
         return quests.values().stream()
                 .flatMap(quest -> quest.objectives().stream())

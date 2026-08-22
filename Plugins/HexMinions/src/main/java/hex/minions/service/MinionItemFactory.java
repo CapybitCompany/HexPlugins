@@ -103,6 +103,13 @@ public final class MinionItemFactory {
         }
     }
 
+    public void unmarkStorageChestBlock(Block block) {
+        if (block == null || !(block.getState() instanceof TileState state)) return;
+        state.getPersistentDataContainer().remove(kindKey);
+        state.getPersistentDataContainer().remove(storageChestIdKey);
+        state.update(true, false);
+    }
+
     public Optional<String> readStorageChestBlockId(Block block) {
         if (block == null || !(block.getState() instanceof TileState state)) return Optional.empty();
         PersistentDataContainer pdc = state.getPersistentDataContainer();
@@ -132,8 +139,8 @@ public final class MinionItemFactory {
         return raw.replace("<tier>", String.valueOf(tier))
                 .replace("<max_tier>", String.valueOf(type.maxTier()))
                 .replace("<name>", type.displayName())
-                .replace("<action_time>", String.valueOf(tierDefinition.actionTimeSeconds()))
-                .replace("<storage_limit>", String.valueOf(tierDefinition.storage()));
+                .replace("<action_time>", tierDefinition.actionTimeText())
+                .replace("<storage_limit>", tierDefinition.storageSlots() + " slotów");
     }
 
     public record MinionItemData(String typeId, int tier, UUID minionId) {

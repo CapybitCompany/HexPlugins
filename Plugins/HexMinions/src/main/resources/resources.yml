@@ -1,6 +1,6 @@
 resources:
   cobblestone:
-    display-name: <gray>Cobblestone</gray>
+    display-name: <aqua>Bruk</aqua>
     material: COBBLESTONE
     collection-id: mining.cobblestone
     worth: 1.0
@@ -8,27 +8,31 @@ resources:
     tags:
     - mining
     - block
-  enchanted_cobblestone:
-    display-name: <aqua>Skompresowany Bruk</aqua>
-    material: COBBLESTONE
-    custom-model-data: 10001
-    collection-id: mining.cobblestone
-    worth: 160.0
-    stack-size: 64
-    tags:
-    - mining
-    - enchanted
+    compression:
+      enabled: true
+      block-convertible: true
+      compressed-material: COBBLESTONE
+      unlock-minion-level: 1
+      compressed-unlock-minion-level: 1
+      super-unlock-minion-level: 1
   diamond:
-    display-name: <aqua>Diamond</aqua>
+    display-name: <aqua>Diament</aqua>
     material: DIAMOND
-    collection-id: mining_diamond
+    collection-id: mining.diamond
     worth: 8.0
     stack-size: 64
     tags:
     - mining
     - gem
+    compression:
+      enabled: true
+      block-convertible: true
+      compressed-material: DIAMOND_BLOCK
+      unlock-minion-level: 1
+      compressed-unlock-minion-level: 1
+      super-unlock-minion-level: 1
   iron:
-    display-name: <white>Iron Ingot</white>
+    display-name: <aqua>Sztabka żelaza</aqua>
     material: IRON_INGOT
     collection-id: mining.iron
     worth: 2.0
@@ -36,8 +40,16 @@ resources:
     tags:
     - mining
     - ingot
+    compression:
+      enabled: true
+      block-convertible: true
+      compressed-material: IRON_BLOCK
+      unlock-minion-level: 1
+      unlock-minion-id: iron
+      compressed-unlock-minion-level: 1
+      super-unlock-minion-level: 1
   dirt:
-    display-name: <gold>Dirt</gold>
+    display-name: <aqua>Ziemia</aqua>
     material: DIRT
     collection-id: mining.dirt
     worth: 0.5
@@ -45,8 +57,15 @@ resources:
     tags:
     - mining
     - block
+    compression:
+      enabled: true
+      block-convertible: true
+      compressed-material: DIRT
+      unlock-minion-level: 1
+      compressed-unlock-minion-level: 1
+      super-unlock-minion-level: 1
   stone:
-    display-name: <gray>Stone</gray>
+    display-name: <aqua>Kamień</aqua>
     material: STONE
     collection-id: mining.stone
     worth: 1.0
@@ -54,10 +73,17 @@ resources:
     tags:
     - mining
     - block
+    compression:
+      enabled: true
+      block-convertible: true
+      compressed-material: STONE
+      unlock-minion-level: 1
+      compressed-unlock-minion-level: 1
+      super-unlock-minion-level: 1
   compressed_cobblestone:
-    display-name: <aqua>Skompresowany Bruk</aqua>
-    material: COBBLESTONE
-    custom-model-data: 10001
+    display-name: <aqua>Skompresowany blok bruku</aqua>
+    # Legacy alias: bruk jest vanilla, więc zachowuje zwykły COBBLESTONE i CMD=0.
+    custom-model-data: 0
     collection-id: mining.cobblestone
     worth: 160.0
     stack-size: 64
@@ -65,3 +91,754 @@ resources:
     - mining
     - compressed
     - special
+    compression:
+      enabled: false
+      block-convertible: false
+  oak_plank:
+    display-name: <aqua>Drewno dębowe</aqua>
+    material: OAK_LOG
+    collection-id: foraging.oak_wood
+    worth: 1.0
+    stack-size: 64
+    tags:
+    - wood
+    - block
+    - foraging
+    compression:
+      enabled: true
+      block-convertible: true
+      compressed-material: OAK_LOG
+      unlock-minion-level: 1
+      compressed-unlock-minion-level: 1
+      super-unlock-minion-level: 1
+  coal:
+    display-name: <aqua>Węgiel</aqua>
+    material: COAL
+    collection-id: mining.coal
+    worth: 1.5
+    stack-size: 64
+    tags:
+    - mining
+    - fuel
+    compression:
+      enabled: true
+      block-convertible: true
+      compressed-material: COAL
+      unlock-minion-level: 1
+      compressed-unlock-minion-level: 1
+      super-unlock-minion-level: 1
+  redstone:
+    display-name: <aqua>Redstone</aqua>
+    material: REDSTONE
+    collection-id: mining.redstone
+    worth: 1.0
+    stack-size: 64
+    tags:
+    - mining
+    - dust
+    compression:
+      enabled: true
+      block-convertible: true
+      compressed-material: REDSTONE_BLOCK
+      unlock-minion-level: 1
+      compressed-unlock-minion-level: 1
+      super-unlock-minion-level: 1
+  uranium:
+    display-name: <dark_green>Uran</dark_green>
+    material: EMERALD
+    custom-model-data: 12001
+    collection-id: mining.uranium
+    worth: 100.0
+    stack-size: 64
+    tags:
+    - mining
+    - radioactive
+    - ore
+    compression:
+      enabled: true
+      block-convertible: true
+      compressed-material: EMERALD
+      unlock-minion-level: 1
+      compressed-unlock-minion-level: 1
+      super-unlock-minion-level: 1
+  iron_ore:
+    display-name: <aqua>Surowe żelazo</aqua>
+    material: RAW_IRON
+    collection-id: mining.iron
+    worth: 2.0
+    stack-size: 64
+    tags:
+    - mining
+    - ore
+    compression:
+      enabled: false
+      block-convertible: false
+  gold_ore:
+    display-name: <aqua>Surowe złoto</aqua>
+    material: RAW_GOLD
+    collection-id: mining.gold
+    worth: 3.0
+    stack-size: 64
+    tags:
+    - mining
+    - ore
+    compression:
+      enabled: false
+      block-convertible: false
+  gold:
+    display-name: <aqua>Sztabka złota</aqua>
+    material: GOLD_INGOT
+    collection-id: mining.gold
+    worth: 3.0
+    stack-size: 64
+    tags:
+    - mining
+    - ingot
+    compression:
+      enabled: true
+      block-convertible: true
+      compressed-material: GOLD_BLOCK
+      unlock-minion-level: 1
+      unlock-minion-id: gold
+      compressed-unlock-minion-level: 1
+      super-unlock-minion-level: 1
+  obsidian:
+    display-name: <aqua>Obsydian</aqua>
+    material: OBSIDIAN
+    collection-id: mining.obsidian
+    worth: 12.0
+    stack-size: 64
+    tags:
+    - mining
+    - block
+    compression:
+      enabled: true
+      block-convertible: true
+      compressed-material: OBSIDIAN
+      unlock-minion-level: 1
+      compressed-unlock-minion-level: 1
+      super-unlock-minion-level: 1
+  netherite:
+    display-name: <aqua>Netherit</aqua>
+    material: NETHERITE_SCRAP
+    collection-id: mining.netherite
+    worth: 250.0
+    stack-size: 64
+    tags:
+    - mining
+    - rare
+    compression:
+      enabled: false
+      block-convertible: false
+  coal_dust:
+    display-name: <aqua>Pył węglowy</aqua>
+    material: GUNPOWDER
+    custom-model-data: 13001
+    collection-id: mining.coal
+    worth: 1.5
+    stack-size: 64
+    tags:
+    - dust
+    - macerator-output
+    compression:
+      enabled: false
+      block-convertible: false
+  iron_dust:
+    display-name: <aqua>Pył żelaza</aqua>
+    material: GUNPOWDER
+    custom-model-data: 13002
+    collection-id: mining.iron
+    worth: 2.0
+    stack-size: 64
+    tags:
+    - dust
+    - macerator-output
+    compression:
+      enabled: false
+      block-convertible: false
+  gold_dust:
+    display-name: <aqua>Pył złota</aqua>
+    material: GUNPOWDER
+    custom-model-data: 13003
+    collection-id: mining.gold
+    worth: 3.0
+    stack-size: 64
+    tags:
+    - dust
+    - macerator-output
+    compression:
+      enabled: false
+      block-convertible: false
+  copper_dust:
+    display-name: <aqua>Pył miedzi</aqua>
+    material: GUNPOWDER
+    custom-model-data: 13004
+    collection-id: mining.copper
+    worth: 1.5
+    stack-size: 64
+    tags:
+    - dust
+    - macerator-output
+    compression:
+      enabled: false
+      block-convertible: false
+  diamond_dust:
+    display-name: <aqua>Pył diamentu</aqua>
+    material: GUNPOWDER
+    custom-model-data: 13005
+    collection-id: mining.diamond
+    worth: 8.0
+    stack-size: 64
+    tags:
+    - dust
+    - macerator-output
+    compression:
+      enabled: false
+      block-convertible: false
+  redstone_dust_rich:
+    display-name: <aqua>Wzbogacony pył redstone</aqua>
+    material: REDSTONE
+    custom-model-data: 13006
+    collection-id: mining.redstone
+    worth: 2.0
+    stack-size: 64
+    tags:
+    - dust
+    - macerator-output
+    compression:
+      enabled: false
+      block-convertible: false
+  lapis_dust:
+    display-name: <aqua>Pył lazurytu</aqua>
+    material: LAPIS_LAZULI
+    custom-model-data: 13007
+    collection-id: mining.lapis
+    worth: 2.0
+    stack-size: 64
+    tags:
+    - dust
+    - macerator-output
+    compression:
+      enabled: false
+      block-convertible: false
+  stone_dust:
+    display-name: <aqua>Pył kamienia</aqua>
+    material: GUNPOWDER
+    custom-model-data: 13008
+    collection-id: mining.stone
+    worth: 1.0
+    stack-size: 64
+    tags:
+    - dust
+    - macerator-output
+    compression:
+      enabled: false
+      block-convertible: false
+  rotten_flesh:
+    display-name: <aqua>Zgniłe mięso</aqua>
+    material: ROTTEN_FLESH
+    collection-id: ''
+    worth: 0.2
+    stack-size: 64
+    tags:
+    - mob
+    - zombie
+    compression:
+      enabled: false
+      block-convertible: false
+  potato:
+    display-name: <aqua>Ziemniak</aqua>
+    material: POTATO
+    collection-id: ''
+    worth: 0.5
+    stack-size: 64
+    tags:
+    - mob
+    - zombie
+    - crop
+    compression:
+      enabled: false
+      block-convertible: false
+  carrot:
+    display-name: <aqua>Marchew</aqua>
+    material: CARROT
+    collection-id: ''
+    worth: 0.5
+    stack-size: 64
+    tags:
+    - mob
+    - zombie
+    - crop
+    compression:
+      enabled: false
+      block-convertible: false
+  golden_carrot:
+    display-name: <aqua>Złota marchew</aqua>
+    material: GOLDEN_CARROT
+    collection-id: ''
+    worth: 5.0
+    stack-size: 64
+    tags:
+    - mob
+    - zombie
+    - rare
+    compression:
+      enabled: false
+      block-convertible: false
+  feather:
+    display-name: <aqua>Piórko</aqua>
+    material: FEATHER
+    collection-id: ''
+    worth: 0.8
+    stack-size: 64
+    tags:
+    - mob
+    - zombie
+    compression:
+      enabled: false
+      block-convertible: false
+  experience_bottle:
+    display-name: <aqua>Butelka doświadczenia</aqua>
+    material: EXPERIENCE_BOTTLE
+    collection-id: ''
+    worth: 6.0
+    stack-size: 64
+    tags:
+    - mob
+    - experience
+    compression:
+      enabled: false
+      block-convertible: false
+  silverfish_armor:
+    display-name: <aqua>Pancerz rybika cukrowego</aqua>
+    material: IRON_CHESTPLATE
+    custom-model-data: 15110
+    collection-id: ''
+    worth: 250.0
+    stack-size: 1
+    tags:
+    - mob
+    - silverfish
+    - armor
+    - special
+    compression:
+      enabled: false
+      block-convertible: false
+  bow:
+    display-name: <aqua>Łuk</aqua>
+    material: BOW
+    collection-id: ''
+    worth: 4.0
+    stack-size: 1
+    tags:
+    - mob
+    - skeleton
+    - weapon
+    compression:
+      enabled: false
+      block-convertible: false
+  arrow:
+    display-name: <aqua>Strzała</aqua>
+    material: ARROW
+    collection-id: ''
+    worth: 0.4
+    stack-size: 64
+    tags:
+    - mob
+    - skeleton
+    compression:
+      enabled: false
+      block-convertible: false
+  bone:
+    display-name: <aqua>Kość</aqua>
+    material: BONE
+    collection-id: ''
+    worth: 0.8
+    stack-size: 64
+    tags:
+    - mob
+    - skeleton
+    compression:
+      enabled: false
+      block-convertible: false
+  bone_meal:
+    display-name: <aqua>Proszek kostny</aqua>
+    material: BONE_MEAL
+    collection-id: ''
+    worth: 0.4
+    stack-size: 64
+    tags:
+    - mob
+    - skeleton
+    compression:
+      enabled: false
+      block-convertible: false
+  spider_eye:
+    display-name: <aqua>Oko pająka</aqua>
+    material: SPIDER_EYE
+    collection-id: ''
+    worth: 1.0
+    stack-size: 64
+    tags:
+    - mob
+    - spider
+    compression:
+      enabled: false
+      block-convertible: false
+  string:
+    display-name: <aqua>Nitka</aqua>
+    material: STRING
+    collection-id: ''
+    worth: 0.4
+    stack-size: 64
+    tags:
+    - mob
+    - spider
+    compression:
+      enabled: false
+      block-convertible: false
+  spruce_wood:
+    display-name: <aqua>Drewno świerkowe</aqua>
+    material: SPRUCE_LOG
+    collection-id: foraging.spruce_wood
+    worth: 1.0
+    stack-size: 64
+    tags:
+    - foraging
+    - wood
+    - block
+    compression:
+      enabled: true
+      block-convertible: true
+      compressed-material: SPRUCE_LOG
+      unlock-minion-level: 1
+      compressed-unlock-minion-level: 1
+      super-unlock-minion-level: 1
+  copper:
+    display-name: <aqua>Surowa miedź</aqua>
+    material: RAW_COPPER
+    collection-id: mining.copper
+    worth: 2.0
+    stack-size: 64
+    tags:
+    - mining
+    - ore
+    compression:
+      enabled: true
+      block-convertible: true
+      compressed-material: RAW_COPPER_BLOCK
+      unlock-minion-level: 1
+      compressed-unlock-minion-level: 1
+      super-unlock-minion-level: 1
+  copper_ingot:
+    display-name: <aqua>Sztabka miedzi</aqua>
+    material: COPPER_INGOT
+    collection-id: mining.copper
+    worth: 2.0
+    stack-size: 64
+    tags:
+    - mining
+    - ingot
+    compression:
+      enabled: false
+      block-convertible: false
+  rare_elements:
+    display-name: <light_purple>Rzadkie pierwiastki</light_purple>
+    material: AMETHYST_SHARD
+    collection-id: mining.rare_elements
+    worth: 250.0
+    stack-size: 64
+    tags:
+    - mining
+    - rare
+    - special-drop
+    compression:
+      enabled: false
+      block-convertible: false
+    custom-model-data: 12601
+  technical_block:
+    display-name: <aqua>Blok techniczny</aqua>
+    material: IRON_INGOT
+    collection-id: mining.rare_elements
+    worth: 500.0
+    stack-size: 64
+    tags:
+    - machine
+    - component
+    - special
+    compression:
+      enabled: false
+      block-convertible: false
+    custom-model-data: 12701
+  graphite:
+    display-name: <aqua>Grafit</aqua>
+    material: CHARCOAL
+    collection-id: industrial.graphite
+    worth: 20.0
+    stack-size: 64
+    tags:
+    - industrial
+    - macerator-output
+    compression:
+      enabled: false
+      block-convertible: false
+    custom-model-data: 12702
+  graphene:
+    display-name: <aqua>Grafen</aqua>
+    material: BLACK_DYE
+    collection-id: industrial.graphene
+    worth: 120.0
+    stack-size: 64
+    tags:
+    - industrial
+    - advanced
+    compression:
+      enabled: false
+      block-convertible: false
+    custom-model-data: 12703
+  wool:
+    display-name: <aqua>Wełna</aqua>
+    material: WHITE_WOOL
+    collection-id: animals.wool
+    worth: 1.0
+    stack-size: 64
+    tags:
+    - animal
+    - wool
+    compression:
+      enabled: false
+      block-convertible: false
+  mutton:
+    display-name: <aqua>Mięso owcy</aqua>
+    material: MUTTON
+    collection-id: animals.mutton
+    worth: 1.5
+    stack-size: 64
+    tags:
+    - animal
+    - meat
+    - sheep
+    compression:
+      enabled: false
+      block-convertible: false
+  porkchop:
+    display-name: <aqua>Mięso świni</aqua>
+    material: PORKCHOP
+    collection-id: animals.pork
+    worth: 1.5
+    stack-size: 64
+    tags:
+    - animal
+    - meat
+    - pig
+    compression:
+      enabled: false
+      block-convertible: false
+  beef:
+    display-name: <aqua>Mięso krowy</aqua>
+    material: BEEF
+    collection-id: animals.beef
+    worth: 1.5
+    stack-size: 64
+    tags:
+    - animal
+    - meat
+    - cow
+    compression:
+      enabled: false
+      block-convertible: false
+  leather:
+    display-name: <aqua>Skóra</aqua>
+    material: LEATHER
+    collection-id: animals.leather
+    worth: 1.0
+    stack-size: 64
+    tags:
+    - animal
+    - cow
+    compression:
+      enabled: false
+      block-convertible: false
+  chicken_meat:
+    display-name: <aqua>Mięso z kurczaka</aqua>
+    material: CHICKEN
+    collection-id: animals.chicken_meat
+    worth: 1.2
+    stack-size: 64
+    tags:
+    - animal
+    - meat
+    - chicken
+    compression:
+      enabled: false
+      block-convertible: false
+  egg:
+    display-name: <aqua>Jajko</aqua>
+    material: EGG
+    collection-id: ''
+    worth: 0.5
+    stack-size: 64
+    tags:
+    - animal
+    - chicken
+    compression:
+      enabled: false
+      block-convertible: false
+  tin_ore:
+    display-name: <aqua>Ruda cyny</aqua>
+    material: RAW_IRON
+    custom-model-data: 14001
+    collection-id: mining.tin
+    worth: 4.0
+    stack-size: 64
+    tags:
+    - mining
+    - ore
+    - tin
+    compression:
+      enabled: false
+      block-convertible: false
+  tin_ingot:
+    display-name: <aqua>Sztabka cyny</aqua>
+    material: IRON_INGOT
+    custom-model-data: 14002
+    collection-id: mining.tin
+    worth: 5.0
+    stack-size: 64
+    tags:
+    - mining
+    - ingot
+    - tin
+    compression:
+      enabled: true
+      block-convertible: true
+      compressed-material: IRON_INGOT
+      unlock-minion-level: 1
+      unlock-minion-id: tin
+      compressed-unlock-minion-level: 1
+      super-unlock-minion-level: 1
+  spruce_resin:
+    display-name: <aqua>Żywica</aqua>
+    material: HONEYCOMB
+    custom-model-data: 14010
+    collection-id: foraging.spruce_resin
+    worth: 3.0
+    stack-size: 16
+    tags:
+    - foraging
+    - resin
+    compression:
+      enabled: false
+      block-convertible: false
+  wheat:
+    display-name: <aqua>Pszenica</aqua>
+    material: WHEAT
+    collection-id: farming.wheat
+    worth: 1.0
+    stack-size: 64
+    tags:
+    - farming
+    - crop
+    - wheat
+    compression:
+      enabled: false
+      block-convertible: false
+  sugar_cane:
+    display-name: <aqua>Trzcina cukrowa</aqua>
+    material: SUGAR_CANE
+    collection-id: farming.sugar_cane
+    worth: 1.0
+    stack-size: 64
+    tags:
+    - farming
+    - crop
+    - sugar_cane
+    compression:
+      enabled: false
+      block-convertible: false
+  beetroot:
+    display-name: <aqua>Burak</aqua>
+    material: BEETROOT
+    collection-id: farming.beetroot
+    worth: 1.0
+    stack-size: 64
+    tags:
+    - farming
+    - crop
+    - beetroot
+    compression:
+      enabled: false
+      block-convertible: false
+  cactus:
+    display-name: <aqua>Kaktus</aqua>
+    material: CACTUS
+    collection-id: farming.cactus
+    worth: 1.0
+    stack-size: 64
+    tags:
+    - farming
+    - crop
+    - cactus
+    compression:
+      enabled: false
+      block-convertible: false
+  emerald:
+    display-name: <aqua>Szmaragd</aqua>
+    material: EMERALD
+    collection-id: mining.emerald
+    worth: 12.0
+    stack-size: 64
+    tags:
+    - mining
+    - gem
+    compression:
+      enabled: true
+      block-convertible: true
+      compressed-material: EMERALD_BLOCK
+      unlock-minion-level: 1
+      compressed-unlock-minion-level: 1
+      super-unlock-minion-level: 1
+  netherrack:
+    display-name: <aqua>Netherrack</aqua>
+    material: NETHERRACK
+    collection-id: mining.netherrack
+    worth: 1.0
+    stack-size: 64
+    tags:
+    - mining
+    - nether
+    - block
+    compression:
+      enabled: true
+      block-convertible: true
+      compressed-material: NETHERRACK
+      compressed:
+        custom-model-data: 14201
+        display-name: <aqua>Skompresowany Netherrack</aqua>
+        lore:
+        - '<gray>Wartość: <white>160</white> szt. netherracka.</gray>'
+        - '<dark_gray>Odblokowanie: Minion netherracka Tier 3.</dark_gray>'
+      super:
+        custom-model-data: 14202
+        display-name: <aqua>Superskompresowany Netherrack</aqua>
+        lore:
+        - '<gray>Wartość: <white>25 600</white> szt. netherracka.</gray>'
+        - '<dark_gray>Odblokowanie: Minion netherracka Tier 5.</dark_gray>'
+      unlock-minion-level: 1
+      compressed-unlock-minion-level: 1
+      super-unlock-minion-level: 1
+  enriched_uranium:
+    material: EMERALD
+    custom-model-data: 12003
+    collection-id: industrial.enriched_uranium
+    display-name: <dark_green>☢ Wzbogacony uran</dark_green>
+    worth: 0.0
+    stack-size: 16
+    tags:
+    - industrial
+    - radioactive
+    - special
+    compression:
+      enabled: false
+      block-convertible: false
+      compressed-material: EMERALD

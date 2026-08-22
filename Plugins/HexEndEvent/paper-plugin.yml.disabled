@@ -1,0 +1,29 @@
+name: HexEndEvent
+version: 1.0.0
+main: hex.endevent.HexEndEventPlugin
+api-version: "1.21"
+
+dependencies:
+  server:
+    HexCore:
+      load: BEFORE
+      required: true
+      join-classpath: true
+    PlaceholderAPI:
+      load: BEFORE
+      required: false
+      join-classpath: true
+
+commands:
+  endevent:
+    usage: "/endevent"
+    description: Informacje o cyklicznym evencie Endu
+    permission: hexendevent.use
+
+permissions:
+  hexendevent.use:
+    default: true
+  hexendevent.admin:
+    default: op
+  hexendevent.bypass:
+    default: op

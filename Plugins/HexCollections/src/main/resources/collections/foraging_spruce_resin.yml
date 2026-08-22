@@ -1,0 +1,59 @@
+id: foraging.spruce_resin
+aliases:
+- foraging_spruce_resin
+- spruce_resin
+- resin
+- zywica
+enabled: true
+display:
+  name: '&bŻywica'
+  category: foraging
+  menu_slot: 0
+  icon:
+    material: HONEYCOMB
+tracked_items:
+  base:
+    material: HONEYCOMB
+    amount_value: 1
+valid_sources:
+- MINION_COLLECT
+- CUSTOM_PLUGIN_GRANTED
+sources:
+- trigger: minions.resource.generated
+  amount-from: amount
+  filters:
+    collectionId: foraging.spruce_resin
+    resourceId: spruce_resin
+source_rules:
+  MINION_COLLECT:
+    allow_in_town_claims: true
+  CUSTOM_PLUGIN_GRANTED:
+    allow_in_town_claims: true
+levels:
+  1:
+    required: 4
+    display_name: '&bŻywica I'
+  2:
+    required: 63
+    display_name: '&bŻywica II'
+  3:
+    required: 250
+    display_name: '&bŻywica III'
+  4:
+    required: 1250
+    display_name: '&bŻywica IV'
+  5:
+    required: 2500
+    display_name: '&bŻywica V'
+  6:
+    required: 12500
+    display_name: '&bŻywica VI'
+  7:
+    required: 25000
+    display_name: '&bŻywica VII'
+reward_claim_mode: AUTO
+placeholder:
+  progress_bar:
+    length: 20
+    filled_char: ■
+    empty_char: □

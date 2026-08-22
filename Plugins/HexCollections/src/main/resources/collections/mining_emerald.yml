@@ -1,0 +1,86 @@
+id: mining.emerald
+aliases:
+- mining_emerald
+- emerald
+- emeraldy
+enabled: true
+display:
+  name: '&aSzmaragd'
+  category: mining
+  menu_slot: 0
+  icon:
+    material: EMERALD
+tracked_items:
+  base:
+    material: EMERALD
+    amount_value: 1
+valid_sources:
+- NATURAL_BLOCK_BREAK
+- MINION_COLLECT
+- CUSTOM_PLUGIN_GRANTED
+sources:
+- trigger: minions.resource.generated
+  amount-from: amount
+  filters:
+    collectionId: mining.emerald
+    resourceId: emerald
+source_rules:
+  NATURAL_BLOCK_BREAK:
+    allowed_materials:
+    - EMERALD_ORE
+    - DEEPSLATE_EMERALD_ORE
+    allowed_worlds:
+    - world
+    - resource_world
+    - mining_world
+    blocked_worlds:
+    - spawn
+    allow_in_town_claims: false
+    deny_player_placed_blocks: true
+    deny_recently_broken_blocks: true
+  MINION_COLLECT:
+    allow_in_town_claims: true
+  CUSTOM_PLUGIN_GRANTED:
+    allow_in_town_claims: true
+levels:
+  1:
+    required: 2
+    display_name: '&aSzmaragd I'
+  2:
+    required: 8
+    display_name: '&aSzmaragd II'
+  3:
+    required: 57
+    display_name: '&aSzmaragd III'
+  4:
+    required: 170
+    display_name: '&aSzmaragd IV'
+  5:
+    required: 509
+    display_name: '&aSzmaragd V'
+  6:
+    required: 2372
+    display_name: '&aSzmaragd VI'
+  7:
+    required: 5083
+    display_name: '&aSzmaragd VII'
+reward_claim_mode: AUTO
+placeholder:
+  progress_bar:
+    length: 20
+    filled_char: ■
+    empty_char: □
+city_scaling:
+  enabled: true
+  reference-members: 5
+  category: MEDIUM
+  active-hours-per-member-l7: 10
+  manual-rate-per-player: 21.86
+  reference-addons:
+    1: 1
+    2: 2
+    3: 13
+    4: 37
+    5: 110
+    6: 511
+    7: 1094

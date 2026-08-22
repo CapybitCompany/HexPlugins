@@ -23,7 +23,10 @@ public final class MinionInstance {
     private volatile int storageLimit;
     private final Map<String, Long> storage = new ConcurrentHashMap<>();
     private final Map<String, ItemStack> addonItems = new ConcurrentHashMap<>();
+    private final Map<String, Long> deterministicDropProgress = new ConcurrentHashMap<>();
     private volatile String appearanceId;
+    private volatile int activeBoosterTier;
+    private volatile long boosterExpiresAt;
 
     public MinionInstance(UUID id, long townInternalId, UUID townUuid, UUID ownerUuid, String typeId, int tier,
                           MinionLocation location, MinionState state, long placedAt, long lastActionAt,
@@ -58,8 +61,36 @@ public final class MinionInstance {
     public int storageUsed() { return storageUsed.get(); }
     public int storageLimit() { return storageLimit; }
     public String appearanceId() { return appearanceId; }
+    public int activeBoosterTier() { return activeBoosterTier; }
+    public long boosterExpiresAt() { return boosterExpiresAt; }
     public Map<String, Long> storage() { return storage; }
     public Map<String, ItemStack> addonItems() { return addonItems; }
+    public Map<String, Long> deterministicDropProgress() { return deterministicDropProgress; }
+
+
+    public long addDeterministicDropProgress(String resourceId, long delta, long threshold) {
+        if (resourceId == null || resourceId.isBlank() || delta <= 0L || threshold <= 0L) return 0L;
+        final long[] completed = {0L};
+        deterministicDropProgress.compute(resourceId, (key, current) -> {
+            long safeCurrent = Math.max(0L, current == null ? 0L : current);
+            long next;
+            try { next = Math.addExact(safeCurrent, delta); }
+            catch (ArithmeticException ignored) { next = Long.MAX_VALUE; }
+            completed[0] = next / threshold;
+            return next % threshold;
+        });
+        return completed[0];
+    }
+
+    public void replaceDeterministicDropProgress(Map<String, Long> progress) {
+        deterministicDropProgress.clear();
+        if (progress == null) return;
+        progress.forEach((resourceId, value) -> {
+            if (resourceId != null && !resourceId.isBlank() && value != null && value > 0L) {
+                deterministicDropProgress.put(resourceId, value);
+            }
+        });
+    }
 
     public void setLocation(MinionLocation location) { this.location = location; }
     public void setState(MinionState state) { this.state = state; }
@@ -67,6 +98,9 @@ public final class MinionInstance {
     public void setNextActionAt(long value) { this.nextActionAt = value; }
     public void setStorageLimit(int value) { this.storageLimit = value; }
     public void setAppearanceId(String value) { this.appearanceId = value; }
+    public void setActiveBooster(int tier, long expiresAt) { this.activeBoosterTier = Math.max(0, tier); this.boosterExpiresAt = Math.max(0L, expiresAt); }
+    public void clearActiveBooster() { this.activeBoosterTier = 0; this.boosterExpiresAt = 0L; }
+    public boolean hasActiveBooster(long nowMillis) { return activeBoosterTier > 0 && boosterExpiresAt > nowMillis; }
     public int incrementTier() { return tier.incrementAndGet(); }
 
     public boolean hasStorageSpace() {

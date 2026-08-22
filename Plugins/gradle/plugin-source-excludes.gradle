@@ -1,0 +1,68 @@
+import java.util.zip.ZipInputStream
+
+def duplicateCopyExcludes = ['**/* (2).java', '**/* (2).*', '**/*.java.bak']
+def legacyPluginExcludes = duplicateCopyExcludes + ['paper-plugin.yml']
+
+sourceSets {
+    main {
+        java {
+            exclude duplicateCopyExcludes
+        }
+        resources {
+            exclude legacyPluginExcludes
+        }
+    }
+    test {
+        java {
+            exclude duplicateCopyExcludes
+        }
+        resources {
+            exclude duplicateCopyExcludes
+        }
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    exclude duplicateCopyExcludes
+    source = source.matching {
+        exclude duplicateCopyExcludes
+    }
+}
+
+tasks.withType(ProcessResources).configureEach {
+    exclude legacyPluginExcludes
+}
+
+tasks.withType(Jar).configureEach {
+    // Paper/Purpur's plugin remapper rejects JARs containing duplicate ZIP entries.
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    exclude legacyPluginExcludes
+    doLast {
+        def seenEntries = new LinkedHashSet<String>()
+        def duplicateEntries = new LinkedHashSet<String>()
+        def jarEntries = new LinkedHashSet<String>()
+
+        archiveFile.get().asFile.withInputStream { input ->
+            new ZipInputStream(input).withCloseable { zip ->
+                for (def entry = zip.nextEntry; entry != null; entry = zip.nextEntry) {
+                    jarEntries.add(entry.name)
+                    if (!seenEntries.add(entry.name)) {
+                        duplicateEntries.add(entry.name)
+                    }
+                }
+            }
+        }
+
+        if (!duplicateEntries.isEmpty()) {
+            throw new GradleException("Duplicate entries detected in ${archiveFileName.get()}: ${duplicateEntries.join(', ')}")
+        }
+
+        if (file('src/main/resources/plugin.yml').exists() && !jarEntries.contains('plugin.yml')) {
+            throw new GradleException("${archiveFileName.get()} is missing plugin.yml")
+        }
+
+        if (jarEntries.contains('paper-plugin.yml')) {
+            throw new GradleException("${archiveFileName.get()} must not contain paper-plugin.yml; these plugins use Bukkit YAML commands")
+        }
+    }
+}

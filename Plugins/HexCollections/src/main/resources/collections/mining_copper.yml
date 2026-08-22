@@ -1,0 +1,106 @@
+id: mining.copper
+aliases:
+- mining_copper
+- copper
+- miedz
+- miedź
+- minecraft:copper_ingot
+enabled: true
+display:
+  name: '&6Miedź'
+  category: mining
+  menu_slot: 17
+  icon:
+    material: COPPER_INGOT
+tracked_items:
+  base:
+    material: COPPER_INGOT
+    amount_value: 1
+  rare_elements:
+    material: AMETHYST_SHARD
+    custom_model_data: 12601
+    display_name_contains: Rzadkie pierwiastki
+    amount_value: 250
+valid_sources:
+- NATURAL_BLOCK_BREAK
+- MINION_COLLECT
+- CUSTOM_PLUGIN_GRANTED
+sources:
+- trigger: minions.resource.generated
+  amount-from: amount
+  filters:
+    collectionId: mining.copper
+    resourceId: copper
+- trigger: minions.resource.generated
+  amount-from: amount
+  filters:
+    collectionId: mining.copper
+    resourceId: copper_ingot
+- trigger: minions.resource.generated
+  amount-from: amount
+  filters:
+    collectionId: mining.copper
+    resourceId: rare_elements
+source_rules:
+  NATURAL_BLOCK_BREAK:
+    allowed_materials:
+    - COPPER_ORE
+    - DEEPSLATE_COPPER_ORE
+    allowed_worlds:
+    - world
+    - resource_world
+    - mining_world
+    blocked_worlds:
+    - spawn
+    allow_in_town_claims: false
+    deny_player_placed_blocks: true
+    deny_recently_broken_blocks: true
+  MINION_COLLECT:
+    allowed_minion_types:
+    - COPPER_MINION
+    - copper
+    allow_in_town_claims: true
+  CUSTOM_PLUGIN_GRANTED:
+    allow_in_town_claims: true
+levels:
+  1:
+    required: 45
+    display_name: '&6Miedź I'
+  2:
+    required: 180
+    display_name: '&6Miedź II'
+  3:
+    required: 1440
+    display_name: '&6Miedź III'
+  4:
+    required: 4320
+    display_name: '&6Miedź IV'
+  5:
+    required: 12960
+    display_name: '&6Miedź V'
+  6:
+    required: 60480
+    display_name: '&6Miedź VI'
+  7:
+    required: 129600
+    display_name: '&6Miedź VII'
+reward_claim_mode: AUTO
+placeholder:
+  progress_bar:
+    length: 20
+    filled_char: ■
+    empty_char: □
+city_scaling:
+  enabled: true
+  reference-members: 5
+  category: MEDIUM
+  active-hours-per-member-l7: 10
+  manual-rate-per-player: 700.54
+  reference-addons:
+    1: 13
+    2: 49
+    3: 390
+    4: 1168
+    5: 3503
+    6: 16346
+    7: 35028

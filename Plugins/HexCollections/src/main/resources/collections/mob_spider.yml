@@ -1,0 +1,76 @@
+id: mobs.spider
+aliases:
+- mob_spider
+- spider
+- spider_kills
+- pajak
+- pająk
+- minecraft:spider
+enabled: true
+display:
+  name: '&4Zabite pająki'
+  category: mobs
+  menu_slot: 42
+  icon:
+    material: SPIDER_EYE
+valid_sources:
+- NATURAL_MOB_DROP
+- CUSTOM_PLUGIN_GRANTED
+sources:
+- trigger: minions.mob.killed
+  amount-from: amount
+  filters:
+    mobType: spider
+source_rules:
+  NATURAL_MOB_DROP:
+    allowed_worlds:
+    - world
+    - resource_world
+    - mining_world
+    blocked_worlds:
+    - spawn
+    allow_in_town_claims: true
+  CUSTOM_PLUGIN_GRANTED:
+    allow_in_town_claims: true
+levels:
+  1:
+    required: 15
+    display_name: '&4Zabite pająki I'
+  2:
+    required: 60
+    display_name: '&4Zabite pająki II'
+  3:
+    required: 480
+    display_name: '&4Zabite pająki III'
+  4:
+    required: 1440
+    display_name: '&4Zabite pająki IV'
+  5:
+    required: 4320
+    display_name: '&4Zabite pająki V'
+  6:
+    required: 20160
+    display_name: '&4Zabite pająki VI'
+  7:
+    required: 43200
+    display_name: '&4Zabite pająki VII'
+reward_claim_mode: AUTO
+placeholder:
+  progress_bar:
+    length: 20
+    filled_char: ■
+    empty_char: □
+city_scaling:
+  enabled: true
+  reference-members: 5
+  category: HARD
+  active-hours-per-member-l7: 15
+  manual-rate-per-player: 53.33
+  reference-addons:
+    1: 2
+    2: 6
+    3: 45
+    4: 134
+    5: 400
+    6: 1867
+    7: 4000

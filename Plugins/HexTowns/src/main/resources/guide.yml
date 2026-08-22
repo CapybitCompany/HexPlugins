@@ -1,0 +1,89 @@
+title: '&8Przewodnik miasta'
+growth-title: '&8Punkty Miasta'
+players-title: '&8Gracze i progresja'
+
+main:
+  city:
+    name: '&cMiasto i rozwój'
+    lore:
+      - '&7Miasto to wspólna przestrzeń progresji.'
+      - '&7Gracze współdzielą kolekcje, rozwijają'
+      - '&7miniony i zdobywają Punkty Miasta.'
+      - '&7Miasto może zajmować kolejne chunki.'
+  growth:
+    name: '&aPunkty Miasta'
+    lore:
+      - '&7To zasób rozwoju całego miasta.'
+      - '&7Służy przede wszystkim do zajmowania'
+      - '&7kolejnych chunków.'
+      - '&7Zdobywasz je przez rozwój kolekcji'
+      - '&7i minionów.'
+      - ''
+      - '&eKliknij, aby zobaczyć źródła.'
+  players:
+    name: '&bGracze w mieście'
+    lore:
+      - '&7Kolekcje są wspólne dla całego miasta.'
+      - '&7Więcej graczy zwiększa wymagania'
+      - '&7kolejnych poziomów kolekcji.'
+      - '&7Wpływa to również na koszty'
+      - '&7kolejnych ulepszeń minionów.'
+      - ''
+      - '&eKliknij po szczegóły.'
+  collections:
+    name: '&6Kolekcje'
+    lore:
+      - '&7Postęp kolekcji jest wspólny.'
+      - '&7Zdobywanie właściwych zasobów i wykonywanie'
+      - '&7akcji zwiększa wynik całego miasta.'
+      - '&7Rozwój kolekcji może dawać Punkty Miasta.'
+  minions:
+    name: '&eMiniony'
+    lore:
+      - '&7Miniony należą do progresji miasta.'
+      - '&7Mają własne tiery i wymagają zasobów.'
+      - '&7Koszt ulepszenia może zależeć od wymagań'
+      - '&7odpowiedniego poziomu kolekcji.'
+  claims:
+    name: '&2Teren i claimy'
+    lore:
+      - '&7Claim chroni jeden chunk miasta.'
+      - '&7Kolejne claimy zużywają Punkty Miasta.'
+      - '&7Chunk musi spełniać warunki sąsiedztwa.'
+      - '&7Mapa i granice pomagają planować rozwój.'
+
+growth:
+  summary-name: '&aJak zdobywać Punkty Miasta?'
+  no-town:
+    - '&7Nie musisz posiadać miasta, aby poznać zasady.'
+    - '&7Punkty zdobywa się za osiągnięcia rozwoju:'
+    - '&8• &7rozwój minionów,'
+    - '&8• &7różnorodność minionów,'
+    - '&8• &7rozwój wielu kolekcji,'
+    - '&8• &7ukończenie konkretnych kolekcji.'
+  categories:
+    MINION_DEVELOPMENT: '&eRozwój minionów'
+    MINION_DIVERSITY: '&bRóżnorodność minionów'
+    COLLECTION_BREADTH: '&6Rozwój wielu kolekcji'
+    COLLECTION_COMPLETION: '&aUkończenie kolekcji'
+    OTHER: '&fPozostały rozwój'
+
+players:
+  name: '&bWpływ liczby graczy na progresję'
+  lore:
+    - '&7Kolekcje są wspólne dla całego miasta.'
+    - '&7Więcej graczy w mieście zwiększa wymagania'
+    - '&7kolejnych poziomów kolekcji.'
+    - ''
+    - '&7Wymagania kolekcji są używane również'
+    - '&7przy wyliczaniu kosztów ulepszeń minionów.'
+    - ''
+    - '&eDodanie kolejnego gracza może więc zwiększyć'
+    - '&ekoszt kolejnego ulepszenia miniona.'
+  sticky-name: '&6Zwiększone wymaganie zostaje'
+  sticky-lore:
+    - '&7Jeśli wymaganie aktywnej kolekcji wzrosło'
+    - '&7po dołączeniu kolejnego gracza, późniejsze'
+    - '&7opuszczenie miasta nie obniża tego celu.'
+    - '&7Chroni to progresję przed manipulowaniem'
+    - '&7liczbą graczy przed kolejnym poziomem.'

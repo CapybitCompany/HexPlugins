@@ -1,0 +1,125 @@
+# HexNPC 1.5.0 - generyczne workflow GUI.
+# Customowa etykieta jest tylko konfiguracją tego silnika, nie hardkodowaną funkcją Java.
+
+debug:
+  workflows: false
+
+workflows:
+  custom_tag_menu:
+    actions:
+      - type: condition
+        conditions:
+          - type: permission
+            value: "hexnpc.feature.custom_tag"
+        then:
+          - type: open_menu
+            menu: "cosmetics_tags"
+        else:
+          - type: message
+            text: "&cNajpierw odblokuj Własną etykietę w Premium Shop."
+          - type: open_shop
+            shop: "premium_shop"
+
+  custom_tag_create:
+    actions:
+      - type: condition
+        conditions:
+          - type: permission
+            value: "hexnpc.feature.custom_tag"
+        then:
+          - type: anvil_input
+            id: tag
+            title: "&0&lWŁASNA ETYKIETA"
+            item:
+              material: NAME_TAG
+              name: "&eWpisz etykietę"
+            initial-text: "{data:cosmetics.custom_tag}"
+            validation:
+              required: true
+              trim: true
+              min-length: 1
+              max-length: 24
+              allowed-pattern: "^[\\p{L}\\p{N}_ -]+$"
+              allow-colors: false
+              allow-minimessage: false
+            messages:
+              required: "&cWpisz nazwę etykiety."
+              too-short: "&cEtykieta jest za krótka."
+              too-long: "&cMaksymalna długość etykiety to 24 znaki."
+              invalid: "&cEtykieta zawiera niedozwolone znaki."
+            on-cancel:
+              - type: open_menu
+                menu: "cosmetics_tags"
+
+          - type: set_player_data
+            key: "cosmetics.custom_tag"
+            value: "{input:tag}"
+
+          - type: message
+            text: "&aUstawiono etykietę: &f{input:tag}"
+
+          - type: open_menu
+            menu: "cosmetics_tags"
+        else:
+          - type: message
+            text: "&cNie posiadasz odblokowanej funkcji Własnej etykiety."
+          - type: open_shop
+            shop: "premium_shop"
+
+  custom_tag_remove:
+    actions:
+      - type: condition
+        conditions:
+          - type: permission
+            value: "hexnpc.feature.custom_tag"
+        then:
+          - type: delete_player_data
+            key: "cosmetics.custom_tag"
+          - type: message
+            text: "&eEtykieta została usunięta."
+          - type: open_menu
+            menu: "cosmetics_tags"
+        else:
+          - type: message
+            text: "&cNie posiadasz odblokowanej funkcji Własnej etykiety."
+          - type: open_shop
+            shop: "premium_shop"
+
+menus:
+  cosmetics_tags:
+    title: "&0&lETYKIETY"
+    size: 27
+    background:
+      material: BLACK_STAINED_GLASS_PANE
+      hide-tooltip: true
+    items:
+      custom_tag:
+        slot: 13
+        material: NAME_TAG
+        name: "&dWłasna etykieta"
+        lore:
+          - "&7Tekst wyświetlany przy Twojej postaci."
+          - ""
+          - "&7Aktualna:"
+          - "&f{data:cosmetics.custom_tag|Brak}"
+          - ""
+          - "&eLPM: &futwórz / edytuj"
+          - "&ePPM: &fusuń"
+        actions:
+          left_click:
+            - type: run_workflow
+              workflow: "custom_tag_create"
+          right_click:
+            - type: run_workflow
+              workflow: "custom_tag_remove"
+
+      back:
+        slot: 22
+        material: RED_WOOL
+        name: "&cWróć do Premium Shop"
+        lore:
+          - "&7Kliknij, aby wrócić."
+        actions:
+          left_click:
+            - type: open_shop
+              shop: "premium_shop"

@@ -1,0 +1,5 @@
+--release
+21
+-proc:none
+-XDshould-stop.at=PARSE
+hexnpc/HexNpcPlugin.java

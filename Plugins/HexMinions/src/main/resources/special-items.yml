@@ -1,48 +1,1111 @@
-# Wszystkie specjalne itemy, receptury i stanowiska craftingu minionów.
-# Receptury z amount > 1 na slot są egzekwowane przez plugin, a nie przez zwykły crafting Minecrafta.
-
 special-items:
+  spruce_resin:
+    enabled: true
+    resource-ref: spruce_resin
+    amount: 1
+    lore:
+    - <gray>Rzadka żywica generowana przez miniona drewna świerkowego.</gray>
+    - <gray>Używana m.in. w elektronice i wyposażeniu ochronnym.</gray>
+    enchant-glint: true
+    placeable: false
   compressed_cobblestone:
     enabled: true
-    material: COBBLESTONE
-    custom-model-data: 10001
+    resource-ref: compressed_cobblestone
     amount: 1
-    display-name: "<aqua>Skompresowany Bruk</aqua>"
     lore:
-      - "<gray>Specjalny materiał miasta.</gray>"
-      - "<gray>Crafting: 5 slotów po 32 bruku.</gray>"
-      - "<dark_gray>Wymaga Cabblestone Minion lvl 5.</dark_gray>"
-    enchant-glint: false
-
-  enchanted_crafting_table:
+    - '<gray>Wartość: <white>160</white> szt. surowca.</gray>'
+    - <gray>Wymaga Miniona bruku Tier <gold>1</gold>.</gray>
+    enchant-glint: true
+  storage_expander:
     enabled: true
-    material: ENCHANTING_TABLE
+    material: CHEST_MINECART
+    custom-model-data: 10003
+    amount: 1
+    display-name: <yellow>Rozszerzenie magazynu miniona</yellow>
+    lore:
+    - <gray>Powiększa pojemność minionów i maszyn o <gold>3 sloty</gold>.</gray>
+    enchant-glint: true
+  minion_booster_tier_1:
+    enabled: true
+    material: BLAZE_POWDER
+    custom-model-data: 12401
+    amount: 1
+    display-name: <gold>Booster miniona Tier I</gold>
+    lore:
+    - <gray>Przyspiesza produkcję miniona o <green>10%</green> przez <gold>10 minut</gold>.</gray>
+    enchant-glint: true
+  minion_booster_tier_2:
+    enabled: true
+    material: BLAZE_ROD
+    custom-model-data: 12402
+    amount: 1
+    display-name: <gold>Booster miniona Tier II</gold>
+    lore:
+    - <gray>Przyspiesza produkcję miniona o <green>15%</green> przez <gold>30 minut</gold>.</gray>
+    enchant-glint: true
+  enchanted_crafting_table:
+    enabled: false
+    material: BOOK
     custom-model-data: 10002
     amount: 1
-    display-name: "<blue>Enchanted Crafting Table</blue>"
+    display-name: <#FFA500>Zaawansowany stół rzemieślniczy</#FFA500>
     lore:
-      - "<gray>Specjalny stół do craftingu skompresowanych itemów.</gray>"
-      - "<gray>Można postawić tylko na terenie swojego miasta.</gray>"
-      - "<dark_gray>Wymaga Dirt Minion lvl 5.</dark_gray>"
+    - <gray>Specjalny stół do craftingu skompresowanych itemów.</gray>
+    - <gray>Można postawić tylko na terenie swojego miasta.</gray>
+    - <gray>Wymaga Miniona drewna dębowego Tier <gold>3</gold>.</gray>
     enchant-glint: true
     placeable: true
     block-kind: ENCHANTED_CRAFTING_TABLE
-
+  uranium_block:
+    enabled: true
+    material: EMERALD
+    custom-model-data: 12002
+    amount: 1
+    display-name: <dark_green>Blok uranu</dark_green>
+    lore:
+    - <gray>Blok z 9 sztuk uranu.</gray>
+    - '<gray>Odblokowanie: Minion uranu Tier <gold>2</gold>.</gray>'
+    enchant-glint: true
+    placeable: false
+  enriched_uranium:
+    enabled: true
+    resource-ref: enriched_uranium
+    amount: 1
+    lore:
+    - <red>Radioaktywny.</red>
+    - <gray>Każda sztuka w EQ zadaje 1 serce obrażeń co sekundę.</gray>
+    - <gray>Nie można wkładać do zwykłych skrzyń.</gray>
+    enchant-glint: true
+    placeable: false
+  fertile_soil:
+    enabled: false
+    material: CLAY_BALL
+    custom-model-data: 15210
+    amount: 1
+    display-name: <green>Żyzna gleba</green>
+    lore:
+    - <gray>Żyzna mieszanka ziemi i mączki kostnej.</gray>
+    - <gray>Wymagana do tworzenia minionów roślinnych.</gray>
+    - '<gray>Odblokowanie: Minion ziemi Tier <gold>3</gold>.</gray>'
+    enchant-glint: true
+    placeable: false
+  uranium_enricher:
+    enabled: true
+    material: IRON_INGOT
+    custom-model-data: 12004
+    amount: 1
+    display-name: <green>Wzbogacacz uranu</green>
+    lore:
+    - <gray>Wzbogaca uran do wzbogaconego uranu.</gray>
+    - '<gray>Czas procesu: <gold>2 h</gold>.</gray>'
+    - '<gray>Zużycie: <green>100 EU/s</green>.</gray>'
+    - '<gray>Odblokowanie: Minion uranu Tier <gold>5</gold>.</gray>'
+    enchant-glint: false
+    placeable: true
+    block-kind: URANIUM_ENRICHER
+  steel_ingot:
+    enabled: true
+    material: IRON_INGOT
+    custom-model-data: 12101
+    amount: 1
+    display-name: <aqua>Stal</aqua>
+    lore:
+    - <gray>Stop żelaza i węgla z pieca hutniczego.</gray>
+    - '<gray>Odblokowanie: Minion żelaza Tier <gold>5</gold>.</gray>'
+    enchant-glint: false
+  smelting_furnace:
+    enabled: true
+    material: IRON_INGOT
+    custom-model-data: 12102
+    amount: 1
+    display-name: <green>Piec hutniczy</green>
+    lore:
+    - <gray>Przetapia surowce i pozwala wytwarzać stal.</gray>
+    - <gray>Nie wymaga zasilania EU; korzysta z paliwa.</gray>
+    - '<gray>Odblokowanie: Minion netherracka Tier <gold>5</gold>.</gray>'
+    enchant-glint: false
+    placeable: true
+    block-kind: SMELTING_FURNACE
+  electric_furnace:
+    enabled: true
+    material: IRON_INGOT
+    custom-model-data: 14203
+    amount: 1
+    display-name: <green>Piec elektryczny</green>
+    lore:
+    - <gray>Szybko przetapia surowce i obsługuje produkcję stali.</gray>
+    - '<gray>Zużycie: <green>30 EU/s</green>.</gray>'
+    - '<gray>Odblokowanie: Minion netherracka Tier <gold>5</gold>.</gray>'
+    enchant-glint: false
+    placeable: true
+    block-kind: ELECTRIC_FURNACE
+  musket:
+    enabled: true
+    material: BOW
+    custom-model-data: 15001
+    amount: 1
+    display-name: <#FFA500>Muszkiet</#FFA500>
+    lore:
+    - <gray>Strzela nabojami do muszkietu i wymaga przeładowania przez <gold>5 sekund</gold>.</gray>
+    - <gray>Zadaje do <gold>20 serduszek</gold> obrażeń; kula opada podczas lotu.</gray>
+    - '<gray>Wytrzymałość: <gold>30 strzałów</gold>.</gray>'
+    - '<gray>Odblokowanie: Minion szkieleta Tier <gold>4</gold>.</gray>'
+    enchant-glint: true
+    placeable: false
+  musket_ammo:
+    enabled: true
+    material: IRON_NUGGET
+    custom-model-data: 15002
+    amount: 4
+    display-name: <aqua>Naboje do muszkietu</aqua>
+    lore:
+    - <gray>Amunicja do muszkietu.</gray>
+    - '<gray>Odblokowanie: Minion trzciny cukrowej Tier <gold>5</gold>.</gray>'
+    enchant-glint: true
+    placeable: false
+  silverfish_armor:
+    enabled: false
+    resource-ref: silverfish_armor
+    amount: 1
+    lore:
+    - <gray>Rzadki pancerz generowany przez miniona rybika cukrowego.</gray>
+    - <gray>Szansa: <white>0.01%</white> na Tier 1 i +<white>0.01%</white> za każdy kolejny tier.</gray>
+    - <gray>Świadomie kosmetyczny wariant żelaznego napierśnika.</gray>
+    - <dark_gray>Nie daje dodatkowych statystyk poza parametrami bazowego pancerza.</dark_gray>
+    enchant-glint: true
+    placeable: false
+  miner_robot:
+    enabled: false
+    material: BRICK
+    custom-model-data: 15201
+    amount: 1
+    display-name: <gray>Robot górniczy</gray>
+    lore:
+    - <gray>Specjalny robot kopiący tunel 3x3 przed siebie.</gray>
+    - <gray>Wymaga diamentowego kilofa i kostek cukru jako paliwa.</gray>
+    - <gray>Limit: <white>2 roboty</white> na gracza.</gray>
+    enchant-glint: true
+    placeable: true
+    block-kind: ROBOT_MINER
+  miner_robot_storage:
+    enabled: false
+    material: CHEST_MINECART
+    custom-model-data: 15202
+    amount: 1
+    display-name: <gold>Rozszerzenie magazynu robota górniczego</gold>
+    lore:
+    - <gray>Własne rozszerzenie magazynu robota, inne niż magazyn zwykłego miniona.</gray>
+    - <gray>Odblokowuje dodatkowe <white>6 slotów</white> robota.</gray>
+    - <gray>Odblokowanie: Minion rybika cukrowego Tier <gold>5</gold>.</gray>
+    enchant-glint: true
+    placeable: false
+  sugar_cube:
+    enabled: false
+    material: SUGAR
+    custom-model-data: 15203
+    amount: 1
+    display-name: <aqua>Kostka cukru</aqua>
+    lore:
+    - <gray>Paliwo robota górniczego.</gray>
+    - <gray>Jedna kostka zasila robota przez <white>60 sekund</white>.</gray>
+    - <gray>Odblokowanie: Minion trzciny cukrowej Tier <gold>7</gold>.</gray>
+    enchant-glint: true
+    placeable: false
+  iron_uranium_chest:
+    enabled: true
+    material: CHEST_MINECART
+    custom-model-data: 12103
+    amount: 1
+    display-name: <white>Stalowa skrzynia radioaktywna</white>
+    lore:
+    - <gray>Bezpiecznie przechowuje wzbogacony uran.</gray>
+    - <gray>Wzbogacony uran można odkładać wyłącznie do tej skrzynki.</gray>
+    - ''
+    - <red>Nie działa jako magazyn miniona ani rozszerzenie magazynu maszyny.</red>
+    enchant-glint: true
+    placeable: true
+    block-kind: IRON_URANIUM_CHEST
+  advanced_redstone:
+    enabled: false
+    material: REDSTONE
+    custom-model-data: 12201
+    amount: 8
+    display-name: <aqua>Zaawansowany redstone</aqua>
+    lore:
+    - <gray>Komponent do maszyn wysokiego tieru.</gray>
+    - '<gray>Odblokowanie: Redstone Minion Tier <gold>5</gold>.</gray>'
+    enchant-glint: true
+  combustion_fuel:
+    enabled: true
+    material: BLAZE_POWDER
+    custom-model-data: 12301
+    amount: 1
+    display-name: <aqua>Paliwo Opałowe</aqua>
+    lore:
+    - <gray>Paliwo do urządzeń spalających paliwo.</gray>
+    - <gray>W generatorze węglowym dostarcza <green>16 000 EU</green>.</gray>
+    - '<gray>Odblokowanie: Minion węgla Tier <gold>7</gold>.</gray>'
+    enchant-glint: true
+    fuel:
+      eu: 16000
+      burn-seconds: 320
+      custom-machine-fuel: true
+  auto_smelter:
+    enabled: true
+    material: IRON_INGOT
+    custom-model-data: 12450
+    amount: 1
+    display-name: '<gold>Ulepszenie miniona: Przetapiacz</gold>'
+    lore:
+    - <gray>Automatycznie przetapia rudy generowane przez obsługiwane miniony.</gray>
+    - '<gray>Obsługiwane: <white>Żelazo, Złoto, Miedź, Cyna</white>.</gray>'
+    - '<gray>Odblokowanie: Minion netheritu Tier <gold>5</gold>.</gray>'
+    enchant-glint: true
+    placeable: false
+  coal_generator:
+    enabled: true
+    material: IRON_INGOT
+    custom-model-data: 12550
+    amount: 1
+    display-name: <green>Generator węglowy</green>
+    lore:
+    - <gray>Spala paliwo i zasila urządzenia energią EU.</gray>
+    - '<gray>Generowanie: <green>do 50 EU/s</green>.</gray>'
+    - '<gray>Odblokowanie: Minion węgla Tier <gold>5</gold>.</gray>'
+    enchant-glint: false
+    placeable: true
+    block-kind: COAL_GENERATOR
+  macerator:
+    enabled: true
+    material: IRON_INGOT
+    custom-model-data: 12560
+    amount: 1
+    display-name: <green>Macerator</green>
+    lore:
+    - <gray>Kruszy rudy i surowce na pyły do dalszego przetwarzania.</gray>
+    - '<gray>Zużycie: <green>25 EU/s</green>.</gray>'
+    - '<gray>Odblokowanie: Minion kamienia Tier <gold>5</gold>.</gray>'
+    enchant-glint: false
+    placeable: true
+    block-kind: MACERATOR
+  coal_dust:
+    enabled: true
+    resource-ref: coal_dust
+    amount: 1
+    lore:
+    - <gray>Pył z maceratora.</gray>
+    - <gray>Można przetopić w piecu hutniczym.</gray>
+    enchant-glint: false
+    placeable: false
+  iron_dust:
+    enabled: true
+    resource-ref: iron_dust
+    amount: 1
+    lore:
+    - <gray>Pył z maceratora.</gray>
+    - <gray>Można przetopić w piecu hutniczym.</gray>
+    enchant-glint: false
+    placeable: false
+  gold_dust:
+    enabled: true
+    resource-ref: gold_dust
+    amount: 1
+    lore:
+    - <gray>Pył z maceratora.</gray>
+    - <gray>Można przetopić w piecu hutniczym.</gray>
+    enchant-glint: false
+    placeable: false
+  copper_dust:
+    enabled: true
+    resource-ref: copper_dust
+    amount: 1
+    lore:
+    - <gray>Pył z maceratora.</gray>
+    - <gray>Można przetopić w piecu hutniczym.</gray>
+    enchant-glint: false
+    placeable: false
+  diamond_dust:
+    enabled: true
+    resource-ref: diamond_dust
+    amount: 1
+    lore:
+    - <gray>Pył z maceratora.</gray>
+    - <gray>Można przetopić w piecu hutniczym.</gray>
+    enchant-glint: false
+    placeable: false
+  redstone_dust_rich:
+    enabled: true
+    resource-ref: redstone_dust_rich
+    amount: 1
+    lore:
+    - <gray>Pył z maceratora.</gray>
+    - <gray>Można przetopić w piecu hutniczym.</gray>
+    enchant-glint: false
+    placeable: false
+  lapis_dust:
+    enabled: true
+    resource-ref: lapis_dust
+    amount: 1
+    lore:
+    - <gray>Pył z maceratora.</gray>
+    - <gray>Można przetopić w piecu hutniczym.</gray>
+    enchant-glint: false
+    placeable: false
+  stone_dust:
+    enabled: false
+    resource-ref: stone_dust
+    amount: 1
+    lore:
+    - <gray>Pył z maceratora.</gray>
+    - <gray>Można przetopić w piecu hutniczym.</gray>
+    enchant-glint: false
+    placeable: false
+  stone_frame:
+    enabled: false
+    material: ITEM_FRAME
+    custom-model-data: 12610
+    amount: 1
+    display-name: <aqua>Kamienna Rama</aqua>
+    lore:
+    - <gray>Podstawowa rama używana przy tworzeniu minionów górniczych.</gray>
+    - '<gray>Odblokowanie: Minion bruku Tier <gold>5</gold>.</gray>'
+    enchant-glint: true
+    placeable: false
+  iron_frame:
+    enabled: false
+    material: ITEM_FRAME
+    custom-model-data: 12611
+    amount: 1
+    display-name: <aqua>Żelazna Rama</aqua>
+    lore:
+    - <gray>Wzmocniona rama do bardziej zaawansowanych minionów.</gray>
+    - '<gray>Odblokowanie: Minion żelaza Tier <gold>5</gold>.</gray>'
+    enchant-glint: true
+    placeable: false
+  rare_elements:
+    enabled: true
+    resource-ref: rare_elements
+    amount: 1
+    lore:
+    - <gray>Bardzo rzadki specjalny drop.</gray>
+    - <gray>Ma własną kolekcję, ale nie posiada miniona.</gray>
+    enchant-glint: true
+    placeable: false
+  technical_block:
+    enabled: false
+    resource-ref: technical_block
+    amount: 1
+    lore:
+    - <gray>Zaawansowany komponent używany w minionach i maszynach.</gray>
+    - <dark_gray>Wymaga rzadkich pierwiastków.</dark_gray>
+    enchant-glint: true
+    placeable: false
+  compressor:
+    enabled: true
+    material: IRON_INGOT
+    custom-model-data: 12710
+    amount: 1
+    display-name: <green>Kompresor</green>
+    lore:
+    - <gray>Kompresuje i łączy materiały w zaawansowane surowce.</gray>
+    - '<gray>Zużycie: <green>50 EU/s</green>.</gray>'
+    - '<gray>Odblokowanie: Minion obsydianu Tier <gold>5</gold>.</gray>'
+    enchant-glint: false
+    placeable: true
+    block-kind: COMPRESSOR
+  graphite:
+    enabled: true
+    resource-ref: graphite
+    amount: 1
+    lore:
+    - <gray>Powstaje w kompresorze z pyłu węglowego.</gray>
+    - <gray>Można dalej przetworzyć w grafen.</gray>
+    enchant-glint: false
+    placeable: false
+  graphene:
+    enabled: false
+    resource-ref: graphene
+    amount: 1
+    lore:
+    - <gray>Zaawansowany materiał przemysłowy z kompresora.</gray>
+    enchant-glint: true
+    placeable: false
+  tin_ingot:
+    enabled: true
+    resource-ref: tin_ingot
+    amount: 1
+    lore:
+    - <gray>Metal przemysłowy z pieca hutniczego.</gray>
+    - '<gray>Odblokowanie: Minion cyny Tier <gold>1</gold>.</gray>'
+    enchant-glint: false
+    placeable: false
+  tin_dust:
+    enabled: true
+    material: GUNPOWDER
+    custom-model-data: 14003
+    amount: 1
+    display-name: <aqua>Pył cyny</aqua>
+    lore:
+    - <gray>Pył z maceratora.</gray>
+    - <gray>Używany do stopu brązu.</gray>
+    enchant-glint: false
+    placeable: false
+  bronze_ingot:
+    enabled: false
+    material: COPPER_INGOT
+    custom-model-data: 14004
+    amount: 1
+    display-name: <aqua>Sztabka brązu</aqua>
+    lore:
+    - <gray>Stop cyny i miedzi z pieca hutniczego.</gray>
+    - '<gray>Odblokowanie: Minion miedzi Tier <gold>1</gold>.</gray>'
+    enchant-glint: true
+    placeable: false
+  copper_cable:
+    enabled: true
+    material: COPPER_INGOT
+    custom-model-data: 14005
+    amount: 1
+    display-name: <color:#b87333>Kabel miedziany</color>
+    lore:
+    - '<gray>Zasięg: <gold>3 bloki</gold> • Transfer: <green>32 EU/s</green> • Strata: <gold>0,25 EU/m</gold>.</gray>'
+    - <gray>Łączy urządzenia i przesyła energię EU.</gray>
+    enchant-glint: false
+    placeable: true
+    block-kind: CABLE_COPPER
+  gold_cable:
+    enabled: false
+    material: GOLD_INGOT
+    custom-model-data: 14120
+    amount: 1
+    display-name: <gold>Złoty Kabel</gold>
+    lore:
+    - '<gray>Placeable kabel EU: max 10 bloków, 96 EU/s, strata 0.15 EU/m.</gray>'
+    - <gray>Nie może przecinać innych kabli.</gray>
+    - '<gray>Odblokowanie: Minion złota Tier <gold>4</gold>.</gray>'
+    enchant-glint: false
+    placeable: true
+    block-kind: CABLE_GOLD
+  glass_cable:
+    enabled: false
+    material: GLASS_BOTTLE
+    custom-model-data: 14121
+    amount: 1
+    display-name: <aqua>Szklany Kabel</aqua>
+    lore:
+    - '<gray>Placeable kabel EU: max 25 bloków, 256 EU/s, strata 0.05 EU/m.</gray>'
+    - <gray>Drogi, dalekosiężny kabel przemysłowy.</gray>
+    - '<gray>Odblokowanie: Minion diamentu Tier <gold>5</gold>.</gray>'
+    enchant-glint: true
+    placeable: true
+    block-kind: CABLE_GLASS
+  battery:
+    enabled: true
+    material: REDSTONE
+    custom-model-data: 14006
+    amount: 1
+    display-name: <aqua>Bateria</aqua>
+    lore:
+    - <gray>Można ją ładować i używać do zasilania urządzeń.</gray>
+    - '<gray>Stan naładowania: <green>0 / 20 000 EU</green></gray>'
+    - '<gray>Odblokowanie: Minion cyny Tier <gold>5</gold>.</gray>'
+    enchant-glint: false
+    placeable: false
+  solar_panel_generator:
+    enabled: true
+    material: IRON_INGOT
+    custom-model-data: 14007
+    amount: 1
+    display-name: <green>Panel słoneczny</green>
+    lore:
+    - <gray>Wytwarza energię ze światła słonecznego.</gray>
+    - '<gray>Generowanie: <green>15 EU/s</green>.</gray>'
+    - <dark_gray>Wymaga grafenu i elektroniki.</dark_gray>
+    enchant-glint: false
+    placeable: true
+    block-kind: SOLAR_PANEL_GENERATOR
+  accumulator:
+    enabled: true
+    material: IRON_INGOT
+    custom-model-data: 14008
+    amount: 1
+    display-name: <green>Akumulator</green>
+    lore:
+    - <gray>Magazynuje energię i przekazuje ją dalej do sieci.</gray>
+    - '<gray>Pojemność: <green>250 000 EU</green> <dark_gray>•</dark_gray> <gray>Transfer: <green>32 EU/s</green></gray>'
+    - <dark_gray>Wymaga baterii.</dark_gray>
+    enchant-glint: false
+    placeable: true
+    block-kind: ACCUMULATOR
+  extractor:
+    enabled: true
+    material: IRON_INGOT
+    custom-model-data: 14110
+    amount: 1
+    display-name: <green>Ekstraktor</green>
+    lore:
+    - <gray>Pozyskuje żywicę ze skompresowanego drewna świerkowego.</gray>
+    - '<gray>Zużycie: <green>20 EU/s</green>.</gray>'
+    - '<gray>Odblokowanie: Minion drewna świerkowego Tier <gold>7</gold>.</gray>'
+    enchant-glint: false
+    placeable: true
+    block-kind: EXTRACTOR
+  compressor_update:
+    enabled: true
+    material: IRON_INGOT
+    custom-model-data: 14009
+    amount: 1
+    display-name: '<gold>Ulepszenie miniona: Kompresor</gold>'
+    lore:
+    - <gray>Automatycznie konwertuje surowce do wersji skompresowanej, gdy nazbiera się ich wystarczająco w minionie.</gray>
+    - <red>Próba wyjęcia uszkadza ulepszenie.</red>
+    - '<gray>Odblokowanie: Minion obsydianu Tier <gold>7</gold>.</gray>'
+    enchant-glint: true
+    placeable: false
+  damaged_compressor_update:
+    enabled: true
+    material: IRON_INGOT
+    custom-model-data: 14011
+    amount: 1
+    display-name: <red>Uszkodzone ulepszenie kompresora</red>
+    lore:
+    - <red>Uszkodzone ulepszenie nie działa w minionie.</red>
+    - <gray>Można je naprawić przy użyciu obsydianu i żelaza.</gray>
+    enchant-glint: false
+    placeable: false
+  hazmat_helmet:
+    enabled: true
+    material: LEATHER_HELMET
+    custom-model-data: 15601
+    amount: 1
+    display-name: <yellow>Hełm kombinezonu ochronnego</yellow>
+    lore:
+    - <gray>Chroni przed promieniowaniem i zapewnia <gold>20%</gold> ochrony.</gray>
+    leather-color: '#FFFF00'
+    enchant-glint: true
+    placeable: false
+  hazmat_chestplate:
+    enabled: true
+    material: LEATHER_CHESTPLATE
+    custom-model-data: 15602
+    amount: 1
+    display-name: <yellow>Napierśnik kombinezonu ochronnego</yellow>
+    lore:
+    - <gray>Chroni przed promieniowaniem i zapewnia <gold>40%</gold> ochrony.</gray>
+    leather-color: '#FFFF00'
+    enchant-glint: true
+    placeable: false
+  hazmat_leggings:
+    enabled: true
+    material: LEATHER_LEGGINGS
+    custom-model-data: 15603
+    amount: 1
+    display-name: <yellow>Spodnie kombinezonu ochronnego</yellow>
+    lore:
+    - <gray>Chronią przed promieniowaniem i zapewniają <gold>30%</gold> ochrony.</gray>
+    leather-color: '#FFFF00'
+    enchant-glint: true
+    placeable: false
+  hazmat_boots:
+    enabled: true
+    material: LEATHER_BOOTS
+    custom-model-data: 15604
+    amount: 1
+    display-name: <yellow>Buty kombinezonu ochronnego</yellow>
+    lore:
+    - <gray>Chronią przed promieniowaniem i zapewniają <gold>10%</gold> ochrony.</gray>
+    leather-color: '#FFFF00'
+    enchant-glint: true
+    placeable: false
+  wooden_frame:
+    enabled: false
+    material: ITEM_FRAME
+    custom-model-data: 14100
+    amount: 1
+    display-name: <aqua>Drewniana Rama</aqua>
+    lore:
+    - <gray>Podstawowa rama do rozbudowy magazynu minionów.</gray>
+    - <dark_gray>Komponent pomocniczy.</dark_gray>
+    enchant-glint: true
+    placeable: false
+  medium_minion_storage:
+    enabled: true
+    material: CHEST_MINECART
+    custom-model-data: 14101
+    amount: 1
+    display-name: <gold>Średni magazyn miniona</gold>
+    lore:
+    - <gray>Powiększa pojemność minionów i maszyn o <gold>5 slotów</gold>.</gray>
+    enchant-glint: true
+    placeable: false
+  large_minion_storage:
+    enabled: true
+    material: CHEST_MINECART
+    custom-model-data: 14102
+    amount: 1
+    display-name: <red>Duży magazyn miniona</red>
+    lore:
+    - <gray>Powiększa pojemność minionów i maszyn o <gold>7 slotów</gold>.</gray>
+    enchant-glint: true
+    placeable: false
+  golden_coil:
+    enabled: false
+    material: GOLD_INGOT
+    custom-model-data: 14103
+    amount: 1
+    display-name: <aqua>Złota Cewka</aqua>
+    lore:
+    - <gray>Zaawansowany przewodnik energii do magazynów i maszyn.</gray>
+    - '<gray>Odblokowanie: Minion złota Tier <gold>5</gold>.</gray>'
+    enchant-glint: true
+    placeable: false
+  advanced_steel_frame:
+    enabled: false
+    material: ITEM_FRAME
+    custom-model-data: 14104
+    amount: 1
+    display-name: <aqua>Zaawansowana stalowa rama</aqua>
+    lore:
+    - <gray>Rama wzmacniana blokami stali.</gray>
+    - '<gray>Odblokowanie: Minion żelaza Tier <gold>7</gold>.</gray>'
+    enchant-glint: true
+    placeable: false
+  advanced_chip:
+    enabled: false
+    material: PRISMARINE_SHARD
+    custom-model-data: 14105
+    amount: 1
+    display-name: <aqua>Zaawansowany chip</aqua>
+    lore:
+    - <gray>Elektroniczny komponent późnego etapu.</gray>
+    - '<gray>Odblokowanie: Minion redstone Tier <gold>7</gold>.</gray>'
+    enchant-glint: true
+    placeable: false
+  bronze_wrench:
+    enabled: false
+    material: IRON_NUGGET
+    custom-model-data: 14106
+    amount: 1
+    display-name: <gold>Klucz z brązu</gold>
+    lore:
+    - '<gray>PPM na ścianie maszyny: ustawia kliknięty bok jako jej przód.</gray>'
+    - '<gray>Wytrzymałość: <white>10 użyć</white>.</gray>'
+    - '<gray>Odblokowanie: Minion cyny Tier <gold>3</gold>.</gray>'
+    enchant-glint: true
+    placeable: false
+  steel_block:
+    enabled: false
+    material: IRON_INGOT
+    custom-model-data: 14107
+    amount: 1
+    display-name: <aqua>Blok stali</aqua>
+    lore:
+    - <gray>Blok stali używany w późnych komponentach technicznych.</gray>
+    enchant-glint: true
+    placeable: false
+  refined_wheat:
+    enabled: false
+    material: WHEAT_SEEDS
+    custom-model-data: 14133
+    amount: 1
+    display-name: <aqua>Rafinowana pszenica</aqua>
+    lore:
+    - <gray>Przetworzony rezultat pracy elektrycznego kompostora.</gray>
+    - <gray>Powstaje z pszenicy z szansą <white>20%</white>.</gray>
+    - <gray>9 sztuk tworzy biorozpałkę dającą <white>12 800 EU</white>.</gray>
+    enchant-glint: true
+    placeable: false
+  electric_mill:
+    enabled: false
+    material: IRON_INGOT
+    custom-model-data: 14131
+    amount: 1
+    display-name: <green>Elektryczny kompostor</green>
+    lore:
+    - <gray>Przetwarza materiały organiczne w elektrycznym kompostowniku.</gray>
+    - '<gray>Zużycie: <green>10 EU/s</green>.</gray>'
+    - '<gray>Odblokowanie: Minion pszenicy Tier <gold>5</gold>.</gray>'
+    enchant-glint: false
+    placeable: true
+    block-kind: ELECTRIC_MILL
+  advanced_accumulator:
+    enabled: false
+    material: IRON_INGOT
+    custom-model-data: 14130
+    amount: 1
+    display-name: <green>Zaawansowany Akumulator</green>
+    lore:
+    - <gray>Magazynuje energię i przekazuje ją dalej do sieci.</gray>
+    - '<gray>Pojemność: <green>2 500 000 EU</green> <dark_gray>•</dark_gray> <gray>Transfer: <green>128 EU/s</green></gray>'
+    - '<gray>Odblokowanie: Minion diamentu Tier <gold>6</gold>.</gray>'
+    enchant-glint: false
+    placeable: true
+    block-kind: ADVANCED_ACCUMULATOR
+  energy_diamond:
+    enabled: false
+    material: DIAMOND
+    custom-model-data: 14131
+    amount: 1
+    display-name: <aqua>Diament Energetyczny</aqua>
+    lore:
+    - <gray>Diament nasycony energią, używany jak rdzeń baterii.</gray>
+    - <gray>Komponent Super Kondensatora.</gray>
+    - '<gray>Odblokowanie: Minion diamentu Tier <gold>6</gold>.</gray>'
+    - '<gray>Stan naładowania: <green>0 / 250 000 EU</green></gray>'
+    enchant-glint: true
+    placeable: false
+  super_capacitor:
+    enabled: false
+    material: DIAMOND
+    custom-model-data: 14132
+    amount: 1
+    display-name: <green>Akumulator Super Kondensator</green>
+    lore:
+    - <gray>Magazynuje bardzo duże ilości energii dla późnych technologii.</gray>
+    - '<gray>Pojemność: <green>20 000 000 EU</green> <dark_gray>•</dark_gray> <gray>Transfer: <green>256 EU/s</green></gray>'
+    - '<gray>Odblokowanie: Minion diamentu Tier <gold>6</gold>.</gray>'
+    enchant-glint: false
+    placeable: true
+    block-kind: SUPER_CAPACITOR
+  biofuel:
+    enabled: false
+    material: COAL
+    custom-model-data: 14134
+    amount: 1
+    display-name: <aqua>Biorozpałka</aqua>
+    lore:
+    - <gray>Paliwo z rafinowanej pszenicy.</gray>
+    - <gray>W piecach przepala <white>32</white> materiały.</gray>
+    - <gray>W generatorze daje <white>12 800 EU</white>.</gray>
+    enchant-glint: true
+    placeable: false
+  hydro_update:
+    enabled: false
+    material: PRISMARINE_SHARD
+    custom-model-data: 14135
+    amount: 1
+    display-name: <aqua>Ulepszenie hydroponiczne</aqua>
+    lore:
+    - <gray>Ulepszenie produkcyjne do slotu ulepszenia miniona.</gray>
+    - <gray>Daje <green>+10%</green> szybkości produkcji minionom roślin i zwierząt.</gray>
+    - '<gray>Odblokowanie: Minion kaktusa Tier <gold>5</gold>.</gray>'
+    enchant-glint: true
+    placeable: false
+  plant_fertilizer_booster:
+    enabled: false
+    material: BONE_MEAL
+    custom-model-data: 14136
+    amount: 1
+    display-name: <green>Nawóz</green>
+    lore:
+    - <gray>Booster dla minionów roślinnych.</gray>
+    - <gray>Daje <green>+10%</green> szybkości produkcji przez <white>5 minut</white>.</gray>
+    - '<gray>Odblokowanie: Minion krowy Tier <gold>5</gold>.</gray>'
+    enchant-glint: true
+    placeable: false
+  animal_booster:
+    enabled: false
+    material: SUGAR
+    custom-model-data: 14137
+    amount: 1
+    display-name: <gold>Booster zwierząt</gold>
+    lore:
+    - <gray>Booster dla minionów zwierzęcych.</gray>
+    - <gray>Daje <green>+10%</green> szybkości produkcji przez <white>5 minut</white>.</gray>
+    - '<gray>Odblokowanie: Minion trzciny cukrowej Tier <gold>5</gold>.</gray>'
+    enchant-glint: true
+    placeable: false
+  meat_refinery:
+    enabled: false
+    material: IRON_INGOT
+    custom-model-data: 15301
+    amount: 1
+    display-name: <gold>Rafinator mięsa</gold>
+    lore:
+    - <gray>Elektryczna maszyna rafinująca mięso.</gray>
+    - <gray>Zużywa <white>20 EU/s</white>, jeden proces trwa <white>16s</white>.</gray>
+    - <gray>Ma <white>25%</white> szansy na rafinowane mięso.</gray>
+    - '<gray>Odblokowanie: Minion świni Tier <gold>5</gold>.</gray>'
+    enchant-glint: false
+    placeable: true
+    block-kind: MEAT_REFINERY
+  refined_meat:
+    enabled: false
+    material: PORKCHOP
+    custom-model-data: 15302
+    amount: 1
+    display-name: <aqua>Rafinowane mięso</aqua>
+    lore:
+    - <gray>Rzadki rezultat pracy rafinatora mięsa.</gray>
+    - <gray>Wygląda jak enchantowane surowe mięso świni.</gray>
+    - <gray>Używane do żywych bloków i mocniejszych boosterów roślin.</gray>
+    enchant-glint: true
+    placeable: false
+  living_block:
+    enabled: false
+    material: NETHER_BRICK
+    custom-model-data: 15303
+    amount: 1
+    display-name: <aqua>Żywy blok</aqua>
+    lore:
+    - <gray>Organiczny blok z rafinowanego mięsa.</gray>
+    - <gray>Składnik rdzenia żywego miniona i późnych ulepszeń.</gray>
+    enchant-glint: true
+    placeable: false
+  plant_booster_tier_2:
+    enabled: false
+    material: BONE_MEAL
+    custom-model-data: 15304
+    amount: 1
+    display-name: <green>Booster minionów roślin II</green>
+    lore:
+    - <gray>Booster dla minionów roślinnych.</gray>
+    - <gray>Daje <green>+20%</green> szybkości produkcji przez <white>7 minut</white>.</gray>
+    - '<gray>Odblokowanie: Minion świni Tier <gold>5</gold>.</gray>'
+    enchant-glint: true
+    placeable: false
+  machine_energy_upgrade:
+    enabled: false
+    material: LIGHT_BLUE_DYE
+    custom-model-data: 15401
+    amount: 1
+    display-name: <aqua>Zaawansowany moduł energetyczny</aqua>
+    lore:
+    - <gray>Ulepszenie do niebieskiego slotu urządzeń elektrycznych.</gray>
+    - <gray>Zmniejsza zużycie odbiorników o <green>20%</green>.</gray>
+    - <gray>Zwiększa bufor i transfer o <aqua>25%</aqua>, a produkcję generatorów o <green>20%</green>.</gray>
+    - '<gray>Odblokowanie: Minion miedzi Tier <gold>5</gold>.</gray>'
+    enchant-glint: true
+    placeable: false
+  wool_insulation_upgrade:
+    enabled: false
+    material: STRING
+    custom-model-data: 15402
+    amount: 1
+    display-name: <white>Izolacja wełniana</white>
+    lore:
+    - <gray>Podstawowe ulepszenie energetyczne maszyn przetwarzających.</gray>
+    - '<gray>Pojemność: <green>+500 EU i +10%</green> <dark_gray>•</dark_gray> <gray>Zużycie: <green>-10%</green></gray>'
+    - '<gray>Odblokowanie: Minion owcy Tier <gold>5</gold>.</gray>'
+    enchant-glint: true
+    placeable: false
+  living_core_update:
+    enabled: false
+    material: HEART_OF_THE_SEA
+    custom-model-data: 15403
+    amount: 1
+    display-name: <light_purple>Żywy rdzeń miniona</light_purple>
+    lore:
+    - <gray>Stałe ulepszenie produkcyjne wykorzystujące Żywy blok.</gray>
+    - <gray>Daje <green>+15%</green> szybkości każdemu typowi miniona.</gray>
+    - '<gray>Odblokowanie: Minion zombie Tier <gold>7</gold>.</gray>'
+    enchant-glint: true
+    placeable: false
+  silk_filter_update:
+    enabled: false
+    material: STRING
+    custom-model-data: 15404
+    amount: 1
+    display-name: <aqua>Jedwabny filtr</aqua>
+    lore:
+    - <gray>Stałe ulepszenie dla minionów z kategorii moby.</gray>
+    - <gray>Daje <green>+10%</green> szybkości produkcji.</gray>
+    - '<gray>Odblokowanie: Minion pająka Tier <gold>5</gold>.</gray>'
+    enchant-glint: true
+    placeable: false
+  feather_drive_update:
+    enabled: false
+    material: FEATHER
+    custom-model-data: 15405
+    amount: 1
+    display-name: <aqua>Napęd piórowy</aqua>
+    lore:
+    - <gray>Stałe ulepszenie dla minionów zwierzęcych.</gray>
+    - <gray>Daje <green>+10%</green> szybkości produkcji.</gray>
+    - '<gray>Odblokowanie: Minion kurczaka Tier <gold>5</gold>.</gray>'
+    enchant-glint: true
+    placeable: false
+  root_nutrient_update:
+    enabled: false
+    material: BEETROOT_SEEDS
+    custom-model-data: 15406
+    amount: 1
+    display-name: <aqua>Odżywka korzeniowa</aqua>
+    lore:
+    - <gray>Stałe ulepszenie dla minionów roślinnych.</gray>
+    - <gray>Daje <green>+10%</green> szybkości produkcji.</gray>
+    - '<gray>Odblokowanie: Minion buraka Tier <gold>5</gold>.</gray>'
+    enchant-glint: true
+    placeable: false
+  compost:
+    enabled: false
+    material: BROWN_DYE
+    custom-model-data: 15510
+    amount: 1
+    display-name: <aqua>Kompost</aqua>
+    lore:
+    - <gray>Organiczny składnik mocniejszych boosterów roślin.</gray>
+    - <gray>Powstaje z proszku kostnego i rafinowanej pszenicy.</gray>
+    - '<gray>Odblokowanie: Minion świni Tier <gold>5</gold>.</gray>'
+    enchant-glint: true
+    placeable: false
+  robot_speed_module:
+    enabled: false
+    material: CLOCK
+    custom-model-data: 15511
+    amount: 1
+    display-name: <aqua>Moduł przyspieszenia robota</aqua>
+    lore:
+    - <gray>Prywatne ulepszenie robota górniczego.</gray>
+    - <gray>Skraca odstęp między akcjami o <green>25%</green>.</gray>
+    - '<gray>Odblokowanie: Minion rybika cukrowego Tier <gold>7</gold>.</gray>'
+    enchant-glint: true
+    placeable: false
+  robot_fuel_module:
+    enabled: false
+    material: REDSTONE
+    custom-model-data: 15512
+    amount: 1
+    display-name: <aqua>Moduł oszczędzania paliwa</aqua>
+    lore:
+    - <gray>Prywatne ulepszenie robota górniczego.</gray>
+    - <gray>Każda kostka cukru działa o <green>50%</green> dłużej.</gray>
+    - '<gray>Odblokowanie: Minion trzciny cukrowej Tier <gold>7</gold>.</gray>'
+    enchant-glint: true
+    placeable: false
+  robot_pickaxe_module:
+    enabled: false
+    material: DIAMOND
+    custom-model-data: 15513
+    amount: 1
+    display-name: <aqua>Moduł ochrony kilofa</aqua>
+    lore:
+    - <gray>Prywatne ulepszenie robota górniczego.</gray>
+    - <gray>Daje <green>25%</green> szansy, że wykopany blok nie zużyje kilofa.</gray>
+    - '<gray>Odblokowanie: Minion diamentu Tier <gold>7</gold>.</gray>'
+    enchant-glint: true
+    placeable: false
+  bronze_dust:
+    enabled: false
+    material: GUNPOWDER
+    custom-model-data: 14005
+    amount: 1
+    display-name: <aqua>Pył brązu</aqua>
+    lore:
+    - <gray>Mieszanina 3 pyłów cyny i 1 pyłu miedzi.</gray>
+    - <gray>Przetapiana w piecu hutniczym.</gray>
+    enchant-glint: true
+    placeable: false
+  uranium:
+    enabled: true
+    resource-ref: uranium
+    amount: 1
+    placeable: false
+    lore:
+    - <gray>Podstawowy surowiec miniona uranu.</gray>
 crafting-stations:
   ENCHANTED_CRAFTING_TABLE:
-    enabled: true
+    enabled: false
     block: ENCHANTING_TABLE
     special-item: enchanted_crafting_table
-    display-name: "<blue>Enchanted Crafting Table</blue>"
-
+    display-name: <#FFA500>Zaawansowany stół rzemieślniczy</#FFA500>
+  URANIUM_ENRICHER:
+    enabled: true
+    block: DISPENSER
+    special-item: uranium_enricher
+    display-name: <gold>Wzbogacacz uranu</gold>
+  SMELTING_FURNACE:
+    enabled: true
+    block: FURNACE
+    special-item: smelting_furnace
+    display-name: <gold>Piec hutniczy</gold>
+  ELECTRIC_FURNACE:
+    enabled: true
+    block: FURNACE
+    special-item: electric_furnace
+    display-name: <gold>Piec elektryczny</gold>
+  COAL_GENERATOR:
+    enabled: true
+    block: FURNACE
+    special-item: coal_generator
+    display-name: <gold>Generator węglowy</gold>
+  MACERATOR:
+    enabled: true
+    block: DISPENSER
+    special-item: macerator
+    display-name: <gold>Macerator</gold>
+  COMPRESSOR:
+    enabled: true
+    block: DISPENSER
+    special-item: compressor
+    display-name: <gold>Kompresor</gold>
+  SOLAR_PANEL_GENERATOR:
+    enabled: true
+    block: FURNACE
+    special-item: solar_panel_generator
+    display-name: <green>Panel słoneczny</green>
+  ACCUMULATOR:
+    enabled: true
+    block: BARREL
+    special-item: accumulator
+    display-name: <green>Akumulator</green>
+  EXTRACTOR:
+    enabled: true
+    block: DISPENSER
+    special-item: extractor
+    display-name: <green>Ekstraktor</green>
+  ELECTRIC_MILL:
+    enabled: false
+    block: BARREL
+    special-item: electric_mill
+    display-name: <green>Elektryczny kompostor</green>
+  MEAT_REFINERY:
+    enabled: false
+    block: DAYLIGHT_DETECTOR
+    special-item: meat_refinery
+    display-name: <gold>Rafinator mięsa</gold>
+  ROBOT_MINER:
+    enabled: false
+    block: BARREL
+    special-item: miner_robot
+    display-name: <gray>Robot górniczy</gray>
+  ADVANCED_ACCUMULATOR:
+    enabled: false
+    block: BARREL
+    special-item: advanced_accumulator
+    display-name: <green>Zaawansowany Akumulator</green>
+  SUPER_CAPACITOR:
+    enabled: false
+    block: BARREL
+    special-item: super_capacitor
+    display-name: <green>Akumulator Super Kondensator</green>
 recipes:
+  cobblestone_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - CCC
+    - CKC
+    - CCC
+    ingredients:
+      C:
+        material: COBBLESTONE
+        amount: 16
+      K:
+        material: WOODEN_PICKAXE
+        amount: 1
+    output:
+      minion-type: cobblestone
+      minion-tier: 1
+      amount: 1
+    unlock: {}
   compressed_cobblestone:
     enabled: true
-    station: ENCHANTED_CRAFTING_TABLE
+    station: VANILLA_CRAFTING_TABLE
     shape:
-      - "CCC"
-      - "CC "
-      - "   "
+    - ' C '
+    - CCC
+    - ' C '
     ingredients:
       C:
         material: COBBLESTONE
@@ -52,15 +1115,14 @@ recipes:
       amount: 1
     unlock:
       town-minion-levels:
-        cobblestone: 5
-
+        cobblestone: 1
   enchanted_crafting_table:
-    enabled: true
+    enabled: false
     station: VANILLA_CRAFTING_TABLE
     shape:
-      - "CCC"
-      - "CCC"
-      - "CCC"
+    - CCC
+    - CCC
+    - CCC
     ingredients:
       C:
         material: CRAFTING_TABLE
@@ -70,24 +1132,3151 @@ recipes:
       amount: 1
     unlock:
       town-minion-levels:
-        dirt: 5
-
-  # Podgląd receptury skrzynki storage w wiki. Realny crafting itemu storage nadal siedzi w storage-chests.yml.
-  basic_storage:
-    enabled: true
-    station: WIKI_ONLY_STORAGE_CHEST
+        oak_plank: 3
+  fertile_soil:
+    enabled: false
+    station: ENCHANTED_CRAFTING_TABLE
     shape:
-      - "WWW"
-      - "WCW"
-      - "WWW"
+    - DDD
+    - DPD
+    - DDD
+    ingredients:
+      D:
+        material: DIRT
+        amount: 32
+      P:
+        material: BONE_MEAL
+        amount: 32
+    output:
+      special-item: fertile_soil
+      amount: 1
+    unlock:
+      town-minion-levels:
+        dirt: 3
+  storage_expander:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - WWW
+    - WCW
+    - WWW
     ingredients:
       W:
-        material: OAK_PLANKS
-        amount: 1
+        material: OAK_LOG
+        amount: 32
       C:
         material: CHEST
         amount: 1
     output:
-      material: CHEST
+      special-item: storage_expander
+      amount: 1
+    unlock:
+      town-minion-levels:
+        oak_plank: 5
+  minion_booster_tier_1:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - WWW
+    - WCW
+    - WWW
+    ingredients:
+      W:
+        material: OAK_PLANKS
+        amount: 1
+        special-item: compressed_oak_plank
+      C:
+        material: COAL_BLOCK
+        amount: 1
+        special-item: compressed_coal
+    output:
+      special-item: minion_booster_tier_1
       amount: 1
     unlock: {}
+  minion_booster_tier_2:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - NNN
+    - NBN
+    - NNN
+    ingredients:
+      N:
+        special-item: super_compressed_netherrack
+        material: NETHERRACK
+        amount: 1
+      B:
+        material: BLAZE_ROD
+        amount: 1
+    output:
+      special-item: minion_booster_tier_2
+      amount: 1
+    unlock:
+      town-minion-levels:
+        netherrack: 7
+  uranium_block:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - UUU
+    - UUU
+    - UUU
+    ingredients:
+      U:
+        material: EMERALD
+        amount: 1
+        custom-model-data: 12001
+    output:
+      special-item: uranium_block
+      amount: 1
+    unlock:
+      town-minion-levels:
+        uranium: 2
+  uranium_enricher:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - SSS
+    - EUE
+    - SSS
+    ingredients:
+      S:
+        material: IRON_INGOT
+        amount: 32
+        custom-model-data: 12101
+        special-item: steel_ingot
+      E:
+        material: REDSTONE_BLOCK
+        amount: 4
+        special-item: compressed_redstone
+      U:
+        material: EMERALD_BLOCK
+        amount: 32
+        special-item: uranium_block
+    output:
+      special-item: uranium_enricher
+      amount: 1
+    unlock:
+      town-minion-levels:
+        uranium: 5
+  iron_uranium_chest:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - SSS
+    - SCS
+    - SSS
+    ingredients:
+      S:
+        material: IRON_INGOT
+        amount: 64
+        custom-model-data: 12101
+        special-item: steel_ingot
+      C:
+        material: CHEST_MINECART
+        amount: 1
+        custom-model-data: 14101
+        special-item: medium_minion_storage
+    output:
+      special-item: iron_uranium_chest
+      amount: 1
+    unlock:
+      town-minion-levels-mode: ALL
+      town-minion-levels:
+        iron: 6
+        coal: 6
+  advanced_redstone:
+    enabled: false
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - ' R '
+    - RXR
+    - ' R '
+    ingredients:
+      R:
+        material: REDSTONE
+        amount: 64
+      X:
+        material: REDSTONE_BLOCK
+        amount: 1
+        special-item: compressed_redstone
+    output:
+      special-item: advanced_redstone
+      amount: 8
+    unlock:
+      town-minion-levels:
+        redstone: 5
+  combustion_fuel:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - CCC
+    - CXC
+    - CCC
+    ingredients:
+      C:
+        material: COAL
+        amount: 16
+      X:
+        material: COAL_BLOCK
+        amount: 1
+        special-item: compressed_coal
+    output:
+      special-item: combustion_fuel
+      amount: 1
+    unlock:
+      town-minion-levels:
+        coal: 7
+  smelting_furnace:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - BBB
+    - BFB
+    - BBB
+    ingredients:
+      B:
+        material: BRICKS
+        amount: 16
+      F:
+        material: FURNACE
+        amount: 1
+    output:
+      special-item: smelting_furnace
+      amount: 1
+    unlock:
+      town-minion-levels:
+        coal: 5
+  electric_furnace:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - NNN
+    - NPN
+    - CCC
+    ingredients:
+      N:
+        material: NETHER_BRICKS
+        amount: 64
+      P:
+        material: FURNACE
+        amount: 1
+      C:
+        special-item: compressed_stone
+        material: STONE
+        amount: 4
+    output:
+      special-item: electric_furnace
+      amount: 1
+    unlock:
+      town-minion-levels:
+        coal: 5
+  super_compressed_uranium:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - ' C '
+    - CCC
+    - ' C '
+    ingredients:
+      C:
+        material: EMERALD_BLOCK
+        amount: 32
+        special-item: compressed_uranium
+    output:
+      special-item: super_compressed_uranium
+      amount: 1
+    unlock:
+      town-minion-levels:
+        uranium: 1
+  auto_smelter:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - CCC
+    - ROR
+    - IDI
+    ingredients:
+      C:
+        material: COAL_BLOCK
+        amount: 16
+        special-item: compressed_coal
+      R:
+        material: REDSTONE_BLOCK
+        amount: 32
+      O:
+        material: OBSIDIAN
+        amount: 1
+        special-item: super_compressed_obsidian
+      I:
+        material: IRON_BLOCK
+        amount: 32
+      D:
+        material: DIAMOND_BLOCK
+        amount: 8
+    output:
+      special-item: auto_smelter
+      amount: 1
+    unlock:
+      town-minion-levels:
+        netherite: 5
+  coal_generator:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - CCC
+    - CRC
+    - CCC
+    ingredients:
+      C:
+        special-item: compressed_coal
+        amount: 16
+      R:
+        material: REDSTONE_BLOCK
+        amount: 16
+    output:
+      special-item: coal_generator
+      amount: 1
+    unlock:
+      town-minion-levels:
+        coal: 5
+  macerator:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - CCC
+    - FFF
+    - CCC
+    ingredients:
+      C:
+        special-item: compressed_cobblestone
+        amount: 64
+        material: COBBLESTONE
+      F:
+        material: FLINT
+        amount: 32
+    output:
+      special-item: macerator
+      amount: 1
+    unlock:
+      town-minion-levels:
+        stone: 5
+  dirt_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - DDD
+    - DSD
+    - CCC
+    ingredients:
+      D:
+        material: DIRT
+        amount: 64
+      S:
+        material: STONE_SHOVEL
+        amount: 1
+      C:
+        material: COBBLESTONE
+        amount: 16
+    output:
+      minion-type: dirt
+      minion-tier: 1
+      amount: 1
+    unlock: {}
+  stone_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - CCC
+    - DKD
+    - CCC
+    ingredients:
+      C:
+        material: COBBLESTONE
+        amount: 16
+      D:
+        material: DIRT
+        amount: 16
+      K:
+        material: IRON_PICKAXE
+        amount: 1
+    output:
+      minion-type: stone
+      minion-tier: 1
+      amount: 1
+    # Unlock progression: stage1
+    unlock:
+      collection-tier-count:
+        count: 2
+        tier: 3
+        distinct: true
+  oak_plank_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - DDD
+    - DSD
+    - DDD
+    ingredients:
+      D:
+        material: OAK_LOG
+        amount: 32
+      S:
+        material: IRON_AXE
+        amount: 1
+    output:
+      minion-type: oak_plank
+      minion-tier: 1
+      amount: 1
+    unlock: {}
+  spruce_wood_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - DDD
+    - DSD
+    - DDD
+    ingredients:
+      D:
+        material: SPRUCE_LOG
+        amount: 32
+      S:
+        material: IRON_AXE
+        amount: 1
+    output:
+      minion-type: spruce_wood
+      minion-tier: 1
+      amount: 1
+    # Unlock progression: stage1
+    unlock:
+      collection-tier-count:
+        count: 2
+        tier: 3
+        distinct: true
+  stone_frame:
+    enabled: false
+    station: ENCHANTED_CRAFTING_TABLE
+    shape:
+    - CCC
+    - C C
+    - CCC
+    ingredients:
+      C:
+        special-item: compressed_cobblestone
+        amount: 1
+        material: COBBLESTONE
+    output:
+      special-item: stone_frame
+      amount: 1
+    unlock:
+      town-minion-levels:
+        cobblestone: 5
+  iron_frame:
+    enabled: false
+    station: ENCHANTED_CRAFTING_TABLE
+    shape:
+    - CCC
+    - C C
+    - CCC
+    ingredients:
+      C:
+        special-item: compressed_iron
+        amount: 1
+        material: IRON_BLOCK
+    output:
+      special-item: iron_frame
+      amount: 1
+    unlock:
+      town-minion-levels:
+        iron: 5
+  iron_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - BBB
+    - BKB
+    - BCB
+    ingredients:
+      B:
+        material: IRON_BLOCK
+        amount: 4
+      K:
+        material: IRON_PICKAXE
+        amount: 1
+      C:
+        special-item: compressed_cobblestone
+        material: COBBLESTONE
+        amount: 1
+    output:
+      minion-type: iron
+      minion-tier: 1
+      amount: 1
+    # Unlock progression: stage3
+    unlock:
+      collection-tier-count:
+        count: 8
+        tier: 4
+        distinct: true
+  coal_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - WWW
+    - WKW
+    - CCC
+    ingredients:
+      W:
+        material: COAL_BLOCK
+        amount: 16
+      K:
+        material: DIAMOND_PICKAXE
+        amount: 1
+      C:
+        special-item: compressed_cobblestone
+        material: COBBLESTONE
+        amount: 1
+    output:
+      minion-type: coal
+      minion-tier: 1
+      amount: 1
+    # Unlock progression: stage3
+    unlock:
+      collection-tier-count:
+        count: 8
+        tier: 4
+        distinct: true
+  copper_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - MMM
+    - MKM
+    - CSC
+    ingredients:
+      M:
+        material: COPPER_BLOCK
+        amount: 16
+      K:
+        material: IRON_PICKAXE
+        amount: 1
+      C:
+        special-item: compressed_cobblestone
+        material: COBBLESTONE
+        amount: 1
+      S:
+        special-item: compressed_iron
+        material: IRON_BLOCK
+        amount: 1
+    output:
+      minion-type: copper
+      minion-tier: 1
+      amount: 1
+    # Unlock progression: stage4
+    unlock:
+      collection-tier-count:
+        count: 9
+        tier: 5
+        distinct: true
+  technical_block:
+    enabled: false
+    station: ENCHANTED_CRAFTING_TABLE
+    shape:
+    - BBB
+    - BIB
+    - PPP
+    ingredients:
+      B:
+        material: IRON_BLOCK
+        amount: 16
+      I:
+        special-item: iron_frame
+        material: ITEM_FRAME
+        amount: 1
+      P:
+        special-item: rare_elements
+        material: AMETHYST_SHARD
+        amount: 4
+    output:
+      special-item: technical_block
+      amount: 1
+    unlock: {}
+  redstone_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - RRR
+    - RKR
+    - SSS
+    ingredients:
+      R:
+        material: REDSTONE_BLOCK
+        amount: 64
+      K:
+        material: DIAMOND_PICKAXE
+        amount: 1
+      S:
+        special-item: steel_ingot
+        material: IRON_INGOT
+        amount: 16
+    output:
+      minion-type: redstone
+      minion-tier: 1
+      amount: 1
+    # Unlock progression: stage7
+    unlock:
+      collection-tier-count:
+        count: 8
+        tier: 6
+        distinct: true
+      prerequisite-collection-tier-counts:
+      - count: 16
+        tier: 5
+        distinct: true
+  gold_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - GGG
+    - GKG
+    - III
+    ingredients:
+      G:
+        material: GOLD_BLOCK
+        amount: 4
+      K:
+        material: DIAMOND_PICKAXE
+        amount: 1
+      I:
+        special-item: compressed_iron
+        material: IRON_BLOCK
+        amount: 1
+    output:
+      minion-type: gold
+      minion-tier: 1
+      amount: 1
+    # Unlock progression: stage6
+    unlock:
+      collection-tier-count:
+        count: 16
+        tier: 5
+        distinct: true
+  emerald_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - EEE
+    - EKE
+    - SIS
+    ingredients:
+      E:
+        material: EMERALD_BLOCK
+        amount: 2
+      K:
+        material: DIAMOND_PICKAXE
+        amount: 1
+      S:
+        material: AMETHYST_SHARD
+        amount: 2
+        custom-model-data: 12601
+        special-item: rare_elements
+      I:
+        special-item: compressed_iron
+        material: IRON_BLOCK
+        amount: 1
+    output:
+      minion-type: emerald
+      minion-tier: 1
+      amount: 1
+    # Unlock progression: stage4
+    unlock:
+      collection-tier-count:
+        count: 16
+        tier: 5
+        distinct: true
+  diamond_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - DDD
+    - DKD
+    - BBB
+    ingredients:
+      D:
+        material: DIAMOND_BLOCK
+        amount: 4
+      K:
+        material: NETHERITE_PICKAXE
+        amount: 1
+      B:
+        material: AMETHYST_SHARD
+        amount: 2
+        custom-model-data: 12601
+        special-item: rare_elements
+    output:
+      minion-type: diamond
+      minion-tier: 1
+      amount: 1
+    # Unlock progression: stage7
+    unlock:
+      collection-tier-count:
+        count: 8
+        tier: 6
+        distinct: true
+      prerequisite-collection-tier-counts:
+      - count: 16
+        tier: 5
+        distinct: true
+  uranium_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - SSS
+    - DKD
+    - RIR
+    ingredients:
+      S:
+        special-item: super_compressed_stone
+        material: STONE
+        amount: 8
+      D:
+        material: DIAMOND_BLOCK
+        amount: 32
+      K:
+        material: NETHERITE_PICKAXE
+        amount: 1
+      R:
+        material: AMETHYST_SHARD
+        amount: 2
+        custom-model-data: 12601
+        special-item: rare_elements
+      I:
+        material: IRON_INGOT
+        amount: 16
+        custom-model-data: 14002
+        special-item: tin_ingot
+    output:
+      minion-type: uranium
+      minion-tier: 1
+      amount: 1
+    # Unlock progression: stage7
+    unlock:
+      collection-tier-count:
+        count: 8
+        tier: 6
+        distinct: true
+      prerequisite-collection-tier-counts:
+      - count: 16
+        tier: 5
+        distinct: true
+  obsidian_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - OOO
+    - ONO
+    - IBI
+    ingredients:
+      O:
+        material: OBSIDIAN
+        amount: 16
+      N:
+        material: NETHERITE_PICKAXE
+        amount: 1
+      I:
+        special-item: compressed_iron
+        material: IRON_BLOCK
+        amount: 1
+      B:
+        special-item: compressed_cobblestone
+        material: COBBLESTONE
+        amount: 1
+    output:
+      minion-type: obsidian
+      minion-tier: 1
+      amount: 1
+    # Unlock progression: stage6
+    unlock:
+      collection-tier-count:
+        count: 13
+        tier: 5
+        distinct: true
+  compressor:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - OOO
+    - OTO
+    - III
+    ingredients:
+      O:
+        special-item: compressed_obsidian
+        material: OBSIDIAN
+        amount: 16
+      T:
+        material: GOLD_BLOCK
+        amount: 16
+      I:
+        special-item: compressed_iron
+        material: IRON_BLOCK
+        amount: 8
+    output:
+      special-item: compressor
+      amount: 1
+    unlock:
+      town-minion-levels:
+        obsidian: 5
+  accumulator:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - BBB
+    - BGB
+    - BBB
+    ingredients:
+      B:
+        special-item: battery
+        material: REDSTONE_TORCH
+        amount: 1
+      G:
+        special-item: steel_ingot
+        material: IRON_INGOT
+        amount: 8
+    output:
+      special-item: accumulator
+      amount: 1
+    unlock:
+      town-minion-levels:
+        tin: 5
+  extractor:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - SSS
+    - CDC
+    - SSS
+    ingredients:
+      S:
+        special-item: compressed_spruce_wood
+        material: SPRUCE_LOG
+        amount: 8
+      C:
+        material: HONEYCOMB
+        amount: 2
+        custom-model-data: 14010
+        special-item: spruce_resin
+      D:
+        material: DISPENSER
+        amount: 1
+    output:
+      special-item: extractor
+      amount: 1
+    unlock:
+      town-minion-levels:
+        spruce_wood: 7
+  compressor_update:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - O O
+    - OCO
+    - OSO
+    ingredients:
+      O:
+        special-item: compressed_obsidian
+        material: OBSIDIAN
+        amount: 4
+      C:
+        material: REDSTONE_BLOCK
+        amount: 1
+      S:
+        special-item: compressed_iron
+        material: IRON_BLOCK
+        amount: 1
+    output:
+      special-item: compressor_update
+      amount: 1
+    unlock:
+      town-minion-levels:
+        obsidian: 7
+  hazmat_helmet:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - ZZZ
+    - ZSZ
+    - '   '
+    ingredients:
+      Z:
+        material: HONEYCOMB
+        amount: 1
+        custom-model-data: 14010
+      S:
+        material: GLASS
+        amount: 64
+    output:
+      special-item: hazmat_helmet
+      amount: 1
+    unlock:
+      town-minion-levels:
+        spruce_wood: 5
+  hazmat_chestplate:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - Z Z
+    - ZGZ
+    - ZZZ
+    ingredients:
+      Z:
+        material: HONEYCOMB
+        amount: 1
+        custom-model-data: 14010
+      G:
+        material: GOLD_BLOCK
+        amount: 32
+    output:
+      special-item: hazmat_chestplate
+      amount: 1
+    unlock:
+      town-minion-levels:
+        spruce_wood: 5
+  hazmat_leggings:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - ZRZ
+    - Z Z
+    - Z Z
+    ingredients:
+      Z:
+        material: HONEYCOMB
+        amount: 1
+        custom-model-data: 14010
+      R:
+        material: REDSTONE_BLOCK
+        amount: 16
+    output:
+      special-item: hazmat_leggings
+      amount: 1
+    unlock:
+      town-minion-levels:
+        spruce_wood: 5
+  hazmat_boots:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - '   '
+    - Z Z
+    - Z Z
+    ingredients:
+      Z:
+        material: HONEYCOMB
+        amount: 1
+        custom-model-data: 14010
+    output:
+      special-item: hazmat_boots
+      amount: 1
+    unlock:
+      town-minion-levels:
+        spruce_wood: 5
+  tin_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - III
+    - IKI
+    - SSS
+    ingredients:
+      I:
+        material: IRON_BLOCK
+        amount: 2
+      K:
+        material: IRON_PICKAXE
+        amount: 1
+      S:
+        special-item: compressed_iron
+        material: IRON_BLOCK
+        amount: 1
+    output:
+      minion-type: tin
+      minion-tier: 1
+      amount: 1
+    # Unlock progression: stage5
+    unlock:
+      collection-tier-count:
+        count: 9
+        tier: 5
+        distinct: true
+  copper_cable:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - EEE
+    - MMM
+    - EEE
+    ingredients:
+      E:
+        material: HONEYCOMB
+        amount: 1
+        custom-model-data: 14010
+      M:
+        material: COPPER_INGOT
+        amount: 8
+    output:
+      special-item: copper_cable
+      amount: 3
+    unlock:
+      town-minion-levels:
+        tin: 5
+  gold_cable:
+    enabled: false
+    station: ENCHANTED_CRAFTING_TABLE
+    shape:
+    - EEE
+    - MMM
+    - EEE
+    ingredients:
+      E:
+        material: HONEYCOMB
+        amount: 1
+        custom-model-data: 14010
+      M:
+        material: GOLD_INGOT
+        amount: 1
+    output:
+      special-item: gold_cable
+      amount: 6
+    unlock:
+      town-minion-levels:
+        gold: 4
+  glass_cable:
+    enabled: false
+    station: ENCHANTED_CRAFTING_TABLE
+    shape:
+    - GGG
+    - DDD
+    - GGG
+    ingredients:
+      G:
+        material: GLASS
+        amount: 16
+      D:
+        material: DIAMOND
+        amount: 8
+    output:
+      special-item: glass_cable
+      amount: 1
+    unlock:
+      town-minion-levels:
+        diamond: 5
+  battery:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - ' K '
+    - TRT
+    - TRT
+    ingredients:
+      K:
+        special-item: copper_cable
+        material: COPPER_BLOCK
+        amount: 3
+      T:
+        special-item: tin_ingot
+        material: IRON_INGOT
+        amount: 1
+      R:
+        material: REDSTONE
+        amount: 64
+    output:
+      special-item: battery
+      amount: 1
+    unlock:
+      town-minion-levels:
+        tin: 5
+  solar_panel_generator:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - CCC
+    - SRS
+    - SSS
+    ingredients:
+      C:
+        special-item: graphite
+        material: CHARCOAL
+        custom-model-data: 12702
+        amount: 32
+      S:
+        special-item: steel_ingot
+        material: IRON_INGOT
+        amount: 16
+      R:
+        material: REDSTONE_BLOCK
+        amount: 32
+    output:
+      special-item: solar_panel_generator
+      amount: 1
+    unlock:
+      town-minion-levels:
+        tin: 7
+  wooden_frame:
+    enabled: false
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - SSS
+    - S S
+    - SSS
+    ingredients:
+      S:
+        material: OAK_LOG
+        amount: 8
+    output:
+      special-item: wooden_frame
+      amount: 1
+    unlock:
+      town-minion-levels:
+        oak_plank: 3
+  golden_coil:
+    enabled: false
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - GRG
+    - RBR
+    - GRG
+    ingredients:
+      G:
+        material: GOLD_BLOCK
+        amount: 1
+      R:
+        material: REDSTONE_BLOCK
+        amount: 32
+      B:
+        special-item: compressed_iron
+        material: IRON_BLOCK
+        amount: 1
+    output:
+      special-item: golden_coil
+      amount: 1
+    unlock:
+      town-minion-levels:
+        gold: 5
+  medium_minion_storage:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - WWW
+    - GSG
+    - GCG
+    ingredients:
+      W:
+        special-item: compressed_oak_plank
+        material: OAK_LOG
+        amount: 1
+      G:
+        material: GOLD_BLOCK
+        amount: 32
+      S:
+        special-item: storage_expander
+        material: CHEST
+        amount: 1
+      C:
+        special-item: steel_ingot
+        material: IRON_INGOT
+        custom-model-data: 12101
+        amount: 32
+    output:
+      special-item: medium_minion_storage
+      amount: 1
+    unlock:
+      town-minion-levels:
+        gold: 7
+  advanced_steel_frame:
+    enabled: false
+    station: ENCHANTED_CRAFTING_TABLE
+    shape:
+    - SSS
+    - S S
+    - SSS
+    ingredients:
+      S:
+        special-item: steel_block
+        material: IRON_BLOCK
+        amount: 8
+    output:
+      special-item: advanced_steel_frame
+      amount: 1
+    unlock:
+      town-minion-levels:
+        iron: 7
+  advanced_chip:
+    enabled: false
+    station: ENCHANTED_CRAFTING_TABLE
+    shape:
+    - KRK
+    - SIS
+    - KRK
+    ingredients:
+      K:
+        special-item: copper_cable
+        material: COPPER_BLOCK
+        amount: 1
+      R:
+        material: REDSTONE_BLOCK
+        amount: 16
+      S:
+        special-item: rare_elements
+        material: AMETHYST_SHARD
+        amount: 4
+      I:
+        material: IRON_INGOT
+        amount: 32
+    output:
+      special-item: advanced_chip
+      amount: 1
+    unlock:
+      town-minion-levels:
+        redstone: 7
+  large_minion_storage:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - WCW
+    - NSN
+    - NNN
+    ingredients:
+      W:
+        special-item: compressed_oak_plank
+        material: OAK_LOG
+        amount: 1
+      C:
+        special-item: compressor_update
+        material: PISTON
+        amount: 1
+      N:
+        material: NETHERITE_INGOT
+        amount: 2
+      S:
+        special-item: medium_minion_storage
+        material: CHEST
+        amount: 1
+    output:
+      special-item: large_minion_storage
+      amount: 1
+    unlock:
+      town-minion-levels-mode: ALL
+      town-minion-levels:
+        gold: 7
+        obsidian: 7
+        netherite: 7
+  bronze_wrench:
+    enabled: false
+    station: ENCHANTED_CRAFTING_TABLE
+    shape:
+    - B B
+    - BBB
+    - ' B '
+    ingredients:
+      B:
+        special-item: bronze_ingot
+        material: COPPER_INGOT
+        amount: 1
+    output:
+      special-item: bronze_wrench
+      amount: 1
+    unlock:
+      town-minion-levels:
+        tin: 3
+  steel_block:
+    enabled: false
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - SSS
+    - SSS
+    - SSS
+    ingredients:
+      S:
+        special-item: steel_ingot
+        material: IRON_INGOT
+        amount: 1
+    output:
+      special-item: steel_block
+      amount: 1
+    unlock:
+      town-minion-levels:
+        iron: 5
+  electric_mill:
+    enabled: false
+    station: ENCHANTED_CRAFTING_TABLE
+    shape:
+    - WWW
+    - I I
+    - KKK
+    ingredients:
+      W:
+        special-item: wooden_frame
+        material: ITEM_FRAME
+        amount: 1
+      I:
+        special-item: iron_frame
+        material: ITEM_FRAME
+        amount: 1
+      K:
+        special-item: compressed_cobblestone
+        material: COBBLESTONE
+        amount: 1
+    output:
+      special-item: electric_mill
+      amount: 1
+    unlock:
+      town-minion-levels:
+        wheat: 5
+  pig_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - MMM
+    - WSW
+    - CCC
+    ingredients:
+      M:
+        material: PORKCHOP
+        amount: 8
+      W:
+        special-item: compressed_oak_plank
+        material: OAK_LOG
+        amount: 1
+      S:
+        material: IRON_SWORD
+        amount: 1
+      C:
+        special-item: compressed_stone
+        material: STONE
+        amount: 1
+    output:
+      minion-type: pig
+      minion-tier: 1
+      amount: 1
+    # Unlock progression: stage2
+    unlock:
+      collection-tier-count:
+        count: 5
+        tier: 3
+        distinct: true
+  sheep_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - MMM
+    - WSW
+    - CRC
+    ingredients:
+      M:
+        materials:
+        - WHITE_WOOL
+        - ORANGE_WOOL
+        - MAGENTA_WOOL
+        - LIGHT_BLUE_WOOL
+        - YELLOW_WOOL
+        - LIME_WOOL
+        - PINK_WOOL
+        - GRAY_WOOL
+        - LIGHT_GRAY_WOOL
+        - CYAN_WOOL
+        - PURPLE_WOOL
+        - BLUE_WOOL
+        - BROWN_WOOL
+        - GREEN_WOOL
+        - RED_WOOL
+        - BLACK_WOOL
+        amount: 16
+      W:
+        special-item: compressed_oak_plank
+        material: OAK_LOG
+        amount: 1
+      S:
+        material: SHEARS
+        amount: 1
+      C:
+        special-item: compressed_stone
+        material: STONE
+        amount: 1
+      R:
+        material: HONEYCOMB
+        amount: 16
+        custom-model-data: 14010
+        special-item: spruce_resin
+    output:
+      minion-type: sheep
+      minion-tier: 1
+      amount: 1
+    # Unlock progression: stage7
+    unlock:
+      collection-tier-count:
+        count: 8
+        tier: 6
+        distinct: true
+      prerequisite-collection-tier-counts:
+      - count: 16
+        tier: 5
+        distinct: true
+  cow_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - MMM
+    - WSW
+    - CCC
+    ingredients:
+      M:
+        material: BEEF
+        amount: 8
+      W:
+        special-item: compressed_oak_plank
+        material: OAK_LOG
+        amount: 1
+      S:
+        material: BUCKET
+        amount: 1
+      C:
+        special-item: compressed_stone
+        material: STONE
+        amount: 1
+    output:
+      minion-type: cow
+      minion-tier: 1
+      amount: 1
+    # Unlock progression: stage3
+    unlock:
+      collection-tier-count:
+        count: 8
+        tier: 4
+        distinct: true
+  chicken_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - MMM
+    - WSW
+    - CCC
+    ingredients:
+      M:
+        material: CHICKEN
+        amount: 8
+      W:
+        special-item: compressed_oak_plank
+        material: OAK_LOG
+        amount: 1
+      S:
+        material: IRON_SWORD
+        amount: 1
+      C:
+        special-item: compressed_stone
+        material: STONE
+        amount: 1
+    output:
+      minion-type: chicken
+      minion-tier: 1
+      amount: 1
+    # Unlock progression: stage2
+    unlock:
+      collection-tier-count:
+        count: 5
+        tier: 3
+        distinct: true
+  zombie_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - MMM
+    - WSW
+    - CCC
+    ingredients:
+      M:
+        material: ROTTEN_FLESH
+        amount: 32
+      W:
+        special-item: compressed_spruce_wood
+        material: SPRUCE_LOG
+        amount: 1
+      S:
+        material: IRON_SWORD
+        amount: 1
+      C:
+        special-item: compressed_stone
+        material: STONE
+        amount: 1
+    output:
+      minion-type: zombie
+      minion-tier: 1
+      amount: 1
+    # Unlock progression: stage4
+    unlock:
+      collection-tier-count:
+        count: 9
+        tier: 5
+        distinct: true
+  skeleton_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - MMM
+    - WSW
+    - CCC
+    ingredients:
+      M:
+        material: BONE
+        amount: 16
+      W:
+        special-item: compressed_spruce_wood
+        material: SPRUCE_LOG
+        amount: 1
+      S:
+        material: BOW
+        amount: 1
+      C:
+        special-item: compressed_stone
+        material: STONE
+        amount: 1
+    output:
+      minion-type: skeleton
+      minion-tier: 1
+      amount: 1
+    # Unlock progression: stage5
+    unlock:
+      collection-tier-count:
+        count: 13
+        tier: 5
+        distinct: true
+  spider_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - MMM
+    - WSW
+    - CCC
+    ingredients:
+      M:
+        material: SPIDER_EYE
+        amount: 8
+      W:
+        special-item: compressed_spruce_wood
+        material: SPRUCE_LOG
+        amount: 1
+      S:
+        material: DIAMOND_SWORD
+        amount: 1
+      C:
+        material: HONEYCOMB
+        amount: 32
+        custom-model-data: 14010
+        special-item: spruce_resin
+    output:
+      minion-type: spider
+      minion-tier: 1
+      amount: 1
+    # Unlock progression: stage7
+    unlock:
+      collection-tier-count:
+        count: 8
+        tier: 6
+        distinct: true
+      prerequisite-collection-tier-counts:
+      - count: 16
+        tier: 5
+        distinct: true
+  silverfish_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - MMM
+    - WSW
+    - CCC
+    ingredients:
+      M:
+        special-item: compressed_cobblestone
+        material: COBBLESTONE
+        amount: 16
+      W:
+        material: GOLD_BLOCK
+        amount: 32
+      S:
+        material: DIAMOND_PICKAXE
+        amount: 1
+      C:
+        special-item: super_compressed_stone
+        material: STONE
+        amount: 1
+    output:
+      minion-type: silverfish
+      minion-tier: 1
+      amount: 1
+    # Unlock progression: silverfish
+    unlock:
+      collection-tier-count:
+        count: 12
+        tier: 6
+        distinct: true
+      prerequisite-collection-tier-counts:
+      - count: 16
+        tier: 5
+        distinct: true
+  wheat_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - MMM
+    - WSW
+    - CFC
+    ingredients:
+      M:
+        material: WHEAT
+        amount: 32
+      W:
+        special-item: compressed_oak_plank
+        material: OAK_LOG
+        amount: 1
+      S:
+        material: IRON_HOE
+        amount: 1
+      C:
+        material: COBBLESTONE
+        amount: 64
+      F:
+        special-item: compressed_dirt
+        material: DIRT
+        amount: 1
+    output:
+      minion-type: wheat
+      minion-tier: 1
+      amount: 1
+    # Unlock progression: stage2
+    unlock:
+      collection-tier-count:
+        count: 5
+        tier: 3
+        distinct: true
+  cactus_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - MMM
+    - WSW
+    - CFC
+    ingredients:
+      M:
+        material: CACTUS
+        amount: 32
+      W:
+        special-item: compressed_oak_plank
+        material: OAK_LOG
+        amount: 1
+      S:
+        material: WATER_BUCKET
+        amount: 1
+      C:
+        special-item: compressed_cobblestone
+        material: COBBLESTONE
+        amount: 8
+      F:
+        material: AMETHYST_SHARD
+        amount: 2
+        custom-model-data: 12601
+        special-item: rare_elements
+    output:
+      minion-type: cactus
+      minion-tier: 1
+      amount: 1
+    # Unlock progression: stage7
+    unlock:
+      collection-tier-count:
+        count: 8
+        tier: 6
+        distinct: true
+      prerequisite-collection-tier-counts:
+      - count: 16
+        tier: 5
+        distinct: true
+  sugar_cane_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - MMM
+    - WSW
+    - CFC
+    ingredients:
+      M:
+        material: SUGAR_CANE
+        amount: 64
+      W:
+        special-item: compressed_oak_plank
+        material: OAK_LOG
+        amount: 1
+      S:
+        material: WATER_BUCKET
+        amount: 1
+      C:
+        material: COPPER_BLOCK
+        amount: 1
+        special-item: compressed_copper
+      F:
+        special-item: compressed_dirt
+        material: DIRT
+        amount: 1
+    output:
+      minion-type: sugar_cane
+      minion-tier: 1
+      amount: 1
+    # Unlock progression: stage6
+    unlock:
+      collection-tier-count:
+        count: 13
+        tier: 5
+        distinct: true
+  beetroot_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - MMM
+    - WSW
+    - CFC
+    ingredients:
+      M:
+        material: BEETROOT
+        amount: 32
+      W:
+        special-item: compressed_oak_plank
+        material: OAK_LOG
+        amount: 1
+      S:
+        material: WATER_BUCKET
+        amount: 1
+      C:
+        special-item: compressed_cobblestone
+        material: COBBLESTONE
+        amount: 8
+      F:
+        special-item: compressed_dirt
+        material: DIRT
+        amount: 1
+    output:
+      minion-type: beetroot
+      minion-tier: 1
+      amount: 1
+    # Unlock progression: stage7
+    unlock:
+      collection-tier-count:
+        count: 8
+        tier: 6
+        distinct: true
+      prerequisite-collection-tier-counts:
+      - count: 16
+        tier: 5
+        distinct: true
+  netherite_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - NNN
+    - NKN
+    - BBB
+    ingredients:
+      N:
+        material: NETHERITE_INGOT
+        amount: 2
+      K:
+        material: NETHERITE_PICKAXE
+        amount: 1
+      B:
+        material: IRON_INGOT
+        amount: 8
+        custom-model-data: 14002
+        special-item: tin_ingot
+    output:
+      minion-type: netherite
+      minion-tier: 1
+      amount: 1
+    # Unlock progression: netherite
+    unlock:
+      collection-tier-count:
+        count: 5
+        tier: 7
+        distinct: true
+      prerequisite-collection-tier-counts:
+      - count: 16
+        tier: 5
+        distinct: true
+      - count: 12
+        tier: 6
+        distinct: true
+  netherrack_minion:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - NNN
+    - NKN
+    - CCC
+    ingredients:
+      N:
+        material: NETHERRACK
+        amount: 64
+      K:
+        material: DIAMOND_PICKAXE
+        amount: 1
+      C:
+        special-item: compressed_cobblestone
+        material: COBBLESTONE
+        amount: 1
+    output:
+      minion-type: netherrack
+      minion-tier: 1
+      amount: 1
+    # Unlock progression: stage7
+    unlock:
+      collection-tier-count:
+        count: 8
+        tier: 6
+        distinct: true
+      prerequisite-collection-tier-counts:
+      - count: 16
+        tier: 5
+        distinct: true
+  advanced_accumulator:
+    enabled: false
+    station: ENCHANTED_CRAFTING_TABLE
+    shape:
+    - SSS
+    - SAS
+    - ZBZ
+    ingredients:
+      S:
+        special-item: steel_ingot
+        material: IRON_INGOT
+        amount: 32
+      A:
+        special-item: accumulator
+        material: OAK_WOOD
+        amount: 1
+      Z:
+        special-item: steel_ingot
+        material: IRON_INGOT
+        custom-model-data: 12101
+        amount: 32
+      B:
+        special-item: technical_block
+        material: ORANGE_CONCRETE
+        amount: 1
+    output:
+      special-item: advanced_accumulator
+      amount: 1
+    unlock:
+      town-minion-levels:
+        diamond: 6
+  energy_diamond:
+    enabled: false
+    station: ENCHANTED_CRAFTING_TABLE
+    shape:
+    - RBR
+    - BDB
+    - RBR
+    ingredients:
+      R:
+        material: REDSTONE_BLOCK
+        amount: 32
+      B:
+        special-item: battery
+        material: REDSTONE_TORCH
+        amount: 1
+      D:
+        special-item: compressed_diamond
+        material: DIAMOND_BLOCK
+        amount: 1
+    output:
+      special-item: energy_diamond
+      amount: 1
+    unlock:
+      town-minion-levels:
+        diamond: 6
+  super_capacitor:
+    enabled: false
+    station: ENCHANTED_CRAFTING_TABLE
+    shape:
+    - KBK
+    - KAK
+    - KBK
+    ingredients:
+      K:
+        special-item: energy_diamond
+        material: DIAMOND
+        amount: 1
+      B:
+        special-item: technical_block
+        material: ORANGE_CONCRETE
+        amount: 1
+      A:
+        special-item: advanced_accumulator
+        material: IRON_BLOCK
+        amount: 1
+    output:
+      special-item: super_capacitor
+      amount: 1
+    unlock:
+      town-minion-levels:
+        diamond: 6
+  musket:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - 'S  '
+    - 'S  '
+    - 'DB '
+    ingredients:
+      S:
+        special-item: steel_ingot
+        material: IRON_INGOT
+        amount: 16
+      D:
+        special-item: compressed_oak_plank
+        material: OAK_LOG
+        amount: 1
+      B:
+        special-item: steel_ingot
+        material: IRON_INGOT
+        amount: 32
+    output:
+      special-item: musket
+      amount: 1
+    unlock:
+      town-minion-levels:
+        skeleton: 4
+  musket_ammo:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - PPP
+    - PCP
+    - BBB
+    ingredients:
+      P:
+        material: PAPER
+        amount: 64
+      C:
+        material: GUNPOWDER
+        amount: 8
+      B:
+        material: COPPER_INGOT
+        amount: 32
+    output:
+      special-item: musket_ammo
+      amount: 4
+    unlock:
+      town-minion-levels:
+        sugar_cane: 5
+  miner_robot:
+    enabled: false
+    station: ENCHANTED_CRAFTING_TABLE
+    shape:
+    - ISI
+    - CPC
+    - IBI
+    ingredients:
+      I:
+        special-item: iron_frame
+        material: IRON_BLOCK
+        amount: 1
+      S:
+        special-item: super_compressed_stone
+        material: STONE
+        amount: 1
+      C:
+        special-item: compressed_cobblestone
+        material: COBBLESTONE
+        amount: 8
+      P:
+        material: DIAMOND_PICKAXE
+        amount: 1
+      B:
+        special-item: advanced_chip
+        material: REDSTONE
+        amount: 1
+    output:
+      special-item: miner_robot
+      amount: 1
+    unlock:
+      town-minion-levels:
+        silverfish: 5
+  miner_robot_storage:
+    enabled: false
+    station: ENCHANTED_CRAFTING_TABLE
+    shape:
+    - SSS
+    - SCS
+    - SSS
+    ingredients:
+      S:
+        special-item: compressed_cobblestone
+        material: COBBLESTONE
+        amount: 8
+      C:
+        material: CHEST
+        amount: 1
+    output:
+      special-item: miner_robot_storage
+      amount: 1
+    unlock:
+      town-minion-levels:
+        silverfish: 5
+  sugar_cube:
+    enabled: false
+    station: ENCHANTED_CRAFTING_TABLE
+    shape:
+    - SSS
+    - SSS
+    - SSS
+    ingredients:
+      S:
+        material: SUGAR
+        amount: 64
+    output:
+      special-item: sugar_cube
+      amount: 1
+    unlock:
+      town-minion-levels:
+        sugar_cane: 7
+  biofuel:
+    enabled: false
+    station: ENCHANTED_CRAFTING_TABLE
+    shape:
+    - PPP
+    - PPP
+    - PPP
+    ingredients:
+      P:
+        special-item: refined_wheat
+        material: WHEAT
+        amount: 1
+    output:
+      special-item: biofuel
+      amount: 1
+    unlock:
+      town-minion-levels:
+        wheat: 5
+  hydro_update:
+    enabled: false
+    station: ENCHANTED_CRAFTING_TABLE
+    shape:
+    - CCC
+    - CWC
+    - CCC
+    ingredients:
+      C:
+        material: CACTUS
+        amount: 64
+      W:
+        material: WATER_BUCKET
+        amount: 1
+    output:
+      special-item: hydro_update
+      amount: 1
+    unlock:
+      town-minion-levels:
+        cactus: 5
+  plant_fertilizer_booster:
+    enabled: false
+    station: ENCHANTED_CRAFTING_TABLE
+    shape:
+    - PPP
+    - PWP
+    - PPP
+    ingredients:
+      P:
+        special-item: refined_wheat
+        material: WHEAT
+        amount: 1
+      W:
+        material: WATER_BUCKET
+        amount: 1
+    output:
+      special-item: plant_fertilizer_booster
+      amount: 1
+    unlock:
+      town-minion-levels:
+        cow: 5
+  animal_booster:
+    enabled: false
+    station: ENCHANTED_CRAFTING_TABLE
+    shape:
+    - PPP
+    - CCC
+    - PPP
+    ingredients:
+      P:
+        special-item: refined_wheat
+        material: WHEAT
+        amount: 1
+      C:
+        material: SUGAR
+        amount: 64
+    output:
+      special-item: animal_booster
+      amount: 1
+    unlock:
+      town-minion-levels:
+        sugar_cane: 5
+  meat_refinery:
+    enabled: false
+    station: ENCHANTED_CRAFTING_TABLE
+    shape:
+    - B.B
+    - BPB
+    - AAA
+    ingredients:
+      B:
+        special-item: bronze_ingot
+        material: COPPER_INGOT
+        amount: 8
+      P:
+        material: STONECUTTER
+        amount: 1
+      A:
+        special-item: technical_block
+        material: ORANGE_CONCRETE
+        amount: 1
+    output:
+      special-item: meat_refinery
+      amount: 1
+    unlock:
+      town-minion-levels:
+        pig: 5
+  living_block:
+    enabled: false
+    station: ENCHANTED_CRAFTING_TABLE
+    shape:
+    - BBB
+    - BBB
+    - BBB
+    ingredients:
+      B:
+        special-item: refined_meat
+        material: PORKCHOP
+        amount: 64
+    output:
+      special-item: living_block
+      amount: 1
+    unlock:
+      town-minion-levels:
+        pig: 5
+  plant_booster_tier_2:
+    enabled: false
+    station: ENCHANTED_CRAFTING_TABLE
+    shape:
+    - BBB
+    - KKK
+    - BBB
+    ingredients:
+      B:
+        special-item: refined_meat
+        material: PORKCHOP
+        amount: 1
+      K:
+        special-item: compost
+        material: BROWN_DYE
+        amount: 1
+    output:
+      special-item: plant_booster_tier_2
+      amount: 1
+    unlock:
+      town-minion-levels:
+        pig: 5
+  machine_energy_upgrade:
+    enabled: false
+    station: ENCHANTED_CRAFTING_TABLE
+    shape:
+    - GLG
+    - RCR
+    - GLG
+    ingredients:
+      G:
+        special-item: graphite
+        material: CHARCOAL
+        custom-model-data: 12702
+        amount: 8
+      L:
+        special-item: lapis_dust
+        material: LAPIS_LAZULI
+        amount: 8
+      R:
+        special-item: redstone_dust_rich
+        material: REDSTONE
+        amount: 8
+      C:
+        special-item: compressed_copper
+        material: COPPER_BLOCK
+        amount: 1
+    output:
+      special-item: machine_energy_upgrade
+      amount: 1
+    unlock:
+      town-minion-levels:
+        copper: 5
+  wool_insulation_upgrade:
+    enabled: false
+    station: ENCHANTED_CRAFTING_TABLE
+    shape:
+    - WWW
+    - WTW
+    - WWW
+    ingredients:
+      W:
+        material: WHITE_WOOL
+        amount: 16
+      T:
+        special-item: tin_ingot
+        material: IRON_INGOT
+        amount: 4
+    output:
+      special-item: wool_insulation_upgrade
+      amount: 1
+    unlock:
+      town-minion-levels:
+        sheep: 5
+  living_core_update:
+    enabled: false
+    station: ENCHANTED_CRAFTING_TABLE
+    shape:
+    - GRG
+    - RLR
+    - GRG
+    ingredients:
+      G:
+        special-item: graphite
+        material: CHARCOAL
+        custom-model-data: 12702
+        amount: 8
+      R:
+        special-item: redstone_dust_rich
+        material: REDSTONE
+        amount: 8
+      L:
+        special-item: living_block
+        material: NETHER_WART_BLOCK
+        amount: 1
+    output:
+      special-item: living_core_update
+      amount: 1
+    unlock:
+      town-minion-levels:
+        zombie: 7
+  silk_filter_update:
+    enabled: false
+    station: ENCHANTED_CRAFTING_TABLE
+    shape:
+    - SSS
+    - EGE
+    - SSS
+    ingredients:
+      S:
+        material: STRING
+        amount: 64
+      E:
+        material: SPIDER_EYE
+        amount: 16
+      G:
+        special-item: graphite
+        material: CHARCOAL
+        custom-model-data: 12702
+        amount: 8
+    output:
+      special-item: silk_filter_update
+      amount: 1
+    unlock:
+      town-minion-levels:
+        spider: 5
+  feather_drive_update:
+    enabled: false
+    station: ENCHANTED_CRAFTING_TABLE
+    shape:
+    - FFF
+    - ERE
+    - FFF
+    ingredients:
+      F:
+        material: FEATHER
+        amount: 32
+      E:
+        material: EGG
+        amount: 16
+      R:
+        special-item: refined_wheat
+        material: WHEAT
+        amount: 1
+    output:
+      special-item: feather_drive_update
+      amount: 1
+    unlock:
+      town-minion-levels:
+        chicken: 5
+  root_nutrient_update:
+    enabled: false
+    station: ENCHANTED_CRAFTING_TABLE
+    shape:
+    - BBB
+    - BWB
+    - RRR
+    ingredients:
+      B:
+        material: BEETROOT
+        amount: 64
+      W:
+        material: WATER_BUCKET
+        amount: 1
+      R:
+        special-item: refined_wheat
+        material: WHEAT
+        amount: 1
+    output:
+      special-item: root_nutrient_update
+      amount: 1
+    unlock:
+      town-minion-levels:
+        beetroot: 5
+  compost:
+    enabled: false
+    station: ENCHANTED_CRAFTING_TABLE
+    shape:
+    - BBB
+    - BWB
+    - BBB
+    ingredients:
+      B:
+        material: BONE_MEAL
+        amount: 8
+      W:
+        special-item: refined_wheat
+        material: WHEAT
+        amount: 1
+    output:
+      special-item: compost
+      amount: 4
+    unlock:
+      town-minion-levels:
+        pig: 5
+  repair_compressor_update:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - IRI
+    - RDR
+    - IRI
+    ingredients:
+      I:
+        material: IRON_INGOT
+        amount: 8
+      R:
+        material: OBSIDIAN
+        amount: 16
+      D:
+        special-item: damaged_compressor_update
+        material: PISTON
+        amount: 1
+    output:
+      special-item: compressor_update
+      amount: 1
+    unlock:
+      town-minion-levels:
+        obsidian: 7
+  robot_speed_module:
+    enabled: false
+    station: ENCHANTED_CRAFTING_TABLE
+    shape:
+    - GRG
+    - GTG
+    - GRG
+    ingredients:
+      G:
+        special-item: graphite
+        material: CHARCOAL
+        custom-model-data: 12702
+        amount: 8
+      R:
+        special-item: rare_elements
+        material: AMETHYST_SHARD
+        amount: 1
+      T:
+        special-item: technical_block
+        material: IRON_BLOCK
+        amount: 1
+    output:
+      special-item: robot_speed_module
+      amount: 1
+    unlock:
+      town-minion-levels:
+        silverfish: 7
+  robot_fuel_module:
+    enabled: false
+    station: ENCHANTED_CRAFTING_TABLE
+    shape:
+    - SRS
+    - GTG
+    - SRS
+    ingredients:
+      S:
+        special-item: sugar_cube
+        material: SUGAR
+        amount: 4
+      R:
+        special-item: redstone_dust_rich
+        material: REDSTONE
+        amount: 4
+      G:
+        special-item: graphite
+        material: CHARCOAL
+        custom-model-data: 12702
+        amount: 8
+      T:
+        special-item: technical_block
+        material: IRON_BLOCK
+        amount: 1
+    output:
+      special-item: robot_fuel_module
+      amount: 1
+    unlock:
+      town-minion-levels:
+        sugar_cane: 7
+  robot_pickaxe_module:
+    enabled: false
+    station: ENCHANTED_CRAFTING_TABLE
+    shape:
+    - DSD
+    - GTG
+    - DSD
+    ingredients:
+      D:
+        material: DIAMOND
+        amount: 32
+      S:
+        special-item: steel_ingot
+        material: IRON_INGOT
+        amount: 4
+      G:
+        special-item: graphite
+        material: CHARCOAL
+        custom-model-data: 12702
+        amount: 8
+      T:
+        special-item: technical_block
+        material: IRON_BLOCK
+        amount: 1
+    output:
+      special-item: robot_pickaxe_module
+      amount: 1
+    unlock:
+      town-minion-levels:
+        diamond: 7
+  bronze_ingot:
+    enabled: false
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - CCC
+    - CTC
+    - CCC
+    ingredients:
+      C:
+        material: COPPER_INGOT
+        amount: 1
+      T:
+        special-item: tin_ingot
+        material: IRON_INGOT
+        amount: 1
+    output:
+      special-item: bronze_ingot
+      amount: 4
+    unlock:
+      town-minion-levels:
+        copper: 1
+  super_compressed_cobblestone:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - ' C '
+    - CCC
+    - ' C '
+    ingredients:
+      C:
+        special-item: compressed_cobblestone
+        material: COBBLESTONE
+        amount: 32
+    output:
+      special-item: super_compressed_cobblestone
+      amount: 1
+    unlock:
+      town-minion-levels:
+        cobblestone: 1
+  compressed_diamond:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - ' C '
+    - CCC
+    - ' C '
+    ingredients:
+      C:
+        material: DIAMOND
+        amount: 32
+    output:
+      special-item: compressed_diamond
+      amount: 1
+    unlock:
+      town-minion-levels:
+        diamond: 1
+  super_compressed_diamond:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - ' C '
+    - CCC
+    - ' C '
+    ingredients:
+      C:
+        special-item: compressed_diamond
+        material: DIAMOND_BLOCK
+        amount: 32
+    output:
+      special-item: super_compressed_diamond
+      amount: 1
+    unlock:
+      town-minion-levels:
+        diamond: 1
+  compressed_iron:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - ' C '
+    - CCC
+    - ' C '
+    ingredients:
+      C:
+        material: IRON_INGOT
+        amount: 32
+    output:
+      special-item: compressed_iron
+      amount: 1
+    unlock:
+      town-minion-levels:
+        iron: 1
+  super_compressed_iron:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - ' C '
+    - CCC
+    - ' C '
+    ingredients:
+      C:
+        special-item: compressed_iron
+        material: IRON_BLOCK
+        amount: 32
+    output:
+      special-item: super_compressed_iron
+      amount: 1
+    unlock:
+      town-minion-levels:
+        iron: 1
+  compressed_dirt:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - ' C '
+    - CCC
+    - ' C '
+    ingredients:
+      C:
+        material: DIRT
+        amount: 32
+    output:
+      special-item: compressed_dirt
+      amount: 1
+    unlock:
+      town-minion-levels:
+        dirt: 1
+  super_compressed_dirt:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - ' C '
+    - CCC
+    - ' C '
+    ingredients:
+      C:
+        special-item: compressed_dirt
+        material: DIRT
+        amount: 32
+    output:
+      special-item: super_compressed_dirt
+      amount: 1
+    unlock:
+      town-minion-levels:
+        dirt: 1
+  compressed_stone:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - ' C '
+    - CCC
+    - ' C '
+    ingredients:
+      C:
+        material: STONE
+        amount: 32
+    output:
+      special-item: compressed_stone
+      amount: 1
+    unlock:
+      town-minion-levels:
+        stone: 1
+  super_compressed_stone:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - ' C '
+    - CCC
+    - ' C '
+    ingredients:
+      C:
+        special-item: compressed_stone
+        material: STONE
+        amount: 32
+    output:
+      special-item: super_compressed_stone
+      amount: 1
+    unlock:
+      town-minion-levels:
+        stone: 1
+  compressed_oak_plank:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - ' C '
+    - CCC
+    - ' C '
+    ingredients:
+      C:
+        material: OAK_LOG
+        amount: 32
+    output:
+      special-item: compressed_oak_plank
+      amount: 1
+    unlock:
+      town-minion-levels:
+        oak_plank: 1
+  super_compressed_oak_plank:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - ' C '
+    - CCC
+    - ' C '
+    ingredients:
+      C:
+        special-item: compressed_oak_plank
+        material: OAK_LOG
+        amount: 32
+    output:
+      special-item: super_compressed_oak_plank
+      amount: 1
+    unlock:
+      town-minion-levels:
+        oak_plank: 1
+  compressed_coal:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - ' C '
+    - CCC
+    - ' C '
+    ingredients:
+      C:
+        material: COAL
+        amount: 32
+    output:
+      special-item: compressed_coal
+      amount: 1
+    unlock:
+      town-minion-levels:
+        coal: 1
+  super_compressed_coal:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - ' C '
+    - CCC
+    - ' C '
+    ingredients:
+      C:
+        special-item: compressed_coal
+        material: COAL_BLOCK
+        amount: 32
+    output:
+      special-item: super_compressed_coal
+      amount: 1
+    unlock:
+      town-minion-levels:
+        coal: 1
+  compressed_redstone:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - ' C '
+    - CCC
+    - ' C '
+    ingredients:
+      C:
+        material: REDSTONE
+        amount: 32
+    output:
+      special-item: compressed_redstone
+      amount: 1
+    unlock:
+      town-minion-levels:
+        redstone: 1
+  super_compressed_redstone:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - ' C '
+    - CCC
+    - ' C '
+    ingredients:
+      C:
+        special-item: compressed_redstone
+        material: REDSTONE_BLOCK
+        amount: 32
+    output:
+      special-item: super_compressed_redstone
+      amount: 1
+    unlock:
+      town-minion-levels:
+        redstone: 1
+  compressed_uranium:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - ' C '
+    - CCC
+    - ' C '
+    ingredients:
+      C:
+        material: EMERALD
+        amount: 32
+    output:
+      special-item: compressed_uranium
+      amount: 1
+    unlock:
+      town-minion-levels:
+        uranium: 1
+  compressed_gold:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - ' C '
+    - CCC
+    - ' C '
+    ingredients:
+      C:
+        material: GOLD_INGOT
+        amount: 32
+    output:
+      special-item: compressed_gold
+      amount: 1
+    unlock:
+      town-minion-levels:
+        gold: 1
+  super_compressed_gold:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - ' C '
+    - CCC
+    - ' C '
+    ingredients:
+      C:
+        special-item: compressed_gold
+        material: GOLD_BLOCK
+        amount: 32
+    output:
+      special-item: super_compressed_gold
+      amount: 1
+    unlock:
+      town-minion-levels:
+        gold: 1
+  compressed_obsidian:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - ' C '
+    - CCC
+    - ' C '
+    ingredients:
+      C:
+        material: OBSIDIAN
+        amount: 32
+    output:
+      special-item: compressed_obsidian
+      amount: 1
+    unlock:
+      town-minion-levels:
+        obsidian: 1
+  super_compressed_obsidian:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - ' C '
+    - CCC
+    - ' C '
+    ingredients:
+      C:
+        special-item: compressed_obsidian
+        material: OBSIDIAN
+        amount: 32
+    output:
+      special-item: super_compressed_obsidian
+      amount: 1
+    unlock:
+      town-minion-levels:
+        obsidian: 1
+  compressed_spruce_wood:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - ' C '
+    - CCC
+    - ' C '
+    ingredients:
+      C:
+        material: SPRUCE_LOG
+        amount: 32
+    output:
+      special-item: compressed_spruce_wood
+      amount: 1
+    unlock:
+      town-minion-levels:
+        spruce_wood: 1
+  super_compressed_spruce_wood:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - ' C '
+    - CCC
+    - ' C '
+    ingredients:
+      C:
+        special-item: compressed_spruce_wood
+        material: SPRUCE_LOG
+        amount: 32
+    output:
+      special-item: super_compressed_spruce_wood
+      amount: 1
+    unlock:
+      town-minion-levels:
+        spruce_wood: 1
+  compressed_copper:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - ' C '
+    - CCC
+    - ' C '
+    ingredients:
+      C:
+        material: RAW_COPPER
+        amount: 32
+    output:
+      special-item: compressed_copper
+      amount: 1
+    unlock:
+      town-minion-levels:
+        copper: 1
+  super_compressed_copper:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - ' C '
+    - CCC
+    - ' C '
+    ingredients:
+      C:
+        special-item: compressed_copper
+        material: RAW_COPPER_BLOCK
+        amount: 32
+    output:
+      special-item: super_compressed_copper
+      amount: 1
+    unlock:
+      town-minion-levels:
+        copper: 1
+  compressed_tin_ingot:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - ' C '
+    - CCC
+    - ' C '
+    ingredients:
+      C:
+        material: IRON_INGOT
+        amount: 32
+    output:
+      special-item: compressed_tin_ingot
+      amount: 1
+    unlock:
+      town-minion-levels:
+        tin: 1
+  super_compressed_tin_ingot:
+    enabled: true
+    station: VANILLA_CRAFTING_TABLE
+    shape:
+    - ' C '
+    - CCC
+    - ' C '
+    ingredients:
+      C:
+        special-item: compressed_tin_ingot
+        material: IRON_BLOCK
+        amount: 32
+    output:
+      special-item: super_compressed_tin_ingot
+      amount: 1
+    unlock:
+      town-minion-levels:
+        tin: 1
+  bronze_dust:
+    enabled: false
+    station: ENCHANTED_CRAFTING_TABLE
+    shape:
+    - TTT
+    - ' C '
+    - '   '
+    ingredients:
+      T:
+        special-item: tin_dust
+        material: IRON_NUGGET
+        amount: 1
+      C:
+        special-item: copper_dust
+        material: COPPER_INGOT
+        amount: 1
+    output:
+      special-item: bronze_dust
+      amount: 1
+    unlock:
+      town-minion-levels:
+        copper: 1
+custom-fuels:
+  biofuel:
+    enabled: false
+    special-item: biofuel
+    furnace-burn-time-ticks: 6400
+    machine-recipe-uses: 32
+production-updates:
+  hydro_update:
+    enabled: false
+    special-item: hydro_update
+    speed-boost-percent: 10
+    target-categories:
+    - farming
+    - foraging
+    - animals
+  living_core_update:
+    enabled: false
+    special-item: living_core_update
+    speed-boost-percent: 15
+    target-categories: []
+  silk_filter_update:
+    enabled: false
+    special-item: silk_filter_update
+    speed-boost-percent: 10
+    target-categories:
+    - combat
+  feather_drive_update:
+    enabled: false
+    special-item: feather_drive_update
+    speed-boost-percent: 10
+    target-categories:
+    - animals
+  root_nutrient_update:
+    enabled: false
+    special-item: root_nutrient_update
+    speed-boost-percent: 10
+    target-categories:
+    - farming
+robot-upgrades:
+  speed_module:
+    enabled: false
+    special-item: robot_speed_module
+    work-interval-multiplier: 0.75
+    fuel-duration-multiplier: 1.0
+    pickaxe-damage-save-chance: 0.0
+    target-robot-types:
+    - MINER
+  fuel_module:
+    enabled: false
+    special-item: robot_fuel_module
+    work-interval-multiplier: 1.0
+    fuel-duration-multiplier: 1.5
+    pickaxe-damage-save-chance: 0.0
+    target-robot-types:
+    - MINER
+  pickaxe_module:
+    enabled: false
+    special-item: robot_pickaxe_module
+    work-interval-multiplier: 1.0
+    fuel-duration-multiplier: 1.0
+    pickaxe-damage-save-chance: 0.25
+    target-robot-types:
+    - MINER
+machine-upgrades:
+  wool_insulation_upgrade:
+    enabled: false
+    special-item: wool_insulation_upgrade
+    extra-buffer-capacity: 500
+    buffer-capacity-multiplier: 1.1
+    energy-consumption-multiplier: 0.9
+    energy-generation-multiplier: 1.0
+    energy-transfer-multiplier: 1.0
+    target-machine-types:
+    - MACERATOR
+    - EXTRACTOR
+    - COMPRESSOR
+    - ELECTRIC_FURNACE
+    - ELECTRIC_MILL
+    - MEAT_REFINERY
+  machine_energy_upgrade:
+    enabled: false
+    special-item: machine_energy_upgrade
+    extra-buffer-capacity: 0
+    buffer-capacity-multiplier: 1.25
+    energy-consumption-multiplier: 0.8
+    energy-generation-multiplier: 1.2
+    energy-transfer-multiplier: 1.25
+    target-machine-types:
+    - MACERATOR
+    - EXTRACTOR
+    - COMPRESSOR
+    - ELECTRIC_FURNACE
+    - ELECTRIC_MILL
+    - MEAT_REFINERY
+    - COAL_GENERATOR
+    - SOLAR_PANEL_GENERATOR
+    - ACCUMULATOR
+weapons:
+  musket:
+    enabled: true
+    item-id: musket
+    ammo-item-id: musket_ammo
+    reload-seconds: 5.0
+    loading-bar-interval-ticks: 5
+    max-shots: 30
+    damage-hearts: 20.0
+    armor-ignored-fraction: 0.5
+    full-damage-range: 16.0
+    falloff-blocks: 8.0
+    falloff-percent-per-step: 10.0
+    projectile-speed-blocks-per-second: 40.0
+    projectile-lifetime-seconds: 1.5
+    projectile-visual-scale: 0.2
+    projectile-hitbox-radius: 0.35
+    projectile-gravity-per-tick: 0.008
+    smoke-y-offset: 1.2
+    smoke-forward-offset: 0.5
+    smoke-particle-count: 50
+    sounds:
+      reload-start: UI_BUTTON_CLICK
+      reload-start-volume: 1.0
+      reload-start-pitch: 0.8
+      reload-finish: BLOCK_STONE_PRESSURE_PLATE_CLICK_ON
+      reload-finish-volume: 1.0
+      reload-finish-pitch: 0.8
+      shot: ENTITY_GENERIC_EXPLODE
+      shot-volume: 2.0
+      shot-pitch: 0.7
+boosters:
+  tiers:
+    1:
+      enabled: true
+      special-item: minion_booster_tier_1
+      speed-boost-percent: 10
+      duration-seconds: 600
+      particle: FLAME
+      particle-count: 8
+      particle-radius: 0.65
+      particle-y-offset: 1.15
+    2:
+      enabled: true
+      special-item: minion_booster_tier_2
+      speed-boost-percent: 15
+      duration-seconds: 1800
+      particle: FLAME
+      particle-count: 12
+      particle-radius: 0.75
+      particle-y-offset: 1.15
+    3:
+      enabled: false
+      special-item: plant_fertilizer_booster
+      speed-boost-percent: 10
+      duration-seconds: 300
+      particle: HAPPY_VILLAGER
+      particle-count: 8
+      particle-radius: 0.65
+      particle-y-offset: 1.15
+      target-categories:
+      - farming
+      - foraging
+    4:
+      enabled: false
+      special-item: animal_booster
+      speed-boost-percent: 10
+      duration-seconds: 300
+      particle: HEART
+      particle-count: 6
+      particle-radius: 0.65
+      particle-y-offset: 1.15
+      target-categories:
+      - animals
+    5:
+      enabled: false
+      special-item: plant_booster_tier_2
+      speed-boost-percent: 20
+      duration-seconds: 420
+      particle: HAPPY_VILLAGER
+      particle-count: 12
+      particle-radius: 0.75
+      particle-y-offset: 1.15
+      target-categories:
+      - farming
+      - foraging
+compression:
+  defaults:
+    enabled: true
+    station: ENCHANTED_CRAFTING_TABLE
+    unlock-minion-level: 1
+    enchant-glint: true
+    placeable: false
+    custom-model-data-base: 11000
+    compressed:
+      value: 160
+      shape:
+      - ' C '
+      - CCC
+      - ' C '
+      ingredient-amount: 32
+      display-name: <#40E0D0>Skompresowany blok — <resource></#40E0D0>
+    super:
+      value: 25600
+      shape:
+      - ' C '
+      - CCC
+      - ' C '
+      ingredient-amount: 32
+      display-name: <#FFA500>Superskompresowany blok — <resource></#FFA500>
+    compressed-unlock-minion-level: 1
+    super-unlock-minion-level: 1

@@ -1,8 +1,4 @@
 appearances:
-  # Główki można ustawiać na trzy sposoby:
-  # helmet.player-name: Notch
-  # helmet.texture-url: "https://textures.minecraft.net/texture/..."
-  # helmet.texture-base64: "..."
   cobblestone_default:
     base:
       type: ARMOR_STAND
@@ -16,32 +12,43 @@ appearances:
       equipment:
         helmet:
           material: PLAYER_HEAD
-          texture-base64: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19"
+          texture-base64: 
+            eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19
         chestplate:
           material: LEATHER_CHESTPLATE
-          color: "#777777"
+          color: '#777777'
         leggings:
           material: LEATHER_LEGGINGS
-          color: "#555555"
+          color: '#555555'
         boots:
           material: LEATHER_BOOTS
-          color: "#333333"
+          color: '#333333'
         main-hand:
           material: WOODEN_PICKAXE
     attachments:
       - id: block_backpack
         type: BLOCK_DISPLAY
         material: COBBLESTONE
-        offset: [0.0, 0.65, -0.25]
-        scale: [0.45, 0.45, 0.45]
+        offset:
+          - 0.0
+          - 0.65
+          - -0.25
+        scale:
+          - 0.45
+          - 0.45
+          - 0.45
     label:
       type: TEXT_DISPLAY
-      offset: [0.0, 1.65, 0.0]
+      offset:
+        - 0.0
+        - 1.65
+        - 0.0
       billboard: CENTER
-      text: "<yellow><name></yellow> <gray>Tier <tier></gray>\n<storage_bar>"
+      text: '<yellow><name></yellow> <gray>Tier <tier></gray>
+
+        <storage_bar>'
       shadowed: true
       see-through: false
-
   dirt_default:
     base:
       type: ARMOR_STAND
@@ -55,23 +62,1186 @@ appearances:
       equipment:
         helmet:
           material: PLAYER_HEAD
-          texture-base64: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19"
+          texture-base64: 
+            eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTM0Y2NkZjBiMWJhNDk3YWNjZDJhMTA0YzI3MDBmYTE5YWMxYjVhN2NmOGVlOWJiNWVjOTMzOWEzNmFmMjc1YyJ9fX0=
         chestplate:
           material: LEATHER_CHESTPLATE
-          color: "#8B5A2B"
+          color: '#8B5A2B'
         leggings:
           material: LEATHER_LEGGINGS
-          color: "#6F4518"
+          color: '#6F4518'
         boots:
           material: LEATHER_BOOTS
-          color: "#4A2C12"
+          color: '#4A2C12'
         main-hand:
           material: WOODEN_SHOVEL
     label:
       type: TEXT_DISPLAY
-      offset: [0.0, 1.65, 0.0]
+      offset:
+        - 0.0
+        - 1.65
+        - 0.0
       billboard: CENTER
-      text: "<gold><name></gold> <gray>Tier <tier></gray>\n<storage_bar>"
+      text: '<color:#8B5A2B><name></color> <gray>Tier <tier></gray>
+
+        <storage_bar>'
       shadowed: true
       see-through: false
+  uranium_hazmat:
+    base:
+      type: ARMOR_STAND
+      marker: false
+      small: true
+      invisible: false
+      invulnerable: true
+      no-gravity: true
+      arms: true
+      equipment-locked: true
+      equipment:
+        helmet:
+          material: PLAYER_HEAD
+          texture-base64: 
+            eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTI4MzA0Y2RjOTY1YzQxNzQwNWY5NjVjM2I2M2NhNGZiZjg2ZTg4ZTM0MWQ2OTMyN2NhMjdlM2EwOGMwYTIwMCJ9fX0=
+        chestplate:
+          material: LEATHER_CHESTPLATE
+          color: '#F8E86A'
+        leggings:
+          material: LEATHER_LEGGINGS
+          color: '#F3D64E'
+        boots:
+          material: LEATHER_BOOTS
+          color: '#D8B72F'
+        main-hand:
+          material: EMERALD
+    attachments:
+      - id: uranium_backpack
+        type: BLOCK_DISPLAY
+        material: EMERALD_BLOCK
+        offset:
+          - 0.0
+          - 0.65
+          - -0.25
+        scale:
+          - 0.35
+          - 0.35
+          - 0.35
+    label:
+      type: TEXT_DISPLAY
+      offset:
+        - 0.0
+        - 1.65
+        - 0.0
+      billboard: CENTER
+      text: '<#32CD32><name></#32CD32> <gray>Tier <tier></gray>
 
+        <storage_bar>'
+      shadowed: true
+      see-through: false
+  zombie_default:
+    base:
+      type: ARMOR_STAND
+      marker: false
+      small: true
+      invisible: false
+      invulnerable: true
+      no-gravity: true
+      arms: true
+      equipment-locked: true
+      equipment:
+        helmet:
+          material: ZOMBIE_HEAD
+        chestplate:
+          material: LEATHER_CHESTPLATE
+          color: '#2E7D32'
+        leggings:
+          material: LEATHER_LEGGINGS
+          color: '#1B5E20'
+        boots:
+          material: LEATHER_BOOTS
+          color: '#263238'
+        main-hand:
+          material: ROTTEN_FLESH
+    label:
+      type: TEXT_DISPLAY
+      offset:
+        - 0.0
+        - 1.65
+        - 0.0
+      billboard: CENTER
+      text: '<light_purple><name></light_purple> <gray>Tier <tier></gray>
+
+        <storage_bar>'
+      shadowed: true
+      see-through: false
+  skeleton_default:
+    base:
+      type: ARMOR_STAND
+      marker: false
+      small: true
+      invisible: false
+      invulnerable: true
+      no-gravity: true
+      arms: true
+      equipment-locked: true
+      equipment:
+        helmet:
+          material: SKELETON_SKULL
+        chestplate:
+          material: LEATHER_CHESTPLATE
+          color: '#D9D9D9'
+        leggings:
+          material: LEATHER_LEGGINGS
+          color: '#C7C7C7'
+        boots:
+          material: LEATHER_BOOTS
+          color: '#AAAAAA'
+        main-hand:
+          material: BOW
+    label:
+      type: TEXT_DISPLAY
+      offset:
+        - 0.0
+        - 1.65
+        - 0.0
+      billboard: CENTER
+      text: '<light_purple><name></light_purple> <gray>Tier <tier></gray>
+
+        <storage_bar>'
+      shadowed: true
+      see-through: false
+  spider_default:
+    base:
+      type: ARMOR_STAND
+      marker: false
+      small: true
+      invisible: false
+      invulnerable: true
+      no-gravity: true
+      arms: true
+      equipment-locked: true
+      equipment:
+        helmet:
+          material: PLAYER_HEAD
+          player-name: MHF_Spider
+        chestplate:
+          material: LEATHER_CHESTPLATE
+          color: '#4A1111'
+        leggings:
+          material: LEATHER_LEGGINGS
+          color: '#2A0B0B'
+        boots:
+          material: LEATHER_BOOTS
+          color: '#111111'
+        main-hand:
+          material: STRING
+    label:
+      type: TEXT_DISPLAY
+      offset:
+        - 0.0
+        - 1.65
+        - 0.0
+      billboard: CENTER
+      text: '<light_purple><name></light_purple> <gray>Tier <tier></gray>
+
+        <storage_bar>'
+      shadowed: true
+      see-through: false
+  silverfish_default:
+    base:
+      type: ARMOR_STAND
+      marker: false
+      small: true
+      invisible: false
+      invulnerable: true
+      no-gravity: true
+      arms: true
+      equipment-locked: true
+      equipment:
+        helmet:
+          material: PLAYER_HEAD
+          texture-base64: 
+            eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYmZlMTMyMzdlMTEwOWNhYjcyNjRkYzUzYjBhYTY5N2NmOWE3YzYyYzk4NGEyNjlmYjA3NTVhMjg4OTEyYmJjYSJ9fX0=
+        chestplate:
+          material: LEATHER_CHESTPLATE
+          color: '#8A8A8A'
+        leggings:
+          material: LEATHER_LEGGINGS
+          color: '#7A7A7A'
+        boots:
+          material: LEATHER_BOOTS
+          color: '#5A5A5A'
+        main-hand:
+          material: EXPERIENCE_BOTTLE
+    label:
+      type: TEXT_DISPLAY
+      offset:
+        - 0.0
+        - 1.65
+        - 0.0
+      billboard: CENTER
+      text: '<light_purple><name></light_purple> <gray>Tier <tier></gray>
+
+        <storage_bar>'
+      shadowed: true
+      see-through: false
+  pig_default:
+    base:
+      type: ARMOR_STAND
+      marker: false
+      small: true
+      invisible: false
+      invulnerable: true
+      no-gravity: true
+      arms: true
+      equipment-locked: true
+      equipment:
+        helmet:
+          material: PLAYER_HEAD
+          player-name: MHF_Pig
+        chestplate:
+          material: LEATHER_CHESTPLATE
+          color: '#E9A3B2'
+        leggings:
+          material: LEATHER_LEGGINGS
+          color: '#D98A9D'
+        boots:
+          material: LEATHER_BOOTS
+          color: '#8B5E67'
+        main-hand:
+          material: PORKCHOP
+    attachments:
+      - id: block_backpack
+        type: BLOCK_DISPLAY
+        material: COBBLESTONE
+        offset:
+          - 0.0
+          - 0.65
+          - -0.25
+        scale:
+          - 0.45
+          - 0.45
+          - 0.45
+    label:
+      type: TEXT_DISPLAY
+      offset:
+        - 0.0
+        - 1.65
+        - 0.0
+      billboard: CENTER
+      text: '<yellow><name></yellow> <gray>Tier <tier></gray>
+
+        <storage_bar>'
+      shadowed: true
+      see-through: false
+  oak_default:
+    base:
+      type: ARMOR_STAND
+      marker: false
+      small: true
+      invisible: false
+      invulnerable: true
+      no-gravity: true
+      arms: true
+      equipment-locked: true
+      equipment:
+        helmet:
+          material: PLAYER_HEAD
+          texture-base64: 
+            eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjIwOWQxNDFiODE5MjdiNTY5YzZjZDFkNGZlNWRjYTMxMjUzY2UyMDUyZjI2MjY3Y2VkNTRjODM0MTI4MTNjOCJ9fX0=
+        chestplate:
+          material: LEATHER_CHESTPLATE
+          color: '#7A1E1E'
+        leggings:
+          material: LEATHER_LEGGINGS
+          color: '#3E6FA8'
+        boots:
+          material: LEATHER_BOOTS
+          color: '#1A1A1A'
+        main-hand:
+          material: IRON_AXE
+    label:
+      type: TEXT_DISPLAY
+      offset:
+        - 0.0
+        - 1.65
+        - 0.0
+      billboard: CENTER
+      text: '<dark_green><name></dark_green> <gray>Tier <tier></gray>
+
+        <storage_bar>'
+      shadowed: true
+      see-through: false
+  spruce_default:
+    base:
+      type: ARMOR_STAND
+      marker: false
+      small: true
+      invisible: false
+      invulnerable: true
+      no-gravity: true
+      arms: true
+      equipment-locked: true
+      equipment:
+        helmet:
+          material: PLAYER_HEAD
+          texture-base64: 
+            eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvY2M1Y2RhNTUxODhmOTVlNDY2MjE0OWZiNDYzNjhlNDAxMDdkZjU0MzYzYWRjN2ViYTcxYWQzMTY4MWQxNTQzNyJ9fX0=
+        chestplate:
+          material: LEATHER_CHESTPLATE
+          color: '#7A1E1E'
+        leggings:
+          material: LEATHER_LEGGINGS
+          color: '#3E6FA8'
+        boots:
+          material: LEATHER_BOOTS
+          color: '#1A1A1A'
+        main-hand:
+          material: IRON_AXE
+    label:
+      type: TEXT_DISPLAY
+      offset:
+        - 0.0
+        - 1.65
+        - 0.0
+      billboard: CENTER
+      text: '<dark_green><name></dark_green> <gray>Tier <tier></gray>
+
+        <storage_bar>'
+      shadowed: true
+      see-through: false
+  iron_default:
+    base:
+      type: ARMOR_STAND
+      marker: false
+      small: true
+      invisible: false
+      invulnerable: true
+      no-gravity: true
+      arms: true
+      equipment-locked: true
+      equipment:
+        helmet:
+          material: PLAYER_HEAD
+          texture-base64: 
+            eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZWVhYzZhODNmNGY5NmQwNTBiNDNiNGJiNTU1NzhmM2E1NzA4MjZjODYyZTAwNGJjOTI0ZTY0YzVjMDhjNzA2In19fQ==
+        chestplate:
+          material: LEATHER_CHESTPLATE
+          color: '#C07B3A'
+        leggings:
+          material: LEATHER_LEGGINGS
+          color: '#8A5A2B'
+        boots:
+          material: LEATHER_BOOTS
+          color: '#5A3A1B'
+        main-hand:
+          material: IRON_PICKAXE
+    attachments:
+      - id: block_backpack
+        type: BLOCK_DISPLAY
+        material: COBBLESTONE
+        offset:
+          - 0.0
+          - 0.65
+          - -0.25
+        scale:
+          - 0.45
+          - 0.45
+          - 0.45
+    label:
+      type: TEXT_DISPLAY
+      offset:
+        - 0.0
+        - 1.65
+        - 0.0
+      billboard: CENTER
+      text: '<white><name></white> <gray>Tier <tier></gray>
+
+        <storage_bar>'
+      shadowed: true
+      see-through: false
+  coal_default:
+    base:
+      type: ARMOR_STAND
+      marker: false
+      small: true
+      invisible: false
+      invulnerable: true
+      no-gravity: true
+      arms: true
+      equipment-locked: true
+      equipment:
+        helmet:
+          material: PLAYER_HEAD
+          texture-base64: 
+            eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYWNmMmY0MmEyNzM4MDRkNjVlZTA0ZWVkMDhmNmU1MTIxZjdjZTRlNDk4Y2FmMTBiZGUzMjVmNTZhYjY0MDhlZCJ9fX0=
+        chestplate:
+          material: LEATHER_CHESTPLATE
+          color: '#3A3A3A'
+        leggings:
+          material: LEATHER_LEGGINGS
+          color: '#222222'
+        boots:
+          material: LEATHER_BOOTS
+          color: '#111111'
+        main-hand:
+          material: STONE_PICKAXE
+    attachments:
+      - id: block_backpack
+        type: BLOCK_DISPLAY
+        material: COBBLESTONE
+        offset:
+          - 0.0
+          - 0.65
+          - -0.25
+        scale:
+          - 0.45
+          - 0.45
+          - 0.45
+    label:
+      type: TEXT_DISPLAY
+      offset:
+        - 0.0
+        - 1.65
+        - 0.0
+      billboard: CENTER
+      text: '<dark_gray><name></dark_gray> <gray>Tier <tier></gray>
+
+        <storage_bar>'
+      shadowed: true
+      see-through: false
+  redstone_default:
+    base:
+      type: ARMOR_STAND
+      marker: false
+      small: true
+      invisible: false
+      invulnerable: true
+      no-gravity: true
+      arms: true
+      equipment-locked: true
+      equipment:
+        helmet:
+          material: PLAYER_HEAD
+          texture-base64: 
+            eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYjg0ZDY2ZTJhOWFhZDViMjM4OGUxODM5OGUxZDQ4MjYwOWI4MGRkNDUzZTIyNmFmYjJlNTkxOWQ5M2VjNmY2YSJ9fX0=
+        chestplate:
+          material: LEATHER_CHESTPLATE
+          color: '#F29AC2'
+        leggings:
+          material: LEATHER_LEGGINGS
+          color: '#E67AA8'
+        boots:
+          material: LEATHER_BOOTS
+          color: '#C85A90'
+        main-hand:
+          material: REDSTONE
+    attachments:
+      - id: block_backpack
+        type: BLOCK_DISPLAY
+        material: COBBLESTONE
+        offset:
+          - 0.0
+          - 0.65
+          - -0.25
+        scale:
+          - 0.45
+          - 0.45
+          - 0.45
+    label:
+      type: TEXT_DISPLAY
+      offset:
+        - 0.0
+        - 1.65
+        - 0.0
+      billboard: CENTER
+      text: '<red><name></red> <gray>Tier <tier></gray>
+
+        <storage_bar>'
+      shadowed: true
+      see-through: false
+  copper_default:
+    base:
+      type: ARMOR_STAND
+      marker: false
+      small: true
+      invisible: false
+      invulnerable: true
+      no-gravity: true
+      arms: true
+      equipment-locked: true
+      equipment:
+        helmet:
+          material: PLAYER_HEAD
+          texture-base64: 
+            eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMjQ0ZGViZmRhOGVjYzRjOWNmNDczNWU3YzgyNDM5MjkxOTE1YTcxNjgyZTRjNGI4NDhlZmIxNDEwNmUwYzNkNSJ9fX0=
+        chestplate:
+          material: LEATHER_CHESTPLATE
+          color: '#C9753D'
+        leggings:
+          material: LEATHER_LEGGINGS
+          color: '#B76334'
+        boots:
+          material: LEATHER_BOOTS
+          color: '#8F4B27'
+        main-hand:
+          material: COPPER_INGOT
+    attachments:
+      - id: block_backpack
+        type: BLOCK_DISPLAY
+        material: COBBLESTONE
+        offset:
+          - 0.0
+          - 0.65
+          - -0.25
+        scale:
+          - 0.45
+          - 0.45
+          - 0.45
+    label:
+      type: TEXT_DISPLAY
+      offset:
+        - 0.0
+        - 1.65
+        - 0.0
+      billboard: CENTER
+      text: '<gold><name></gold> <gray>Tier <tier></gray>
+
+        <storage_bar>'
+      shadowed: true
+      see-through: false
+  gold_default:
+    base:
+      type: ARMOR_STAND
+      marker: false
+      small: true
+      invisible: false
+      invulnerable: true
+      no-gravity: true
+      arms: true
+      equipment-locked: true
+      equipment:
+        helmet:
+          material: PLAYER_HEAD
+          texture-base64: 
+            eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOWVlMzVhODg0NjEzOGM2YmI3OTdkYjU1MGU2MDk2OTAxOTZmNjM2MjY2M2EyMWUyOWYwMzlmMDk3YWUwYTljYiJ9fX0=
+        chestplate:
+          material: LEATHER_CHESTPLATE
+          color: '#F2D14B'
+        leggings:
+          material: LEATHER_LEGGINGS
+          color: '#D8B633'
+        boots:
+          material: LEATHER_BOOTS
+          color: '#AE8F1F'
+        main-hand:
+          material: GOLD_INGOT
+    attachments:
+      - id: block_backpack
+        type: BLOCK_DISPLAY
+        material: COBBLESTONE
+        offset:
+          - 0.0
+          - 0.65
+          - -0.25
+        scale:
+          - 0.45
+          - 0.45
+          - 0.45
+    label:
+      type: TEXT_DISPLAY
+      offset:
+        - 0.0
+        - 1.65
+        - 0.0
+      billboard: CENTER
+      text: '<yellow><name></yellow> <gray>Tier <tier></gray>
+
+        <storage_bar>'
+      shadowed: true
+      see-through: false
+  emerald_default:
+    base:
+      type: ARMOR_STAND
+      marker: false
+      small: true
+      invisible: false
+      invulnerable: true
+      no-gravity: true
+      arms: true
+      equipment-locked: true
+      equipment:
+        helmet:
+          material: EMERALD_BLOCK
+        chestplate:
+          material: LEATHER_CHESTPLATE
+          color: '#32A852'
+        leggings:
+          material: LEATHER_LEGGINGS
+          color: '#278A43'
+        boots:
+          material: LEATHER_BOOTS
+          color: '#17652D'
+        main-hand:
+          material: IRON_PICKAXE
+    label:
+      type: TEXT_DISPLAY
+      offset:
+        - 0.0
+        - 1.65
+        - 0.0
+      billboard: CENTER
+      text: "<green><name></green> <gray>Tier <tier></gray>\n<storage_bar>"
+      shadowed: true
+      see-through: false
+  diamond_default:
+    base:
+      type: ARMOR_STAND
+      marker: false
+      small: true
+      invisible: false
+      invulnerable: true
+      no-gravity: true
+      arms: true
+      equipment-locked: true
+      equipment:
+        helmet:
+          material: PLAYER_HEAD
+          texture-base64: 
+            eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNjM5MTgwOTAzOTBjYmEzYzg5ZTM5ZDBjNTVjZDA3MjdlNjRlZmU3MGJmMjZiNTE1NzE5ZDBhNmQ2MWQ5NWIyNSJ9fX0=
+        chestplate:
+          material: LEATHER_CHESTPLATE
+          color: '#63D7E6'
+        leggings:
+          material: LEATHER_LEGGINGS
+          color: '#42C4D6'
+        boots:
+          material: LEATHER_BOOTS
+          color: '#2CA8BF'
+        main-hand:
+          material: DIAMOND
+    attachments:
+      - id: block_backpack
+        type: BLOCK_DISPLAY
+        material: COBBLESTONE
+        offset:
+          - 0.0
+          - 0.65
+          - -0.25
+        scale:
+          - 0.45
+          - 0.45
+          - 0.45
+    label:
+      type: TEXT_DISPLAY
+      offset:
+        - 0.0
+        - 1.65
+        - 0.0
+      billboard: CENTER
+      text: '<aqua><name></aqua> <gray>Tier <tier></gray>
+
+        <storage_bar>'
+      shadowed: true
+      see-through: false
+  obsidian_default:
+    base:
+      type: ARMOR_STAND
+      marker: false
+      small: true
+      invisible: false
+      invulnerable: true
+      no-gravity: true
+      arms: true
+      equipment-locked: true
+      equipment:
+        helmet:
+          material: PLAYER_HEAD
+          texture-base64: 
+            eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZTdiZmQ1NWVlMjViMDQyMjU4ZDVkYzgwNGE0ZGRiYTYzODUzMGI1ZDE4OTNjNGJlYjI3MDU1Y2Y4MTQxYWMwIn19fQ==
+        chestplate:
+          material: LEATHER_CHESTPLATE
+          color: '#9B4DCC'
+        leggings:
+          material: LEATHER_LEGGINGS
+          color: '#7E2EAD'
+        boots:
+          material: LEATHER_BOOTS
+          color: '#C03FCF'
+        main-hand:
+          material: OBSIDIAN
+    attachments:
+      - id: block_backpack
+        type: BLOCK_DISPLAY
+        material: COBBLESTONE
+        offset:
+          - 0.0
+          - 0.65
+          - -0.25
+        scale:
+          - 0.45
+          - 0.45
+          - 0.45
+    label:
+      type: TEXT_DISPLAY
+      offset:
+        - 0.0
+        - 1.65
+        - 0.0
+      billboard: CENTER
+      text: '<dark_purple><name></dark_purple> <gray>Tier <tier></gray>
+
+        <storage_bar>'
+      shadowed: true
+      see-through: false
+  netherite_default:
+    base:
+      type: ARMOR_STAND
+      marker: false
+      small: true
+      invisible: false
+      invulnerable: true
+      no-gravity: true
+      arms: true
+      equipment-locked: true
+      equipment:
+        helmet:
+          material: PLAYER_HEAD
+          texture-base64: 
+            eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYmJjYWMzMDMzNGRmYmIyZDdlYjkxOTMxMTIwNDk3YjAyNzY1NWFhZmM2ZDA5MTFmZTVhYjM0Nzg4MGY4YmZlMSJ9fX0=
+        chestplate:
+          material: LEATHER_CHESTPLATE
+          color: '#6B3424'
+        leggings:
+          material: LEATHER_LEGGINGS
+          color: '#4E2419'
+        boots:
+          material: LEATHER_BOOTS
+          color: '#32160F'
+        main-hand:
+          material: NETHERITE_INGOT
+    attachments:
+      - id: block_backpack
+        type: BLOCK_DISPLAY
+        material: COBBLESTONE
+        offset:
+          - 0.0
+          - 0.65
+          - -0.25
+        scale:
+          - 0.45
+          - 0.45
+          - 0.45
+    label:
+      type: TEXT_DISPLAY
+      offset:
+        - 0.0
+        - 1.65
+        - 0.0
+      billboard: CENTER
+      text: '<dark_red><name></dark_red> <gray>Tier <tier></gray>
+
+        <storage_bar>'
+      shadowed: true
+      see-through: false
+  netherrack_default:
+    base:
+      type: ARMOR_STAND
+      marker: false
+      small: true
+      invisible: false
+      invulnerable: true
+      no-gravity: true
+      arms: true
+      equipment-locked: true
+      equipment:
+        helmet:
+          material: PLAYER_HEAD
+          texture-base64: 
+            eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNmZlNjk1NTM1ZGY4OWExM2I2MTgzNzgwYTk1ZWQxMDU5ODJlZTFmMDdhYjY0NGUwNjc2OWJkOTE2N2UxNjgxZiJ9fX0=
+        chestplate:
+          material: LEATHER_CHESTPLATE
+          color: '#4A0E16'
+        leggings:
+          material: LEATHER_LEGGINGS
+          color: '#3A0810'
+        boots:
+          material: LEATHER_BOOTS
+          color: '#240409'
+        main-hand:
+          material: NETHERRACK
+    attachments:
+      - id: block_backpack
+        type: BLOCK_DISPLAY
+        material: NETHERRACK
+        offset:
+          - 0.0
+          - 0.65
+          - -0.25
+        scale:
+          - 0.45
+          - 0.45
+          - 0.45
+    label:
+      type: TEXT_DISPLAY
+      offset:
+        - 0.0
+        - 1.65
+        - 0.0
+      billboard: CENTER
+      text: '<dark_red><name></dark_red> <gray>Tier <tier></gray>
+
+        <storage_bar>'
+      shadowed: true
+      see-through: false
+  stone_default:
+    base:
+      type: ARMOR_STAND
+      marker: false
+      small: true
+      invisible: false
+      invulnerable: true
+      no-gravity: true
+      arms: true
+      equipment-locked: true
+      equipment:
+        helmet:
+          material: PLAYER_HEAD
+          texture-base64: 
+            eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOWY5N2MyM2JmNTliNTZjYzk5YTRiMmUxZTk3YmY5Yjk0Mzc5ZjUxYWRmODRjMmQwODY5NzAwYTFjODM1MTliZiJ9fX0=
+        chestplate:
+          material: LEATHER_CHESTPLATE
+          color: '#8E8E8E'
+        leggings:
+          material: LEATHER_LEGGINGS
+          color: '#747474'
+        boots:
+          material: LEATHER_BOOTS
+          color: '#555555'
+        main-hand:
+          material: STONE
+    attachments:
+      - id: block_backpack
+        type: BLOCK_DISPLAY
+        material: COBBLESTONE
+        offset:
+          - 0.0
+          - 0.65
+          - -0.25
+        scale:
+          - 0.45
+          - 0.45
+          - 0.45
+    label:
+      type: TEXT_DISPLAY
+      offset:
+        - 0.0
+        - 1.65
+        - 0.0
+      billboard: CENTER
+      text: '<gray><name></gray> <gray>Tier <tier></gray>
+
+        <storage_bar>'
+      shadowed: true
+      see-through: false
+  cactus_default:
+    base:
+      type: ARMOR_STAND
+      marker: false
+      small: true
+      invisible: false
+      invulnerable: true
+      no-gravity: true
+      arms: true
+      equipment-locked: true
+      equipment:
+        helmet:
+          material: PLAYER_HEAD
+          texture-base64: 
+            eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzIyNzM2ZThmNTBkZDI4NTY0ZjBiZDdmZTEwMDEwMzVhZjhkZDdhNTQ5ZTYxMGI3MThmMmYwZDJiNzJiYWNjMCJ9fX0=
+        chestplate:
+          material: LEATHER_CHESTPLATE
+          color: '#0B5A2A'
+        leggings:
+          material: LEATHER_LEGGINGS
+          color: '#B98952'
+        boots:
+          material: LEATHER_BOOTS
+          color: '#2B2418'
+        main-hand:
+          material: CACTUS
+    label:
+      type: TEXT_DISPLAY
+      offset:
+        - 0.0
+        - 1.65
+        - 0.0
+      billboard: CENTER
+      text: '<green><name></green> <gray>Tier <tier></gray>
+
+        <storage_bar>'
+      shadowed: true
+      see-through: false
+  wheat_default:
+    base:
+      type: ARMOR_STAND
+      marker: false
+      small: true
+      invisible: false
+      invulnerable: true
+      no-gravity: true
+      arms: true
+      equipment-locked: true
+      equipment:
+        helmet:
+          material: PLAYER_HEAD
+          texture-base64: 
+            eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvODMzNmUzMTVlMWFlOTk1NzJkYzljNzJhNjJhMTRiODU3Nzc0MWRjMzQ3MmM3NDEzZDdlYWE2NjdhMzA3YTNkNyJ9fX0=
+        chestplate:
+          material: LEATHER_CHESTPLATE
+          color: '#C9A46A'
+        leggings:
+          material: LEATHER_LEGGINGS
+          color: '#3E6FA8'
+        boots:
+          material: LEATHER_BOOTS
+          color: '#1A1A1A'
+        main-hand:
+          material: WHEAT
+    label:
+      type: TEXT_DISPLAY
+      offset:
+        - 0.0
+        - 1.65
+        - 0.0
+      billboard: CENTER
+      text: '<green><name></green> <gray>Tier <tier></gray>
+
+        <storage_bar>'
+      shadowed: true
+      see-through: false
+  beetroot_default:
+    base:
+      type: ARMOR_STAND
+      marker: false
+      small: true
+      invisible: false
+      invulnerable: true
+      no-gravity: true
+      arms: true
+      equipment-locked: true
+      equipment:
+        helmet:
+          material: PLAYER_HEAD
+          texture-base64: 
+            eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvN2E4YWIyMjY3YWU0NDNlODNiMDVlM2E4ZDY3YjhiNzYwYWRmYWFkMzM1YzkwNDczMzhjMGUxNzc0YTY1YzM3MiJ9fX0=
+        chestplate:
+          material: LEATHER_CHESTPLATE
+          color: '#7A1833'
+        leggings:
+          material: LEATHER_LEGGINGS
+          color: '#4E1024'
+        boots:
+          material: LEATHER_BOOTS
+          color: '#2C0B15'
+        main-hand:
+          material: BEETROOT
+    label:
+      type: TEXT_DISPLAY
+      offset:
+        - 0.0
+        - 1.65
+        - 0.0
+      billboard: CENTER
+      text: '<green><name></green> <gray>Tier <tier></gray>
+
+        <storage_bar>'
+      shadowed: true
+      see-through: false
+  sugar_cane_default:
+    base:
+      type: ARMOR_STAND
+      marker: false
+      small: true
+      invisible: false
+      invulnerable: true
+      no-gravity: true
+      arms: true
+      equipment-locked: true
+      equipment:
+        helmet:
+          material: PLAYER_HEAD
+          texture-base64: 
+            eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNjhjOTg2Nzk5YmFmZTcxODRhOGFlMjMzZGI2ZDlhYjhlOWI4NDRmYTlkNGRhNjhmYTNkYzk0YWM4ZmU4MjAifX19
+        chestplate:
+          material: LEATHER_CHESTPLATE
+          color: '#67B86A'
+        leggings:
+          material: LEATHER_LEGGINGS
+          color: '#3E8D52'
+        boots:
+          material: LEATHER_BOOTS
+          color: '#1E5A35'
+        main-hand:
+          material: SUGAR_CANE
+    label:
+      type: TEXT_DISPLAY
+      offset:
+        - 0.0
+        - 1.65
+        - 0.0
+      billboard: CENTER
+      text: '<green><name></green> <gray>Tier <tier></gray>
+
+        <storage_bar>'
+      shadowed: true
+      see-through: false
+  chicken_default:
+    base:
+      type: ARMOR_STAND
+      marker: false
+      small: true
+      invisible: false
+      invulnerable: true
+      no-gravity: true
+      arms: true
+      equipment-locked: true
+      equipment:
+        helmet:
+          material: PLAYER_HEAD
+          texture-base64: 
+            eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTI1YmMwZjBkYjRhZDMxMGFhOTZjMTc5ZDVlNmM3MzJhY2QyNjJkOTkyOTM5NDExN2QzZTQ0NTEzYWUwYzFmYyJ9fX0=
+        chestplate:
+          material: LEATHER_CHESTPLATE
+          color: '#F1E6B8'
+        leggings:
+          material: LEATHER_LEGGINGS
+          color: '#D6B15F'
+        boots:
+          material: LEATHER_BOOTS
+          color: '#5A3B1C'
+        main-hand:
+          material: FEATHER
+    attachments:
+      - id: block_backpack
+        type: BLOCK_DISPLAY
+        material: COBBLESTONE
+        offset:
+          - 0.0
+          - 0.65
+          - -0.25
+        scale:
+          - 0.45
+          - 0.45
+          - 0.45
+    label:
+      type: TEXT_DISPLAY
+      offset:
+        - 0.0
+        - 1.65
+        - 0.0
+      billboard: CENTER
+      text: '<yellow><name></yellow> <gray>Tier <tier></gray>
+
+        <storage_bar>'
+      shadowed: true
+      see-through: false
+  sheep_default:
+    base:
+      type: ARMOR_STAND
+      marker: false
+      small: true
+      invisible: false
+      invulnerable: true
+      no-gravity: true
+      arms: true
+      equipment-locked: true
+      equipment:
+        helmet:
+          material: PLAYER_HEAD
+          texture-base64: 
+            eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvN2Y2MTdhYTRkODFkNjdlZTFjYWM3OTUwYzJjYzZlMmYyZTEzZjE1ZDA3ZDQ2MDFjNTMxMDUzMTNmYWMwNjFkZiJ9fX0=
+        chestplate:
+          material: LEATHER_CHESTPLATE
+          color: '#F6F6F6'
+        leggings:
+          material: LEATHER_LEGGINGS
+          color: '#E2E2E2'
+        boots:
+          material: LEATHER_BOOTS
+          color: '#BDBDBD'
+        main-hand:
+          material: WHITE_WOOL
+    attachments:
+      - id: block_backpack
+        type: BLOCK_DISPLAY
+        material: COBBLESTONE
+        offset:
+          - 0.0
+          - 0.65
+          - -0.25
+        scale:
+          - 0.45
+          - 0.45
+          - 0.45
+    label:
+      type: TEXT_DISPLAY
+      offset:
+        - 0.0
+        - 1.65
+        - 0.0
+      billboard: CENTER
+      text: '<yellow><name></yellow> <gray>Tier <tier></gray>
+
+        <storage_bar>'
+      shadowed: true
+      see-through: false
+  cow_default:
+    base:
+      type: ARMOR_STAND
+      marker: false
+      small: true
+      invisible: false
+      invulnerable: true
+      no-gravity: true
+      arms: true
+      equipment-locked: true
+      equipment:
+        helmet:
+          material: PLAYER_HEAD
+          texture-base64: 
+            eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNjk4NDJiNGY0MGU5YzlkYTM4ZGVkNjk1NTBmOWFiMGU1YWZjODdmNjc4YTY3NmViMDYyOTZiNzc1Yzk5MGNmZCJ9fX0=
+        chestplate:
+          material: LEATHER_CHESTPLATE
+          color: '#F0E0C8'
+        leggings:
+          material: LEATHER_LEGGINGS
+          color: '#B88454'
+        boots:
+          material: LEATHER_BOOTS
+          color: '#4D301E'
+        main-hand:
+          material: LEATHER
+    attachments:
+      - id: block_backpack
+        type: BLOCK_DISPLAY
+        material: COBBLESTONE
+        offset:
+          - 0.0
+          - 0.65
+          - -0.25
+        scale:
+          - 0.45
+          - 0.45
+          - 0.45
+    label:
+      type: TEXT_DISPLAY
+      offset:
+        - 0.0
+        - 1.65
+        - 0.0
+      billboard: CENTER
+      text: '<yellow><name></yellow> <gray>Tier <tier></gray>
+
+        <storage_bar>'
+      shadowed: true
+      see-through: false

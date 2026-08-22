@@ -5,6 +5,7 @@ import hex.core.api.trigger.GameTrigger;
 import hex.core.api.trigger.TriggerService;
 import hex.quests.HexQuestsPlugin;
 import hex.quests.api.QuestContentResolver;
+import hex.quests.api.QuestRuntimeView;
 import hex.quests.tracking.PlayerPlacedBlockTracker;
 import io.papermc.paper.event.player.PlayerTradeEvent;
 import org.bukkit.Bukkit;
@@ -63,6 +64,7 @@ public final class QuestGameplayListener implements Listener {
     );
 
     private final HexQuestsPlugin plugin;
+    private final QuestRuntimeView runtime;
     private final TriggerService triggers;
     private final PlayerPlacedBlockTracker placedBlocks;
     private final NamespacedKey spawnReasonKey;
@@ -72,6 +74,7 @@ public final class QuestGameplayListener implements Listener {
 
     public QuestGameplayListener(HexQuestsPlugin plugin, TriggerService triggers, PlayerPlacedBlockTracker placedBlocks) {
         this.plugin = plugin;
+        this.runtime = plugin;
         this.triggers = triggers;
         this.placedBlocks = placedBlocks;
         this.spawnReasonKey = new NamespacedKey(plugin, "quest_spawn_reason");
@@ -94,7 +97,7 @@ public final class QuestGameplayListener implements Listener {
         boolean playerPlaced = placedBlocks.isPlayerPlaced(block);
         placedBlocks.remove(block);
         Player player = event.getPlayer();
-        if (!valid(player) || !plugin.isTriggerActive("minecraft.block.break")) return;
+        if (!valid(player) || !runtime.isTriggerActive("minecraft.block.break")) return;
 
         Material material = block.getType();
         List<String> tags = new ArrayList<>();
@@ -122,7 +125,7 @@ public final class QuestGameplayListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBreed(EntityBreedEvent event) {
         if (!(event.getBreeder() instanceof Player player) || !valid(player)) return;
-        if (!plugin.isTriggerActive("minecraft.entity.breed")) return;
+        if (!runtime.isTriggerActive("minecraft.entity.breed")) return;
         publish(player, "minecraft.entity.breed", builder -> builder
                 .put("entity-type", event.getEntityType().name())
                 .put("amount", 1L));
@@ -131,7 +134,7 @@ public final class QuestGameplayListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onFish(PlayerFishEvent event) {
         if (event.getState() != PlayerFishEvent.State.CAUGHT_FISH || !valid(event.getPlayer())) return;
-        if (!plugin.isTriggerActive("minecraft.fish.catch")) return;
+        if (!runtime.isTriggerActive("minecraft.fish.catch")) return;
         if (!(event.getCaught() instanceof Item item)) return;
         ItemStack stack = item.getItemStack();
         publish(event.getPlayer(), "minecraft.fish.catch", builder -> {
@@ -145,7 +148,7 @@ public final class QuestGameplayListener implements Listener {
     public void onFurnaceExtract(FurnaceExtractEvent event) {
         Player player = event.getPlayer();
         if (!valid(player) || event.getItemAmount() <= 0) return;
-        if (!plugin.isTriggerActive("minecraft.furnace.extract")) return;
+        if (!runtime.isTriggerActive("minecraft.furnace.extract")) return;
         publish(player, "minecraft.furnace.extract", builder -> builder
                 .put("item-type", event.getItemType().name())
                 .put("amount", event.getItemAmount()));
@@ -154,7 +157,7 @@ public final class QuestGameplayListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onCraft(CraftItemEvent event) {
         if (!(event.getWhoClicked() instanceof Player player) || !valid(player)) return;
-        if (!plugin.isTriggerActive("minecraft.item.craft")) return;
+        if (!runtime.isTriggerActive("minecraft.item.craft")) return;
         Material result = event.getRecipe().getResult().getType();
         if (result.isAir()) return;
         int before = countInPlayerPossession(player, result);
@@ -171,7 +174,7 @@ public final class QuestGameplayListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onTrade(PlayerTradeEvent event) {
         Player player = event.getPlayer();
-        if (!valid(player) || !plugin.isTriggerActive("minecraft.player.trade")) return;
+        if (!valid(player) || !runtime.isTriggerActive("minecraft.player.trade")) return;
         publish(player, "minecraft.player.trade", builder -> builder
                 .put("villager-type", event.getVillager().getType().name())
                 .put("amount", 1L));
@@ -186,7 +189,7 @@ public final class QuestGameplayListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onEntityDeath(EntityDeathEvent event) {
         Player player = event.getEntity().getKiller();
-        if (player == null || !valid(player) || !plugin.isTriggerActive("minecraft.entity.kill")) return;
+        if (player == null || !valid(player) || !runtime.isTriggerActive("minecraft.entity.kill")) return;
         Entity entity = event.getEntity();
         String spawnReasonName = entity.getPersistentDataContainer().get(spawnReasonKey, PersistentDataType.STRING);
         CreatureSpawnEvent.SpawnReason spawnReason = parseSpawnReason(spawnReasonName);
@@ -195,7 +198,7 @@ public final class QuestGameplayListener implements Listener {
                 || entity.getScoreboardTags().contains("quest-ignore")) eligible = false;
         if (entity.getType() == EntityType.ENDER_DRAGON || entity.getType() == EntityType.WITHER
                 || entity.getType() == EntityType.WARDEN) eligible = false;
-        QuestContentResolver resolver = plugin.contentResolver();
+        QuestContentResolver resolver = runtime.contentResolver();
         String customMobId = resolver == null ? null : resolver.customMobId(entity);
         if (resolver != null) {
             boolean resolverEligible = resolver.isQuestEligibleMob(entity);
@@ -230,7 +233,7 @@ public final class QuestGameplayListener implements Listener {
     public void onMove(PlayerMoveEvent event) {
         if (event instanceof PlayerTeleportEvent) return;
         Player player = event.getPlayer();
-        if (!valid(player) || !plugin.isTriggerActive("minecraft.player.walk")) return;
+        if (!valid(player) || !runtime.isTriggerActive("minecraft.player.walk")) return;
         if (event.getTo() == null || event.getFrom().getWorld() != event.getTo().getWorld()) return;
         if (player.isInsideVehicle() || player.isGliding() || player.isFlying() || player.isSwimming()) return;
         double dx = event.getTo().getX() - event.getFrom().getX();
@@ -238,7 +241,7 @@ public final class QuestGameplayListener implements Listener {
         double distance = Math.sqrt(dx * dx + dz * dz);
         if (distance <= 0.0 || distance > 10.0) return;
 
-        LocalDate date = plugin.today();
+        LocalDate date = HexQuestsPlugin.today();
         WalkBuffer buffer = walkBuffers.computeIfAbsent(player.getUniqueId(), ignored -> new WalkBuffer(date));
         if (!buffer.date.equals(date)) {
             flushWalk(player, buffer);
@@ -276,14 +279,14 @@ public final class QuestGameplayListener implements Listener {
         HexMessageData.Builder builder = GameTrigger.dataBuilder()
                 .put("player-uuid", player.getUniqueId().toString())
                 .put("player-name", player.getName())
-                .put("event-date", plugin.today().toString());
+                .put("event-date", HexQuestsPlugin.today().toString());
         data.accept(builder);
         triggers.publish(GameTrigger.of(triggerId, plugin.getName(), builder.build()));
     }
 
     private boolean valid(Player player) {
         GameMode mode = player.getGameMode();
-        return mode != GameMode.CREATIVE && mode != GameMode.SPECTATOR
+        return mode != GameMode.SPECTATOR
                 && !player.hasMetadata("NPC") && !player.getScoreboardTags().contains("NPC");
     }
 
@@ -298,7 +301,7 @@ public final class QuestGameplayListener implements Listener {
     }
 
     private String customItemId(ItemStack stack) {
-        QuestContentResolver resolver = plugin.contentResolver();
+        QuestContentResolver resolver = runtime.contentResolver();
         return resolver == null ? null : resolver.customItemId(stack);
     }
 

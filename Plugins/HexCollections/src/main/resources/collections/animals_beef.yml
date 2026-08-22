@@ -1,0 +1,84 @@
+id: animals.beef
+aliases:
+- animals_beef
+- beef
+- wołowina
+- wolowina
+- mięso_krowy
+- mieso_krowy
+enabled: true
+display:
+  name: '&cMięso krowy'
+  category: animals
+  menu_slot: 57
+  icon:
+    material: BEEF
+tracked_items:
+  base:
+    material: BEEF
+    amount_value: 1
+valid_sources:
+- MINION_COLLECT
+- NATURAL_MOB_DROP
+- CUSTOM_PLUGIN_GRANTED
+sources:
+- trigger: minions.resource.generated
+  amount-from: amount
+  filters:
+    collectionId: animals.beef
+    resourceId: beef
+source_rules:
+  NATURAL_MOB_DROP:
+    allowed_worlds:
+    - world
+    - resource_world
+    - mining_world
+    blocked_worlds:
+    - spawn
+    allow_in_town_claims: true
+  MINION_COLLECT:
+    allow_in_town_claims: true
+  CUSTOM_PLUGIN_GRANTED:
+    allow_in_town_claims: true
+levels:
+  1:
+    required: 11
+    display_name: '&cMięso krowy I'
+  2:
+    required: 41
+    display_name: '&cMięso krowy II'
+  3:
+    required: 327
+    display_name: '&cMięso krowy III'
+  4:
+    required: 980
+    display_name: '&cMięso krowy IV'
+  5:
+    required: 2938
+    display_name: '&cMięso krowy V'
+  6:
+    required: 13709
+    display_name: '&cMięso krowy VI'
+  7:
+    required: 29376
+    display_name: '&cMięso krowy VII'
+reward_claim_mode: AUTO
+placeholder:
+  progress_bar:
+    length: 20
+    filled_char: ■
+    empty_char: □
+city_scaling:
+  enabled: true
+  reference-members: 5
+  category: MEDIUM
+  active-hours-per-member-l7: 10
+  manual-rate-per-player: 110.85
+  reference-addons:
+    1: 2
+    2: 8
+    3: 62
+    4: 185
+    5: 555
+    6: 2587
+    7: 5543

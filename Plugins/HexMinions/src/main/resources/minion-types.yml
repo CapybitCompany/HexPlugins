@@ -1,15 +1,19 @@
+boosters:
+  default-supported-tiers:
+  - 1
+  - 2
 minion-types:
   cobblestone:
     enabled: true
-    display-name: <gray>Cabblestone Minion</gray>
+    display-name: <gray>Minion bruku</gray>
     category: mining
     item:
       material: PLAYER_HEAD
       texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19
-      display-name: <gray>Cobblestone Minion <yellow>Tier <tier></yellow></gray>
+      display-name: <gray>Minion bruku <yellow>Tier <tier></yellow></gray>
       lore:
       - <dark_gray>Minion miasta</dark_gray>
-      - '<gray>Generuje: <white>Cobblestone</white></gray>'
+      - '<gray>Generuje: <white>Bruk</white></gray>'
       - <gray>Postaw na terenie swojego miasta.</gray>
       custom-model-data: 0
     placement:
@@ -24,6 +28,10 @@ minion-types:
       mode: VIRTUAL
     appearance: cobblestone_default
     menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+      - 2
     resource-table:
     - resource: cobblestone
       amount-min: 1
@@ -31,68 +39,87 @@ minion-types:
       chance: 1.0
     tiers:
       1:
-        action-time-seconds: 14
-        storage: 64
+        action-time-seconds: 36
         storage-slots: 1
         upgrade-requirements:
-          collections:
-            mining.cobblestone: 80
+          collections: {}
           items: {}
       2:
-        action-time-seconds: 13
-        storage: 128
+        action-time-seconds: 31.2
         storage-slots: 2
         upgrade-requirements:
-          collections:
-            mining.cobblestone: 160
-          items:
-            upgrade_core:
-              material: NETHER_STAR
-              amount: 1
-              display-name: Upgrade Core
-              consume: true
+          dynamic-collection-cost:
+            collection: mining.cobblestone
+            percent: 0.50
+            resource: cobblestone
+            resource-per-collection-unit: 1.0
       3:
-        action-time-seconds: 12
-        storage: 192
+        action-time-seconds: 26.4
         storage-slots: 3
         upgrade-requirements:
-          collections:
-            mining.cobblestone: 320
-          items: {}
+          dynamic-collection-cost:
+            collection: mining.cobblestone
+            percent: 0.40
+            resource: cobblestone
+            resource-per-collection-unit: 1.0
       4:
-        action-time-seconds: 11
-        storage: 256
+        action-time-seconds: 21.6
         storage-slots: 4
         upgrade-requirements:
-          collections:
-            mining.cobblestone: 640
-          items: {}
+          dynamic-collection-cost:
+            collection: mining.cobblestone
+            percent: 0.33
+            resource: cobblestone
+            resource-per-collection-unit: 1.0
       5:
-        action-time-seconds: 10
-        storage: 320
-        storage-slots: 5
+        action-time-seconds: 18
+        storage-slots: 6
         upgrade-requirements:
-          collections:
-            mining.cobblestone: 1280
-          items: {}
-    max-tier: 5
+          dynamic-collection-cost:
+            collection: mining.cobblestone
+            percent: 0.20
+            resource: cobblestone
+            resource-per-collection-unit: 1.0
+      6:
+        action-time-seconds: 14.4
+        storage-slots: 7
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.cobblestone
+            percent: 0.10
+            resource: cobblestone
+            resource-per-collection-unit: 1.0
+      7:
+        action-time-seconds: 12
+        storage-slots: 9
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.cobblestone
+            percent: 0.05
+            resource: cobblestone
+            resource-per-collection-unit: 1.0
+    max-tier: 7
     wiki:
       special-items:
+      - cobblestone_minion
       - compressed_cobblestone
-      - basic_storage
+      - storage_expander
+      auto-compressed-resources: true
+    wiki-special-items: []
   iron:
     enabled: true
-    display-name: <white>Iron Minion</white>
+    display-name: <white>Minion żelaza</white>
     category: mining
     item:
       material: PLAYER_HEAD
-      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19
-      display-name: <white>Iron Minion <yellow>Tier <tier></yellow></white>
+      display-name: <white>Minion żelaza <yellow>Tier <tier></yellow></white>
       lore:
       - <dark_gray>Minion miasta</dark_gray>
-      - '<gray>Generuje: <white>Iron Ingot</white></gray>'
+      - '<gray>Generuje: <white>Ruda żelaza</white></gray>'
+      - <gray>Automatyczny przetapiacz może przetapiać ją na sztabki.</gray>
       - <gray>Postaw na terenie swojego miasta.</gray>
       custom-model-data: 0
+      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZWVhYzZhODNmNGY5NmQwNTBiNDNiNGJiNTU1NzhmM2E1NzA4MjZjODYyZTAwNGJjOTI0ZTY0YzVjMDhjNzA2In19fQ==
     placement:
       footprint-radius-blocks: 1
       require-solid-ground: true
@@ -103,52 +130,106 @@ minion-types:
       radius: 2
       height: 2
       mode: VIRTUAL
-    appearance: cobblestone_default
+    appearance: iron_default
     menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+      - 2
     resource-table:
-    - resource: iron
+    - resource: iron_ore
       amount-min: 1
       amount-max: 1
       chance: 1.0
     tiers:
       1:
-        action-time-seconds: 24
-        storage: 64
+        action-time-seconds: 2160
         storage-slots: 1
         upgrade-requirements:
-          collections:
-            mining.iron: 80
+          collections: {}
           items: {}
       2:
-        action-time-seconds: 22
-        storage: 128
+        action-time-seconds: 1872
         storage-slots: 2
         upgrade-requirements:
-          collections:
-            mining.iron: 160
-          items: {}
+          dynamic-collection-cost:
+            collection: mining.iron
+            percent: 0.50
+            resource: iron
+            resource-per-collection-unit: 1.0
       3:
-        action-time-seconds: 20
-        storage: 192
+        action-time-seconds: 1584
         storage-slots: 3
         upgrade-requirements:
-          collections:
-            mining.iron: 320
-          items: {}
-    max-tier: 3
+          dynamic-collection-cost:
+            collection: mining.iron
+            percent: 0.40
+            resource: iron
+            resource-per-collection-unit: 1.0
+      4:
+        action-time-seconds: 1296
+        storage-slots: 4
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.iron
+            percent: 0.33
+            resource: iron
+            resource-per-collection-unit: 1.0
+      5:
+        action-time-seconds: 1080
+        storage-slots: 6
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.iron
+            percent: 0.20
+            resource: iron
+            resource-per-collection-unit: 1.0
+      6:
+        action-time-seconds: 864
+        storage-slots: 7
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.iron
+            percent: 0.10
+            resource: iron
+            resource-per-collection-unit: 1.0
+      7:
+        action-time-seconds: 720
+        storage-slots: 9
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.iron
+            percent: 0.05
+            resource: iron
+            resource-per-collection-unit: 1.0
+    max-tier: 7
+    wiki:
+      special-items:
+      - iron_minion
+      - tin_minion
+      - steel_ingot
+      - auto_smelter
+      - compressed_iron
+      auto-compressed-resources: true
+    auto-smelter:
+      enabled: true
+      special-item: auto_smelter
+      replacements:
+        iron_ore: iron
+    wiki-special-items: []
   dirt:
     enabled: true
-    display-name: <gold>Dirt Minion</gold>
+    display-name: <color:#8B5A2B>Minion ziemi</color>
     category: mining
     item:
       material: PLAYER_HEAD
-      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19
-      display-name: <gold>Dirt Minion <yellow>Tier <tier></yellow></gold>
+      display-name: <color:#8B5A2B>Minion ziemi <yellow>Tier <tier></yellow></color>
       lore:
       - <dark_gray>Minion miasta</dark_gray>
-      - '<gray>Generuje: <gold>Dirt</gold></gray>'
+      - '<gray>Generuje: <gold>Ziemia</gold></gray>'
       - <gray>Postaw na terenie swojego miasta.</gray>
       custom-model-data: 0
+      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTM0Y2NkZjBiMWJhNDk3YWNjZDJhMTA0YzI3MDBmYTE5YWMxYjVhN2NmOGVlOWJiNWVjOTMzOWEzNmFmMjc1YyJ9fX0=
     placement:
       footprint-radius-blocks: 1
       require-solid-ground: true
@@ -161,6 +242,10 @@ minion-types:
       mode: VIRTUAL
     appearance: dirt_default
     menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+      - 2
     resource-table:
     - resource: dirt
       amount-min: 1
@@ -168,60 +253,1902 @@ minion-types:
       chance: 1.0
     tiers:
       1:
-        action-time-seconds: 12
-        storage: 64
+        action-time-seconds: 60
         storage-slots: 1
         upgrade-requirements:
-          collections:
-            mining.dirt: 80
+          collections: {}
           items: {}
       2:
-        action-time-seconds: 11
-        storage: 128
+        action-time-seconds: 52
         storage-slots: 2
         upgrade-requirements:
-          collections:
-            mining.dirt: 160
-          items: {}
+          dynamic-collection-cost:
+            collection: mining.dirt
+            percent: 0.50
+            resource: dirt
+            resource-per-collection-unit: 1.0
       3:
-        action-time-seconds: 10
-        storage: 192
+        action-time-seconds: 44
         storage-slots: 3
         upgrade-requirements:
-          collections:
-            mining.dirt: 320
-          items: {}
+          dynamic-collection-cost:
+            collection: mining.dirt
+            percent: 0.40
+            resource: dirt
+            resource-per-collection-unit: 1.0
       4:
-        action-time-seconds: 9
-        storage: 256
+        action-time-seconds: 36
         storage-slots: 4
         upgrade-requirements:
-          collections:
-            mining.dirt: 640
-          items: {}
+          dynamic-collection-cost:
+            collection: mining.dirt
+            percent: 0.33
+            resource: dirt
+            resource-per-collection-unit: 1.0
       5:
-        action-time-seconds: 8
-        storage: 320
-        storage-slots: 5
+        action-time-seconds: 30
+        storage-slots: 6
         upgrade-requirements:
-          collections:
-            mining.dirt: 1280
-          items: {}
-    max-tier: 5
+          dynamic-collection-cost:
+            collection: mining.dirt
+            percent: 0.20
+            resource: dirt
+            resource-per-collection-unit: 1.0
+      6:
+        action-time-seconds: 24
+        storage-slots: 7
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.dirt
+            percent: 0.10
+            resource: dirt
+            resource-per-collection-unit: 1.0
+      7:
+        action-time-seconds: 20
+        storage-slots: 9
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.dirt
+            percent: 0.05
+            resource: dirt
+            resource-per-collection-unit: 1.0
+    max-tier: 7
     wiki:
       special-items:
-      - enchanted_crafting_table
+      - dirt_minion
+      auto-compressed-resources: true
+    wiki-special-items: []
   stone:
     enabled: true
-    display-name: <gray>Stone Minion</gray>
+    display-name: <gray>Minion kamienia</gray>
+    category: mining
+    item:
+      material: PLAYER_HEAD
+      display-name: <gray>Minion kamienia <yellow>Tier <tier></yellow></gray>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - '<gray>Generuje: <white>Kamień</white></gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
+      custom-model-data: 0
+      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOWY5N2MyM2JmNTliNTZjYzk5YTRiMmUxZTk3YmY5Yjk0Mzc5ZjUxYWRmODRjMmQwODY5NzAwYTFjODM1MTliZiJ9fX0=
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: stone_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+      - 2
+    resource-table:
+    - resource: stone
+      amount-min: 1
+      amount-max: 1
+      chance: 1.0
+    tiers:
+      1:
+        action-time-seconds: 72
+        storage-slots: 1
+        upgrade-requirements:
+          collections: {}
+          items: {}
+      2:
+        action-time-seconds: 62.4
+        storage-slots: 2
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.stone
+            percent: 0.50
+            resource: stone
+            resource-per-collection-unit: 1.0
+      3:
+        action-time-seconds: 52.8
+        storage-slots: 3
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.stone
+            percent: 0.40
+            resource: stone
+            resource-per-collection-unit: 1.0
+      4:
+        action-time-seconds: 43.2
+        storage-slots: 4
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.stone
+            percent: 0.33
+            resource: stone
+            resource-per-collection-unit: 1.0
+      5:
+        action-time-seconds: 36
+        storage-slots: 6
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.stone
+            percent: 0.20
+            resource: stone
+            resource-per-collection-unit: 1.0
+      6:
+        action-time-seconds: 28.8
+        storage-slots: 7
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.stone
+            percent: 0.10
+            resource: stone
+            resource-per-collection-unit: 1.0
+      7:
+        action-time-seconds: 24
+        storage-slots: 9
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.stone
+            percent: 0.05
+            resource: stone
+            resource-per-collection-unit: 1.0
+    max-tier: 7
+    wiki:
+      special-items:
+      - stone_minion
+      - storage_expander
+      - macerator
+      auto-compressed-resources: true
+    wiki-special-items: []
+  oak_plank:
+    enabled: true
+    display-name: <dark_green>Minion drewna dębowego</dark_green>
+    category: foraging
+    item:
+      material: PLAYER_HEAD
+      display-name: <dark_green>Minion drewna dębowego <yellow>Tier <tier></yellow></dark_green>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - '<gray>Generuje: <gold>Drewno dębowe</gold></gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
+      custom-model-data: 0
+      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjIwOWQxNDFiODE5MjdiNTY5YzZjZDFkNGZlNWRjYTMxMjUzY2UyMDUyZjI2MjY3Y2VkNTRjODM0MTI4MTNjOCJ9fX0=
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: oak_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+      - 2
+    resource-table:
+    - resource: oak_plank
+      amount-min: 1
+      amount-max: 1
+      chance: 1.0
+    tiers:
+      1:
+        action-time-seconds: 72
+        storage-slots: 1
+        upgrade-requirements:
+          collections: {}
+          items: {}
+      2:
+        action-time-seconds: 62.4
+        storage-slots: 2
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: foraging.oak_wood
+            percent: 0.50
+            resource: oak_plank
+            resource-per-collection-unit: 1.0
+      3:
+        action-time-seconds: 52.8
+        storage-slots: 3
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: foraging.oak_wood
+            percent: 0.40
+            resource: oak_plank
+            resource-per-collection-unit: 1.0
+      4:
+        action-time-seconds: 43.2
+        storage-slots: 4
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: foraging.oak_wood
+            percent: 0.33
+            resource: oak_plank
+            resource-per-collection-unit: 1.0
+      5:
+        action-time-seconds: 36
+        storage-slots: 6
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: foraging.oak_wood
+            percent: 0.20
+            resource: oak_plank
+            resource-per-collection-unit: 1.0
+      6:
+        action-time-seconds: 28.8
+        storage-slots: 7
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: foraging.oak_wood
+            percent: 0.10
+            resource: oak_plank
+            resource-per-collection-unit: 1.0
+      7:
+        action-time-seconds: 24
+        storage-slots: 9
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: foraging.oak_wood
+            percent: 0.05
+            resource: oak_plank
+            resource-per-collection-unit: 1.0
+    max-tier: 7
+    wiki:
+      special-items:
+      - oak_plank_minion
+      - storage_expander
+      auto-compressed-resources: true
+    wiki-special-items: []
+  coal:
+    enabled: true
+    display-name: <dark_gray>Minion węgla</dark_gray>
+    category: mining
+    item:
+      material: PLAYER_HEAD
+      display-name: <dark_gray>Minion węgla <yellow>Tier <tier></yellow></dark_gray>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - '<gray>Generuje: <white>Węgiel</white></gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
+      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYWNmMmY0MmEyNzM4MDRkNjVlZTA0ZWVkMDhmNmU1MTIxZjdjZTRlNDk4Y2FmMTBiZGUzMjVmNTZhYjY0MDhlZCJ9fX0=
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: coal_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+      - 2
+    resource-table:
+    - resource: coal
+      amount-min: 1
+      amount-max: 1
+      chance: 1.0
+    tiers:
+      1:
+        action-time-seconds: 360
+        storage-slots: 1
+        upgrade-requirements:
+          collections: {}
+          items: {}
+      2:
+        action-time-seconds: 312
+        storage-slots: 2
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.coal
+            percent: 0.50
+            resource: coal
+            resource-per-collection-unit: 1.0
+      3:
+        action-time-seconds: 264
+        storage-slots: 3
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.coal
+            percent: 0.40
+            resource: coal
+            resource-per-collection-unit: 1.0
+      4:
+        action-time-seconds: 216
+        storage-slots: 4
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.coal
+            percent: 0.33
+            resource: coal
+            resource-per-collection-unit: 1.0
+      5:
+        action-time-seconds: 180
+        storage-slots: 6
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.coal
+            percent: 0.20
+            resource: coal
+            resource-per-collection-unit: 1.0
+      6:
+        action-time-seconds: 144
+        storage-slots: 7
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.coal
+            percent: 0.10
+            resource: coal
+            resource-per-collection-unit: 1.0
+      7:
+        action-time-seconds: 120
+        storage-slots: 9
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.coal
+            percent: 0.05
+            resource: coal
+            resource-per-collection-unit: 1.0
+    max-tier: 7
+    wiki:
+      special-items:
+      - coal_minion
+      - combustion_fuel
+      - coal_generator
+      auto-compressed-resources: true
+    wiki-special-items: []
+  redstone:
+    enabled: true
+    display-name: <red>Minion redstone</red>
+    category: mining
+    item:
+      material: PLAYER_HEAD
+      display-name: <red>Minion redstone <yellow>Tier <tier></yellow></red>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - '<gray>Generuje: <red>Redstone</red></gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
+      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYjg0ZDY2ZTJhOWFhZDViMjM4OGUxODM5OGUxZDQ4MjYwOWI4MGRkNDUzZTIyNmFmYjJlNTkxOWQ5M2VjNmY2YSJ9fX0=
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: redstone_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+      - 2
+    resource-table:
+    - resource: redstone
+      amount-min: 1
+      amount-max: 1
+      chance: 1.0
+    tiers:
+      1:
+        action-time-seconds: 360
+        storage-slots: 2
+        upgrade-requirements:
+          collections: {}
+          items: {}
+      2:
+        action-time-seconds: 312
+        storage-slots: 3
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.redstone
+            percent: 0.50
+            resource: redstone
+            resource-per-collection-unit: 1.0
+      3:
+        action-time-seconds: 264
+        storage-slots: 4
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.redstone
+            percent: 0.40
+            resource: redstone
+            resource-per-collection-unit: 1.0
+      4:
+        action-time-seconds: 216
+        storage-slots: 5
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.redstone
+            percent: 0.33
+            resource: redstone
+            resource-per-collection-unit: 1.0
+      5:
+        action-time-seconds: 180
+        storage-slots: 7
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.redstone
+            percent: 0.20
+            resource: redstone
+            resource-per-collection-unit: 1.0
+      6:
+        action-time-seconds: 144
+        storage-slots: 8
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.redstone
+            percent: 0.10
+            resource: redstone
+            resource-per-collection-unit: 1.0
+      7:
+        action-time-seconds: 120
+        storage-slots: 9
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.redstone
+            percent: 0.05
+            resource: redstone
+            resource-per-collection-unit: 1.0
+    max-tier: 7
+    wiki:
+      special-items:
+      - redstone_minion
+      auto-compressed-resources: true
+    wiki-special-items: []
+  uranium:
+    enabled: true
+    display-name: <#32CD32>Minion uranu</#32CD32>
+    category: mining
+    item:
+      material: PLAYER_HEAD
+      display-name: <#32CD32>Minion uranu <yellow>Tier <tier></yellow></#32CD32>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - '<gray>Generuje: <#32CD32>Uran</#32CD32></gray>'
+      - <yellow>Skafander przeciw promieniowaniu.</yellow>
+      - <gray>Postaw na terenie swojego miasta.</gray>
+      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTI4MzA0Y2RjOTY1YzQxNzQwNWY5NjVjM2I2M2NhNGZiZjg2ZTg4ZTM0MWQ2OTMyN2NhMjdlM2EwOGMwYTIwMCJ9fX0=
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: uranium_hazmat
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+      - 2
+    resource-table:
+    - resource: uranium
+      amount-min: 1
+      amount-max: 1
+      chance: 1.0
+    tiers:
+      1:
+        action-time-seconds: 7200
+        storage-slots: 1
+        upgrade-requirements:
+          collections: {}
+          items: {}
+      2:
+        action-time-seconds: 6240
+        storage-slots: 2
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.uranium
+            percent: 0.50
+            resource: uranium
+            resource-per-collection-unit: 1.0
+      3:
+        action-time-seconds: 5280
+        storage-slots: 3
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.uranium
+            percent: 0.40
+            resource: uranium
+            resource-per-collection-unit: 1.0
+      4:
+        action-time-seconds: 4320
+        storage-slots: 4
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.uranium
+            percent: 0.33
+            resource: uranium
+            resource-per-collection-unit: 1.0
+      5:
+        action-time-seconds: 3600
+        storage-slots: 6
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.uranium
+            percent: 0.20
+            resource: uranium
+            resource-per-collection-unit: 1.0
+      6:
+        action-time-seconds: 2880
+        storage-slots: 7
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.uranium
+            percent: 0.10
+            resource: uranium
+            resource-per-collection-unit: 1.0
+      7:
+        action-time-seconds: 2400
+        storage-slots: 9
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.uranium
+            percent: 0.05
+            resource: uranium
+            resource-per-collection-unit: 1.0
+    max-tier: 7
+    wiki:
+      special-items:
+      - uranium
+      - uranium_block
+      - uranium_enricher
+      - iron_uranium_chest
+      auto-compressed-resources: true
+    wiki-special-items: []
+  gold:
+    enabled: true
+    display-name: <gold>Złoty Golem</gold>
+    category: mining
+    item:
+      material: PLAYER_HEAD
+      display-name: <gold>Złoty Golem <yellow>Tier <tier></yellow></gold>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - '<gray>Generuje: <gold>Ruda złota</gold></gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
+      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOWVlMzVhODg0NjEzOGM2YmI3OTdkYjU1MGU2MDk2OTAxOTZmNjM2MjY2M2EyMWUyOWYwMzlmMDk3YWUwYTljYiJ9fX0=
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: gold_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+      - 2
+    resource-table:
+    - resource: gold_ore
+      amount-min: 1
+      amount-max: 1
+      chance: 1.0
+    tiers:
+      1:
+        action-time-seconds: 2700
+        storage-slots: 1
+        upgrade-requirements:
+          collections: {}
+          items: {}
+      2:
+        action-time-seconds: 2340
+        storage-slots: 2
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.gold
+            percent: 0.50
+            resource: gold
+            resource-per-collection-unit: 1.0
+      3:
+        action-time-seconds: 1980
+        storage-slots: 3
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.gold
+            percent: 0.40
+            resource: gold
+            resource-per-collection-unit: 1.0
+      4:
+        action-time-seconds: 1620
+        storage-slots: 4
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.gold
+            percent: 0.33
+            resource: gold
+            resource-per-collection-unit: 1.0
+      5:
+        action-time-seconds: 1350
+        storage-slots: 6
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.gold
+            percent: 0.20
+            resource: gold
+            resource-per-collection-unit: 1.0
+      6:
+        action-time-seconds: 1080
+        storage-slots: 7
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.gold
+            percent: 0.10
+            resource: gold
+            resource-per-collection-unit: 1.0
+      7:
+        action-time-seconds: 900
+        storage-slots: 9
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.gold
+            percent: 0.05
+            resource: gold
+            resource-per-collection-unit: 1.0
+    max-tier: 7
+    wiki:
+      special-items:
+      - auto_smelter
+      - compressed_gold
+      - gold_minion
+      - medium_minion_storage
+      auto-compressed-resources: true
+    auto-smelter:
+      enabled: true
+      special-item: auto_smelter
+      replacements:
+        gold_ore: gold
+    wiki-special-items: []
+  obsidian:
+    enabled: true
+    display-name: <dark_purple>Minion obsydianu</dark_purple>
+    category: mining
+    item:
+      material: PLAYER_HEAD
+      display-name: <dark_purple>Minion obsydianu <yellow>Tier <tier></yellow></dark_purple>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - '<gray>Generuje: <dark_purple>Obsydian</dark_purple></gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
+      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZTdiZmQ1NWVlMjViMDQyMjU4ZDVkYzgwNGE0ZGRiYTYzODUzMGI1ZDE4OTNjNGJlYjI3MDU1Y2Y4MTQxYWMwIn19fQ==
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: obsidian_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+      - 2
+    resource-table:
+    - resource: obsidian
+      amount-min: 1
+      amount-max: 1
+      chance: 1.0
+    tiers:
+      1:
+        action-time-seconds: 1080
+        storage-slots: 1
+        upgrade-requirements:
+          collections: {}
+          items: {}
+      2:
+        action-time-seconds: 936
+        storage-slots: 2
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.obsidian
+            percent: 0.50
+            resource: obsidian
+            resource-per-collection-unit: 1.0
+      3:
+        action-time-seconds: 792
+        storage-slots: 3
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.obsidian
+            percent: 0.40
+            resource: obsidian
+            resource-per-collection-unit: 1.0
+      4:
+        action-time-seconds: 648
+        storage-slots: 4
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.obsidian
+            percent: 0.33
+            resource: obsidian
+            resource-per-collection-unit: 1.0
+      5:
+        action-time-seconds: 540
+        storage-slots: 6
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.obsidian
+            percent: 0.20
+            resource: obsidian
+            resource-per-collection-unit: 1.0
+      6:
+        action-time-seconds: 432
+        storage-slots: 7
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.obsidian
+            percent: 0.10
+            resource: obsidian
+            resource-per-collection-unit: 1.0
+      7:
+        action-time-seconds: 360
+        storage-slots: 9
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.obsidian
+            percent: 0.05
+            resource: obsidian
+            resource-per-collection-unit: 1.0
+    max-tier: 7
+    wiki:
+      special-items:
+      - obsidian_minion
+      - compressor
+      - compressor_update
+      - damaged_compressor_update
+      - compressed_obsidian
+      - super_compressed_obsidian
+      - graphite
+      - large_minion_storage
+      auto-compressed-resources: true
+    wiki-special-items: []
+  emerald:
+    enabled: true
+    display-name: <green>Minion szmaragdów</green>
+    category: mining
+    item:
+      material: PLAYER_HEAD
+      display-name: <green>Minion szmaragdów <yellow>Tier <tier></yellow></green>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - '<gray>Generuje: <green>Szmaragdy</green></gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
+      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOWJmNTdmMzQwMWIxMzBjNmI1MzgwOGYyYjFlMTE5Y2M3Yjk4NDYyMmRhYzcwNzdiYmQ1MzQ1NGUxZjY1YmJmMCJ9fX0=
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: emerald_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+      - 2
+    resource-table:
+    - resource: emerald
+      amount-min: 1
+      amount-max: 1
+      chance: 1.0
+    tiers:
+      1:
+        action-time-seconds: 6120
+        storage-slots: 1
+        upgrade-requirements:
+          collections: {}
+          items: {}
+      2:
+        action-time-seconds: 5304
+        storage-slots: 2
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.emerald
+            percent: 0.50
+            resource: emerald
+            resource-per-collection-unit: 1.0
+      3:
+        action-time-seconds: 4488
+        storage-slots: 3
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.emerald
+            percent: 0.40
+            resource: emerald
+            resource-per-collection-unit: 1.0
+      4:
+        action-time-seconds: 3672
+        storage-slots: 4
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.emerald
+            percent: 0.33
+            resource: emerald
+            resource-per-collection-unit: 1.0
+      5:
+        action-time-seconds: 3060
+        storage-slots: 6
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.emerald
+            percent: 0.20
+            resource: emerald
+            resource-per-collection-unit: 1.0
+      6:
+        action-time-seconds: 2448
+        storage-slots: 7
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.emerald
+            percent: 0.10
+            resource: emerald
+            resource-per-collection-unit: 1.0
+      7:
+        action-time-seconds: 2040
+        storage-slots: 9
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.emerald
+            percent: 0.05
+            resource: emerald
+            resource-per-collection-unit: 1.0
+    max-tier: 7
+    wiki:
+      special-items:
+      - emerald_minion
+      auto-compressed-resources: true
+    wiki-special-items: []
+  diamond:
+    enabled: true
+    display-name: <aqua>Minion diamentu</aqua>
+    category: mining
+    item:
+      material: PLAYER_HEAD
+      display-name: <aqua>Minion diamentu <yellow>Tier <tier></yellow></aqua>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - '<gray>Generuje: <aqua>Diament</aqua></gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
+      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNjM5MTgwOTAzOTBjYmEzYzg5ZTM5ZDBjNTVjZDA3MjdlNjRlZmU3MGJmMjZiNTE1NzE5ZDBhNmQ2MWQ5NWIyNSJ9fX0=
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: diamond_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+      - 2
+    resource-table:
+    - resource: diamond
+      amount-min: 1
+      amount-max: 1
+      chance: 1.0
+    tiers:
+      1:
+        action-time-seconds: 5760
+        storage-slots: 1
+        upgrade-requirements:
+          collections: {}
+          items: {}
+      2:
+        action-time-seconds: 4992
+        storage-slots: 2
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.diamond
+            percent: 0.50
+            resource: diamond
+            resource-per-collection-unit: 1.0
+      3:
+        action-time-seconds: 4224
+        storage-slots: 3
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.diamond
+            percent: 0.40
+            resource: diamond
+            resource-per-collection-unit: 1.0
+      4:
+        action-time-seconds: 3456
+        storage-slots: 4
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.diamond
+            percent: 0.33
+            resource: diamond
+            resource-per-collection-unit: 1.0
+      5:
+        action-time-seconds: 2880
+        storage-slots: 6
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.diamond
+            percent: 0.20
+            resource: diamond
+            resource-per-collection-unit: 1.0
+      6:
+        action-time-seconds: 2304
+        storage-slots: 7
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.diamond
+            percent: 0.10
+            resource: diamond
+            resource-per-collection-unit: 1.0
+      7:
+        action-time-seconds: 1920
+        storage-slots: 9
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.diamond
+            percent: 0.05
+            resource: diamond
+            resource-per-collection-unit: 1.0
+    max-tier: 7
+    wiki:
+      special-items:
+      - compressed_diamond
+      auto-compressed-resources: true
+    wiki-special-items: []
+  netherite:
+    enabled: true
+    display-name: <dark_red>Minion netheritu</dark_red>
+    category: mining
+    item:
+      material: PLAYER_HEAD
+      display-name: <dark_red>Minion netheritu <yellow>Tier <tier></yellow></dark_red>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - '<gray>Generuje: <dark_gray>Netherit Scrap</dark_gray></gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
+      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYmJjYWMzMDMzNGRmYmIyZDdlYjkxOTMxMTIwNDk3YjAyNzY1NWFhZmM2ZDA5MTFmZTVhYjM0Nzg4MGY4YmZlMSJ9fX0=
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: netherite_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+      - 2
+    resource-table:
+    - resource: netherite
+      amount-min: 1
+      amount-max: 1
+      chance: 1.0
+    tiers:
+      1:
+        action-time-seconds: 3600
+        storage-slots: 1
+        upgrade-requirements:
+          collections: {}
+          items: {}
+      2:
+        action-time-seconds: 3120
+        storage-slots: 2
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.netherite
+            percent: 0.50
+            resource: netherite
+            resource-per-collection-unit: 1.0
+      3:
+        action-time-seconds: 2640
+        storage-slots: 3
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.netherite
+            percent: 0.40
+            resource: netherite
+            resource-per-collection-unit: 1.0
+      4:
+        action-time-seconds: 2160
+        storage-slots: 4
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.netherite
+            percent: 0.33
+            resource: netherite
+            resource-per-collection-unit: 1.0
+      5:
+        action-time-seconds: 1800
+        storage-slots: 6
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.netherite
+            percent: 0.20
+            resource: netherite
+            resource-per-collection-unit: 1.0
+      6:
+        action-time-seconds: 1440
+        storage-slots: 7
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.netherite
+            percent: 0.10
+            resource: netherite
+            resource-per-collection-unit: 1.0
+      7:
+        action-time-seconds: 1200
+        storage-slots: 9
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.netherite
+            percent: 0.05
+            resource: netherite
+            resource-per-collection-unit: 1.0
+    max-tier: 7
+    wiki:
+      special-items:
+      - auto_smelter
+      - large_minion_storage
+      auto-compressed-resources: true
+    wiki-special-items: []
+  netherrack:
+    enabled: true
+    display-name: <dark_red>Minion netherracka</dark_red>
+    category: mining
+    item:
+      material: PLAYER_HEAD
+      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNmZlNjk1NTM1ZGY4OWExM2I2MTgzNzgwYTk1ZWQxMDU5ODJlZTFmMDdhYjY0NGUwNjc2OWJkOTE2N2UxNjgxZiJ9fX0=
+      display-name: <dark_red>Minion netherracka <yellow>Tier <tier></yellow></dark_red>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - '<gray>Generuje: <dark_red>Netherrack</dark_red></gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
+      custom-model-data: 0
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: netherrack_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+      - 2
+    resource-table:
+    - resource: netherrack
+      amount-min: 4
+      amount-max: 4
+      chance: 1.0
+    tiers:
+      1:
+        action-time-seconds: 60
+        storage-slots: 1
+        upgrade-requirements:
+          collections: {}
+          items: {}
+      2:
+        action-time-seconds: 52
+        storage-slots: 2
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.netherrack
+            percent: 0.50
+            resource: netherrack
+            resource-per-collection-unit: 1.0
+      3:
+        action-time-seconds: 44
+        storage-slots: 3
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.netherrack
+            percent: 0.40
+            resource: netherrack
+            resource-per-collection-unit: 1.0
+      4:
+        action-time-seconds: 36
+        storage-slots: 4
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.netherrack
+            percent: 0.33
+            resource: netherrack
+            resource-per-collection-unit: 1.0
+      5:
+        action-time-seconds: 30
+        storage-slots: 6
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.netherrack
+            percent: 0.20
+            resource: netherrack
+            resource-per-collection-unit: 1.0
+      6:
+        action-time-seconds: 24
+        storage-slots: 7
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.netherrack
+            percent: 0.10
+            resource: netherrack
+            resource-per-collection-unit: 1.0
+      7:
+        action-time-seconds: 20
+        storage-slots: 9
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.netherrack
+            percent: 0.05
+            resource: netherrack
+            resource-per-collection-unit: 1.0
+    max-tier: 7
+    wiki:
+      special-items:
+      - netherrack_minion
+      - compressed_netherrack
+      - super_compressed_netherrack
+      - minion_booster_tier_2
+      auto-compressed-resources: true
+    wiki-special-items: []
+  zombie:
+    enabled: true
+    display-name: <light_purple>Minion zombie</light_purple>
+    category: combat
+    drop-selection-mode: WEIGHTED_ONE
+    item:
+      material: ZOMBIE_HEAD
+      display-name: <light_purple>Minion zombie <yellow>Tier <tier></yellow></light_purple>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - <gray>Symuluje zabijanie zombie i generuje łupy.</gray>
+      - <gray>Czas generacji zależy od Tieru miniona.</gray>
+      - <gray>Postaw na terenie swojego miasta.</gray>
+      custom-model-data: 0
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: zombie_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+      - 2
+    resource-table:
+    - resource: golden_carrot
+      amount-min: 1
+      amount-max: 1
+      chance: 0.001
+      special-drop: true
+    - resource: potato
+      amount-min: 1
+      amount-max: 1
+      chance: 0.002
+      special-drop: true
+    - resource: carrot
+      amount-min: 1
+      amount-max: 1
+      chance: 0.002
+      special-drop: true
+    - resource: feather
+      amount-min: 1
+      amount-max: 1
+      chance: 0.01
+      special-drop: true
+    - resource: experience_bottle
+      amount-min: 1
+      amount-max: 1
+      chance: 0.02
+    - resource: rotten_flesh
+      amount-min: 1
+      amount-max: 1
+      chance: 0.98
+    tiers:
+      1:
+        action-time-seconds: 450
+        storage-slots: 1
+        upgrade-requirements:
+          collections: {}
+          items: {}
+      2:
+        action-time-seconds: 390
+        storage-slots: 2
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mobs.zombie
+            percent: 0.50
+            resource: rotten_flesh
+            resource-per-collection-unit: 0.98
+      3:
+        action-time-seconds: 330
+        storage-slots: 3
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mobs.zombie
+            percent: 0.40
+            resource: rotten_flesh
+            resource-per-collection-unit: 0.98
+      4:
+        action-time-seconds: 270
+        storage-slots: 4
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mobs.zombie
+            percent: 0.33
+            resource: rotten_flesh
+            resource-per-collection-unit: 0.98
+      5:
+        action-time-seconds: 225
+        storage-slots: 6
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mobs.zombie
+            percent: 0.20
+            resource: rotten_flesh
+            resource-per-collection-unit: 0.98
+      6:
+        action-time-seconds: 180
+        storage-slots: 7
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mobs.zombie
+            percent: 0.10
+            resource: rotten_flesh
+            resource-per-collection-unit: 0.98
+      7:
+        action-time-seconds: 150
+        storage-slots: 9
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mobs.zombie
+            percent: 0.05
+            resource: rotten_flesh
+            resource-per-collection-unit: 0.98
+    max-tier: 7
+    wiki:
+      special-items: []
+      auto-compressed-resources: false
+    wiki-special-items: []
+  skeleton:
+    enabled: true
+    display-name: <light_purple>Minion szkieleta</light_purple>
+    category: combat
+    drop-selection-mode: WEIGHTED_ONE
+    item:
+      material: SKELETON_SKULL
+      display-name: <light_purple>Minion szkieleta <yellow>Tier <tier></yellow></light_purple>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - <gray>Symuluje zabijanie szkieletów i generuje łupy.</gray>
+      - <gray>Czas generacji zależy od Tieru miniona.</gray>
+      - <gray>Postaw na terenie swojego miasta.</gray>
+      custom-model-data: 0
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: skeleton_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+      - 2
+    resource-table:
+    - resource: bow
+      amount-min: 1
+      amount-max: 1
+      chance: 0.002
+      special-drop: true
+    - resource: arrow
+      amount-min: 1
+      amount-max: 1
+      chance: 0.4
+    - resource: bone
+      amount-min: 1
+      amount-max: 1
+      chance: 0.2
+    - resource: experience_bottle
+      amount-min: 1
+      amount-max: 1
+      chance: 0.1
+    - resource: bone_meal
+      amount-min: 1
+      amount-max: 1
+      chance: 0.3
+    tiers:
+      1:
+        action-time-seconds: 360
+        storage-slots: 1
+        upgrade-requirements:
+          collections: {}
+          items: {}
+      2:
+        action-time-seconds: 312
+        storage-slots: 2
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mobs.skeleton
+            percent: 0.50
+            resource: bone
+            resource-per-collection-unit: 0.2
+      3:
+        action-time-seconds: 264
+        storage-slots: 3
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mobs.skeleton
+            percent: 0.40
+            resource: bone
+            resource-per-collection-unit: 0.2
+      4:
+        action-time-seconds: 216
+        storage-slots: 4
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mobs.skeleton
+            percent: 0.33
+            resource: bone
+            resource-per-collection-unit: 0.2
+      5:
+        action-time-seconds: 180
+        storage-slots: 6
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mobs.skeleton
+            percent: 0.20
+            resource: bone
+            resource-per-collection-unit: 0.2
+      6:
+        action-time-seconds: 144
+        storage-slots: 7
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mobs.skeleton
+            percent: 0.10
+            resource: bone
+            resource-per-collection-unit: 0.2
+      7:
+        action-time-seconds: 120
+        storage-slots: 9
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mobs.skeleton
+            percent: 0.05
+            resource: bone
+            resource-per-collection-unit: 0.2
+    max-tier: 7
+    wiki:
+      special-items:
+      - musket
+      auto-compressed-resources: false
+    wiki-special-items: []
+  spider:
+    enabled: true
+    display-name: <light_purple>Minion pająka</light_purple>
+    category: combat
+    drop-selection-mode: WEIGHTED_ONE
+    item:
+      material: PLAYER_HEAD
+      display-name: <light_purple>Minion pająka <yellow>Tier <tier></yellow></light_purple>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - <gray>Symuluje zabijanie pająków i generuje łupy.</gray>
+      - <gray>Czas generacji zależy od Tieru miniona.</gray>
+      - <gray>Postaw na terenie swojego miasta.</gray>
+      custom-model-data: 0
+      player-name: MHF_Spider
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: spider_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+      - 2
+    resource-table:
+    - resource: spider_eye
+      amount-min: 1
+      amount-max: 1
+      chance: 0.1
+    - resource: experience_bottle
+      amount-min: 1
+      amount-max: 1
+      chance: 0.1
+    - resource: string
+      amount-min: 1
+      amount-max: 1
+      chance: 0.8
+    tiers:
+      1:
+        action-time-seconds: 720
+        storage-slots: 1
+        upgrade-requirements:
+          collections: {}
+          items: {}
+      2:
+        action-time-seconds: 624
+        storage-slots: 2
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mobs.spider
+            percent: 0.50
+            resource: string
+            resource-per-collection-unit: 0.8
+      3:
+        action-time-seconds: 528
+        storage-slots: 3
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mobs.spider
+            percent: 0.40
+            resource: string
+            resource-per-collection-unit: 0.8
+      4:
+        action-time-seconds: 432
+        storage-slots: 4
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mobs.spider
+            percent: 0.33
+            resource: string
+            resource-per-collection-unit: 0.8
+      5:
+        action-time-seconds: 360
+        storage-slots: 6
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mobs.spider
+            percent: 0.20
+            resource: string
+            resource-per-collection-unit: 0.8
+      6:
+        action-time-seconds: 288
+        storage-slots: 7
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mobs.spider
+            percent: 0.10
+            resource: string
+            resource-per-collection-unit: 0.8
+      7:
+        action-time-seconds: 240
+        storage-slots: 9
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mobs.spider
+            percent: 0.05
+            resource: string
+            resource-per-collection-unit: 0.8
+    max-tier: 7
+    wiki:
+      special-items: []
+      auto-compressed-resources: false
+    wiki-special-items: []
+  silverfish:
+    enabled: true
+    display-name: <light_purple>Minion rybika cukrowego</light_purple>
+    category: combat
+    drop-selection-mode: WEIGHTED_ONE
+    item:
+      material: PLAYER_HEAD
+      display-name: <light_purple>Minion rybika cukrowego <yellow>Tier <tier></yellow></light_purple>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - <gray>Symuluje pokonywanie rybików cukrowych i generuje doświadczenie.</gray>
+      - <gray>Czas generacji zależy od Tieru miniona.</gray>
+      - <gray>Postaw na terenie swojego miasta.</gray>
+      custom-model-data: 0
+      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYmZlMTMyMzdlMTEwOWNhYjcyNjRkYzUzYjBhYTY5N2NmOWE3YzYyYzk4NGEyNjlmYjA3NTVhMjg4OTEyYmJjYSJ9fX0=
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: silverfish_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+      - 2
+    resource-table:
+    - resource: experience_bottle
+      amount-min: 1
+      amount-max: 1
+      chance: 1.0
+    tiers:
+      1:
+        action-time-seconds: 3600
+        storage-slots: 1
+        upgrade-requirements:
+          collections: {}
+          items: {}
+      2:
+        action-time-seconds: 3120
+        storage-slots: 2
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mobs.silverfish
+            percent: 0.50
+            resource: experience_bottle
+            resource-per-collection-unit: 1.0
+      3:
+        action-time-seconds: 2640
+        storage-slots: 3
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mobs.silverfish
+            percent: 0.40
+            resource: experience_bottle
+            resource-per-collection-unit: 1.0
+      4:
+        action-time-seconds: 2160
+        storage-slots: 4
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mobs.silverfish
+            percent: 0.33
+            resource: experience_bottle
+            resource-per-collection-unit: 1.0
+      5:
+        action-time-seconds: 1800
+        storage-slots: 6
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mobs.silverfish
+            percent: 0.20
+            resource: experience_bottle
+            resource-per-collection-unit: 1.0
+      6:
+        action-time-seconds: 1440
+        storage-slots: 7
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mobs.silverfish
+            percent: 0.10
+            resource: experience_bottle
+            resource-per-collection-unit: 1.0
+      7:
+        action-time-seconds: 1200
+        storage-slots: 9
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mobs.silverfish
+            percent: 0.05
+            resource: experience_bottle
+            resource-per-collection-unit: 1.0
+    max-tier: 7
+    wiki:
+      special-items:
+      - silverfish_minion
+      auto-compressed-resources: false
+    wiki-special-items: []
+  spruce_wood:
+    enabled: true
+    display-name: <dark_green>Minion drewna świerkowego</dark_green>
+    category: foraging
+    item:
+      material: PLAYER_HEAD
+      display-name: <dark_green>Minion drewna świerkowego <yellow>Tier <tier></yellow></dark_green>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - '<gray>Generuje: <dark_green>Drewno świerkowe</dark_green></gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
+      custom-model-data: 0
+      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvY2M1Y2RhNTUxODhmOTVlNDY2MjE0OWZiNDYzNjhlNDAxMDdkZjU0MzYzYWRjN2ViYTcxYWQzMTY4MWQxNTQzNyJ9fX0=
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: spruce_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+      - 2
+    resource-table:
+    - resource: spruce_wood
+      amount-min: 1
+      amount-max: 1
+      chance: 0.98
+    - resource: spruce_resin
+      amount-min: 1
+      amount-max: 1
+      chance: 0.005
+      special-drop: true
+      special-drop-scaling:
+        from-tier: 5
+        per-tier-bonus: 0.003
+    tiers:
+      1:
+        action-time-seconds: 72
+        storage-slots: 1
+        upgrade-requirements:
+          collections: {}
+          items: {}
+      2:
+        action-time-seconds: 62.4
+        storage-slots: 2
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: foraging.spruce_wood
+            percent: 0.50
+            resource: spruce_wood
+            resource-per-collection-unit: 1.0
+      3:
+        action-time-seconds: 52.8
+        storage-slots: 3
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: foraging.spruce_wood
+            percent: 0.40
+            resource: spruce_wood
+            resource-per-collection-unit: 1.0
+      4:
+        action-time-seconds: 43.2
+        storage-slots: 4
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: foraging.spruce_wood
+            percent: 0.33
+            resource: spruce_wood
+            resource-per-collection-unit: 1.0
+      5:
+        action-time-seconds: 36
+        storage-slots: 6
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: foraging.spruce_wood
+            percent: 0.20
+            resource: spruce_wood
+            resource-per-collection-unit: 1.0
+      6:
+        action-time-seconds: 28.8
+        storage-slots: 7
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: foraging.spruce_wood
+            percent: 0.10
+            resource: spruce_wood
+            resource-per-collection-unit: 1.0
+      7:
+        action-time-seconds: 24
+        storage-slots: 9
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: foraging.spruce_wood
+            percent: 0.05
+            resource: spruce_wood
+            resource-per-collection-unit: 1.0
+    max-tier: 7
+    wiki:
+      special-items:
+      - spruce_wood_minion
+      - hazmat_helmet
+      - hazmat_chestplate
+      - hazmat_leggings
+      - hazmat_boots
+      auto-compressed-resources: true
+    wiki-special-items: []
+  copper:
+    enabled: true
+    display-name: <color:#b87333>Miedziany Golem</color>
+    category: mining
+    item:
+      material: PLAYER_HEAD
+      display-name: <color:#b87333>Miedziany Golem <yellow>Tier <tier></yellow></color>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - '<gray>Generuje: <color:#b87333>Rudę miedzi</color></gray>'
+      - '<gray>Ma bardzo rzadki specjalny drop: <light_purple>Rzadkie pierwiastki</light_purple>.</gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
+      custom-model-data: 0
+      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMjQ0ZGViZmRhOGVjYzRjOWNmNDczNWU3YzgyNDM5MjkxOTE1YTcxNjgyZTRjNGI4NDhlZmIxNDEwNmUwYzNkNSJ9fX0=
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: copper_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+      - 2
+    drop-selection-mode: WEIGHTED_ONE
+    resource-table:
+    - resource: rare_elements
+      amount-min: 1
+      amount-max: 1
+      chance: 5.0e-05
+      special-drop: true
+      special-drop-scaling:
+        per-tier-bonus: 2.0e-05
+        upgrade-bonus: 0.0001
+    - resource: copper
+      amount-min: 1
+      amount-max: 1
+      chance: 1.0
+    tiers:
+      1:
+        action-time-seconds: 240
+        storage-slots: 1
+        upgrade-requirements:
+          collections: {}
+          items: {}
+      2:
+        action-time-seconds: 208
+        storage-slots: 2
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.copper
+            percent: 0.50
+            resource: copper
+            resource-per-collection-unit: 1.0
+      3:
+        action-time-seconds: 176
+        storage-slots: 3
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.copper
+            percent: 0.40
+            resource: copper
+            resource-per-collection-unit: 1.0
+      4:
+        action-time-seconds: 144
+        storage-slots: 4
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.copper
+            percent: 0.33
+            resource: copper
+            resource-per-collection-unit: 1.0
+      5:
+        action-time-seconds: 120
+        storage-slots: 6
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.copper
+            percent: 0.20
+            resource: copper
+            resource-per-collection-unit: 1.0
+      6:
+        action-time-seconds: 96
+        storage-slots: 7
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.copper
+            percent: 0.10
+            resource: copper
+            resource-per-collection-unit: 1.0
+      7:
+        action-time-seconds: 80
+        storage-slots: 9
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.copper
+            percent: 0.05
+            resource: copper
+            resource-per-collection-unit: 1.0
+    max-tier: 7
+    wiki:
+      special-items:
+      - copper_minion
+      - rare_elements
+      - auto_smelter
+      auto-compressed-resources: true
+    auto-smelter:
+      enabled: true
+      special-item: auto_smelter
+      replacements:
+        copper: copper_ingot
+    wiki-special-items: []
+  tin:
+    enabled: true
+    display-name: <gray>Minion cyny</gray>
     category: mining
     item:
       material: PLAYER_HEAD
       texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM4Mjc0MmIyYTE3ZWViZGVhYWQyYjk1ZTU2NmE1ZjAyNTBjMzU1NzQyOWY2YTM5YTc5YjZhYjhiZjgifX19
-      display-name: <gray>Stone Minion <yellow>Tier <tier></yellow></gray>
+      display-name: <gray>Minion cyny <yellow>Tier <tier></yellow></gray>
       lore:
       - <dark_gray>Minion miasta</dark_gray>
-      - '<gray>Generuje: <white>Stone</white></gray>'
+      - '<gray>Generuje: <white>Ruda cyny</white></gray>'
+      - <gray>Rudę cyny można przetopić w piecu hutniczym.</gray>
       - <gray>Postaw na terenie swojego miasta.</gray>
       custom-model-data: 0
     placement:
@@ -236,59 +2163,919 @@ minion-types:
       mode: VIRTUAL
     appearance: cobblestone_default
     menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+      - 2
     resource-table:
-    - resource: stone
+    - resource: tin_ore
       amount-min: 1
       amount-max: 1
       chance: 1.0
     tiers:
       1:
-        action-time-seconds: 14
-        storage: 64
+        action-time-seconds: 5400
         storage-slots: 1
         upgrade-requirements:
-          collections:
-            mining.stone: 80
+          collections: {}
           items: {}
       2:
-        action-time-seconds: 13
-        storage: 128
+        action-time-seconds: 4680
         storage-slots: 2
         upgrade-requirements:
-          collections:
-            mining.stone: 160
-          items:
-            upgrade_core:
-              material: NETHER_STAR
-              amount: 1
-              display-name: Upgrade Core
-              consume: true
+          dynamic-collection-cost:
+            collection: mining.tin
+            percent: 0.50
+            resource: tin_ingot
+            resource-per-collection-unit: 1.0
       3:
-        action-time-seconds: 12
-        storage: 192
+        action-time-seconds: 3960
         storage-slots: 3
         upgrade-requirements:
-          collections:
-            mining.stone: 320
-          items: {}
+          dynamic-collection-cost:
+            collection: mining.tin
+            percent: 0.40
+            resource: tin_ingot
+            resource-per-collection-unit: 1.0
       4:
-        action-time-seconds: 11
-        storage: 256
+        action-time-seconds: 3240
         storage-slots: 4
         upgrade-requirements:
-          collections:
-            mining.stone: 640
-          items: {}
+          dynamic-collection-cost:
+            collection: mining.tin
+            percent: 0.33
+            resource: tin_ingot
+            resource-per-collection-unit: 1.0
       5:
-        action-time-seconds: 10
-        storage: 320
-        storage-slots: 5
+        action-time-seconds: 2700
+        storage-slots: 6
         upgrade-requirements:
-          collections:
-            mining.stone: 1280
-          items: {}
-    max-tier: 5
+          dynamic-collection-cost:
+            collection: mining.tin
+            percent: 0.20
+            resource: tin_ingot
+            resource-per-collection-unit: 1.0
+      6:
+        action-time-seconds: 2160
+        storage-slots: 7
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.tin
+            percent: 0.10
+            resource: tin_ingot
+            resource-per-collection-unit: 1.0
+      7:
+        action-time-seconds: 1800
+        storage-slots: 9
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: mining.tin
+            percent: 0.05
+            resource: tin_ingot
+            resource-per-collection-unit: 1.0
+    max-tier: 7
     wiki:
       special-items:
-      - compressed_cobblestone
-      - basic_storage
+      - tin_minion
+      - tin_ingot
+      - tin_dust
+      - copper_cable
+      - battery
+      - solar_panel_generator
+      - auto_smelter
+      auto-compressed-resources: true
+    auto-smelter:
+      enabled: true
+      special-item: auto_smelter
+      replacements:
+        tin_ore: tin_ingot
+    wiki-special-items: []
+  sheep:
+    enabled: true
+    display-name: <yellow>Minion owcy</yellow>
+    category: animals
+    drop-selection-mode: WEIGHTED_ONE
+    item:
+      material: PLAYER_HEAD
+      display-name: <yellow>Minion owcy <yellow>Tier <tier></yellow></yellow>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - '<gray>Generuje: <white>wełnę</white> oraz rzadziej <white>mięso owcy</white>.</gray>'
+      - '<gray>Startowo: <white>20s</white>, każdy tier skraca o <white>1s</white>.</gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
+      custom-model-data: 0
+      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvN2Y2MTdhYTRkODFkNjdlZTFjYWM3OTUwYzJjYzZlMmYyZTEzZjE1ZDA3ZDQ2MDFjNTMxMDUzMTNmYWMwNjFkZiJ9fX0=
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: sheep_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+      - 2
+    resource-table:
+    - resource: wool
+      amount-min: 1
+      amount-max: 1
+      chance: 0.98
+    - resource: mutton
+      amount-min: 1
+      amount-max: 1
+      chance: 0.02
+    tiers:
+      1:
+        action-time-seconds: 450
+        storage-slots: 1
+        upgrade-requirements:
+          collections: {}
+          items: {}
+      2:
+        action-time-seconds: 390
+        storage-slots: 2
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: animals.wool
+            percent: 0.50
+            resource: wool
+            resource-per-collection-unit: 1.0
+      3:
+        action-time-seconds: 330
+        storage-slots: 3
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: animals.wool
+            percent: 0.40
+            resource: wool
+            resource-per-collection-unit: 1.0
+      4:
+        action-time-seconds: 270
+        storage-slots: 4
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: animals.wool
+            percent: 0.33
+            resource: wool
+            resource-per-collection-unit: 1.0
+      5:
+        action-time-seconds: 225
+        storage-slots: 6
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: animals.wool
+            percent: 0.20
+            resource: wool
+            resource-per-collection-unit: 1.0
+      6:
+        action-time-seconds: 180
+        storage-slots: 7
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: animals.wool
+            percent: 0.10
+            resource: wool
+            resource-per-collection-unit: 1.0
+      7:
+        action-time-seconds: 150
+        storage-slots: 9
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: animals.wool
+            percent: 0.05
+            resource: wool
+            resource-per-collection-unit: 1.0
+    max-tier: 7
+    wiki:
+      special-items: []
+      auto-compressed-resources: false
+    wiki-special-items: []
+  pig:
+    enabled: true
+    display-name: <yellow>Minion świni</yellow>
+    category: animals
+    drop-selection-mode: WEIGHTED_ONE
+    item:
+      material: PLAYER_HEAD
+      display-name: <yellow>Minion świni <yellow>Tier <tier></yellow></yellow>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - '<gray>Generuje: <light_purple>mięso świni</light_purple>.</gray>'
+      - '<gray>Startowo: <white>45s</white>, każdy tier skraca o <white>2s</white>.</gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
+      custom-model-data: 0
+      player-name: MHF_Pig
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: pig_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+      - 2
+    resource-table:
+    - resource: porkchop
+      amount-min: 1
+      amount-max: 1
+      chance: 1.0
+    tiers:
+      1:
+        action-time-seconds: 720
+        storage-slots: 1
+        upgrade-requirements:
+          collections: {}
+          items: {}
+      2:
+        action-time-seconds: 624
+        storage-slots: 2
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: animals.pork
+            percent: 0.50
+            resource: porkchop
+            resource-per-collection-unit: 1.0
+      3:
+        action-time-seconds: 528
+        storage-slots: 3
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: animals.pork
+            percent: 0.40
+            resource: porkchop
+            resource-per-collection-unit: 1.0
+      4:
+        action-time-seconds: 432
+        storage-slots: 4
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: animals.pork
+            percent: 0.33
+            resource: porkchop
+            resource-per-collection-unit: 1.0
+      5:
+        action-time-seconds: 360
+        storage-slots: 6
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: animals.pork
+            percent: 0.20
+            resource: porkchop
+            resource-per-collection-unit: 1.0
+      6:
+        action-time-seconds: 288
+        storage-slots: 7
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: animals.pork
+            percent: 0.10
+            resource: porkchop
+            resource-per-collection-unit: 1.0
+      7:
+        action-time-seconds: 240
+        storage-slots: 9
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: animals.pork
+            percent: 0.05
+            resource: porkchop
+            resource-per-collection-unit: 1.0
+    max-tier: 7
+    wiki:
+      special-items: []
+      auto-compressed-resources: false
+    wiki-special-items: []
+  cow:
+    enabled: true
+    display-name: <yellow>Minion krowy</yellow>
+    category: animals
+    drop-selection-mode: WEIGHTED_ONE
+    item:
+      material: PLAYER_HEAD
+      display-name: <yellow>Minion krowy <yellow>Tier <tier></yellow></yellow>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - '<gray>Generuje: <red>mięso krowy</red> oraz <gold>skórę</gold>.</gray>'
+      - '<gray>Startowo: <white>45s</white>, każdy tier skraca o <white>2s</white>.</gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
+      custom-model-data: 0
+      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNjk4NDJiNGY0MGU5YzlkYTM4ZGVkNjk1NTBmOWFiMGU1YWZjODdmNjc4YTY3NmViMDYyOTZiNzc1Yzk5MGNmZCJ9fX0=
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: cow_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+      - 2
+    resource-table:
+    - resource: leather
+      amount-min: 1
+      amount-max: 1
+      chance: 0.15
+    - resource: beef
+      amount-min: 1
+      amount-max: 1
+      chance: 0.85
+    tiers:
+      1:
+        action-time-seconds: 900
+        storage-slots: 1
+        upgrade-requirements:
+          collections: {}
+          items: {}
+      2:
+        action-time-seconds: 780
+        storage-slots: 2
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: animals.beef
+            percent: 0.50
+            resource: beef
+            resource-per-collection-unit: 1.0
+      3:
+        action-time-seconds: 660
+        storage-slots: 3
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: animals.beef
+            percent: 0.40
+            resource: beef
+            resource-per-collection-unit: 1.0
+      4:
+        action-time-seconds: 540
+        storage-slots: 4
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: animals.beef
+            percent: 0.33
+            resource: beef
+            resource-per-collection-unit: 1.0
+      5:
+        action-time-seconds: 450
+        storage-slots: 6
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: animals.beef
+            percent: 0.20
+            resource: beef
+            resource-per-collection-unit: 1.0
+      6:
+        action-time-seconds: 360
+        storage-slots: 7
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: animals.beef
+            percent: 0.10
+            resource: beef
+            resource-per-collection-unit: 1.0
+      7:
+        action-time-seconds: 300
+        storage-slots: 9
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: animals.beef
+            percent: 0.05
+            resource: beef
+            resource-per-collection-unit: 1.0
+    max-tier: 7
+    wiki:
+      special-items: []
+      auto-compressed-resources: false
+    wiki-special-items: []
+  chicken:
+    enabled: true
+    display-name: <yellow>Minion kurczaka</yellow>
+    category: animals
+    drop-selection-mode: WEIGHTED_ONE
+    item:
+      material: PLAYER_HEAD
+      display-name: <yellow>Minion kurczaka <yellow>Tier <tier></yellow></yellow>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - '<gray>Generuje: <white>pióra</white>, <yellow>jajka</yellow> oraz mięso.</gray>'
+      - '<gray>Prędkość: <white>8 min</white> na Tier I do <white>4 min</white> na Tier VII.</gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
+      custom-model-data: 0
+      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTI1YmMwZjBkYjRhZDMxMGFhOTZjMTc5ZDVlNmM3MzJhY2QyNjJkOTkyOTM5NDExN2QzZTQ0NTEzYWUwYzFmYyJ9fX0=
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: chicken_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+      - 2
+    resource-table:
+    - resource: feather
+      amount-min: 1
+      amount-max: 1
+      chance: 0.1
+    - resource: egg
+      amount-min: 1
+      amount-max: 1
+      chance: 0.4
+    - resource: chicken_meat
+      amount-min: 1
+      amount-max: 1
+      chance: 0.5
+    tiers:
+      1:
+        action-time-seconds: 720
+        storage-slots: 1
+        upgrade-requirements:
+          collections: {}
+          items: {}
+      2:
+        action-time-seconds: 624
+        storage-slots: 2
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: animals.chicken_meat
+            percent: 0.50
+            resource: chicken_meat
+            resource-per-collection-unit: 1.0
+      3:
+        action-time-seconds: 528
+        storage-slots: 3
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: animals.chicken_meat
+            percent: 0.40
+            resource: chicken_meat
+            resource-per-collection-unit: 1.0
+      4:
+        action-time-seconds: 432
+        storage-slots: 4
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: animals.chicken_meat
+            percent: 0.33
+            resource: chicken_meat
+            resource-per-collection-unit: 1.0
+      5:
+        action-time-seconds: 360
+        storage-slots: 6
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: animals.chicken_meat
+            percent: 0.20
+            resource: chicken_meat
+            resource-per-collection-unit: 1.0
+      6:
+        action-time-seconds: 288
+        storage-slots: 7
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: animals.chicken_meat
+            percent: 0.10
+            resource: chicken_meat
+            resource-per-collection-unit: 1.0
+      7:
+        action-time-seconds: 240
+        storage-slots: 9
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: animals.chicken_meat
+            percent: 0.05
+            resource: chicken_meat
+            resource-per-collection-unit: 1.0
+    max-tier: 7
+    wiki:
+      special-items: []
+      auto-compressed-resources: false
+    wiki-special-items: []
+  wheat:
+    enabled: true
+    display-name: <green>Minion pszenicy</green>
+    category: farming
+    item:
+      material: PLAYER_HEAD
+      display-name: <green>Minion pszenicy <yellow>Tier <tier></yellow></green>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - '<gray>Generuje: <yellow>Pszenicę</yellow></gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
+      custom-model-data: 0
+      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvODMzNmUzMTVlMWFlOTk1NzJkYzljNzJhNjJhMTRiODU3Nzc0MWRjMzQ3MmM3NDEzZDdlYWE2NjdhMzA3YTNkNyJ9fX0=
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: wheat_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+      - 2
+    resource-table:
+    - resource: wheat
+      amount-min: 1
+      amount-max: 1
+      chance: 1.0
+    tiers:
+      1:
+        action-time-seconds: 180
+        storage-slots: 1
+        upgrade-requirements:
+          collections: {}
+          items: {}
+      2:
+        action-time-seconds: 156
+        storage-slots: 2
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: farming.wheat
+            percent: 0.50
+            resource: wheat
+            resource-per-collection-unit: 1.0
+      3:
+        action-time-seconds: 132
+        storage-slots: 3
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: farming.wheat
+            percent: 0.40
+            resource: wheat
+            resource-per-collection-unit: 1.0
+      4:
+        action-time-seconds: 108
+        storage-slots: 4
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: farming.wheat
+            percent: 0.33
+            resource: wheat
+            resource-per-collection-unit: 1.0
+      5:
+        action-time-seconds: 90
+        storage-slots: 6
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: farming.wheat
+            percent: 0.20
+            resource: wheat
+            resource-per-collection-unit: 1.0
+      6:
+        action-time-seconds: 72
+        storage-slots: 7
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: farming.wheat
+            percent: 0.10
+            resource: wheat
+            resource-per-collection-unit: 1.0
+      7:
+        action-time-seconds: 60
+        storage-slots: 9
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: farming.wheat
+            percent: 0.05
+            resource: wheat
+            resource-per-collection-unit: 1.0
+    max-tier: 7
+    wiki:
+      special-items:
+      - wheat_minion
+      auto-compressed-resources: false
+    wiki-special-items: []
+  sugar_cane:
+    enabled: true
+    display-name: <green>Minion trzciny cukrowej</green>
+    category: farming
+    item:
+      material: PLAYER_HEAD
+      display-name: <green>Minion trzciny cukrowej <yellow>Tier <tier></yellow></green>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - '<gray>Generuje: <green>Trzcinę cukrową</green></gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
+      custom-model-data: 0
+      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNjhjOTg2Nzk5YmFmZTcxODRhOGFlMjMzZGI2ZDlhYjhlOWI4NDRmYTlkNGRhNjhmYTNkYzk0YWM4ZmU4MjAifX19
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: sugar_cane_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+      - 2
+    resource-table:
+    - resource: sugar_cane
+      amount-min: 1
+      amount-max: 1
+      chance: 1.0
+    tiers:
+      1:
+        action-time-seconds: 270
+        storage-slots: 1
+        upgrade-requirements:
+          collections: {}
+          items: {}
+      2:
+        action-time-seconds: 234
+        storage-slots: 2
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: farming.sugar_cane
+            percent: 0.50
+            resource: sugar_cane
+            resource-per-collection-unit: 1.0
+      3:
+        action-time-seconds: 198
+        storage-slots: 3
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: farming.sugar_cane
+            percent: 0.40
+            resource: sugar_cane
+            resource-per-collection-unit: 1.0
+      4:
+        action-time-seconds: 162
+        storage-slots: 4
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: farming.sugar_cane
+            percent: 0.33
+            resource: sugar_cane
+            resource-per-collection-unit: 1.0
+      5:
+        action-time-seconds: 135
+        storage-slots: 6
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: farming.sugar_cane
+            percent: 0.20
+            resource: sugar_cane
+            resource-per-collection-unit: 1.0
+      6:
+        action-time-seconds: 108
+        storage-slots: 7
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: farming.sugar_cane
+            percent: 0.10
+            resource: sugar_cane
+            resource-per-collection-unit: 1.0
+      7:
+        action-time-seconds: 90
+        storage-slots: 9
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: farming.sugar_cane
+            percent: 0.05
+            resource: sugar_cane
+            resource-per-collection-unit: 1.0
+    max-tier: 7
+    wiki:
+      special-items:
+      - sugar_cane_minion
+      - musket_ammo
+      auto-compressed-resources: false
+    wiki-special-items: []
+  beetroot:
+    enabled: true
+    display-name: <green>Minion buraka</green>
+    category: farming
+    item:
+      material: PLAYER_HEAD
+      display-name: <green>Minion buraka <yellow>Tier <tier></yellow></green>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - '<gray>Generuje: <dark_red>Buraki</dark_red></gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
+      custom-model-data: 0
+      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvN2E4YWIyMjY3YWU0NDNlODNiMDVlM2E4ZDY3YjhiNzYwYWRmYWFkMzM1YzkwNDczMzhjMGUxNzc0YTY1YzM3MiJ9fX0=
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: beetroot_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+      - 2
+    resource-table:
+    - resource: beetroot
+      amount-min: 1
+      amount-max: 1
+      chance: 1.0
+    tiers:
+      1:
+        action-time-seconds: 540
+        storage-slots: 1
+        upgrade-requirements:
+          collections: {}
+          items: {}
+      2:
+        action-time-seconds: 468
+        storage-slots: 2
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: farming.beetroot
+            percent: 0.50
+            resource: beetroot
+            resource-per-collection-unit: 1.0
+      3:
+        action-time-seconds: 396
+        storage-slots: 3
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: farming.beetroot
+            percent: 0.40
+            resource: beetroot
+            resource-per-collection-unit: 1.0
+      4:
+        action-time-seconds: 324
+        storage-slots: 4
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: farming.beetroot
+            percent: 0.33
+            resource: beetroot
+            resource-per-collection-unit: 1.0
+      5:
+        action-time-seconds: 270
+        storage-slots: 6
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: farming.beetroot
+            percent: 0.20
+            resource: beetroot
+            resource-per-collection-unit: 1.0
+      6:
+        action-time-seconds: 216
+        storage-slots: 7
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: farming.beetroot
+            percent: 0.10
+            resource: beetroot
+            resource-per-collection-unit: 1.0
+      7:
+        action-time-seconds: 180
+        storage-slots: 9
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: farming.beetroot
+            percent: 0.05
+            resource: beetroot
+            resource-per-collection-unit: 1.0
+    max-tier: 7
+    wiki:
+      special-items:
+      - beetroot_minion
+      auto-compressed-resources: false
+    wiki-special-items: []
+  cactus:
+    enabled: true
+    display-name: <green>Minion kaktusa</green>
+    category: farming
+    item:
+      material: PLAYER_HEAD
+      display-name: <green>Minion kaktusa <yellow>Tier <tier></yellow></green>
+      lore:
+      - <dark_gray>Minion miasta</dark_gray>
+      - '<gray>Generuje: <dark_green>Kaktusy</dark_green></gray>'
+      - <gray>Postaw na terenie swojego miasta.</gray>
+      custom-model-data: 0
+      texture-base64: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzIyNzM2ZThmNTBkZDI4NTY0ZjBiZDdmZTEwMDEwMzVhZjhkZDdhNTQ5ZTYxMGI3MThmMmYwZDJiNzJiYWNjMCJ9fX0=
+    placement:
+      footprint-radius-blocks: 1
+      require-solid-ground: true
+      blocked-materials:
+      - WATER
+      - LAVA
+    work-area:
+      radius: 2
+      height: 2
+      mode: VIRTUAL
+    appearance: cactus_default
+    menu: default_minion
+    boosters:
+      supported-tiers:
+      - 1
+      - 2
+    resource-table:
+    - resource: cactus
+      amount-min: 1
+      amount-max: 1
+      chance: 1.0
+    tiers:
+      1:
+        action-time-seconds: 450
+        storage-slots: 1
+        upgrade-requirements:
+          collections: {}
+          items: {}
+      2:
+        action-time-seconds: 390
+        storage-slots: 2
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: farming.cactus
+            percent: 0.50
+            resource: cactus
+            resource-per-collection-unit: 1.0
+      3:
+        action-time-seconds: 330
+        storage-slots: 3
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: farming.cactus
+            percent: 0.40
+            resource: cactus
+            resource-per-collection-unit: 1.0
+      4:
+        action-time-seconds: 270
+        storage-slots: 4
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: farming.cactus
+            percent: 0.33
+            resource: cactus
+            resource-per-collection-unit: 1.0
+      5:
+        action-time-seconds: 225
+        storage-slots: 6
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: farming.cactus
+            percent: 0.20
+            resource: cactus
+            resource-per-collection-unit: 1.0
+      6:
+        action-time-seconds: 180
+        storage-slots: 7
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: farming.cactus
+            percent: 0.10
+            resource: cactus
+            resource-per-collection-unit: 1.0
+      7:
+        action-time-seconds: 150
+        storage-slots: 9
+        upgrade-requirements:
+          dynamic-collection-cost:
+            collection: farming.cactus
+            percent: 0.05
+            resource: cactus
+            resource-per-collection-unit: 1.0
+    max-tier: 7
+    wiki:
+      special-items:
+      - cactus_minion
+      auto-compressed-resources: false
+    wiki-special-items: []

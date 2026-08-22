@@ -1,16 +1,26 @@
 rootProject.name = settingsDir.name
 
+def pluginSourceExcludesScript = new File(settingsDir.parentFile, 'gradle/plugin-source-excludes.gradle')
+gradle.beforeProject { project ->
+    project.pluginManager.withPlugin('java') {
+        project.apply from: pluginSourceExcludesScript
+    }
+}
+
 def pluginDependencies = [
     AreaEffects          : [],
     DbExample           : ['HexCore'],
+    HexCasino           : [],
     HexCollections      : ['HexCore', 'HexTowns'],
     HexCore             : [],
     HexEconomy          : ['HexCore'],
     HexElimination      : ['HexCore'],
+    HexEndEvent         : ['HexCore'],
     HexMinions          : ['HexCore', 'HexTowns', 'HexCollections'],
     HexNameTags         : ['HexCore'],
+    HexNPC              : [],
     HexPortals          : [],
-    HexQuests           : ['HexCore', 'HexTowns'],
+    HexQuests           : ['HexCore', 'HexEconomy', 'HexTowns'],
     HexRankExpiry       : ['HexCore'],
     HexSequence         : ['HexCore'],
     HexSkills           : ['HexCore', 'HexTowns'],

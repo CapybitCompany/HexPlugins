@@ -15,6 +15,14 @@ public final class CollectionCache {
         return towns.computeIfAbsent(townId, TownCollectionData::new);
     }
 
+    public boolean contains(UUID townId) {
+        return townId != null && towns.containsKey(townId);
+    }
+
+    public TownCollectionData get(UUID townId) {
+        return townId == null ? null : towns.get(townId);
+    }
+
     public TownCollectionData put(UUID townId, Map<String, CollectionProgress> progress) {
         TownCollectionData data = new TownCollectionData(townId);
         data.collections.putAll(progress);
@@ -41,8 +49,13 @@ public final class CollectionCache {
         private final ConcurrentMap<String, CollectionProgress> collections = new ConcurrentHashMap<>();
         private volatile boolean dirty;
         private volatile long lastModified;
+        /**
+         * Monotonic in-memory generation. A flush snapshots this value and may only clear the
+         * dirty flag when no newer mutation happened while the DB write was in flight.
+         */
+        private volatile long mutationVersion;
 
-        private TownCollectionData(UUID townId) {
+        TownCollectionData(UUID townId) {
             this.townId = townId;
             this.lastModified = System.currentTimeMillis();
         }
@@ -50,9 +63,21 @@ public final class CollectionCache {
         public UUID townId() { return townId; }
         public Map<String, CollectionProgress> collections() { return collections; }
         public boolean dirty() { return dirty; }
-        public void markDirty() { dirty = true; lastModified = System.currentTimeMillis(); }
-        public void markClean() { dirty = false; }
+        public long mutationVersion() { return mutationVersion; }
+
+        public long markDirty() {
+            mutationVersion++;
+            dirty = true;
+            lastModified = System.currentTimeMillis();
+            return mutationVersion;
+        }
+
+        public boolean markCleanIfVersion(long expectedVersion) {
+            if (mutationVersion != expectedVersion) return false;
+            dirty = false;
+            return true;
+        }
+
         public long lastModified() { return lastModified; }
     }
 }
-

@@ -1,0 +1,85 @@
+id: farming.wheat
+aliases:
+- farming_wheat
+- wheat
+- pszenica
+enabled: true
+display:
+  name: '&ePszenica'
+  category: farming
+  menu_slot: 0
+  icon:
+    material: WHEAT
+tracked_items:
+  base:
+    material: WHEAT
+    amount_value: 1
+valid_sources:
+- MINION_COLLECT
+- NATURAL_CROP_HARVEST
+- CUSTOM_PLUGIN_GRANTED
+sources:
+- trigger: minions.resource.generated
+  amount-from: amount
+  filters:
+    collectionId: farming.wheat
+    resourceId: wheat
+source_rules:
+  NATURAL_CROP_HARVEST:
+    allowed_materials:
+    - WHEAT
+    allowed_worlds:
+    - world
+    - resource_world
+    - mining_world
+    blocked_worlds:
+    - spawn
+    allow_in_town_claims: false
+    deny_player_placed_blocks: false
+    deny_recently_broken_blocks: false
+  MINION_COLLECT:
+    allow_in_town_claims: true
+  CUSTOM_PLUGIN_GRANTED:
+    allow_in_town_claims: true
+levels:
+  1:
+    required: 60
+    display_name: '&ePszenica I'
+  2:
+    required: 240
+    display_name: '&ePszenica II'
+  3:
+    required: 1920
+    display_name: '&ePszenica III'
+  4:
+    required: 5760
+    display_name: '&ePszenica IV'
+  5:
+    required: 17280
+    display_name: '&ePszenica V'
+  6:
+    required: 80640
+    display_name: '&ePszenica VI'
+  7:
+    required: 172800
+    display_name: '&ePszenica VII'
+reward_claim_mode: AUTO
+placeholder:
+  progress_bar:
+    length: 20
+    filled_char: ■
+    empty_char: □
+city_scaling:
+  enabled: true
+  reference-members: 5
+  category: EASY
+  active-hours-per-member-l7: 4
+  manual-rate-per-player: 1410.61
+  reference-addons:
+    1: 10
+    2: 40
+    3: 314
+    4: 941
+    5: 2822
+    6: 13166
+    7: 28213

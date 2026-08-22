@@ -1,6 +1,5 @@
 minions:
   enabled: true
-
   placement:
     require-town-member: true
     require-inside-own-town: true
@@ -8,7 +7,6 @@ minions:
     min-distance-between-minions: 2
     deny-near-town-border-blocks: 0
     allow-placement-in-unclaimed: false
-
   relocation:
     enabled: true
     require-same-town: true
@@ -18,14 +16,23 @@ minions:
     use-player-yaw: true
     reuse-placement-rules: true
     audit-log: true
-
   limits:
     default-town-limit: 5
-    meta-key: "minions.limit"
+    meta-key: minions.manual-limit-bonus
     count-disabled-minions: true
     rank-overrides-enabled: false
-    hard-cap: 30
-
+    hard-cap: 15
+    distinct-type-progression:
+      3: 6
+      6: 7
+      9: 8
+      12: 9
+      15: 10
+      17: 11
+      19: 12
+      21: 13
+      23: 14
+      25: 15
   engine:
     tick-interval-ticks: 20
     max-actions-per-cycle: 1000
@@ -38,33 +45,133 @@ minions:
       enabled: true
       max-hours: 24
       max-actions-per-minion: 10000
-
   rendering:
     spawn-visuals-on-chunk-load: true
     despawn-visuals-on-chunk-unload: true
     repair-missing-entities-seconds: 30
     label-refresh-ticks: 40
-
+  testing:
+    wiki-copy-items: false
   safety:
     protect-armor-stands: true
     remove-orphan-entities-on-startup: true
     audit-log: true
-
+    audit-retention-days: 14
+    audit-cleanup-interval-hours: 24
+  boosters:
+    stacking:
+      temporal-mode: QUEUE
+      combination-mode: ADDITIVE
+      max-total-speed-boost-percent: 50
+  machines:
+    visual-lighting:
+      override-enabled: true
+      block-light: -1
+      sky-light: -1
+      sample-nearby-blocks: true
+      sample-radius-blocks: 1
+      min-block-light: 7
+      min-sky-light: 0
+      highlighted-materials:
+        enabled: true
+        block-light: 15
+        sky-light: 15
+        materials:
+        - BLUE_CONCRETE
+        - ORANGE_CONCRETE
+        - LIGHT_BLUE_CONCRETE
+    persistence:
+      flush-interval-ticks: 200
+      max-rows-per-flush: 500
+    offline:
+      enabled: true
+      max-seconds-per-machine: 21600
+      max-machines-per-chunk: 512
+      max-operations-per-machine: 256
+      max-machines-per-tick: 16
   database:
     write-behind: true
     batch-storage-updates: true
     batch-stats-updates: true
-
   deluxemenus:
     enabled: false
     require-placeholderapi: true
-    town-menu-name: "minions_town"
-    details-menu-name: "minion_details"
+    town-menu-name: minions_town
+    details-menu-name: minion_details
     indexed-placeholders:
-      max-index: 30
+      max-index: 15
     page-placeholders:
       enabled: true
       page-size: 28
     selected-context:
       ttl-seconds: 120
-
+energy:
+  tick_interval_ticks: 20
+  max_generators_per_town: 16
+  max_energy_machines_per_town: 32
+  max_cables_per_town: 256
+  max_energy_devices_per_town: 32
+  max_segments_per_network: 256
+  max_machines_per_network: 64
+  max_routes_per_network: 512
+  max_network_rebuilds_per_tick: 4
+  max_display_entities_per_chunk: 64
+  max_display_refreshes_per_tick: 64
+  overloaded_network_policy: DISABLE_UNTIL_FIXED
+  overloaded_network_retry_seconds: 30
+  collection_progress_flush_seconds: 5
+  offline_catchup:
+    enabled: true
+    max_seconds_per_machine: 21600
+    max_operations_per_machine: 256
+    max_machines_per_tick: 16
+  cables:
+    copper:
+      display_name: Miedziany Kabel
+      max_segment_length: 2
+      loss_eu_per_meter: 0.25
+      max_eu_per_second: 32
+      display_material: BROWN_CONCRETE
+      display_thickness: 0.4
+      view_range: 32
+    gold:
+      display_name: Złoty Kabel
+      max_segment_length: 5
+      loss_eu_per_meter: 0.15
+      max_eu_per_second: 96
+      display_material: YELLOW_CONCRETE
+      display_thickness: 0.4
+      view_range: 32
+    glass:
+      display_name: Szklany Kabel
+      max_segment_length: 10
+      loss_eu_per_meter: 0.05
+      max_eu_per_second: 256
+      display_material: GLASS
+      display_thickness: 0.3
+      view_range: 48
+custom_resources:
+  tin:
+    enabled: true
+    chance: 0.002
+    drop_resource: tin_ore
+    scan_faces: 6
+    broken_materials:
+    - STONE
+    - DEEPSLATE
+    adjacent_ores:
+    - COPPER_ORE
+    - DEEPSLATE_COPPER_ORE
+    silk_touch_allowed: false
+    fortune:
+      enabled: false
+      fortune_1_chance: 0.0025
+      fortune_2_chance: 0.003
+      fortune_3_chance: 0.0035
+    autosave_interval_seconds: 10
+    max_chunk_load_batch_size: 100
+    max_chunk_save_batch_size: 100
+diagnostics:
+  validate-on-startup: true
+  generate-balance-report-on-startup: true
+  report-directory: reports

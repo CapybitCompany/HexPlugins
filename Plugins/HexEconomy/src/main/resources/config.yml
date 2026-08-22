@@ -9,14 +9,19 @@ currency:
 default-balance: 0.00
 allow-negative-balance: false
 
+# HEX_COINS są zawsze liczbami całkowitymi (int). Ułamki są odrzucane jako INVALID_AMOUNT.
+hex-coins:
+  name: "HexCoins"
+  format: "{amount} {currency}"
+
 messages:
   prefix: "&8[&6SMP Economy&8] "
   player-only: "&cTa komenda jest tylko dla gracza."
   no-permission: "&cNie masz permisji."
   usage:
-    main: "&7Użycie: &f/smpeconomy balance [gracz]&7, &f/smpeconomy add <gracz> <kwota>&7, &f/smpeconomy remove <gracz> <kwota>&7, &f/smpeconomy set <gracz> <kwota>"
-    balance: "&7Użycie: &f/money [gracz]"
-    admin: "&7Użycie: &f/smpeconomy <add|remove|set> <gracz> <kwota> [powód]"
+    main: "&7Użycie: &f/smpeconomy balance [gracz] [MONEY|HEX_COINS]&7, &f/smpeconomy <add|remove|set> <gracz> <kwota> [MONEY|HEX_COINS] [powód]"
+    balance: "&7Użycie: &f/money [gracz]&7 lub &f/smpeconomy balance [gracz] [MONEY|HEX_COINS]"
+    admin: "&7Użycie: &f/smpeconomy <add|remove|set> <gracz> <kwota> [MONEY|HEX_COINS] [powód]"
   balance-self: "&aStan konta: &e{balance}&a."
   balance-other: "&aStan konta gracza &e{player}&a: &e{balance}&a."
   added: "&aDodano &e{amount}&a do konta gracza &e{player}&a. Nowy stan: &e{balance}&a."

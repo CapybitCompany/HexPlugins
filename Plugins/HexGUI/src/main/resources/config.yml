@@ -1,0 +1,250 @@
+config-version: 3
+
+# HexGUI - centralny hub menu
+#
+# Sloty są liczone od 0, tak jak w Bukkit:
+# - 3 rzędy: 0-26
+# - 4 rzędy: 0-35
+# - 5 rzędów: 0-44
+# - 6 rzędów: 0-53
+#
+# action: COMMAND - po kliknięciu wykonuje command
+# action: NONE    - kafelek informacyjny, bez akcji po kliknięciu
+#
+# Każdy wpis COMMAND może wskazywać dowolną komendę gracza. Początkowy '/' jest opcjonalny.
+# required-plugins jest sprawdzane zarówno przy rysowaniu menu, jak i ponownie przy kliknięciu.
+# Gdy required-plugins jest puste, HexGUI nadal sprawdza faktycznego właściciela komendy Bukkit.
+
+menu:
+  title: "&0&lHEX CENTRUM"
+  rows: 5
+
+  filler:
+    material: BLACK_STAINED_GLASS_PANE
+    hide-tooltip: true
+
+  unavailable-lore:
+    - ""
+    - "&cChwilowo niedostępne."
+    - "&7Spróbuj ponownie za chwilę."
+
+messages:
+  player-only: "&cTa komenda jest dostępna tylko dla graczy."
+  no-permission: "&cNie masz uprawnień do tej pozycji."
+  unavailable: "&cTo menu jest chwilowo niedostępne. Spróbuj ponownie za chwilę."
+  command-failed: "&cNie udało się otworzyć tego menu. Spróbuj ponownie za chwilę."
+  reloaded: "&aKonfiguracja HexGUI została przeładowana."
+  reload-failed: "&cNie udało się przeładować HexGUI. Sprawdź konsolę."
+
+sounds:
+  open: UI_BUTTON_CLICK
+  unavailable: BLOCK_NOTE_BLOCK_BASS
+  error: ENTITY_VILLAGER_NO
+
+entries:
+  town:
+    enabled: true
+    slot: 10
+    name: "&6Miasto"
+    lore:
+      - "&7Centrum zarządzania miastem."
+      - ""
+      - "&eKliknij, aby otworzyć."
+    command: "town"
+    action: COMMAND
+    run-as: PLAYER
+    close-on-click: true
+    required-plugins:
+      - HexTowns
+    permission: "hextowns.use"
+    icon:
+      material: BEACON
+      custom-model-data: 0
+
+  minions:
+    enabled: true
+    slot: 12
+    name: "&bMiniony"
+    lore:
+      - "&7Zarządzaj minionami swojego miasta."
+      - ""
+      - "&eKliknij, aby otworzyć."
+    # /minion list wypisuje listę na czacie; /townminions otwiera natywne GUI HexTowns.
+    command: "townminions"
+    action: COMMAND
+    run-as: PLAYER
+    close-on-click: true
+    required-plugins:
+      - HexTowns
+      - HexMinions
+    permission: "hextowns.use"
+    icon:
+      material: PLAYER_HEAD
+
+  collections:
+    enabled: true
+    slot: 14
+    name: "&dKolekcje"
+    lore:
+      - "&7Postęp kolekcji Twojego miasta."
+      - ""
+      - "&eKliknij, aby otworzyć."
+    command: "towncollections"
+    action: COMMAND
+    run-as: PLAYER
+    close-on-click: true
+    required-plugins:
+      - HexTowns
+      - HexCollections
+    permission: "hextowns.use"
+    icon:
+      material: ENDER_CHEST
+      custom-model-data: 0
+
+  machine-wiki:
+    enabled: true
+    slot: 16
+    name: "&cWiki Maszyn"
+    lore:
+      - "&7Maszyny, generatory, akumulatory"
+      - "&7oraz pozostała elektronika EU."
+      - ""
+      - "&eKliknij, aby otworzyć."
+    command: "minion wiki electronics"
+    action: COMMAND
+    run-as: PLAYER
+    close-on-click: true
+    required-plugins:
+      - HexMinions
+    permission: "hexminions.use"
+    icon:
+      material: REDSTONE
+      custom-model-data: 0
+
+  minion-wiki:
+    enabled: true
+    slot: 19
+    name: "&aWiki Minionów"
+    lore:
+      - "&7Typy, tiery, dropy i wymagania minionów."
+      - ""
+      - "&eKliknij, aby otworzyć."
+    command: "minion wiki"
+    action: COMMAND
+    run-as: PLAYER
+    close-on-click: true
+    required-plugins:
+      - HexMinions
+    permission: "hexminions.use"
+    icon:
+      material: BOOK
+      custom-model-data: 0
+
+  daily-rewards:
+    enabled: true
+    slot: 21
+    name: "&6Daily Rewards"
+    lore:
+      - "&7Nagrody za codzienną obecność."
+      - ""
+      - "&eKliknij, aby odebrać lub sprawdzić."
+    command: "dailyrewards"
+    action: COMMAND
+    run-as: PLAYER
+    close-on-click: true
+    required-plugins: []
+    permission: ""
+    icon:
+      material: CHEST
+      custom-model-data: 0
+
+  daily-quests:
+    enabled: true
+    slot: 23
+    name: "&eDaily Quests"
+    lore:
+      - "&7Codzienne zadania i Twój postęp."
+      - ""
+      - "&eKliknij, aby otworzyć."
+    command: "daily"
+    action: COMMAND
+    run-as: PLAYER
+    close-on-click: true
+    required-plugins:
+      - HexQuests
+    permission: "hexquests.daily"
+    icon:
+      material: WRITABLE_BOOK
+      custom-model-data: 0
+
+  bazaar:
+    enabled: true
+    slot: 25
+    name: "&aBazaar"
+    lore:
+      - "&7Rynek handlu przedmiotami i surowcami."
+      - ""
+      - "&eKliknij, aby otworzyć."
+    command: "bazaar"
+    action: COMMAND
+    run-as: PLAYER
+    close-on-click: true
+    required-plugins: []
+    permission: ""
+    icon:
+      material: EMERALD
+      custom-model-data: 0
+
+  auction-house:
+    enabled: true
+    slot: 29
+    name: "&6Auction House"
+    lore:
+      - "&7Aukcje wystawione przez graczy."
+      - ""
+      - "&eKliknij, aby otworzyć."
+    command: "auctionHouse"
+    action: COMMAND
+    run-as: PLAYER
+    close-on-click: true
+    required-plugins: []
+    permission: ""
+    icon:
+      material: GOLD_INGOT
+      custom-model-data: 0
+
+  events:
+    enabled: true
+    slot: 31
+    name: "&bInfo o eventach"
+    lore:
+      - "&7Informacje o eventach serwera."
+      - ""
+      - "&8[&eSOON&8]"
+    command: ""
+    action: NONE
+    run-as: PLAYER
+    close-on-click: false
+    required-plugins: []
+    permission: ""
+    icon:
+      material: CLOCK
+      custom-model-data: 0
+
+  guide:
+    enabled: true
+    slot: 33
+    name: "&bPoradnik"
+    lore:
+      - "&7Najważniejsze informacje o rozgrywce."
+      - ""
+      - "&eKliknij, aby otworzyć."
+    command: "poradnik"
+    action: COMMAND
+    run-as: PLAYER
+    close-on-click: true
+    required-plugins: []
+    permission: ""
+    icon:
+      material: COMPASS
+      custom-model-data: 0

@@ -1,0 +1,86 @@
+id: farming.sugar_cane
+aliases:
+- farming_sugar_cane
+- sugar_cane
+- trzcina
+- trzcina_cukrowa
+enabled: true
+display:
+  name: '&aTrzcina cukrowa'
+  category: farming
+  menu_slot: 0
+  icon:
+    material: SUGAR_CANE
+tracked_items:
+  base:
+    material: SUGAR_CANE
+    amount_value: 1
+valid_sources:
+- MINION_COLLECT
+- NATURAL_CROP_HARVEST
+- CUSTOM_PLUGIN_GRANTED
+sources:
+- trigger: minions.resource.generated
+  amount-from: amount
+  filters:
+    collectionId: farming.sugar_cane
+    resourceId: sugar_cane
+source_rules:
+  NATURAL_CROP_HARVEST:
+    allowed_materials:
+    - SUGAR_CANE
+    allowed_worlds:
+    - world
+    - resource_world
+    - mining_world
+    blocked_worlds:
+    - spawn
+    allow_in_town_claims: false
+    deny_player_placed_blocks: true
+    deny_recently_broken_blocks: false
+  MINION_COLLECT:
+    allow_in_town_claims: true
+  CUSTOM_PLUGIN_GRANTED:
+    allow_in_town_claims: true
+levels:
+  1:
+    required: 40
+    display_name: '&aTrzcina cukrowa I'
+  2:
+    required: 160
+    display_name: '&aTrzcina cukrowa II'
+  3:
+    required: 1280
+    display_name: '&aTrzcina cukrowa III'
+  4:
+    required: 3840
+    display_name: '&aTrzcina cukrowa IV'
+  5:
+    required: 11520
+    display_name: '&aTrzcina cukrowa V'
+  6:
+    required: 53760
+    display_name: '&aTrzcina cukrowa VI'
+  7:
+    required: 115200
+    display_name: '&aTrzcina cukrowa VII'
+reward_claim_mode: AUTO
+placeholder:
+  progress_bar:
+    length: 20
+    filled_char: ■
+    empty_char: □
+city_scaling:
+  enabled: true
+  reference-members: 5
+  category: EASY
+  active-hours-per-member-l7: 4
+  manual-rate-per-player: 1440.0
+  reference-addons:
+    1: 10
+    2: 40
+    3: 320
+    4: 960
+    5: 2880
+    6: 13440
+    7: 28800

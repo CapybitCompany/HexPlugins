@@ -1,0 +1,8 @@
+def pluginSourceExcludesScript = file('gradle/plugin-source-excludes.gradle')
+
+subprojects {
+	pluginManager.withPlugin('java') {
+	 	apply from: pluginSourceExcludesScript
+	}
+}
+

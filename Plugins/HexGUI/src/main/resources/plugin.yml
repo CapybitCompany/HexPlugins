@@ -1,0 +1,34 @@
+name: HexGUI
+version: 1.1.0
+main: hex.gui.HexGUIPlugin
+api-version: "1.21"
+authors: [HexTeam]
+description: Konfigurowalny hub GUI dla pluginów Hex SMP
+
+# Wszystkie integracje są miękkie celowo. HexGUI ma się uruchomić także wtedy,
+# gdy któryś z pluginów docelowych jest wyłączony lub nie załadował się poprawnie.
+softdepend:
+  - HexCore
+  - HexTowns
+  - HexMinions
+  - HexCollections
+  - HexQuests
+  - PlaceholderAPI
+
+commands:
+  hex:
+    description: Otwiera główne menu Hex
+    usage: /hex
+    permission: hexgui.use
+  hexgui:
+    description: Administracja HexGUI
+    usage: /hexgui reload
+    permission: hexgui.admin
+
+permissions:
+  hexgui.use:
+    description: Pozwala otwierać /hex
+    default: true
+  hexgui.admin:
+    description: Pozwala przeładować konfigurację HexGUI
+    default: op

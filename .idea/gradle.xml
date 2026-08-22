@@ -9,14 +9,17 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/Plugins" />
             <option value="$PROJECT_DIR$/Plugins/AreaEffects" />
             <option value="$PROJECT_DIR$/Plugins/DbExample" />
+            <option value="$PROJECT_DIR$/Plugins/HexCasino" />
             <option value="$PROJECT_DIR$/Plugins/HexCollections" />
             <option value="$PROJECT_DIR$/Plugins/HexCore" />
             <option value="$PROJECT_DIR$/Plugins/HexEconomy" />
             <option value="$PROJECT_DIR$/Plugins/HexElimination" />
+            <option value="$PROJECT_DIR$/Plugins/HexEndEvent" />
+            <option value="$PROJECT_DIR$/Plugins/HexGUI" />
             <option value="$PROJECT_DIR$/Plugins/HexMinions" />
+            <option value="$PROJECT_DIR$/Plugins/HexNPC" />
             <option value="$PROJECT_DIR$/Plugins/HexPortals" />
             <option value="$PROJECT_DIR$/Plugins/HexQuests" />
             <option value="$PROJECT_DIR$/Plugins/HexRankExpiry" />
@@ -27,11 +30,11 @@
             <option value="$PROJECT_DIR$/Plugins/Minigames" />
             <option value="$PROJECT_DIR$/Plugins/UiExample" />
             <option value="$PROJECT_DIR$/Plugins/VishopBroadcast" />
+            <option value="$PROJECT_DIR$/Plugins/VishopBroadcastProxy" />
             <option value="$PROJECT_DIR$/Plugins/WaterDrawn" />
             <option value="$PROJECT_DIR$/Plugins/WaterLevelFlood" />
             <option value="$PROJECT_DIR$/StatsApi" />
             <option value="$PROJECT_DIR$/plugins" />
-            <option value="$PROJECT_DIR$/plugins/HexEconomy" />
             <option value="$PROJECT_DIR$/plugins/HexVelocityFallback" />
           </set>
         </option>

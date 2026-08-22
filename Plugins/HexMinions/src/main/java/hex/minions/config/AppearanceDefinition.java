@@ -35,7 +35,7 @@ public record AppearanceDefinition(
                 ItemSpec.empty(),
                 ItemSpec.empty(),
                 1.65D,
-                "<yellow><name></yellow> <gray>Tier <tier></gray>\n<gray>Storage: <white><storage_percent>%</white></gray>"
+                "<yellow><name></yellow> <gray>Tier <tier></gray>\n<gray>Magazyn: <white><storage_percent>%</white></gray>"
         );
     }
 }

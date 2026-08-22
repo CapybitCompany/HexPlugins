@@ -1,14 +1,18 @@
 name: HexEconomy
-version: 1.0.0
+version: 1.1.3
 main: hex.economy.HexEconomyPlugin
 api-version: "1.21"
 
 depend:
   - HexCore
 
+softdepend:
+  - XConomy
+  - PlaceholderAPI
+
 commands:
   smpeconomy:
-    usage: "/smpeconomy <balance|add|remove|set|reload>"
+    usage: "/smpeconomy <balance|add|remove|set|reload> ... [MONEY|HEX_COINS]"
     description: Prosta ekonomia SMP oparta o HexCore DB
     permission: hexeconomy.use
     aliases: [smpmoney, hexeconomy, heco]

@@ -1,0 +1,74 @@
+id: mobs.zombie
+aliases:
+- mob_zombie
+- zombie
+- zombie_kills
+- minecraft:zombie
+enabled: true
+display:
+  name: '&2Zabite zombie'
+  category: mobs
+  menu_slot: 40
+  icon:
+    material: ZOMBIE_HEAD
+valid_sources:
+- NATURAL_MOB_DROP
+- CUSTOM_PLUGIN_GRANTED
+sources:
+- trigger: minions.mob.killed
+  amount-from: amount
+  filters:
+    mobType: zombie
+source_rules:
+  NATURAL_MOB_DROP:
+    allowed_worlds:
+    - world
+    - resource_world
+    - mining_world
+    blocked_worlds:
+    - spawn
+    allow_in_town_claims: true
+  CUSTOM_PLUGIN_GRANTED:
+    allow_in_town_claims: true
+levels:
+  1:
+    required: 24
+    display_name: '&2Zabite zombie I'
+  2:
+    required: 96
+    display_name: '&2Zabite zombie II'
+  3:
+    required: 768
+    display_name: '&2Zabite zombie III'
+  4:
+    required: 2304
+    display_name: '&2Zabite zombie IV'
+  5:
+    required: 6912
+    display_name: '&2Zabite zombie V'
+  6:
+    required: 32256
+    display_name: '&2Zabite zombie VI'
+  7:
+    required: 69120
+    display_name: '&2Zabite zombie VII'
+reward_claim_mode: AUTO
+placeholder:
+  progress_bar:
+    length: 20
+    filled_char: ■
+    empty_char: □
+city_scaling:
+  enabled: true
+  reference-members: 5
+  category: HARD
+  active-hours-per-member-l7: 15
+  manual-rate-per-player: 106.75
+  reference-addons:
+    1: 3
+    2: 12
+    3: 89
+    4: 267
+    5: 801
+    6: 3737
+    7: 8007

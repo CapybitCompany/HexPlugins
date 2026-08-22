@@ -1,0 +1,21 @@
+name: HexCasino
+version: '1.0.0'
+main: hexcasino.HexCasinoPlugin
+api-version: '1.21.11'
+description: Hex arcade games with deterministic Reel Challenge.
+authors: [HexDevTeam]
+softdepend: [PlaceholderAPI, HeadDatabase, packetevents]
+
+commands:
+  hexcasino:
+    description: HexCasino administration and Reel Challenge audit.
+    usage: /hexcasino reload | /hexcasino game <id> | /hexcasino verify <id>
+    aliases: [casino, hcasino]
+  busdriver:
+    description: Deterministic BusDriver verification and board inspection.
+    usage: /busdriver verify | /busdriver board <id>
+
+permissions:
+  hexcasino.admin:
+    description: Allows reloading HexCasino.
+    default: op

@@ -1,0 +1,17 @@
+name: HexNPCClickFix
+version: 2.0.0
+main: pl.hexnetwork.hexnpcclickfix.HexNpcClickFixPlugin
+api-version: "1.21"
+author: Hex Network
+description: Ogólna bezpieczna obsługa wszystkich akcji clickable-message w HexNPC.
+
+commands:
+  hexnpcinfo:
+    description: Wewnętrzna obsługa klikalnych wiadomości HexNPC.
+    usage: /hexnpcinfo [menu]
+    permission: hexnpc.clickfix.info
+
+permissions:
+  hexnpc.clickfix.info:
+    description: Pozwala korzystać z klikalnych wiadomości NPC.
+    default: true

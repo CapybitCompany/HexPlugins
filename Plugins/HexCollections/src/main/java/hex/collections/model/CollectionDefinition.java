@@ -21,6 +21,7 @@ public record CollectionDefinition(
         List<CollectionLevel> levels,
         Map<hex.collections.api.CollectionSource, SourceRule> sourceRules,
         Set<hex.collections.api.CollectionSource> validSources,
+        CollectionScalingDefinition cityScaling,
         int progressBarLength,
         String progressBarFilledChar,
         String progressBarEmptyChar
@@ -47,6 +48,8 @@ public record CollectionDefinition(
         Map<hex.collections.api.CollectionSource, SourceRule> sourceRules = loadSourceRules(section);
         Set<hex.collections.api.CollectionSource> validSources = loadValidSources(section, sourceRules.keySet());
 
+        CollectionScalingDefinition cityScaling = CollectionScalingDefinition.fromConfig(section.getConfigurationSection("city_scaling"));
+
         ConfigurationSection placeholder = section.getConfigurationSection("placeholder.progress_bar");
         int progressBarLength = placeholder == null ? 20 : Math.max(1, placeholder.getInt("length", 20));
         String filledChar = placeholder == null ? "■" : placeholder.getString("filled_char", "■");
@@ -62,6 +65,7 @@ public record CollectionDefinition(
                 List.copyOf(levels),
                 Map.copyOf(sourceRules),
                 Set.copyOf(validSources),
+                cityScaling,
                 progressBarLength,
                 filledChar.isEmpty() ? "■" : filledChar,
                 emptyChar.isEmpty() ? "□" : emptyChar
@@ -220,9 +224,10 @@ public record CollectionDefinition(
                 continue;
             }
             Material material = Material.matchMaterial(value);
-            if (material != null) {
-                result.add(material);
+            if (material == null) {
+                throw new IllegalArgumentException("Unknown Bukkit Material in allowed_materials: " + value);
             }
+            result.add(material);
         }
         return result;
     }

@@ -1,0 +1,61 @@
+plugins {
+    id 'java'
+}
+
+group = 'hexnpc'
+version = '1.5.1'
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'papermc'
+        url = 'https://repo.papermc.io/repository/maven-public/'
+    }
+    maven {
+        name = 'codemc-releases'
+        url = 'https://repo.codemc.io/repository/maven-releases/'
+    }
+    maven {
+        name = 'placeholderapi'
+        url = 'https://repo.extendedclip.com/releases/'
+    }
+    maven {
+        name = 'codemc-snapshots'
+        url = 'https://repo.codemc.io/repository/maven-snapshots/'
+    }
+}
+
+dependencies {
+    compileOnly 'io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT'
+    compileOnly 'com.github.retrooper:packetevents-spigot:2.7.0'
+    compileOnly('me.clip:placeholderapi:2.11.6') {
+        transitive = false
+    }
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.0'
+    testImplementation 'org.mockbukkit.mockbukkit:mockbukkit-v1.21:4.0.0'
+    testImplementation 'com.github.retrooper:packetevents-spigot:2.7.0'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+jar {
+    archiveFileName = "HexNPC-${version}.jar"
+}
+
+def localBuildScript = file("build.local.gradle")
+if (localBuildScript.exists()) {
+    apply from: localBuildScript
+}

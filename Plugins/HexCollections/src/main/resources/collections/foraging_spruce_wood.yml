@@ -1,0 +1,92 @@
+id: foraging.spruce_wood
+aliases:
+- foraging_spruce_wood
+- spruce_wood
+- spruce_log
+- swierk
+- świerk
+- minecraft:spruce_log
+enabled: true
+display:
+  name: '&2Drewno świerkowe'
+  category: foraging
+  menu_slot: 31
+  icon:
+    material: SPRUCE_LOG
+tracked_items:
+  base:
+    material: SPRUCE_LOG
+    amount_value: 1
+valid_sources:
+- NATURAL_BLOCK_BREAK
+- MINION_COLLECT
+- CUSTOM_PLUGIN_GRANTED
+sources:
+- trigger: minions.resource.generated
+  amount-from: amount
+  filters:
+    collectionId: foraging.spruce_wood
+    resourceId: spruce_wood
+source_rules:
+  NATURAL_BLOCK_BREAK:
+    allowed_materials:
+    - SPRUCE_LOG
+    - SPRUCE_WOOD
+    allowed_worlds:
+    - world
+    - resource_world
+    - mining_world
+    blocked_worlds:
+    - spawn
+    allow_in_town_claims: false
+    deny_player_placed_blocks: true
+    deny_recently_broken_blocks: true
+  MINION_COLLECT:
+    allowed_minion_types:
+    - SPRUCE_WOOD_MINION
+    - spruce_wood
+    allow_in_town_claims: true
+  CUSTOM_PLUGIN_GRANTED:
+    allow_in_town_claims: true
+levels:
+  1:
+    required: 147
+    display_name: '&2Drewno świerkowe I'
+  2:
+    required: 588
+    display_name: '&2Drewno świerkowe II'
+  3:
+    required: 4704
+    display_name: '&2Drewno świerkowe III'
+  4:
+    required: 14112
+    display_name: '&2Drewno świerkowe IV'
+  5:
+    required: 42336
+    display_name: '&2Drewno świerkowe V'
+  6:
+    required: 197568
+    display_name: '&2Drewno świerkowe VI'
+  7:
+    required: 423360
+    display_name: '&2Drewno świerkowe VII'
+reward_claim_mode: AUTO
+placeholder:
+  progress_bar:
+    length: 20
+    filled_char: ■
+    empty_char: □
+city_scaling:
+  enabled: true
+  reference-members: 5
+  category: HARD
+  active-hours-per-member-l7: 15
+  manual-rate-per-player: 1333.42
+  reference-addons:
+    1: 35
+    2: 139
+    3: 1112
+    4: 3334
+    5: 10001
+    6: 46670
+    7: 100007

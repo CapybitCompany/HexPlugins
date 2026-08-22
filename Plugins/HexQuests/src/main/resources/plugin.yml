@@ -6,14 +6,14 @@ description: Config-driven quest and daily quest engine for Hex SMP
 authors: [HexTeam]
 depend:
   - HexCore
+  - HexEconomy
   - HexTowns
 commands:
   hexquests:
-	description: Manage HexQuests
-	usage: /hexquests <reload|info|daily>
-	permission: hexquests.admin
+    description: Manage HexQuests
+    usage: /hexquests <reload|info|daily>
+    permission: hexquests.admin
 permissions:
   hexquests.admin:
-	description: Allows managing HexQuests
-	default: op
-
+    description: Allows managing HexQuests
+    default: op

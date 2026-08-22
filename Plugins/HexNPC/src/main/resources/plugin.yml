@@ -1,0 +1,40 @@
+name: HexNPC
+version: '1.5.2'
+main: hexnpc.HexNpcPlugin
+api-version: '1.21.11'
+description: Player-skin NPCs with dialogue, guide/workflow GUIs, persistent player data, native clickable menus and configurable shops.
+authors: [HexDevTeam]
+softdepend: [HexCore, packetevents, HexEconomy, HexCustomItems, UltraCosmetics, LuckPerms, PlaceholderAPI]
+
+commands:
+  hexnpc:
+    description: Manage HexNPC NPCs
+    usage: /hexnpc <create|remove|list|tp|move|rotate|skin|name|glow|pose|dialogue|trigger|action|shop|guide|workflow|reload>
+    aliases: [hnpc, npc]
+    permission: hexnpc.admin
+  poradnik:
+    description: Otwiera Poradnik Serwera HexNPC.
+    usage: /poradnik [miasto|minionki|kolekcje|ekonomia]
+    permission: hexnpc.guide.use
+  hexnpcinfo:
+    description: Legacy-compatible clickable NPC menu command now handled directly by HexNPC.
+    usage: /hexnpcinfo <menu>
+    permission: hexnpc.clickfix.info
+
+permissions:
+  hexnpc.admin:
+    description: Allows configuring NPCs
+    default: op
+  hexnpc.use:
+    description: Allows interacting with NPCs
+    default: true
+  hexnpc.guide.use:
+    description: Pozwala otwierac Poradnik Serwera.
+    default: true
+  hexnpc.clickfix.info:
+    description: Backward-compatible permission for legacy /hexnpcinfo menu links.
+    default: true
+
+  hexnpc.feature.custom_tag:
+    description: Dostęp do tworzenia i zmiany własnej etykiety premium.
+    default: false

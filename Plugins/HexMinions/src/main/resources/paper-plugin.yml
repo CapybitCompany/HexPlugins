@@ -1,0 +1,37 @@
+name: HexMinions
+version: 1.0.5
+main: hex.minions.HexMinionsPlugin
+api-version: "1.21"
+
+dependencies:
+  server:
+    HexCore:
+      load: BEFORE
+      required: true
+      join-classpath: true
+    HexTowns:
+      load: BEFORE
+      required: true
+      join-classpath: true
+    HexCollections:
+      load: BEFORE
+      required: true
+      join-classpath: true
+    PlaceholderAPI:
+      load: BEFORE
+      required: false
+      join-classpath: true
+
+commands:
+  minion:
+    usage: "/minion [help|list|wiki]"
+    description: Miniony miast Hex SMP
+    permission: hexminions.use
+
+permissions:
+  hexminions.use:
+    default: true
+  hexminions.admin:
+    default: op
+
+

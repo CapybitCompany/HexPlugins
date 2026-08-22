@@ -1,0 +1,87 @@
+id: mining.netherrack
+aliases:
+- mining_netherrack
+- netherrack
+- netherack
+enabled: true
+display:
+  name: '&4Netherrack'
+  category: mining
+  menu_slot: 22
+  icon:
+    material: NETHERRACK
+tracked_items:
+  base:
+    material: NETHERRACK
+    amount_value: 1
+valid_sources:
+- NATURAL_BLOCK_BREAK
+- MINION_COLLECT
+- CUSTOM_PLUGIN_GRANTED
+sources:
+- trigger: minions.resource.generated
+  amount-from: amount
+  filters:
+    collectionId: mining.netherrack
+    resourceId: netherrack
+source_rules:
+  NATURAL_BLOCK_BREAK:
+    allowed_materials:
+    - NETHERRACK
+    allowed_worlds:
+    - world
+    - resource_world
+    - mining_world
+    - world_nether
+    - resource_nether
+    blocked_worlds:
+    - spawn
+    allow_in_town_claims: false
+    deny_player_placed_blocks: true
+    deny_recently_broken_blocks: true
+  MINION_COLLECT:
+    allow_in_town_claims: true
+  CUSTOM_PLUGIN_GRANTED:
+    allow_in_town_claims: true
+levels:
+  1:
+    required: 720
+    display_name: '&4Netherrack I'
+  2:
+    required: 2880
+    display_name: '&4Netherrack II'
+  3:
+    required: 23040
+    display_name: '&4Netherrack III'
+  4:
+    required: 69120
+    display_name: '&4Netherrack IV'
+  5:
+    required: 207360
+    display_name: '&4Netherrack V'
+  6:
+    required: 967680
+    display_name: '&4Netherrack VI'
+  7:
+    required: 2073600
+    display_name: '&4Netherrack VII'
+reward_claim_mode: AUTO
+placeholder:
+  progress_bar:
+    length: 20
+    filled_char: ■
+    empty_char: □
+city_scaling:
+  enabled: true
+  reference-members: 5
+  category: MEDIUM
+  active-hours-per-member-l7: 10
+  manual-rate-per-player: 10633.85
+  reference-addons:
+    1: 185
+    2: 739
+    3: 5908
+    4: 17724
+    5: 53170
+    6: 248124
+    7: 531693

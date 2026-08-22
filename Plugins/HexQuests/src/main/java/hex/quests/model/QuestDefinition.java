@@ -1,5 +1,6 @@
 package hex.quests.model;
 
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.ArrayList;
@@ -8,40 +9,28 @@ import java.util.List;
 public record QuestDefinition(
         String id,
         boolean enabled,
-        String type,
-        String pool,
         int weight,
-        String scope,
         String title,
+        List<String> description,
+        ItemDefinition icon,
         List<QuestObjective> objectives,
-        List<QuestReward> rewards
+        QuestReward reward
 ) {
     public static QuestDefinition fromConfig(String id, ConfigurationSection section) {
         List<QuestObjective> objectives = new ArrayList<>();
-        for (var item : section.getMapList("objectives")) {
-            QuestObjective objective = QuestObjective.fromMap(item);
-            if (!objective.triggerId().isBlank()) {
-                objectives.add(objective);
-            }
+        for (var map : section.getMapList("objectives")) {
+            QuestObjective objective = QuestObjective.fromMap(map);
+            if (!objective.triggerId().isBlank()) objectives.add(objective);
         }
-
-        List<QuestReward> rewards = new ArrayList<>();
-        for (var item : section.getMapList("rewards")) {
-            rewards.add(QuestReward.fromMap(item));
-        }
-
         return new QuestDefinition(
                 id,
                 section.getBoolean("enabled", true),
-                section.getString("type", "DAILY"),
-                section.getString("pool", "default"),
-                Math.max(1, section.getInt("weight", 1)),
-                section.getString("scope", "TOWN_PLAYER"),
-                section.getString("title", id),
+                Math.max(1, section.getInt("weight", 100)),
+                section.getString("name", id),
+                List.copyOf(section.getStringList("description")),
+                ItemDefinition.fromConfig(section.getConfigurationSection("icon"), Material.PAPER),
                 List.copyOf(objectives),
-                List.copyOf(rewards)
+                QuestReward.fromConfig(section.getConfigurationSection("reward"))
         );
     }
 }
-
-

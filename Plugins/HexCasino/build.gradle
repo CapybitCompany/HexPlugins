@@ -1,0 +1,97 @@
+plugins {
+    id 'java'
+}
+
+group = 'hexcasino'
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'papermc'
+        url = 'https://repo.papermc.io/repository/maven-public/'
+    }
+    maven {
+        name = 'codemc-releases'
+        url = 'https://repo.codemc.io/repository/maven-releases/'
+    }
+    maven {
+        name = 'codemc-snapshots'
+        url = 'https://repo.codemc.io/repository/maven-snapshots/'
+    }
+    maven {
+        name = 'placeholderapi'
+        url = 'https://repo.extendedclip.com/content/repositories/placeholderapi/'
+    }
+}
+
+dependencies {
+    compileOnly 'io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT'
+    compileOnly 'me.clip:placeholderapi:2.11.6'
+    compileOnly 'com.github.retrooper:packetevents-spigot:2.13.0'
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+jar {
+    archiveFileName = "HexCasino-${version}.jar"
+}
+
+
+test {
+    useJUnitPlatform()
+}
+
+tasks.register('verifySkillSlotNoRng') {
+    group = 'verification'
+    description = 'Fails if deterministic Reel Challenge runtime introduces RNG/shuffle APIs.'
+    doLast {
+        def deterministicFiles = fileTree('src/main/java/hexcasino/machine') {
+            include 'Slot*.java'
+            include 'ReelStrip.java'
+            include 'DeterministicReelSet*.java'
+            include 'FrameSnapshot.java'
+            include 'ResolvedStop.java'
+            include 'SkillSlot*.java'
+        }
+        def banned = ['ThreadLocalRandom', 'SecureRandom', 'Math.random(', 'Collections.shuffle(', 'new Random(', 'RandomGenerator']
+        deterministicFiles.each { f ->
+            def content = f.getText('UTF-8')
+            banned.each { token ->
+                if (content.contains(token)) {
+                    throw new GradleException("RNG token '${token}' found in deterministic Reel Challenge runtime: ${f}")
+                }
+            }
+        }
+    }
+}
+
+tasks.named('check') { dependsOn tasks.named('verifySkillSlotNoRng') }
+
+
+tasks.register('verifyBusDriverNoRng') {
+    group = 'verification'
+    description = 'Fails if deterministic BusDriver runtime introduces RNG/shuffle APIs.'
+    doLast {
+        def deterministicFiles = fileTree('src/main/java/hexcasino/machine') { include 'BusDriver*.java'; include 'StageFrameSnapshot.java' }
+        def banned = ['ThreadLocalRandom', 'SecureRandom', 'Math.random(', 'Collections.shuffle(', 'new Random(', 'RandomGenerator']
+        deterministicFiles.each { f ->
+            def content = f.getText('UTF-8')
+            banned.each { token ->
+                if (content.contains(token)) throw new GradleException("RNG token '${token}' found in deterministic BusDriver runtime: ${f}")
+            }
+        }
+    }
+}
+
+tasks.named('check') { dependsOn tasks.named('verifyBusDriverNoRng') }

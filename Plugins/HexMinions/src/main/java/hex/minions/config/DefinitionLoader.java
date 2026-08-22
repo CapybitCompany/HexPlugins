@@ -1,5 +1,6 @@
 package hex.minions.config;
 
+import hex.minions.crafting.SpecialItemCarrierResolver;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -61,8 +62,10 @@ public final class DefinitionLoader {
         Map<String, Long> collections = new LinkedHashMap<>();
         ConfigurationSection modernCollections = tierSection.getConfigurationSection("upgrade-requirements.collections");
         if (modernCollections != null) {
-            for (String collectionId : modernCollections.getKeys(false)) {
-                collections.put(collectionId, modernCollections.getLong(collectionId));
+            for (Map.Entry<String, Object> entry : modernCollections.getValues(true).entrySet()) {
+                if (entry.getValue() instanceof ConfigurationSection) continue;
+                long amount = normalizeLargeStackAmount(number(entry.getValue(), 0L).longValue(), 64);
+                if (amount > 0L) collections.put(entry.getKey(), amount);
             }
         }
 
@@ -72,10 +75,13 @@ public final class DefinitionLoader {
         ConfigurationSection legacyResources = tierSection.getConfigurationSection("upgrade-cost.resources");
         if (legacyResources != null) {
             Map<String, ResourceDefinition> resources = loadResources();
-            for (String resourceId : legacyResources.getKeys(false)) {
-                ResourceDefinition resource = resources.get(resourceId);
-                String collectionId = resource == null ? resourceId : resource.collectionId();
-                collections.merge(collectionId, legacyResources.getLong(resourceId), Long::sum);
+            for (Map.Entry<String, Object> entry : legacyResources.getValues(true).entrySet()) {
+                if (entry.getValue() instanceof ConfigurationSection) continue;
+                long amount = normalizeLargeStackAmount(number(entry.getValue(), 0L).longValue(), 64);
+                if (amount <= 0L) continue;
+                ResourceDefinition resource = resources.get(entry.getKey());
+                String collectionId = resource == null ? entry.getKey() : resource.collectionId();
+                collections.merge(collectionId, amount, Long::sum);
             }
         }
 
@@ -88,7 +94,27 @@ public final class DefinitionLoader {
                 if (section != null) items.add(ItemRequirement.fromConfig(id.toLowerCase(Locale.ROOT), section));
             }
         }
-        return new UpgradeRequirements(Map.copyOf(collections), List.copyOf(items));
+
+        DynamicCollectionCost dynamicCost = null;
+        ConfigurationSection dynamic = tierSection.getConfigurationSection("upgrade-requirements.dynamic-collection-cost");
+        if (dynamic != null) {
+            DynamicCollectionCost candidate = new DynamicCollectionCost(
+                    dynamic.getString("collection", ""),
+                    dynamic.getDouble("percent", 0.0D),
+                    dynamic.getString("resource", ""),
+                    dynamic.getDouble("resource-per-collection-unit", 1.0D)
+            );
+            if (candidate.enabled()) dynamicCost = candidate;
+        }
+
+        return new UpgradeRequirements(Map.copyOf(collections), List.copyOf(items), dynamicCost);
+    }
+
+    private static long normalizeLargeStackAmount(long amount, int stackSize) {
+        if (amount <= 0L) return amount;
+        int stack = Math.max(1, Math.min(64, stackSize));
+        if (amount <= (long) stack * 2L) return amount;
+        return Math.max(3L, Math.round(amount / (double) stack)) * (long) stack;
     }
 
     private double labelOffsetY(ConfigurationSection label) {
@@ -105,7 +131,13 @@ public final class DefinitionLoader {
         for (String id : root.getKeys(false)) {
             ConfigurationSection s = root.getConfigurationSection(id);
             if (s == null) continue;
-            Material material = parseMaterial(s.getString("material", "STONE"), Material.STONE);
+            Material material = SpecialItemCarrierResolver.resolveConfiguredCarrier(id, id, root)
+                    .orElseGet(() -> parseMaterial(s.getString("material", "STONE"), Material.STONE));
+            boolean compressionEnabled = SpecialItemCarrierResolver.compressionEnabled(id, s)
+                    || s.getBoolean("compression", false);
+            boolean blockConvertible = "emerald".equalsIgnoreCase(id)
+                    || s.getBoolean("compression.block-convertible", s.getStringList("tags").contains("block"));
+            Material compressedMaterial = SpecialItemCarrierResolver.compressionCarrier(id, s, material);
             result.put(id, new ResourceDefinition(
                     id,
                     s.getString("display-name", id),
@@ -114,7 +146,28 @@ public final class DefinitionLoader {
                     s.getString("collection-id", id),
                     s.getDouble("worth", 0.0),
                     Math.max(1, s.getInt("stack-size", material.getMaxStackSize())),
-                    List.copyOf(s.getStringList("tags"))
+                    List.copyOf(s.getStringList("tags")),
+                    compressionEnabled,
+                    blockConvertible,
+                    compressedMaterial
+            ));
+        }
+        for (ResourceDefinition resource : new ArrayList<>(result.values())) {
+            if (!resource.compressionEnabled() || !resource.blockConvertible()) continue;
+            String compressedId = "compressed_" + resource.id().toLowerCase(Locale.ROOT);
+            if (result.containsKey(compressedId)) continue;
+            result.put(compressedId, new ResourceDefinition(
+                    compressedId,
+                    "<aqua>Skompresowany " + resource.displayName() + "</aqua>",
+                    resource.compressedMaterial(),
+                    0,
+                    resource.collectionId(),
+                    resource.worth() * 160.0D,
+                    64,
+                    List.of("compressed", "special"),
+                    false,
+                    false,
+                    resource.compressedMaterial()
             ));
         }
         return result;
@@ -124,6 +177,8 @@ public final class DefinitionLoader {
         YamlConfiguration yaml = loadYaml("minion-types.yml");
         ConfigurationSection root = yaml.getConfigurationSection("minion-types");
         Map<String, MinionTypeDefinition> result = new LinkedHashMap<>();
+        List<Integer> defaultSupportedBoosters = yaml.getIntegerList("boosters.default-supported-tiers");
+        if (defaultSupportedBoosters.isEmpty()) defaultSupportedBoosters = List.of(1);
         if (root == null) return result;
         for (String id : root.getKeys(false)) {
             ConfigurationSection s = root.getConfigurationSection(id);
@@ -140,7 +195,20 @@ public final class DefinitionLoader {
                 int min = number(map.get("amount-min"), 1).intValue();
                 int max = number(map.get("amount-max"), min).intValue();
                 double chance = number(map.get("chance"), 1.0).doubleValue();
-                drops.add(new ResourceDrop(resource, min, max, chance));
+                boolean specialDrop = booleanValue(map.get("special-drop"), booleanValue(map.get("special-item"), chance <= 0.01D));
+                double perTierBonus = 0.0D;
+                int scalingFromTier = 1;
+                String upgradeItem = "";
+                double upgradeBonus = 0.0D;
+                Object scaling = map.get("special-drop-scaling");
+                if (scaling instanceof Map<?, ?> scalingMap) {
+                    perTierBonus = number(scalingMap.get("per-tier-bonus"), 0.0D).doubleValue();
+                    scalingFromTier = number(scalingMap.get("from-tier"), 1).intValue();
+                    Object rawUpgradeItem = scalingMap.get("upgrade-item");
+                    upgradeItem = rawUpgradeItem == null ? "" : String.valueOf(rawUpgradeItem);
+                    upgradeBonus = number(scalingMap.get("upgrade-bonus"), 0.0D).doubleValue();
+                }
+                drops.add(new ResourceDrop(resource, min, max, chance, specialDrop, perTierBonus, Math.max(1, scalingFromTier), upgradeItem, upgradeBonus));
             }
             Map<Integer, TierDefinition> tiers = new LinkedHashMap<>();
             ConfigurationSection tiersSection = s.getConfigurationSection("tiers");
@@ -150,11 +218,36 @@ public final class DefinitionLoader {
                     ConfigurationSection ts = tiersSection.getConfigurationSection(key);
                     if (ts == null) continue;
                     UpgradeRequirements requirements = loadUpgradeRequirements(ts);
-                    tiers.put(tier, new TierDefinition(tier, ts.getInt("action-time-seconds", 15), ts.getInt("storage", 64), Math.max(1, Math.min(9, ts.getInt("storage-slots", Math.min(9, tier)))), requirements));
+                    int storageSlots = Math.max(1, Math.min(9, ts.getInt("storage-slots", Math.min(9, tier))));
+                    // Jedynym źródłem pojemności są widoczne sloty. Pole "storage" pozostaje
+                    // tolerowane w starych YAML-ach, ale nie wpływa już na runtime ani GUI.
+                    int derivedStorageLimit = storageSlots * 64;
+                    tiers.put(tier, new TierDefinition(tier, ts.getDouble("action-time-seconds", 15.0D), derivedStorageLimit, storageSlots, requirements));
                 }
             }
             if (!tiers.containsKey(1)) {
-                tiers.put(1, new TierDefinition(1, 15, 64, 1, UpgradeRequirements.empty()));
+                tiers.put(1, new TierDefinition(1, 15.0D, 64, 1, UpgradeRequirements.empty()));
+            }
+            List<String> wikiSpecialItems = new ArrayList<>(s.getStringList("wiki.special-items"));
+            if (s.getBoolean("wiki.auto-compressed-resources", true) || "emerald".equalsIgnoreCase(id)) {
+                Map<String, ResourceDefinition> resources = loadResources();
+                for (ResourceDrop drop : drops) {
+                    ResourceDefinition resource = resources.get(drop.resourceId());
+                    if (resource != null && resource.compressionEnabled() && resource.blockConvertible()) {
+                        String compressed = "compressed_" + resource.id();
+                        String superCompressed = "super_compressed_" + resource.id();
+                        if (!wikiSpecialItems.contains(compressed)) wikiSpecialItems.add(compressed);
+                        if (!wikiSpecialItems.contains(superCompressed)) wikiSpecialItems.add(superCompressed);
+                    }
+                }
+            }
+            List<Integer> supportedBoosters = new ArrayList<>(s.getIntegerList("boosters.supported-tiers"));
+            if (supportedBoosters.isEmpty()) {
+                supportedBoosters = new ArrayList<>(defaultSupportedBoosters);
+            } else {
+                for (int boosterTier : defaultSupportedBoosters) {
+                    if (!supportedBoosters.contains(boosterTier)) supportedBoosters.add(boosterTier);
+                }
             }
             result.put(id, new MinionTypeDefinition(
                     id,
@@ -170,9 +263,12 @@ public final class DefinitionLoader {
                     s.getString("appearance", id + "_default"),
                     s.getString("menu", "default_minion"),
                     List.copyOf(drops),
+                    s.getString("drop-selection-mode", "INDEPENDENT").toUpperCase(Locale.ROOT),
                     Map.copyOf(tiers),
                     Math.max(1, s.getInt("max-tier", tiers.keySet().stream().mapToInt(Integer::intValue).max().orElse(1))),
-                    List.copyOf(s.getStringList("wiki.special-items"))
+                    List.copyOf(wikiSpecialItems),
+                    List.copyOf(supportedBoosters),
+                    AutoSmelterDefinition.fromConfig(s.getConfigurationSection("auto-smelter"))
             ));
         }
         return result;
@@ -192,6 +288,12 @@ public final class DefinitionLoader {
             return def;
         }
         return material;
+    }
+
+    private boolean booleanValue(Object value, boolean def) {
+        if (value instanceof Boolean b) return b;
+        if (value == null) return def;
+        return Boolean.parseBoolean(String.valueOf(value));
     }
 
     private int parseInt(String raw) {

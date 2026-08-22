@@ -1,0 +1,59 @@
+id: mining.uranium
+aliases:
+- mining_uranium
+- uranium
+- uran
+- minecraft:emerald
+enabled: true
+display:
+  name: '&aUran'
+  category: mining
+  menu_slot: 16
+  icon:
+    material: EMERALD
+    custom_model_data: 12001
+valid_sources:
+- MINION_COLLECT
+- CUSTOM_PLUGIN_GRANTED
+source_rules:
+  MINION_COLLECT:
+    allowed_minion_types:
+    - URANIUM_MINION
+    - uranium
+    allow_in_town_claims: true
+levels:
+  1:
+    required: 2
+    display_name: '&aUran I'
+  2:
+    required: 6
+    display_name: '&aUran II'
+  3:
+    required: 48
+    display_name: '&aUran III'
+  4:
+    required: 144
+    display_name: '&aUran IV'
+  5:
+    required: 432
+    display_name: '&aUran V'
+  6:
+    required: 2016
+    display_name: '&aUran VI'
+  7:
+    required: 4320
+    display_name: '&aUran VII'
+reward_claim_mode: AUTO
+sources:
+- trigger: minions.resource.generated
+  amount-from: amount
+  filters:
+    collectionId: mining.uranium
+    resourceId: uranium
+placeholder:
+  progress_bar:
+    length: 20
+    filled_char: ■
+    empty_char: □
+city_scaling:
+  enabled: false

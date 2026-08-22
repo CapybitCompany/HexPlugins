@@ -1,0 +1,17 @@
+status: PENDING
+currency:
+  gameplay: '$'
+  premium: 'HexCoins'
+checks:
+  gameplay_currency_buyable_for_pln: UNKNOWN
+  gameplay_currency_cashout_supported: UNKNOWN
+  gameplay_currency_convertible_to_hexcoins: UNKNOWN
+  hexcoins_usable_as_reel_challenge_cost: false
+  hexcoins_rewarded_by_reel_challenge: false
+  gameplay_currency_transferable_between_players: UNKNOWN
+  gameplay_currency_buys_goods_also_sold_for_real_money: UNKNOWN
+  known_secondary_market: UNKNOWN
+review:
+  reviewer: ''
+  reviewed_at: ''
+  notes: ''

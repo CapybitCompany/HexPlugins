@@ -1,83 +1,202 @@
+config-version: 5
 towns:
-  world-whitelist: ["world"]
-
+  world-whitelist:
+  - world
   size:
     initial-radius: 1
     max-chunks: 49
     buffer-chunks-between-towns: 1
-
+    dynamic-limit:
+      enabled: true
+      maximum-chunks: 69
+      cache-seconds: 300
+      permissions:
+        vip: nte.vip
+        svip: nte.svip
+        elite: nte.elita
+        elite-aliases:
+        - nte.media
+      bonuses:
+        vip: 1
+        svip: 1
+        elite: 2
+    shape:
+      enabled: true
+      base-max-width: 10
+      base-max-height: 10
+      expanded-threshold-chunks: 50
+      expanded-max-width: 12
+      expanded-max-height: 12
   creation:
-    min-distance-chunks: 10
+    # Miasta/serca można zakładać wyłącznie w normalnym Overworldzie.
+    overworld-only: true
+    min-distance-chunks: 16
     cost-coins: 0
     confirm-required: true
-
+    # Cuboidy, w których (oraz w zadanym buforze od ich krawędzi) nie wolno
+    # zakładać miasta. Sprawdzany jest cały początkowy obszar miasta (3x3 chunki),
+    # nie tylko blok, na którym gracz klika Sercem Miasta.
+    #
+    # Poniższe 5 cuboidów odwzorowuje strefy HexPvpSmp: spawn safezone + 4 NO_BUILD.
+    # Razem tworzą X 2501..3027 / Z 682..1193.
+    # buffer-blocks jest liczony jako rzeczywista pozioma odleglosc od cuboidu
+    # (takze po przekatnej przy rogach), a nie jako kwadratowe poszerzenie.
+    # Dla 500 blokow bounding box calej strefy to X 2001..3527 / Z 182..1693,
+    # ale narożniki poza promieniem 500 blokow nie sa blokowane. Caly startowy claim
+    # 3x3 chunki musi pozostac poza ta strefa.
+    blocked-cuboids:
+      buffer-blocks: 500
+      regions:
+        spawn_safezone:
+          enabled: true
+          world: world
+          min-x: 2701
+          max-x: 2827
+          min-z: 882
+          max-z: 993
+          description: 'Spawn safezone HexPvpSmp'
+        north_spawn:
+          enabled: true
+          world: world
+          min-x: 2501
+          max-x: 3027
+          min-z: 682
+          max-z: 881
+          description: 'Polnocna strefa NO_BUILD przy spawnie'
+        south_spawn:
+          enabled: true
+          world: world
+          min-x: 2501
+          max-x: 3027
+          min-z: 994
+          max-z: 1193
+          description: 'Poludniowa strefa NO_BUILD przy spawnie'
+        east_spawn:
+          enabled: true
+          world: world
+          min-x: 2828
+          max-x: 3027
+          min-z: 882
+          max-z: 993
+          description: 'Wschodnia strefa NO_BUILD przy spawnie'
+        west_spawn:
+          enabled: true
+          world: world
+          min-x: 2501
+          max-x: 2700
+          min-z: 882
+          max-z: 993
+          description: 'Zachodnia strefa NO_BUILD przy spawnie'
+    # Legacy: dodatkowe prostokątne blokady X/Z. Zachowane dla kompatybilności.
+    # Wpisy tutaj NIE korzystają automatycznie z powyższego buffer-blocks.
+    blocked-areas: []
+    # Nazwane regiony HexCore (namespace:id), w których nie wolno stawiać serca miasta.
+    # Przykład: [hexcore:spawn, server:event_zone]
+    blocked-regions: []
+    min-heart-distance-chunks: 16
   naming:
-    # Domyślna nazwa miasta, gdy gracz użyje /town create bez nazwy.
-    # Dostępny token: {number}.
-    default-template: "Town {number}"
+    default-template: Town {number}
     max-length: 16
-
+  placeholders:
+    player-town:
+      no-town-value: '-'
   coop:
-    max-members: 3
-    request-ttl-seconds: 120
-
+    max-members: 5
+    request-ttl-seconds: 600
+    dynamic-limit:
+      enabled: true
+      maximum-members: 10
+      cache-seconds: 300
+      # Maksymalny czas oczekiwania na odczyt LuckPerms/storage. Po timeout używany jest cache/base.
+      lookup-timeout-ms: 750
+      permissions:
+        vip: nte.vip
+        svip: nte.svip
+        elite: nte.elita
+        elite-aliases:
+        - nte.media
+      bonuses:
+        vip: 1
+        svip: 1
+        elite: 2
   protection:
     block-place: true
     block-break: true
     interact-containers: true
     interact-doors: false
+    interact-switches: false
     pvp: false
+    mobs: true
     explosion: true
-    fire-spread: true
+    # Pozwala właścicielowi/członkom (oraz admin bypass) ręcznie rozpalić ogień np. krzesiwem.
+    # Nie włącza automatycznego rozprzestrzeniania ani spalania bloków przez pożar.
+    allow-member-ignite: true
+    allow-fire-spread: false
     item-pickup-window-seconds: 60
-
+    mob-block-changes:
+      enabled: true
+      blocked-entities:
+        - ENDERMAN
+        - WITHER
+        - RAVAGER
+        - SILVERFISH
+    outsider-build-buffer-chunks: 2
+  lifecycle:
+    player-reset:
+      leave: FULL
+      kick: TOWN_BOUND_ONLY
+      destroy: FULL
   growth:
     starting-points: 0
     sync:
       enabled: true
-      # Co ile ticków HexTowns ma pobrać z DB aktualne growth_points do cache w pamięci.
-      # 200 ticków = ok. 10 sekund. Ustaw 0/false przez enabled, jeśli chcesz tylko ręczny sync admina.
-      interval-ticks: 200
-
+      interval-ticks: 1200
   map:
-    # Promień chunków rysowany na mapie z /town map.
+    item:
+      custom-model-data: 16001
     radius-chunks: 8
-
+    cooldown-seconds: 30
+    prevent-duplicates: true
+  heart:
+    allow-existing-town-placement-for-tests: true
+    item:
+      material: RED_CONCRETE
+      display-name: '&cSerce miasta'
+      custom-model-data: 16002
+    clear-chunk-above-heart: true
   visual-check:
     enabled: true
-    block: "LIME_CONCRETE"
+    block: LIME_CONCRETE
     radius-chunks: 6
-    # Co ile tickow sprawdzamy, czy gracz zmienil chunk i trzeba przerysowac granice.
-    # 40 tickow = ok. 2 sekundy.
     refresh-ticks: 40
-    # Co ile tickow WYMUSZAMY pelne przerysowanie stanu miasta (nowe/zniszczone claimy),
-    # nawet jesli gracz stoi w tym samym chunku. Rzadziej = mniej pakietow i mniejsze zuzycie zasobow.
-    # 200 tickow = ok. 10 sekund. Ustaw 0, zeby wylaczyc wymuszone odswiezanie stanu.
     state-refresh-ticks: 200
     pillar-height: 18
-    # /town check uzywa teraz efemerycznych BlockDisplay zamiast podmienianych blokow.
-    # To daje mniej obiektow do renderowania i blokuje jakiekolwiek farmienie materialu Silk Touchem.
-    # Szerokosc pionowych slupkow oraz poziomych krawedzi chunka. 0.15 = waska linia.
+    extend-to-world-min: true
+    vertical-edge-walls: true
+    show-top-frame: false
+    edge-step: 4
     display-width: 0.15
-    # Grubosc gornych krawedzi ramki.
     edge-thickness: 0.15
-    # Zasieg widocznosci displayow dla gracza.
     display-view-range: 64
-    # Limit tworzonych displayow na tick dla wszystkich graczy z wlaczonym /town check.
-    max-block-displays-per-tick-global: 20000
-
+    max-block-displays-per-tick-global: 2000
+  cleanup:
+    retry-interval-ticks: 200
+    max-chunk-loads-per-tick: 1
+    max-world-ops-per-tick: 256
+    legacy:
+      max-chunks-per-tick: 1
+      max-blocks-per-tick: 2048
+      max-entities-per-tick: 128
   destroy:
     confirm-window-seconds: 30
     publish-reset-event: true
     purge-grace-seconds: 60
-
   cache:
     town-cache-size: 5000
     member-cache-size: 1000
     metrics-enabled: true
-
   scale:
     growth-flush-interval-ms: 1000
     meta-flush-interval-ms: 250
-    coop-request-purge-interval-seconds: 300
+    coop-request-purge-interval-seconds: 600
     distance-check-bucket-size: 16

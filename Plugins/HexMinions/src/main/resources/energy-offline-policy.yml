@@ -1,0 +1,16 @@
+# Dokumentacja techniczna packaged razem z pluginem.
+# Nie jest wymagana do działania pluginu, ale opisuje zasady używane przez MachineService/CableService.
+energy-offline-policy:
+  machine-runtime:
+    storage: "existing machine_runtimes table"
+    note: "Offline catch-up nie tworzy osobnego stanu maszyn; używa zapisanego runtime i kolumny last_active_at."
+  unloaded-chunks:
+    cable-transfer: "loaded-route-only"
+    behavior:
+      - "Generator w załadowanym chunku nie wysyła EU do maszyny/akumulatora w niezaładowanym chunku."
+      - "Kabel w niezaładowanym chunku jest tylko rekordem w DB/cache; nie jest aktywną trasą transferu."
+      - "Po załadowaniu brakującego chunka cache tras jest czyszczony i trasy są liczone ponownie."
+      - "Nie force-loadujemy chunków tylko po to, aby sieć EU działała."
+  display:
+    cable-segment: "one BlockDisplay per straight segment"
+    chunk-policy: "render only when every chunk touched by the segment is loaded"

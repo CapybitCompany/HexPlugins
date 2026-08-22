@@ -15,9 +15,15 @@ import org.jetbrains.annotations.Nullable;
 import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.UUID;
 
 public final class CollectionPlaceholderExpansion extends PlaceholderExpansion {
+    private static final Pattern HEX_TAG = Pattern.compile("<#([A-Fa-f0-9]{6})>");
+    private static final Pattern COLOR_HEX_TAG = Pattern.compile("<color:#([A-Fa-f0-9]{6})>");
+    private static final Pattern CLOSING_TAG = Pattern.compile("</[^>]+>");
+    private static final Pattern UNKNOWN_TAG = Pattern.compile("<[^>]+>");
     private final Plugin plugin;
     private final CollectionProgressService service;
     private final CollectionRegistry registry;
@@ -62,7 +68,7 @@ public final class CollectionPlaceholderExpansion extends PlaceholderExpansion {
         if (op.equals("level")) return String.valueOf(service.getLevel(townId, join(parts, 1, parts.length)));
         if (op.equals("next") && parts.length >= 3 && parts[1].equals("level")) return nextLevel(townId, join(parts, 2, parts.length));
         if (op.equals("remaining")) return remaining(townId, join(parts, 1, parts.length));
-        if (op.equals("required") && parts.length >= 3) return required(join(parts, 1, parts.length - 1), parts[parts.length - 1]);
+        if (op.equals("required") && parts.length >= 3) return required(townId, join(parts, 1, parts.length - 1), parts[parts.length - 1]);
         if (op.equals("unlocked") && parts.length >= 3) return String.valueOf(service.hasUnlocked(townId, join(parts, 1, parts.length - 1), intValue(parts[parts.length - 1])));
         if (op.equals("reward") && parts.length >= 4 && parts[1].equals("claimed")) return String.valueOf(service.hasUnlocked(townId, join(parts, 2, parts.length - 1), intValue(parts[parts.length - 1])));
         if (op.equals("rank")) return "-";
@@ -115,18 +121,53 @@ public final class CollectionPlaceholderExpansion extends PlaceholderExpansion {
                 case "IN_PROGRESS" -> "YELLOW_STAINED_GLASS_PANE";
                 default -> "RED_STAINED_GLASS_PANE";
             };
-            case "display" -> def.displayName() + " " + level;
-            case "lore" -> "Postęp: " + service.getAmount(townId, def.id()) + "/" + def.requiredFor(level);
+            case "display" -> legacyColors(def.displayName()) + " " + level;
+            case "lore" -> "Postęp: " + service.getAmount(townId, def.id()) + "/" + service.getRequirementForLevel(townId, def.id(), level);
             default -> "";
         };
     }
 
-    private String remaining(UUID townId, String id) { CollectionDefinition def = definition(id); if (def == null) return "0"; long req = def.nextRequired(service.getLevel(townId, def.id())); return String.valueOf(Math.max(0L, req - service.getAmount(townId, def.id()))); }
+    private String remaining(UUID townId, String id) { CollectionDefinition def = definition(id); if (def == null) return "0"; long req = service.getNextLevelRequirement(townId, def.id()); return String.valueOf(Math.max(0L, req - service.getAmount(townId, def.id()))); }
     private String nextLevel(UUID townId, String id) { CollectionDefinition def = definition(id); if (def == null) return "0"; int current = service.getLevel(townId, def.id()); int max = def.levels().isEmpty() ? 0 : def.levels().get(def.levels().size() - 1).level(); return String.valueOf(Math.min(max, current + 1)); }
-    private String required(String id, String level) { CollectionDefinition def = definition(id); return def == null ? "0" : String.valueOf(def.requiredFor(intValue(level))); }
+    private String required(UUID townId, String id, String level) { CollectionDefinition def = definition(id); return def == null ? "0" : String.valueOf(service.getRequirementForLevel(townId, def.id(), intValue(level))); }
     private String bar(UUID townId, String id) { CollectionDefinition def = definition(id); int len = def == null ? 20 : def.progressBarLength(); int filled = (int)Math.round(len * service.getProgressPercent(townId, id) / 100D); String full = def == null ? "■" : def.progressBarFilledChar(); String empty = def == null ? "□" : def.progressBarEmptyChar(); return full.repeat(Math.max(0, filled)) + empty.repeat(Math.max(0, len - filled)); }
     private static int intValue(String value) { try { return Integer.parseInt(value); } catch (Exception e) { return 0; } }
     private static String join(String[] parts, int from, int to) { StringBuilder b = new StringBuilder(); for (int i=from;i<to;i++) { if (i>from) b.append('_'); b.append(parts[i]); } return b.toString(); }
+
+    private static String legacyColors(String input) {
+        if (input == null || input.isBlank()) return "";
+        String value = input;
+        value = value.replace("<black>", "§0").replace("<dark_blue>", "§1").replace("<dark_green>", "§2")
+                .replace("<dark_aqua>", "§3").replace("<dark_red>", "§4").replace("<dark_purple>", "§5")
+                .replace("<gold>", "§6").replace("<gray>", "§7").replace("<grey>", "§7")
+                .replace("<dark_gray>", "§8").replace("<dark_grey>", "§8").replace("<blue>", "§9")
+                .replace("<green>", "§a").replace("<aqua>", "§b").replace("<red>", "§c")
+                .replace("<light_purple>", "§d").replace("<yellow>", "§e").replace("<white>", "§f")
+                .replace("<bold>", "§l").replace("<b>", "§l").replace("<italic>", "§o").replace("<i>", "§o")
+                .replace("<underlined>", "§n").replace("<underline>", "§n").replace("<u>", "§n")
+                .replace("<strikethrough>", "§m").replace("<st>", "§m").replace("<obfuscated>", "§k")
+                .replace("<reset>", "§r");
+        Matcher colorHex = COLOR_HEX_TAG.matcher(value);
+        StringBuffer colorBuffer = new StringBuffer();
+        while (colorHex.find()) colorHex.appendReplacement(colorBuffer, Matcher.quoteReplacement(legacyHex(colorHex.group(1))));
+        colorHex.appendTail(colorBuffer);
+        value = colorBuffer.toString();
+        Matcher hex = HEX_TAG.matcher(value);
+        StringBuffer hexBuffer = new StringBuffer();
+        while (hex.find()) hex.appendReplacement(hexBuffer, Matcher.quoteReplacement(legacyHex(hex.group(1))));
+        hex.appendTail(hexBuffer);
+        value = CLOSING_TAG.matcher(value).replaceAll("");
+        value = UNKNOWN_TAG.matcher(value).replaceAll("");
+        return value;
+    }
+
+    private static String legacyHex(String hex) {
+        if (hex == null || hex.length() != 6) return "";
+        StringBuilder builder = new StringBuilder("§x");
+        for (char c : hex.toCharArray()) builder.append('§').append(c);
+        return builder.toString();
+    }
+
     private String normalizeIdentifier(String identifier) { if (identifier == null || identifier.isBlank()) return ""; return identifier.startsWith(":") ? identifier.substring(1) : identifier; }
     private CollectionDefinition definition(String id) { return registry.find(id).orElse(null); }
 }

@@ -1,60 +1,91 @@
-id: "mining.dirt"
-aliases: ["mining_dirt", "dirt", "minecraft:dirt", "grass_block", "minecraft:grass_block"]
+id: mining.dirt
+aliases:
+- mining_dirt
+- dirt
+- minecraft:dirt
+- grass_block
+- minecraft:grass_block
 enabled: true
-
 display:
-  name: "&6Dirt"
-  category: "mining"
+  name: '&6Dirt'
+  category: mining
   menu_slot: 11
   icon:
     material: DIRT
-
 tracked_items:
   base:
     material: DIRT
     amount_value: 1
-
-valid_sources: [NATURAL_BLOCK_BREAK, MINION_COLLECT, CUSTOM_PLUGIN_GRANTED]
-
+valid_sources:
+- NATURAL_BLOCK_BREAK
+- MINION_COLLECT
+- CUSTOM_PLUGIN_GRANTED
 sources:
-  - trigger: minions.resource.claimed
-    amount-from: amount
-    filters:
-      collectionId: mining.dirt
-      resourceId: dirt
-  - trigger: minions.resource.generated
-    amount-from: amount
-    filters:
-      collectionId: mining.dirt
-      resourceId: dirt
-
+- trigger: minions.resource.generated
+  amount-from: amount
+  filters:
+    collectionId: mining.dirt
+    resourceId: dirt
 source_rules:
   NATURAL_BLOCK_BREAK:
-    allowed_materials: [DIRT, GRASS_BLOCK, COARSE_DIRT, ROOTED_DIRT]
-    allowed_worlds: [world, resource_world, mining_world]
-    blocked_worlds: [spawn]
+    allowed_materials:
+    - DIRT
+    - GRASS_BLOCK
+    - COARSE_DIRT
+    - ROOTED_DIRT
+    allowed_worlds:
+    - world
+    - resource_world
+    - mining_world
+    blocked_worlds:
+    - spawn
     allow_in_town_claims: false
     deny_player_placed_blocks: true
     deny_recently_broken_blocks: true
   MINION_COLLECT:
-    allowed_minion_types: [DIRT_MINION, dirt]
+    allowed_minion_types:
+    - DIRT_MINION
+    - dirt
     allow_in_town_claims: true
-
 levels:
   1:
-    required: 50
-    display_name: "&6Dirt I"
+    required: 180
+    display_name: '&6Dirt I'
   2:
-    required: 250
-    display_name: "&6Dirt II"
+    required: 720
+    display_name: '&6Dirt II'
   3:
-    required: 1000
-    display_name: "&6Dirt III"
-
+    required: 5760
+    display_name: '&6Dirt III'
+  4:
+    required: 17280
+    display_name: '&6Dirt IV'
+  5:
+    required: 51840
+    display_name: '&6Dirt V'
+  6:
+    required: 241920
+    display_name: '&6Dirt VI'
+  7:
+    required: 518400
+    display_name: '&6Dirt VII'
 reward_claim_mode: AUTO
 placeholder:
   progress_bar:
     length: 20
-    filled_char: "■"
-    empty_char: "□"
-
+    filled_char: ■
+    empty_char: □
+city_scaling:
+  enabled: true
+  reference-members: 5
+  category: MEDIUM
+  active-hours-per-member-l7: 10
+  manual-rate-per-player: 3344.52
+  reference-addons:
+    1: 59
+    2: 233
+    3: 1859
+    4: 5575
+    5: 16723
+    6: 78039
+    7: 167226

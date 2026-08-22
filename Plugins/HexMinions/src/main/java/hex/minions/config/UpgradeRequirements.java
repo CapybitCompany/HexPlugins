@@ -5,13 +5,15 @@ import java.util.Map;
 
 public record UpgradeRequirements(
         Map<String, Long> collectionAmounts,
-        List<ItemRequirement> items
+        List<ItemRequirement> items,
+        DynamicCollectionCost dynamicCollectionCost
 ) {
     public static UpgradeRequirements empty() {
-        return new UpgradeRequirements(Map.of(), List.of());
+        return new UpgradeRequirements(Map.of(), List.of(), null);
     }
 
     public boolean emptyRequirements() {
-        return collectionAmounts.isEmpty() && items.isEmpty();
+        return collectionAmounts.isEmpty() && items.isEmpty()
+                && (dynamicCollectionCost == null || !dynamicCollectionCost.enabled());
     }
 }

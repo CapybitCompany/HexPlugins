@@ -15,12 +15,12 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.PrepareAnvilEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.AnvilInventory;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.view.AnvilView;
 import org.bukkit.plugin.Plugin;
 
-import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,8 +33,10 @@ public final class TownRenameAnvilListener implements Listener {
     private final Plugin plugin;
     private final HexApi api;
     private final TownsService service;
-    private final TownsConfig config;
-    private final Map<UUID, Inventory> active = new ConcurrentHashMap<>();
+    private volatile TownsConfig config;
+    // Sesja jest per gracz. Nie przechowujemy referencji Inventory, ponieważ Paper
+    // może zwracać różne wrappery widoku kowadła pomiędzy eventami.
+    private final Set<UUID> active = ConcurrentHashMap.newKeySet();
 
     public TownRenameAnvilListener(Plugin plugin, HexApi api, TownsService service, TownsConfig config) {
         this.plugin = plugin;
@@ -43,48 +45,63 @@ public final class TownRenameAnvilListener implements Listener {
         this.config = config;
     }
 
+    public void reloadConfig(TownsConfig config) {
+        this.config = config;
+    }
+
     public void open(Player player) {
-        Inventory inventory = Bukkit.createInventory(player, org.bukkit.event.inventory.InventoryType.ANVIL, "Zmień nazwę miasta");
-        inventory.setItem(INPUT_SLOT, renamePaper("Nazwa miasta", "Wpisz nową nazwę"));
-        active.put(player.getUniqueId(), inventory);
-        player.openInventory(inventory);
+        if (player == null || !player.isOnline()) return;
+        UUID playerId = player.getUniqueId();
+        active.remove(playerId);
+        player.closeInventory();
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            if (!player.isOnline()) return;
+
+            // Używamy natywnego widoku kowadła gracza zamiast Bukkit.createInventory(ANVIL).
+            // Paper 1.21.1 udostępnia AnvilView#getRenameText()/setRepairCost(), co pozwala
+            // obsłużyć wpisywany tekst bez refleksji i bez polegania na wrapperze Inventory.
+            org.bukkit.inventory.InventoryView opened = player.openAnvil(null, true);
+            if (!(opened instanceof AnvilView view)) {
+                plugin.getLogger().warning("Nie udało się otworzyć natywnego kowadła zmiany nazwy dla " + player.getName());
+                return;
+            }
+
+            active.add(playerId);
+            AnvilInventory inventory = view.getTopInventory();
+            inventory.setItem(INPUT_SLOT, renamePaper("Nazwa miasta", "Wpisz nową nazwę"));
+            view.setRepairCost(0);
+        });
     }
 
     @EventHandler
     public void onPrepare(PrepareAnvilEvent event) {
-        if (!(event.getInventory() instanceof AnvilInventory inventory) || !(event.getView().getPlayer() instanceof Player player)) {
-            return;
-        }
-        if (active.get(player.getUniqueId()) != inventory) {
-            return;
-        }
-        inventory.setRepairCost(0);
-        String raw = inventory.getRenameText();
-        String value = raw == null || raw.isBlank() ? "Nazwa miasta" : raw;
+        if (!(event.getView().getPlayer() instanceof Player player)) return;
+        if (!active.contains(player.getUniqueId())) return;
+
+        AnvilView view = event.getView();
+        view.setRepairCost(0);
+        String raw = view.getRenameText();
+        String value = raw == null || raw.isBlank() ? "Nazwa miasta" : raw.trim();
         event.setResult(renamePaper(value, "Kliknij, aby zatwierdzić zmianę"));
     }
 
     @EventHandler
     public void onClick(InventoryClickEvent event) {
-        if (!(event.getWhoClicked() instanceof Player player)) {
-            return;
-        }
-        Inventory inventory = active.get(player.getUniqueId());
-        if (inventory == null || event.getInventory() != inventory) {
-            return;
-        }
+        if (!(event.getWhoClicked() instanceof Player player)) return;
+        if (!(event.getView() instanceof AnvilView view)) return;
+        if (!active.contains(player.getUniqueId())) return;
+
+        // Kowadło służy wyłącznie jako pole tekstowe. Nie pozwalamy przenosić jego
+        // technicznego PAPER-u ani wyniku do ekwipunku.
         event.setCancelled(true);
-        if (event.getRawSlot() != RESULT_SLOT) {
-            return;
-        }
-        if (!(event.getInventory() instanceof AnvilInventory anvil)) {
-            return;
-        }
-        String name = anvil.getRenameText();
+        if (event.getRawSlot() != RESULT_SLOT) return;
+
+        String name = submittedName(view, event.getCurrentItem());
         if (name == null || name.isBlank()) {
             api.ui().send(player, "towns.rename.invalid", UiTokens.of("max", String.valueOf(config.maxNameLength())));
             return;
         }
+
         active.remove(player.getUniqueId());
         player.closeInventory();
         service.renameTown(player, name).whenComplete((result, error) -> Bukkit.getScheduler().runTask(plugin, () -> {
@@ -101,7 +118,8 @@ public final class TownRenameAnvilListener implements Listener {
 
     @EventHandler
     public void onClose(InventoryCloseEvent event) {
-        if (event.getPlayer() instanceof Player player) {
+        if (!(event.getPlayer() instanceof Player player)) return;
+        if (event.getView() instanceof AnvilView) {
             active.remove(player.getUniqueId());
         }
     }
@@ -109,6 +127,30 @@ public final class TownRenameAnvilListener implements Listener {
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         active.remove(event.getPlayer().getUniqueId());
+    }
+
+    private String submittedName(AnvilView view, ItemStack clickedResult) {
+        String raw = view.getRenameText();
+        if (raw != null) {
+            String value = raw.trim();
+            if (!value.isBlank() && !"Nazwa miasta".equalsIgnoreCase(value)) return value;
+        }
+
+        ItemStack input = view.getTopInventory().getItem(INPUT_SLOT);
+        String inputName = displayName(input);
+        if (!inputName.isBlank() && !"Nazwa miasta".equalsIgnoreCase(inputName)) return inputName;
+
+        String resultName = displayName(clickedResult);
+        if (!resultName.isBlank() && !"Nazwa miasta".equalsIgnoreCase(resultName)) return resultName;
+        return raw == null ? "" : raw.trim();
+    }
+
+    private String displayName(ItemStack item) {
+        if (item == null || item.getType().isAir() || !item.hasItemMeta()) return "";
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null || !meta.hasDisplayName()) return "";
+        String value = meta.getDisplayName();
+        return value == null ? "" : value.trim();
     }
 
     private void send(Player player, OperationResult result) {

@@ -13,8 +13,8 @@ menus:
         name: "<yellow><name></yellow>"
         lore:
           - "<gray>Tier: <white><tier></white>/<max_tier></gray>"
-          - "<gray>Akcja co: <white><action_time>s</white></gray>"
-          - "<gray>Storage: <storage_used>/<storage_limit></gray>"
+          - "<gray>Czas generowania: <gold><action_time>s</gold></gray>"
+          - "<gray>Sloty: <gold><storage_used>/<storage_limit></gold></gray>"
           - "<gray>Miasto: <white><town></white></gray>"
       collect:
         slot: 48
@@ -22,9 +22,9 @@ menus:
         name: "<green>Odbierz surowce</green>"
         action: COLLECT_STORAGE
       upgrade:
-        slot: 50
-        material: ANVIL
-        name: "<gold>Ulepsz do Tier <next_tier></gold>"
+        slot: 37
+        material: LIME_STAINED_GLASS_PANE
+        name: "<green>Ulepszenie miniona do Tier <next_tier></green>"
         action: UPGRADE_TIER
       move-here:
         slot: 45

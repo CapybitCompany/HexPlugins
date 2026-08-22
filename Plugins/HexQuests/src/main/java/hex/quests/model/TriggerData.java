@@ -8,12 +8,12 @@ import java.util.UUID;
 public final class TriggerData {
     private TriggerData() {}
 
-    public static Optional<UUID> townId(HexMessageData data) { return uuid(string(data, "townId", "")); }
-
     public static Optional<UUID> playerUuid(HexMessageData data) {
-        String value = string(data, "playerUuid", "");
+        String value = string(data, "player-uuid", "");
+        if (value.isBlank()) value = string(data, "playerUuid", "");
         if (value.isBlank()) value = string(data, "uuid", "");
-        return uuid(value);
+        try { return value.isBlank() ? Optional.empty() : Optional.of(UUID.fromString(value)); }
+        catch (IllegalArgumentException ignored) { return Optional.empty(); }
     }
 
     public static String string(HexMessageData data, String key, String def) {
@@ -32,10 +32,4 @@ public final class TriggerData {
         HexMessageData payload = data.getSection("data");
         return payload.has(key) ? payload.getLong(key, def) : def;
     }
-
-    private static Optional<UUID> uuid(String value) {
-        if (value == null || value.isBlank()) return Optional.empty();
-        try { return Optional.of(UUID.fromString(value)); } catch (IllegalArgumentException ignored) { return Optional.empty(); }
-    }
 }
-

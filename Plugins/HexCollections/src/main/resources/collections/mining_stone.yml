@@ -1,59 +1,87 @@
-id: "mining.stone"
-aliases: ["mining_stone", "stone", "minecraft:stone"]
+id: mining.stone
+aliases:
+- mining_stone
+- stone
+- minecraft:stone
 enabled: true
-
 display:
-  name: "&7Stone"
-  category: "mining"
+  name: '&7Stone'
+  category: mining
   menu_slot: 11
   icon:
     material: STONE
-
 tracked_items:
   base:
     material: STONE
     amount_value: 1
-
-valid_sources: [NATURAL_BLOCK_BREAK, MINION_COLLECT, CUSTOM_PLUGIN_GRANTED]
-
+valid_sources:
+- NATURAL_BLOCK_BREAK
+- MINION_COLLECT
+- CUSTOM_PLUGIN_GRANTED
 sources:
-  - trigger: minions.resource.claimed
-    amount-from: amount
-    filters:
-      collectionId: mining.stone
-      resourceId: stone
-  - trigger: minions.resource.generated
-    amount-from: amount
-    filters:
-      collectionId: mining.stone
-      resourceId: stone
-
+- trigger: minions.resource.generated
+  amount-from: amount
+  filters:
+    collectionId: mining.stone
+    resourceId: stone
 source_rules:
   NATURAL_BLOCK_BREAK:
-    allowed_materials: [STONE]
-    allowed_worlds: [world, resource_world, mining_world]
-    blocked_worlds: [spawn]
+    allowed_materials:
+    - STONE
+    allowed_worlds:
+    - world
+    - resource_world
+    - mining_world
+    blocked_worlds:
+    - spawn
     allow_in_town_claims: false
     deny_player_placed_blocks: true
     deny_recently_broken_blocks: true
   MINION_COLLECT:
-    allowed_minion_types: [stone]
+    allowed_minion_types:
+    - stone
     allow_in_town_claims: true
   CUSTOM_PLUGIN_GRANTED:
     allow_in_town_claims: true
-
 levels:
-  1: {required: 50, display_name: "&7Stone I"}
-  2: {required: 250, display_name: "&7Stone II"}
-  3: {required: 1000, display_name: "&7Stone III"}
-  4: {required: 2500, display_name: "&7Stone IV"}
-  5: {required: 7500, display_name: "&7Stone V"}
-  6: {required: 15000, display_name: "&7Stone VI"}
-  7: {required: 30000, display_name: "&7Stone VII"}
-
+  1:
+    required: 150
+    display_name: '&7Stone I'
+  2:
+    required: 600
+    display_name: '&7Stone II'
+  3:
+    required: 4800
+    display_name: '&7Stone III'
+  4:
+    required: 14400
+    display_name: '&7Stone IV'
+  5:
+    required: 43200
+    display_name: '&7Stone V'
+  6:
+    required: 201600
+    display_name: '&7Stone VI'
+  7:
+    required: 432000
+    display_name: '&7Stone VII'
 reward_claim_mode: AUTO
 placeholder:
   progress_bar:
     length: 20
-    filled_char: "■"
-    empty_char: "□"
+    filled_char: ■
+    empty_char: □
+city_scaling:
+  enabled: true
+  reference-members: 5
+  category: EASY
+  active-hours-per-member-l7: 4
+  manual-rate-per-player: 4670.27
+  reference-addons:
+    1: 33
+    2: 130
+    3: 1038
+    4: 3114
+    5: 9341
+    6: 43590
+    7: 93406

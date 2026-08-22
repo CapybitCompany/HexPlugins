@@ -1,0 +1,78 @@
+name: HexTowns
+version: 1.0.2
+main: hex.towns.HexTownsPlugin
+api-version: "1.21"
+
+dependencies:
+  server:
+    HexCore:
+      load: BEFORE
+      required: true
+      join-classpath: true
+    PlaceholderAPI:
+      load: BEFORE
+      required: false
+      join-classpath: true
+
+commands:
+  town:
+    usage: "/town <menu|reload|create|claim|coop|accept|endcoop|destroy|rename|check|info|here|map|growth|admin reload|addgrowth|giveheart|syncgrowth>"
+    description: Towns, claims and coop management for Hex SMP
+    permission: hextowns.use
+  townmenu:
+    usage: "/townmenu"
+    description: Native HexTowns main menu
+    permission: hextowns.use
+  townmanage:
+    usage: "/townmanage"
+    description: Native HexTowns management menu
+    permission: hextowns.use
+  townclaims:
+    usage: "/townclaims"
+    description: Native HexTowns claims menu
+    permission: hextowns.use
+  claimy:
+    usage: "/claimy"
+    description: Native HexTowns claims menu alias
+    permission: hextowns.use
+  towncoop:
+    usage: "/towncoop"
+    description: Native HexTowns coop menu
+    permission: hextowns.use
+  towncollections:
+    usage: "/towncollections"
+    description: Native HexTowns collections menu
+    permission: hextowns.use
+  towncollectionsresources:
+    usage: "/towncollectionsresources"
+    description: Native HexTowns resource collections menu
+    permission: hextowns.use
+  towncollectionsfarming:
+    usage: "/towncollectionsfarming"
+    description: Native HexTowns farming collections menu
+    permission: hextowns.use
+  towncollectionsanimals:
+    usage: "/towncollectionsanimals"
+    description: Native HexTowns animal collections menu
+    permission: hextowns.use
+  towncollectionsmobs:
+    usage: "/towncollectionsmobs"
+    description: Native HexTowns mob collections menu
+    permission: hextowns.use
+  townminions:
+    usage: "/townminions"
+    description: Native HexTowns minions menu
+    permission: hextowns.use
+  towndanger:
+    usage: "/towndanger"
+    description: Native HexTowns danger menu
+    permission: hextowns.use
+
+permissions:
+  hextowns.use:
+    default: true
+  hextowns.admin:
+    default: op
+
+
+

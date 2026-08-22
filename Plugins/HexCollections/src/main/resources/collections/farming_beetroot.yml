@@ -1,0 +1,85 @@
+id: farming.beetroot
+aliases:
+- farming_beetroot
+- beetroot
+- burak
+enabled: true
+display:
+  name: '&4Burak'
+  category: farming
+  menu_slot: 0
+  icon:
+    material: BEETROOT
+tracked_items:
+  base:
+    material: BEETROOT
+    amount_value: 1
+valid_sources:
+- MINION_COLLECT
+- NATURAL_CROP_HARVEST
+- CUSTOM_PLUGIN_GRANTED
+sources:
+- trigger: minions.resource.generated
+  amount-from: amount
+  filters:
+    collectionId: farming.beetroot
+    resourceId: beetroot
+source_rules:
+  NATURAL_CROP_HARVEST:
+    allowed_materials:
+    - BEETROOTS
+    allowed_worlds:
+    - world
+    - resource_world
+    - mining_world
+    blocked_worlds:
+    - spawn
+    allow_in_town_claims: false
+    deny_player_placed_blocks: false
+    deny_recently_broken_blocks: false
+  MINION_COLLECT:
+    allow_in_town_claims: true
+  CUSTOM_PLUGIN_GRANTED:
+    allow_in_town_claims: true
+levels:
+  1:
+    required: 20
+    display_name: '&4Burak I'
+  2:
+    required: 80
+    display_name: '&4Burak II'
+  3:
+    required: 640
+    display_name: '&4Burak III'
+  4:
+    required: 1920
+    display_name: '&4Burak IV'
+  5:
+    required: 5760
+    display_name: '&4Burak V'
+  6:
+    required: 26880
+    display_name: '&4Burak VI'
+  7:
+    required: 57600
+    display_name: '&4Burak VII'
+reward_claim_mode: AUTO
+placeholder:
+  progress_bar:
+    length: 20
+    filled_char: ■
+    empty_char: □
+city_scaling:
+  enabled: true
+  reference-members: 5
+  category: EASY
+  active-hours-per-member-l7: 4
+  manual-rate-per-player: 1152.0
+  reference-addons:
+    1: 8
+    2: 32
+    3: 256
+    4: 768
+    5: 2304
+    6: 10752
+    7: 23040

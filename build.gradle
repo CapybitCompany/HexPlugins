@@ -23,6 +23,7 @@ allprojects {
 
 subprojects {
     apply plugin: 'java'
+    apply from: rootProject.file('Plugins/gradle/plugin-source-excludes.gradle')
 
     java {
         toolchain {

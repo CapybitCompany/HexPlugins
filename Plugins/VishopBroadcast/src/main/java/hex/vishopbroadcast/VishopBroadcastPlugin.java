@@ -64,7 +64,7 @@ public final class VishopBroadcastPlugin extends JavaPlugin {
     }
 
     private void registerCommand() {
-        VishopBroadcastCommand executor = new VishopBroadcastCommand(this, api, textFactory);
+        VishopBroadcastCommand executor = new VishopBroadcastCommand(this, textFactory);
         PluginCommand command = getCommand("vishopbroadcast");
         if (command == null) {
             getLogger().severe("Command vishopbroadcast is missing from plugin.yml");
@@ -76,7 +76,6 @@ public final class VishopBroadcastPlugin extends JavaPlugin {
 
     private void initializeDatabaseAndStart(boolean pluginStartup) {
         api.db().async(() -> {
-                    repository.ensureTables();
                     if (settings.skipExistingLogsOnStartup() || !pluginStartup) {
                         return repository.maxLogId();
                     }
@@ -87,7 +86,7 @@ public final class VishopBroadcastPlugin extends JavaPlugin {
                         return;
                     }
                     broadcastService.start(initialLastSeenId == null ? 0L : initialLastSeenId);
-                    getLogger().info("VishopBroadcast database ready. Last seen log id: " + (initialLastSeenId == null ? 0L : initialLastSeenId));
+                    getLogger().info("VishopBroadcast reader ready. Last seen log id: " + (initialLastSeenId == null ? 0L : initialLastSeenId));
                 }))
                 .exceptionally(ex -> {
                     getLogger().severe("VishopBroadcast database initialization failed: " + ex.getMessage());

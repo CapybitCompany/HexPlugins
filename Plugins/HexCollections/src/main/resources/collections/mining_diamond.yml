@@ -1,0 +1,86 @@
+id: mining.diamond
+aliases:
+- mining_diamond
+- diamond
+- diament
+- minecraft:diamond
+enabled: true
+display:
+  name: '&bDiament'
+  category: mining
+  menu_slot: 19
+  icon:
+    material: DIAMOND
+valid_sources:
+- NATURAL_BLOCK_BREAK
+- MINION_COLLECT
+- CUSTOM_PLUGIN_GRANTED
+sources:
+- trigger: minions.resource.generated
+  amount-from: amount
+  filters:
+    collectionId: mining.diamond
+    resourceId: diamond
+source_rules:
+  NATURAL_BLOCK_BREAK:
+    allowed_materials:
+    - DIAMOND_ORE
+    - DEEPSLATE_DIAMOND_ORE
+    allowed_worlds:
+    - world
+    - resource_world
+    - mining_world
+    blocked_worlds:
+    - spawn
+    allow_in_town_claims: false
+    deny_player_placed_blocks: true
+    deny_recently_broken_blocks: true
+  MINION_COLLECT:
+    allowed_minion_types:
+    - DIAMOND_MINION
+    - diamond
+    allow_in_town_claims: true
+  CUSTOM_PLUGIN_GRANTED:
+    allow_in_town_claims: true
+levels:
+  1:
+    required: 2
+    display_name: '&bDiament I'
+  2:
+    required: 8
+    display_name: '&bDiament II'
+  3:
+    required: 60
+    display_name: '&bDiament III'
+  4:
+    required: 180
+    display_name: '&bDiament IV'
+  5:
+    required: 540
+    display_name: '&bDiament V'
+  6:
+    required: 2520
+    display_name: '&bDiament VI'
+  7:
+    required: 5400
+    display_name: '&bDiament VII'
+reward_claim_mode: AUTO
+placeholder:
+  progress_bar:
+    length: 20
+    filled_char: ■
+    empty_char: □
+city_scaling:
+  enabled: true
+  reference-members: 5
+  category: EASY
+  active-hours-per-member-l7: 4
+  manual-rate-per-player: 80.0
+  reference-addons:
+    1: 1
+    2: 3
+    3: 18
+    4: 54
+    5: 160
+    6: 747
+    7: 1600

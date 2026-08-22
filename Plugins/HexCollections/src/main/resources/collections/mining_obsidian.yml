@@ -1,0 +1,85 @@
+id: mining.obsidian
+aliases:
+- mining_obsidian
+- obsidian
+- obsydian
+- minecraft:obsidian
+enabled: true
+display:
+  name: '&5Obsydian'
+  category: mining
+  menu_slot: 20
+  icon:
+    material: OBSIDIAN
+valid_sources:
+- NATURAL_BLOCK_BREAK
+- MINION_COLLECT
+- CUSTOM_PLUGIN_GRANTED
+sources:
+- trigger: minions.resource.generated
+  amount-from: amount
+  filters:
+    collectionId: mining.obsidian
+    resourceId: obsidian
+source_rules:
+  NATURAL_BLOCK_BREAK:
+    allowed_materials:
+    - OBSIDIAN
+    allowed_worlds:
+    - world
+    - resource_world
+    - mining_world
+    blocked_worlds:
+    - spawn
+    allow_in_town_claims: false
+    deny_player_placed_blocks: true
+    deny_recently_broken_blocks: true
+  MINION_COLLECT:
+    allowed_minion_types:
+    - OBSIDIAN_MINION
+    - obsidian
+    allow_in_town_claims: true
+  CUSTOM_PLUGIN_GRANTED:
+    allow_in_town_claims: true
+levels:
+  1:
+    required: 10
+    display_name: '&5Obsydian I'
+  2:
+    required: 40
+    display_name: '&5Obsydian II'
+  3:
+    required: 320
+    display_name: '&5Obsydian III'
+  4:
+    required: 960
+    display_name: '&5Obsydian IV'
+  5:
+    required: 2880
+    display_name: '&5Obsydian V'
+  6:
+    required: 13440
+    display_name: '&5Obsydian VI'
+  7:
+    required: 28800
+    display_name: '&5Obsydian VII'
+reward_claim_mode: AUTO
+placeholder:
+  progress_bar:
+    length: 20
+    filled_char: ■
+    empty_char: □
+city_scaling:
+  enabled: true
+  reference-members: 5
+  category: EASY
+  active-hours-per-member-l7: 4
+  manual-rate-per-player: 320.0
+  reference-addons:
+    1: 3
+    2: 9
+    3: 72
+    4: 214
+    5: 640
+    6: 2987
+    7: 6400

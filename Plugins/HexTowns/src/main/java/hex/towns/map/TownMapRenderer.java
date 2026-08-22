@@ -5,23 +5,22 @@ import hex.towns.service.TownsService;
 import org.bukkit.entity.Player;
 import org.bukkit.map.MapCanvas;
 import org.bukkit.map.MapFont;
-import org.bukkit.map.MapPalette;
 import org.bukkit.map.MapRenderer;
 import org.bukkit.map.MapView;
 import org.bukkit.map.MinecraftFont;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.Color;
 import java.util.Map;
 import java.util.UUID;
 
-@SuppressWarnings("deprecation")
 final class TownMapRenderer extends MapRenderer {
-    private static final byte BACKGROUND = MapPalette.matchColor(new Color(38, 38, 38));
-    private static final byte GRID = MapPalette.matchColor(new Color(82, 82, 82));
-    private static final byte OWN = MapPalette.matchColor(new Color(40, 190, 80));
-    private static final byte OTHER = MapPalette.matchColor(new Color(210, 70, 70));
-    private static final byte PLAYER = MapPalette.matchColor(new Color(255, 230, 80));
-    private static final byte TEXT = MapPalette.matchColor(new Color(250, 250, 250));
+    private static final Color BACKGROUND = new Color(38, 38, 38);
+    private static final Color GRID = new Color(82, 82, 82);
+    private static final Color OWN = new Color(40, 190, 80);
+    private static final Color OTHER = new Color(210, 70, 70);
+    private static final Color PLAYER = new Color(255, 230, 80);
+    private static final Color TEXT = new Color(250, 250, 250);
 
     private final TownsService service;
     private final String world;
@@ -44,7 +43,7 @@ final class TownMapRenderer extends MapRenderer {
     }
 
     @Override
-    public void render(MapView view, MapCanvas canvas, Player player) {
+    public void render(@NotNull MapView view, @NotNull MapCanvas canvas, @NotNull Player player) {
         if (rendered) {
             return;
         }
@@ -55,7 +54,6 @@ final class TownMapRenderer extends MapRenderer {
         int startX = (128 - diameter * cell) / 2;
         int startY = 18;
         drawTitle(canvas, "HexTowns", 4, 2);
-        drawTitle(canvas, "X=" + centerX + " Z=" + centerZ, 4, 11);
         for (int dz = -radius; dz <= radius; dz++) {
             for (int dx = -radius; dx <= radius; dx++) {
                 int chunkX = centerX + dx;
@@ -63,7 +61,7 @@ final class TownMapRenderer extends MapRenderer {
                 int px = startX + (dx + radius) * cell;
                 int py = startY + (dz + radius) * cell;
                 UUID townId = service.townIdAt(world, chunkX, chunkZ).orElse(null);
-                byte color = townId == null ? GRID : (townId.equals(ownTownId) ? OWN : OTHER);
+                Color color = townId == null ? GRID : (townId.equals(ownTownId) ? OWN : OTHER);
                 drawCell(canvas, px, py, cell, color);
                 if (dx == 0 && dz == 0) {
                     drawPlayer(canvas, px, py, cell);
@@ -83,19 +81,23 @@ final class TownMapRenderer extends MapRenderer {
         }
     }
 
-    private void fill(MapCanvas canvas, byte color) {
+    public boolean isExplorerMap() {
+        return false;
+    }
+
+    private void fill(MapCanvas canvas, Color color) {
         for (int x = 0; x < 128; x++) {
             for (int y = 0; y < 128; y++) {
-                canvas.setPixel(x, y, color);
+                canvas.setPixelColor(x, y, color);
             }
         }
     }
 
-    private void drawCell(MapCanvas canvas, int x, int y, int size, byte color) {
+    private void drawCell(MapCanvas canvas, int x, int y, int size, Color color) {
         for (int px = x; px < x + size; px++) {
             for (int py = y; py < y + size; py++) {
                 if (px >= 0 && px < 128 && py >= 0 && py < 128) {
-                    canvas.setPixel(px, py, px == x || py == y || px == x + size - 1 || py == y + size - 1 ? TEXT : color);
+                    canvas.setPixelColor(px, py, px == x || py == y || px == x + size - 1 || py == y + size - 1 ? TEXT : color);
                 }
             }
         }
@@ -110,9 +112,9 @@ final class TownMapRenderer extends MapRenderer {
         }
     }
 
-    private void set(MapCanvas canvas, int x, int y, byte color) {
+    private void set(MapCanvas canvas, int x, int y, Color color) {
         if (x >= 0 && x < 128 && y >= 0 && y < 128) {
-            canvas.setPixel(x, y, color);
+            canvas.setPixelColor(x, y, color);
         }
     }
 

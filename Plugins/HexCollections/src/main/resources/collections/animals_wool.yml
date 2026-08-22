@@ -1,0 +1,110 @@
+id: animals.wool
+aliases:
+- animals_wool
+- wool
+- welna
+- wełna
+enabled: true
+display:
+  name: '&fWełna'
+  category: animals
+  menu_slot: 54
+  icon:
+    material: WHITE_WOOL
+tracked_items:
+  base:
+    material: WHITE_WOOL
+    amount_value: 1
+valid_sources:
+- NATURAL_BLOCK_BREAK
+- NATURAL_MOB_DROP
+- MINION_COLLECT
+- CUSTOM_PLUGIN_GRANTED
+sources:
+- trigger: minions.resource.generated
+  amount-from: amount
+  filters:
+    collectionId: animals.wool
+    resourceId: wool
+source_rules:
+  NATURAL_MOB_DROP:
+    allowed_worlds:
+    - world
+    - resource_world
+    - mining_world
+    blocked_worlds:
+    - spawn
+    allow_in_town_claims: true
+  NATURAL_BLOCK_BREAK:
+    allowed_materials:
+    - WHITE_WOOL
+    - ORANGE_WOOL
+    - MAGENTA_WOOL
+    - LIGHT_BLUE_WOOL
+    - YELLOW_WOOL
+    - LIME_WOOL
+    - PINK_WOOL
+    - GRAY_WOOL
+    - LIGHT_GRAY_WOOL
+    - CYAN_WOOL
+    - PURPLE_WOOL
+    - BLUE_WOOL
+    - BROWN_WOOL
+    - GREEN_WOOL
+    - RED_WOOL
+    - BLACK_WOOL
+    allowed_worlds:
+    - world
+    - resource_world
+    - mining_world
+    blocked_worlds:
+    - spawn
+    allow_in_town_claims: false
+    deny_player_placed_blocks: true
+    deny_recently_broken_blocks: true
+  MINION_COLLECT:
+    allow_in_town_claims: true
+  CUSTOM_PLUGIN_GRANTED:
+    allow_in_town_claims: true
+levels:
+  1:
+    required: 24
+    display_name: '&fWełna I'
+  2:
+    required: 95
+    display_name: '&fWełna II'
+  3:
+    required: 753
+    display_name: '&fWełna III'
+  4:
+    required: 2258
+    display_name: '&fWełna IV'
+  5:
+    required: 6774
+    display_name: '&fWełna V'
+  6:
+    required: 31611
+    display_name: '&fWełna VI'
+  7:
+    required: 67738
+    display_name: '&fWełna VII'
+reward_claim_mode: AUTO
+placeholder:
+  progress_bar:
+    length: 20
+    filled_char: ■
+    empty_char: □
+city_scaling:
+  enabled: true
+  reference-members: 5
+  category: MEDIUM
+  active-hours-per-member-l7: 10
+  manual-rate-per-player: 285.21
+  reference-addons:
+    1: 5
+    2: 20
+    3: 159
+    4: 476
+    5: 1427
+    6: 6655
+    7: 14261

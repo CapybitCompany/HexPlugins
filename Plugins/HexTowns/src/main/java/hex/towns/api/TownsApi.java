@@ -26,15 +26,41 @@ public interface TownsApi {
 
     boolean isOwner(UUID playerId, UUID townId);
 
+    /**
+     * Administrative access bypass. This is deliberately separate from membership identity:
+     * an operator may act like a normal member inside an ACTIVE town without becoming a member.
+     */
+    default boolean hasAdminBypass(UUID playerId) { return false; }
+
+    /**
+     * Access-oriented membership check. Third-party implementations retain legacy semantics by
+     * default; HexTowns extends it with hextowns.admin.bypass.
+     */
+    default boolean canActAsMember(UUID playerId, UUID townId) { return isMember(playerId, townId); }
+
     boolean isProtected(Location loc);
 
     boolean canBuild(Player player, Location loc);
+
+    boolean isPvpAllowed(Location loc);
+
+    TownBoundItems townBoundItems();
+
+    boolean can(UUID playerId, UUID townId, TownPermission permission);
+
+    Map<TownPermission, Boolean> permissionsOf(UUID playerId, UUID townId);
+
+    java.util.concurrent.CompletableFuture<Boolean> setPermission(UUID ownerId, UUID townId, UUID memberId, TownPermission permission, boolean allowed);
+
+    void audit(UUID townId, UUID playerId, String action, String data);
 
     void forEachTown(Consumer<Town> visitor, int batchSize);
 
     Page<Town> listPage(String afterTownId, int limit);
 
     int countTowns();
+
+    int memberCount(UUID townId);
 
     int growthPoints(UUID townId);
 
@@ -49,6 +75,18 @@ public interface TownsApi {
     Map<String, String> getMetaPrefix(UUID townId, String keyPrefix);
 
     TownDataNamespace dataNamespace(Plugin owner, String namespace, TownDataResetHandler onReset);
+
+    /**
+     * Full-context cleanup registration. The default adapter keeps third-party TownsApi
+     * implementations source-compatible, while HexTowns overrides it to provide the durable
+     * cleanup snapshot (world/chunks/internal id/owner).
+     */
+    default TownDataNamespace dataNamespaceV2(Plugin owner, String namespace, TownDataResetHandlerV2 onReset) {
+        return dataNamespace(owner, namespace, (townId, members) -> onReset.purgeTown(TownPurgeContext.compatibility(townId, members)));
+    }
+
+    /** Opens the canonical HexTowns city guide without dispatching a command. */
+    default void openTownGuide(Player player) { }
 
     void registerListener(TownsListener listener);
 }

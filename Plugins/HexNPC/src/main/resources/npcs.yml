@@ -1,0 +1,313 @@
+npcs:
+  tutorial:
+    skin:
+      value: ewogICJ0aW1lc3RhbXAiIDogMTc3MTEwMTE1MTE4NCwKICAicHJvZmlsZUlkIiA6ICI0ZWE3NGM1ZGUyZGI0OGY2YjViOTk1YTVhNTYzMmU0NCIsCiAgInByb2ZpbGVOYW1lIiA6ICJNclNjYXJ5U3BhY2VDYXQiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmMxNDFkNTA4NWYwYmQ2ZTNiYzM4ZGEyOWYzYjkxZjk1MzM1YjU4YjEwNDZlZTU1YmJjMWIzYjM0ZTgxZGQyOSIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9
+      signature: o0sphRv2SK/LZdGIwyLppLFxgu9+ZL0utDicMx5Ix6qB6CAe6rTd0Hq2VSm+VM7C8j8HlTOtB413FJp+aarg/VIii7BWBwNZZ6C9dF4gn2tr1sGv7HVj3YAzyqno2PuYiwkGKeeFUpYR4uxJpK3eQdpqDvXkIr3LqF5/DkIHDXX8QfFx3FC+XBpEm+83H9DH4L9KyJ3SQ8i5zbXF48Qe5scvffpT+D1lvmOQeR+EvnEQ0biS4x3DzPdejO39Q07s8NX+aAy8Duu6ncXUxfbxWzpTezjFi5fzDnA78aaPVaGX98/PZ9o1h7f93+IS4Sta3fE8VYDQ6BTKyRMsO0KH5KRktnzZqIv511wSxpzpmv8lfhYlypI7Q7NzWSrREfBuGSMR0QKxLG8/HfwYH/CSqVutsC885ZroRmKpFCI6Z5UWWJao3B8XcURh5r3tmSbHqlPITSlvH+YpziDYrzlLDdbYYHmYCgPgWBowXgmhIm81LwlA1AglnAgXAij84cTjGw1vbdFc9y2d3rob/2MmFNFis+vdjn/oxtt8LS5lvcYYEp2sYaYXirTnDvifA9C3eg7T7yIG66m0TCCGw8kGS6rL2kLw52B01lEsG9mZK5vfcHus5aVpD8dVNnFJSGTC5pPZdm2faxyyuuGtaOV28GGoUYhgFcl5nAXtLcY0lXU=
+      mineskin-uuid: 17d7b87423b64320bc9b59aa419b1439
+    location:
+      world: world
+      x: 2765.5862046909697
+      y: 73.9375
+      z: 943.6259791476535
+      yaw: 179.55359
+      pitch: 0.45000446
+    interaction:
+      click: true
+      proximity:
+        enabled: false
+        radius: 0.0
+        cooldown-ticks: 0
+    dialogue:
+      cooldown-ticks: 0
+      lines: []
+    actions:
+      on-click:
+      - type: guide-menu
+        menu: server
+      on-proximity: []
+    appearance:
+      display-name: '&b→ &fᴘᴏʀᴀᴅɴɪᴋ &b←'
+      glow: false
+      pose: standing
+    look-at:
+      enabled: true
+      interval-ticks: 5
+      reset-when-empty: true
+  npc_premiumshop:
+    skin:
+      name: npc_premiumshop
+      value: ewogICJ0aW1lc3RhbXAiIDogMTYyMjQ1NTQ3NjQwNiwKICAicHJvZmlsZUlkIiA6ICIzYTNmNzhkZmExZjQ0OTllYjE5NjlmYzlkOTEwZGYwYyIsCiAgInByb2ZpbGVOYW1lIiA6ICJOb19jcmVyYXIiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzQ3MWIwZTViM2I4MDExZDk1YmI5NjQ4MzJkMjExMmQ2NTg4YmNmZGZjM2QzY2Y5OTg0ZWM3M2M5ZTFhYTM1ZiIKICAgIH0KICB9Cn0=
+      signature: MyzCp4EWRk4tCJHw0850+k/ZumoEic1LtmdXnXspBxB/I31sLTl+nMymYiEYPMuiXZ7QgwMufZv7dyI4cqpYcOkBjA/3gTs/CNuK29umPdTp/W0T5SaIYSfj6G/lcz/tj3Ml1QAhNUJDp4rziwqjpCLE4nfuPKLTElw+Zr+2xRXUzuQZI7Mxn54MNWakB5M2ulzvJCAVd3Tm3t4zsbLo9x5KZBYh3c0DFNaDZiKvb10IHn4xZuXQ6dseWkp6SchWqZD1xLgqB6WLt3Q/HKKNE1hkvOGO1yFDZcU4zvYze9KkLNkMlV8El840uSDhc5F49vUOlr36YwFP+gK1AuFNf0//RMM0McTv0XimTBXYvVHoAqtrj3mPoF1dmJ8/Y9bhH1iOZh/r8f9n6D82w8fO452B8anB96a9+jYdP2uMeGbN3ybg/paYzyeeMV7G5xQQoxVKPWXpcImtGQyGfDoRYnanTB4Q36IqBZWtUUFNQtkOMDOSjXSxdfhkhNHJa+1lX4IKU5UQvIVh1U2OuOIKey4Gmpjx0Wn6sgQBKJRAR4D5EFwXnVD7MEQAG9P7AX/uiUjVnaqyLvokuib3jYjGDnr/55tQ97GoUl0/euyIVH51jllL0dSdLzQMsgJ2FXqwlWWsG2rY7r4Xl+kDKtkIEUpMFKc/uE2p7fw1IxnMs4s=
+      mineskin-uuid: eab8498cee4c4e8e8c5be0360db13435
+    location:
+      world: world
+      x: 2760.516723444392
+      y: 74.0
+      z: 955.934026702763
+      yaw: 179.24821
+      pitch: 2.5502896
+    interaction:
+      click: true
+      proximity:
+        enabled: false
+        radius: 0.0
+        cooldown-ticks: 0
+    dialogue:
+      cooldown-ticks: 0
+      lines: []
+    actions:
+      on-click:
+      - type: npc-shop
+        shop: premium_shop
+      on-proximity: []
+    appearance:
+      display-name: '&a$ &eᴘʀᴇᴍɪᴜᴍ &fꜱʜᴏᴘ &a$'
+      glow: false
+      pose: standing
+    look-at:
+      enabled: true
+      interval-ticks: 5
+      reset-when-empty: true
+  npc_auctionhouse:
+    skin:
+      name: npc_auctionhouse
+      value: ewogICJ0aW1lc3RhbXAiIDogMTc2NTE2NDYyMDMyMSwKICAicHJvZmlsZUlkIiA6ICI3YmFiY2ExNGU2MDI0MTJlYTM3YjU5NjU1MGZkOWRiYSIsCiAgInByb2ZpbGVOYW1lIiA6ICJNaWtleW4xOTg4IiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzNiMDM2MGEzZDRjOGVjYWExZjMyZGJlNTJjNDk2ZTU0OTBiNDc4ZDQ5ZjFmN2EzYmE4NzA4MjFlOTA4YmYyMDIiLAogICAgICAibWV0YWRhdGEiIDogewogICAgICAgICJtb2RlbCIgOiAic2xpbSIKICAgICAgfQogICAgfQogIH0KfQ==
+      signature: QBUYIP5ABPfCQKRRXu6vXnZcksActhy0WaLeQ+PLnrzA71R01mjv7bhFACrdbZwGJ+BETAPieNPyzh7+AGiOQsDQhaohJ2SBC6zVTVT6SucYf+IkvVyjVsj9gu4ruj09D/duz/Xf8+909ZqAKued05qtKtiNotYb3S+vWnNqPa9FD/BdVCKyxhg0OEqBloU57DKipuDKV/WOeR2Iq7WJeXwpEHY56gtW1Rf3wgXINuIv2XyT8SDzvJscoT4xU04LTAt1EmCaDcegivQeZOVmsXeCiaIdWwZk/Xd5BOe9GfR0rStVTsRFdi7Znt5kEnZEARx/ak0kIRSXLecAk2G93HdyJZ3OjTilJNGrU7oC1WKmqji9kQw+wjhn2pLADQUzIjaOT0PwlkFvxwElU+tZUBRTIa4tOTvOy5dtTU3IoBanDsD3x6RcICaztO9wc3w0d+wuIl3aJAA3lVDxV5F5xUWZS2ICW1PUnXu4Jrz5bIGv/7u/j0oeEAPNk8oW9cgyI0MgEQzgIQ7jLsy2QQVQAcOjVbqOU+n+ouplevVYa6Z1O/mXB71sogzW7Mjhp2NQ6pJVHhH+lVc3zgc3iRyB3O5xrL4W8T2Zliyu9/6ptYHhl69Uh7iKJsB0NXylS282FVZDh08RLnOpjsyLlkbesKDieOKXyNpyRtywuZ9FX/k=
+      mineskin-uuid: 908719b72c2045efab997dbaba11671e
+    location:
+      world: world
+      x: 2752.003788281885
+      y: 73.0
+      z: 956.997802887405
+      yaw: 178.9478
+      pitch: 4.9503636
+    interaction:
+      click: true
+      proximity:
+        enabled: false
+        radius: 0.0
+        cooldown-ticks: 0
+    dialogue:
+      cooldown-ticks: 0
+      lines: []
+    actions:
+      on-click:
+      - type: player-command
+        command: hexauction
+      on-proximity: []
+    appearance:
+      display-name: '&a$ &fᴀᴜᴄᴛɪᴏɴ ʜᴏᴜꜱᴇ &a$'
+      glow: false
+      pose: standing
+    look-at:
+      enabled: true
+      interval-ticks: 5
+      reset-when-empty: true
+  npc_bazaar:
+    skin:
+      name: npc_bazaar
+      value: ewogICJ0aW1lc3RhbXAiIDogMTcxODgxNjM1Mjg1MywKICAicHJvZmlsZUlkIiA6ICI4ZDYwNGY0NWM0OWQ0YWE2Yjc0MjhiNTJlYzcyYjliNSIsCiAgInByb2ZpbGVOYW1lIiA6ICJTdGFyRG9ubiIsCiAgInNpZ25hdHVyZVJlcXVpcmVkIiA6IHRydWUsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS81NzhmYTFmNzk4NDM5ZTk4MzU2OWU5ZjcxNWEzMWY5YjRhY2VjMmMzNjM3NDRkNjIyMDRjMmE3OGU2NzhmZDdmIgogICAgfQogIH0KfQ==
+      signature: IOIAUG2H0rJERhylN1JGjVBfU72qgWJJRKP3KT9an0EpGMH8AQ4mINyj350b6q5y4T1nDtxFgdsdDjU6iYzM7zjb6winoi4/nOF1zjrRPoEckZfQVi71mSyvdDO/e7bUm8ePbtBHMWKvhUXttaDTFEO8OtJIz/Dg+E/XbqbCWVkEj1E2Rv1puwhni5gAK+zXz39MdKsg/3iq0tEDcAmROl5NaeGEjUKw49Y84dFvRTj6D0zZNiTZIKtc9Uaq0p9LqE8roBSAYvkNU5WA/f4n/hBbCXo6HjWWOYdn82aSe6IE2bFXLSVzwiT/3asxUt12/gVDbtazYE6ChxK/oDqfiQ1OS/7lyRJt/VzVDjh3d+PqqDy+Usbmz/Yo9PMvGE2T9ix1Ez/OLHnzOaXqf7ICyMsWpEiKMBfBiEeJaWx7h97Y6UFWDJ7+TR/YXlbf4Hqw/xll3b7rTjuHw8chenjGqQ6kzJL0e6KCJLSYuVQmA8cUCFqJP48VQCf2MlTj2pvP99T+zVBOoviIE0hmgIOOOn4az+SQj5yuyWw48A2Y6NpxnOpTiD+QcgRIWv1as7zbR4gHxEfwSkGtejDHrhCaAc9qcEf9+fJMTemlhvUQHKL0a/V8jjtp5L7ujXuZurNOYkU6Cg19o+VdHh9sGzK9AeyZ4M/XBmnxmKPdvuw+01k=
+      mineskin-uuid: 7b9e919895854a18b5e600d57dff8162
+    location:
+      world: world
+      x: 2751.0176133597333
+      y: 73.0
+      z: 943.1337847813968
+      yaw: -4.9868164
+      pitch: -0.1495625
+    interaction:
+      click: true
+      proximity:
+        enabled: false
+        radius: 0.0
+        cooldown-ticks: 0
+    dialogue:
+      cooldown-ticks: 0
+      lines: []
+    actions:
+      on-click:
+      - type: player-command
+        command: hexbazaar
+      on-proximity: []
+    appearance:
+      display-name: '&a$ &fʙᴀᴢᴀᴀʀ &a$'
+      glow: false
+      pose: standing
+    look-at:
+      enabled: true
+      interval-ticks: 5
+      reset-when-empty: true
+  npc_shop1:
+    skin:
+      name: npc_shop1
+      value: ewogICJ0aW1lc3RhbXAiIDogMTc4MDQwMjU4MjA3MiwKICAicHJvZmlsZUlkIiA6ICIzNDY4Y2VjMWFlOTY0YWRmYWQyNjEzMGEwZGQ0NjRkYyIsCiAgInByb2ZpbGVOYW1lIiA6ICJzdXJlZWxta18iLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNWQ1MGYyYzRkOTJkNGEyNTc2MTllMjk0N2U3NDA5MDliYzY5Nzk3NjcwNzY1ZDZlNGQ5ZTBjYTYxOTIyZTdiOCIKICAgIH0KICB9Cn0=
+      signature: JF6qtE9U3MVV5vJAA3a3bwiL4oVGxeX1mFkNXDfS3SQE7NTO+ZIwfdLvmlhV/ZYIol3+lWzkfLDuYjZAh7YEjKEITVfRSh2nk/owqt5DFAzxZOXx6O2wQV6pBRELaHBNDs1FbI70IdKCy+nXyAfEV8vOZTdAwxFUaheBXEfR3aC6UtQ9+EFoDZluHe38Ku3lugPar5eKiSqFBqmb0+/ZiNmByPNOKvDiXOtz+YjnrBJzZL04ejcO38chwLAUVwG61iSUBl2jr93iIhIuY659s1yd2RlaPrVrpAJLr654dw/2mFeLW+erV1bH39TfdVHNVEnXlJ81NwHmGh9vEn6eEspOiHylOX4kzc+4vOTfVSfswTSL31jFovHVvGbnLCXG19ob2KDWNPa9T/oyBfavu+9IDHBELg0wkcZJoKpkkpikao5PDVMAxcnsd3/jkxAPzzqGGpJvrS4kLWtQuDnt0y4GUjD/ECHWy4Laj11iY7HcK3Znxm8JVZHlo39+iqUh9PycNLELYt1saZ+sveEq31QjSweJCTpbVaOMF7hyhrJ1nAMEBX9MYWXB4/WqERsxdFaykyfsWCm0L8wuSPK+/AGx7eMmcisp4zM1wZkezpVNXB8kkve3ROkMr7szyJM8jTANKeo79FzgdsMVpj5u73QruW+GVCyThur2o7to+I0=
+      mineskin-uuid: 4edd4180b05e4bfeb80fd74594e37665
+    location:
+      world: world
+      x: 2737.481132219611
+      y: 71.9375
+      z: 952.4920272727976
+      yaw: -89.69325
+      pitch: 4.6508
+    interaction:
+      click: true
+      proximity:
+        enabled: false
+        radius: 0.0
+        cooldown-ticks: 0
+    dialogue:
+      cooldown-ticks: 0
+      lines: []
+    actions:
+      on-click:
+      - type: npc-shop
+        shop: npc_shop1
+      on-proximity: []
+    appearance:
+      display-name: '&a$ &fɴᴘᴄ ꜱʜᴏᴘ &a$'
+      glow: false
+      pose: standing
+    look-at:
+      enabled: true
+      interval-ticks: 5
+      reset-when-empty: true
+  npc_shop2:
+    skin:
+      name: npc_shop2
+      value: ewogICJ0aW1lc3RhbXAiIDogMTc2MDU1MjA2ODg4OSwKICAicHJvZmlsZUlkIiA6ICIzMjA3MWFlYjYzZjI0NmY0YTVlMGZhMWY3ODg3ZGRhNCIsCiAgInByb2ZpbGVOYW1lIiA6ICJNcl9HZW5lcyIsCiAgInNpZ25hdHVyZVJlcXVpcmVkIiA6IHRydWUsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS8xZWM4ZWU1ZWI5NjdkYmE5NGZmMDliMGQ2MDA2NjgxZGVkNDE5NGEwNzZiM2FmMjA5ZTUzYmYzMmI5OTZiYTJkIgogICAgfQogIH0KfQ==
+      signature: hpvNrOvGBmT+A7PuJ5iV2Ao2GCkCornSjCqWGwoZxmw6pBK83ECulw612/OeK4YLFATwsjwk9Txj+ad7HoHaqhzV6rFsTiQIyJVWaL58Ogf6sKntLzNTnegiRP3Zhs56FxlevsnKxgnRXjH/MYfhAY4nu5erGt1M42ygmYyupkiO22kZoCpOjkYT3STDiBlo7u4lQSeeQDfQliAG1wwrhzXlo1Gh8t4mfHPrLbbbaNH4KfIrQgOtOFx1BrxzzlK0duQRe1cRuz1R2UJ/19lIEiaaHMw71xH/QPhQO8gqOMFIeLwih/6QqoGzyCxj14K6Ail7gbTgY/jKiZRE2qlfj5zXkCaX6riQ2SrjarRZRVVty5awDG5Ub55GJ1ogSpk+SvdLTURN0WgqUJdvKQje0dlNyM3KGZ8WPGq6klWJKgJzVet0YXF/DGjhem/xlMbJwZWKBcy0+g7oDxQfiZovnEab6buZhGjW0J204rfeKpfyUKufAwm6BizwKm0LfmVga9sickxQjNXEHqxYN3OXvB74g/J/ovovIKO49ij4ZJgJ0I6Pqex2Md2hJJCRysTEBk5Ki1mkk+ZJLQW9gHABEpkDigSj+YOvVPnt1OYg2450Q6dtL74cd8GFaINM+Ht6H+7y+3KSQmQlUwwWU77+pbAOw0K2ZdtrAB4xJp1XSfE=
+      mineskin-uuid: b98f86186e1f45748a7afa4ae97472e0
+    location:
+      world: world
+      x: 2743.067411560631
+      y: 71.0
+      z: 962.0550496810049
+      yaw: 176.1069
+      pitch: 0.7507932
+    interaction:
+      click: true
+      proximity:
+        enabled: false
+        radius: 0.0
+        cooldown-ticks: 0
+    dialogue:
+      cooldown-ticks: 0
+      lines: []
+    actions:
+      on-click:
+      - type: npc-shop
+        shop: npc_shop2
+      on-proximity: []
+    appearance:
+      display-name: '&a$ &fɴᴘᴄ ꜱʜᴏᴘ &a$'
+      glow: false
+      pose: standing
+    look-at:
+      enabled: true
+      interval-ticks: 5
+      reset-when-empty: true
+  dziadek:
+    skin:
+      name: dziadek
+      value: ewogICJ0aW1lc3RhbXAiIDogMTY1MTQ3NzE3OTcwMiwKICAicHJvZmlsZUlkIiA6ICJlM2I0NDVjODQ3ZjU0OGZiOGM4ZmEzZjFmN2VmYmE4ZSIsCiAgInByb2ZpbGVOYW1lIiA6ICJNaW5pRGlnZ2VyVGVzdCIsCiAgInNpZ25hdHVyZVJlcXVpcmVkIiA6IHRydWUsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS9kZTYyNjBhYjdhZjZkNzk1ODQyN2FlNWExNzhjZTVmMTI5YzVjYmZlYzUwOWIwNTZmYmJlNDI2N2U2MDRiYmUyIiwKICAgICAgIm1ldGFkYXRhIiA6IHsKICAgICAgICAibW9kZWwiIDogInNsaW0iCiAgICAgIH0KICAgIH0KICB9Cn0=
+      signature: IZgQEpMTi7v2OL6urV9LLbFFyrnU5ih5KvJjMyR2m18TBdX8fg4L2Ny7aRzXAbg7uVc+FX285/LEyHhFgNiMAOz2eGP+l1GqtsfPY1W4GhrkHVzKQ8oKoBgbAJZlv3Oyo0afrLyPGHMLGYn9k9YCVReWQn4Supwjr/z6Oi1+FgexN4Sifs7Zwr4TZwyVap38lJWhg2SILPpIC5KXwVvYWmybo3nZo066kDvrCsyAYA3DkrRYlOTjUpbGp1k6DDgnordwlJr2j3WZRXCU2oWX62dnYoI5HkajPvvsETllg1s7zQOR0t8LLC6OeCYmecllbi6uEqMKluTBAt5s0U5yOUePgOk4jzNFVhMGJDRN/DnoPXT4oHXCqwLWmpLDx2/fZnpFCsjq4FNW+kco1+beOzypaodWj0epdeVhPVidiTQcBzCjOE7wY6R9yeSfbx1n8cbZWUCj56CFE0C46kYHoMr/JcoiyVszN7YvC5qxu550zVE3+KobcOU0iFMfw7ShcUyMoPRgfCmHUxaI/xUOoyaIg+Brv7R0VywfnFQOuiLbUApJb0Ao/IChETy9UM075WBysCFM6BMmTuBYa/qDG41kC6KEp4h8vCOy/yjQ9ocYsxTMaZ+Qfb2lJmJSltBhy2jLoFkYetIzAyplwjQIvaDXJ/K2edNvp08KMu/Y72Q=
+      mineskin-uuid: a1b223832bba4446b5aff6ecf7ec07b7
+    location:
+      world: world
+      x: 2744.300000011921
+      y: 73.5
+      z: 933.5996434046854
+      yaw: 30.153883
+      pitch: 1.649953
+    interaction:
+      click: true
+      proximity:
+        enabled: false
+        radius: 0.0
+        cooldown-ticks: 0
+    dialogue:
+      cooldown-ticks: 0
+      lines: []
+    actions:
+      on-click:
+      - type: hexdailyrewards
+        enabled: 'true'
+      on-proximity: []
+    appearance:
+      display-name: '&b→ &fᴅᴢɪᴀᴅᴇᴋ &b←'
+      glow: false
+      pose: sitting
+    look-at:
+      enabled: false
+      interval-ticks: 5
+      reset-when-empty: true
+  kasyno_info:
+    skin:
+      name: kasyno_info
+      value: ewogICJ0aW1lc3RhbXAiIDogMTc2NjQ2NDI3NDU1MCwKICAicHJvZmlsZUlkIiA6ICJmMTA0NzMxZjljYTU0NmI0OTkzNjM4NTlkZWY5N2NjNiIsCiAgInByb2ZpbGVOYW1lIiA6ICJ6aWFkODciLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvN2FkN2VmMGZmOTRjMWRmZGVjODAxNTAwMzIwMWVlZTRiMDI0YzBmNTA3ZDQ3ZWRiM2EzMGJmN2QyNzQyYzg1MyIKICAgIH0KICB9Cn0=
+      signature: SO83jQPZh0SETKdSliycF/lCZB1PpsJ7Uq2MlkBmwn5oMAUAB8OryPFFjT4KT+gxRGpp+8AIgUvPfs0vsJ5yYAFOvU8+RC3VZeSPo6TE1Lms2Tp94hr9Z5Osdlsf9LxZiDTkcZYcfJqsUkKjbW5wJDmWfW/Q219JgPX1LTWr/J7Xdxs/0S5j5X7cfU3ywKpuBTPPUtCeKbRIOXxUQolMRqJx7SLH+v96mc+gehp3rb+CNkmGtjbfE/5ihUXo7HxrZkj6vr+89KIa0pCoQqiUkW0rO072gY2R3gL7zMOnqa2Yb9qftZD+vicaOhVf/RRh8bh8eKB+82CAZkKc2epognMjhec/kfa0RccTN8jG5JgyxHB9Tvw8RZM+CWfm6fVt+xageahrBZJgAGMqEuwgQ7v7L9sXq/pBZG9fMBufbwicW6/CSZ41vVVdrYkqjULg/wurRwZrhzcQc/7rllHXXbXhAjZW/uNJ1t/7yU1rwkoaRxi/f0ayRc/kW/4Fl9VPC7uLdqY3RKQ/RGfnZgG3Eo/azB1DobJqqN1OWflI8lVzfR3RZ3emwUPUrJW3f5BF09yrfmR4om8qKEW1uIsHB5aypFU/PxhIJq3i1UxP6CJTEwbn1uh1XD3hRHRFHN/9tms0OI3ZBUNiAXUQEzJP8uIO0ZXImjkIXu3gwMOOt1A=
+      mineskin-uuid: 4c69221b77f84c209771a20673c3416d
+    location:
+      world: world
+      x: 2802.5095479477186
+      y: 74.0
+      z: 951.036955054885
+      yaw: 99.09656
+      pitch: 4.8003826
+    interaction:
+      click: true
+      proximity:
+        enabled: false
+        radius: 0.0
+        cooldown-ticks: 0
+    dialogue:
+      cooldown-ticks: 0
+      lines: []
+    actions:
+      on-click:
+      - type: guide-menu
+        menu: arcade
+      on-proximity: []
+    appearance:
+      display-name: '&b→ &fᴋᴀꜱʏɴᴏ ɪɴꜰᴏʀᴍᴀᴄᴊᴀ &b←'
+      glow: false
+      pose: standing
+    look-at:
+      enabled: true
+      interval-ticks: 5
+      reset-when-empty: true
+  busdriver_krupier:
+    skin:
+      name: busdriver_krupier
+      value: ewogICJ0aW1lc3RhbXAiIDogMTczMjQ5MjMxMjY0NiwKICAicHJvZmlsZUlkIiA6ICJlMTNhY2EzZWRlMDQ0YmI5YmY4NGNmMmIyNTM0ZGFjNyIsCiAgInByb2ZpbGVOYW1lIiA6ICJNckxhZ1N3aXRjaGEiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTI0MGViOWVhZTk3MzdhNDU2YzM5NDJmMmI1YWZkYjc1NGMzZDRlMWYwYzYxODY5ZDRkMGRjMzY0OTMyOThhMyIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9
+      signature: hgqwwv1xoawi6OB/s9uZz+a76GiBqk0zyMEJOGBy/LaRsL8KdCYwKp+ilBjQYzr1Zh8kZ815hdz69cH4ITWw7e24os5LV0Lfd+iKyAclredpGDPB6s2nkLnjrJTIwQpu+FN/15XDr0qDNu+6SiPLtqBAaIJ4VOo+a2+MsnbSjteDTI3WOqccUSUZerpE0S15FlM8k7UuHFyKLSa0tgOn/j4izji16pDAFHBZVK35oS2YLJUHYebJGhCRkTVyHC6N/FShuiIFKjO9AMoEGI8gcpS6y+GXjGEGBh7Y9isEIr+Ie9NlnIksMLOPbXvYNpfgtdMam449hYC0d4NYl/7I6jAr3xlFLdRfLgERGj6zu5sMQKSaL24pzfknHBbFIB2CR+9BcIVCKfDREPdTfIda2sTnroGBfM+SLntPMKtvALqx31DryavVTzHt/Kiij+nFyk23DgZfnMoRjd3C3849S5czvOKIqk1TvB9YWtnd4JZLR9yyAor7SWdQp088oXnw1pwhhhZab4v6hHL1im+k2gP9jr8r/S4JXM2UZ6Si+JlxJJwuIGY3P74Ua70sXegviz6wRjpbipYxfpNGuMgZGbOVRgqv0ed5JBjOTOIqfXJj/RfKBUVdG0stQN+aK26buefxDRHvexGz4YoHDJwiC58z3mk9XtZ1AsoIaz3HeeY=
+      mineskin-uuid: a67bbbec436d4d2e97e109bdb6a0ccc7
+    location:
+      world: world
+      x: 2798.47558074016
+      y: 74.0
+      z: 940.4767071848818
+      yaw: -0.14976354
+      pitch: 1.2000316
+    interaction:
+      click: true
+      proximity:
+        enabled: false
+        radius: 0.0
+        cooldown-ticks: 0
+    dialogue:
+      cooldown-ticks: 0
+      lines: []
+    actions:
+      on-click: []
+      on-proximity: []
+    appearance:
+      display-name: '&b→ &fᴋʀᴜᴘɪᴇʀ &7(&cʙᴜꜱ ᴅʀɪᴠᴇʀ&7) &b←'
+      glow: false
+      pose: standing
+    look-at:
+      enabled: true
+      interval-ticks: 5
+      reset-when-empty: true

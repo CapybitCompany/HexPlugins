@@ -19,9 +19,12 @@ public record MinionTypeDefinition(
         String appearanceId,
         String menuId,
         List<ResourceDrop> resourceTable,
+        String dropSelectionMode,
         Map<Integer, TierDefinition> tiers,
         int maxTier,
-        List<String> wikiSpecialItems
+        List<String> wikiSpecialItems,
+        List<Integer> supportedBoosterTiers,
+        AutoSmelterDefinition autoSmelter
 ) {
     public TierDefinition tier(int tier) {
         return tiers.getOrDefault(tier, tiers.get(1));
@@ -40,13 +43,13 @@ public record MinionTypeDefinition(
             return itemMaterial().name();
         }
         if (!itemSpec().headTextureBase64().isBlank()) {
-            return "head:" + itemSpec().headTextureBase64();
+            return "basehead-" + itemSpec().headTextureBase64();
         }
         if (!itemSpec().headTextureUrl().isBlank()) {
-            return "head:" + ItemSpec.base64FromUrl(itemSpec().headTextureUrl());
+            return "basehead-" + ItemSpec.base64FromUrl(itemSpec().headTextureUrl());
         }
         if (!itemSpec().headOwner().isBlank()) {
-            return "head:" + itemSpec().headOwner();
+            return "head-" + itemSpec().headOwner();
         }
         return "PLAYER_HEAD";
     }

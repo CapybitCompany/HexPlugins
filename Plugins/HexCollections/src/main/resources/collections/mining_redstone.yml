@@ -1,0 +1,78 @@
+id: mining.redstone
+aliases:
+- mining_redstone
+- redstone
+- minecraft:redstone
+enabled: true
+display:
+  name: '&cRedstone'
+  category: mining
+  menu_slot: 15
+  icon:
+    material: REDSTONE
+valid_sources:
+- NATURAL_BLOCK_BREAK
+- MINION_COLLECT
+- CUSTOM_PLUGIN_GRANTED
+source_rules:
+  NATURAL_BLOCK_BREAK:
+    allowed_materials:
+    - REDSTONE_ORE
+    - DEEPSLATE_REDSTONE_ORE
+    allowed_worlds:
+    - world
+    - resource_world
+    - mining_world
+    blocked_worlds:
+    - spawn
+    allow_in_town_claims: false
+    deny_player_placed_blocks: true
+    deny_recently_broken_blocks: true
+  MINION_COLLECT:
+    allowed_minion_types:
+    - REDSTONE_MINION
+    - redstone
+    allow_in_town_claims: true
+levels:
+  1:
+    required: 30
+    display_name: '&cRedstone I'
+  2:
+    required: 120
+    display_name: '&cRedstone II'
+  3:
+    required: 960
+    display_name: '&cRedstone III'
+  4:
+    required: 2880
+    display_name: '&cRedstone IV'
+  5:
+    required: 8640
+    display_name: '&cRedstone V'
+  6:
+    required: 40320
+    display_name: '&cRedstone VI'
+  7:
+    required: 86400
+    display_name: '&cRedstone VII'
+reward_claim_mode: AUTO
+sources:
+- trigger: minions.resource.generated
+  amount-from: amount
+  filters:
+    collectionId: mining.redstone
+    resourceId: redstone
+city_scaling:
+  enabled: true
+  reference-members: 5
+  category: EASY
+  active-hours-per-member-l7: 4
+  manual-rate-per-player: 803.72
+  reference-addons:
+    1: 6
+    2: 23
+    3: 179
+    4: 536
+    5: 1608
+    6: 7502
+    7: 16075

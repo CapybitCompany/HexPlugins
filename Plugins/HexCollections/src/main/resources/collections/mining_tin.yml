@@ -1,0 +1,71 @@
+id: mining.tin
+aliases:
+- mining_tin
+- tin
+- tin_ore
+- tin_ingot
+- minecraft:raw_iron
+enabled: true
+display:
+  name: '&7Cyna'
+  category: mining
+  menu_slot: 18
+  icon:
+    material: RAW_IRON
+valid_sources:
+- MINION_COLLECT
+- CUSTOM_PLUGIN_GRANTED
+source_rules:
+  MINION_COLLECT:
+    allowed_minion_types:
+    - TIN_MINION
+    - tin
+    allow_in_town_claims: true
+  CUSTOM_PLUGIN_GRANTED:
+    allow_in_town_claims: true
+levels:
+  1:
+    required: 2
+    display_name: '&7Cyna I'
+  2:
+    required: 8
+    display_name: '&7Cyna II'
+  3:
+    required: 64
+    display_name: '&7Cyna III'
+  4:
+    required: 192
+    display_name: '&7Cyna IV'
+  5:
+    required: 576
+    display_name: '&7Cyna V'
+  6:
+    required: 2688
+    display_name: '&7Cyna VI'
+  7:
+    required: 5760
+    display_name: '&7Cyna VII'
+reward_claim_mode: AUTO
+placeholder:
+  progress_bar:
+    length: 20
+    filled_char: ■
+    empty_char: □
+sources:
+- trigger: minions.resource.generated
+  amount-from: amount
+schema-version: 1
+city_scaling:
+  enabled: true
+  reference-members: 5
+  category: HARD
+  active-hours-per-member-l7: 15
+  manual-rate-per-player: 0.91
+  reference-addons:
+    1: 1
+    2: 1
+    3: 1
+    4: 3
+    5: 7
+    6: 32
+    7: 69

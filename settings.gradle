@@ -11,15 +11,20 @@ include 'plugins:WaterDrawn'
 include 'plugins:IcebergEvent'
 include 'plugins:AreaEffects'
 include 'plugins:HexElimination'
+include 'plugins:HexEndEvent'
+include 'plugins:HexGUI'
 include 'plugins:HexSequence'
 include 'plugins:HexTowns'
 include 'plugins:HexMinions'
 include 'plugins:HexSkills'
 include 'plugins:HexQuests'
 include 'plugins:HexCollections'
+include 'plugins:HexCasino'
 include 'plugins:HexEconomy'
+include 'plugins:HexNPC'
 include 'plugins:HexRankExpiry'
 include 'plugins:VishopBroadcast'
+include 'plugins:VishopBroadcastProxy'
 include 'statsapi'
 
 // Physical folder is 'Plugins/...' (capital P), keep logical Gradle path consistent.
@@ -33,12 +38,18 @@ project(':plugins:WaterDrawn').projectDir = file('Plugins/WaterDrawn')
 project(':plugins:IcebergEvent').projectDir = file('Plugins/IcebergEvent')
 project(':plugins:AreaEffects').projectDir = file('Plugins/AreaEffects')
 project(':plugins:HexElimination').projectDir = file('Plugins/HexElimination')
+project(':plugins:HexEndEvent').projectDir = file('Plugins/HexEndEvent')
+project(':plugins:HexGUI').projectDir = file('Plugins/HexGUI')
 project(':plugins:HexSequence').projectDir = file('Plugins/HexSequence')
 project(':plugins:HexTowns').projectDir = file('Plugins/HexTowns')
 project(':plugins:HexMinions').projectDir = file('Plugins/HexMinions')
 project(':plugins:HexSkills').projectDir = file('Plugins/HexSkills')
 project(':plugins:HexQuests').projectDir = file('Plugins/HexQuests')
 project(':plugins:HexCollections').projectDir = file('Plugins/HexCollections')
+project(':plugins:HexCasino').projectDir = file('Plugins/HexCasino')
+project(':plugins:HexEconomy').projectDir = file('Plugins/HexEconomy')
+project(':plugins:HexNPC').projectDir = file('Plugins/HexNPC')
 project(':plugins:HexRankExpiry').projectDir = file('Plugins/HexRankExpiry')
 project(':plugins:VishopBroadcast').projectDir = file('Plugins/VishopBroadcast')
+project(':plugins:VishopBroadcastProxy').projectDir = file('Plugins/VishopBroadcastProxy')
 project(':statsapi').projectDir = file('StatsApi')

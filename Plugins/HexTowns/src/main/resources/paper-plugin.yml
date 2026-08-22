@@ -1,0 +1,110 @@
+name: HexTowns
+version: 1.0.7
+main: hex.towns.HexTownsPlugin
+api-version: "1.21"
+
+dependencies:
+  server:
+    HexCore:
+      load: BEFORE
+      required: true
+      join-classpath: true
+    PlaceholderAPI:
+      load: BEFORE
+      required: false
+      join-classpath: true
+
+commands:
+  town:
+    usage: "/town <menu|guide|create|claim|accept|leave|destroy|rename|check|info|here|map|admin ...>"
+    description: Towns, claims and city membership management for Hex SMP
+    permission: hextowns.use
+  townadmin:
+    usage: "/townadmin <find|tp|cleanup|heart> ..."
+    description: HexTowns lifecycle and heart recovery commands
+    permission: hextowns.admin
+  townmenu:
+    usage: "/townmenu"
+    description: Native HexTowns main menu
+    permission: hextowns.use
+  townmanage:
+    usage: "/townmanage"
+    description: Native HexTowns management menu
+    permission: hextowns.use
+  townclaims:
+    usage: "/townclaims"
+    description: Native HexTowns claims menu
+    permission: hextowns.use
+  claimy:
+    usage: "/claimy"
+    description: Native HexTowns claims menu alias
+    permission: hextowns.use
+  towncoop:
+    usage: "/towncoop"
+    description: Native HexTowns members menu
+    permission: hextowns.use
+  towncollections:
+    usage: "/towncollections"
+    description: Native HexTowns collections menu
+    permission: hextowns.use
+  towncollectionsresources:
+    usage: "/towncollectionsresources"
+    description: Native HexTowns resource collections menu
+    permission: hextowns.use
+  towncollectionsfarming:
+    usage: "/towncollectionsfarming"
+    description: Native HexTowns farming collections menu
+    permission: hextowns.use
+  towncollectionsanimals:
+    usage: "/towncollectionsanimals"
+    description: Native HexTowns animal collections menu
+    permission: hextowns.use
+  towncollectionsmobs:
+    usage: "/towncollectionsmobs"
+    description: Native HexTowns mob collections menu
+    permission: hextowns.use
+  townminions:
+    usage: "/townminions"
+    description: Native HexTowns minions menu
+    permission: hextowns.use
+  towndanger:
+    usage: "/towndanger"
+    description: Native HexTowns danger menu
+    permission: hextowns.use
+
+permissions:
+  hextowns.use:
+    default: true
+  hextowns.admin:
+    default: op
+    children:
+      hextowns.admin.bypass: true
+      hextowns.admin.tp: true
+      hextowns.admin.lookup: true
+      hextowns.admin.heart.*: true
+  hextowns.admin.bypass:
+    description: Pozwala administracyjnie wykonywac akcje zwyklego czlonka w ACTIVE town bez membership
+    default: op
+  hextowns.admin.tp:
+    description: Teleport administracyjny do serca miasta
+    default: op
+  hextowns.admin.lookup:
+    description: Wyszukiwanie administracyjne miast po nazwie i ID
+    default: op
+  hextowns.admin.heart.*:
+    default: op
+    children:
+      hextowns.admin.heart.scan: true
+      hextowns.admin.heart.purge: true
+      hextowns.admin.heart.rerender: true
+      hextowns.admin.heart.foundation: true
+  hextowns.admin.heart.scan:
+    default: op
+  hextowns.admin.heart.purge:
+    default: op
+  hextowns.admin.heart.rerender:
+    default: op
+  hextowns.admin.heart.foundation:
+    default: op
+
+

@@ -56,12 +56,24 @@ public final class DailyQuestMenu implements Listener {
 
     private void render(Inventory inventory, List<String> questIds, Map<String, QuestProgressSnapshot> progress) {
         inventory.clear();
+        ItemStack filler = fillerItem();
+        for (int slot = 0; slot < inventory.getSize(); slot++) {
+            inventory.setItem(slot, filler);
+        }
         inventory.setItem(plugin.settings().infoSlot(), infoItem());
         for (int i = 0; i < questIds.size() && i < plugin.settings().questSlots().size(); i++) {
             QuestDefinition quest = plugin.questRegistry().get(questIds.get(i));
             if (quest == null) continue;
             inventory.setItem(plugin.settings().questSlots().get(i), questItem(quest, progress.get(quest.id())));
         }
+    }
+
+    private ItemStack fillerItem() {
+        ItemStack item = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
+        ItemMeta meta = item.getItemMeta();
+        meta.setHideTooltip(true);
+        item.setItemMeta(meta);
+        return item;
     }
 
     private ItemStack infoItem() {

@@ -1,0 +1,58 @@
+id: industrial.enriched_uranium
+aliases:
+- industrial_enriched_uranium
+- enriched_uranium
+- wzbogacony_uran
+enabled: true
+display:
+  name: '&aWzbogacony uran'
+  category: industrial
+  menu_slot: 32
+  icon:
+    material: EMERALD
+    custom_model_data: 12003
+tracked_items:
+  base:
+    material: EMERALD
+    custom_model_data: 12003
+    display_name_contains: Wzbogacony uran
+    amount_value: 1
+valid_sources:
+- CUSTOM_PLUGIN_GRANTED
+source_rules:
+  CUSTOM_PLUGIN_GRANTED:
+    allow_in_town_claims: true
+sources:
+- trigger: minions.machine.output
+  amount-from: amount
+  filters:
+    collectionId: industrial.enriched_uranium
+    specialItem: enriched_uranium
+levels:
+  1:
+    required: 1
+    display_name: Wzbogacony uran I
+  2:
+    required: 4
+    display_name: Wzbogacony uran II
+  3:
+    required: 10
+    display_name: Wzbogacony uran III
+  4:
+    required: 25
+    display_name: Wzbogacony uran IV
+  5:
+    required: 50
+    display_name: Wzbogacony uran V
+  6:
+    required: 100
+    display_name: Wzbogacony uran VI
+  7:
+    required: 250
+    display_name: Wzbogacony uran VII
+reward_claim_mode: AUTO
+placeholder:
+  progress_bar:
+    length: 20
+    filled_char: ■
+    empty_char: □

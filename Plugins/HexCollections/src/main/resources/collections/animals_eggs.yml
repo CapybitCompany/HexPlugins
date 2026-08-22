@@ -1,0 +1,85 @@
+id: animals.eggs
+aliases:
+- animals_eggs
+- egg
+- eggs
+- jajko
+- jajka
+enabled: true
+display:
+  name: '&eJajka'
+  category: animals
+  menu_slot: 56
+  icon:
+    material: EGG
+tracked_items:
+  base:
+    material: EGG
+    amount_value: 1
+valid_sources:
+- MINION_COLLECT
+- NATURAL_ANIMAL_PRODUCTION
+- CUSTOM_PLUGIN_GRANTED
+sources:
+- trigger: minions.resource.generated
+  amount-from: amount
+  filters:
+    collectionId: animals.eggs
+    resourceId: egg
+source_rules:
+  NATURAL_ANIMAL_PRODUCTION:
+    allowed_materials:
+    - EGG
+    allowed_worlds:
+    - world
+    - resource_world
+    - mining_world
+    blocked_worlds:
+    - spawn
+    allow_in_town_claims: true
+  MINION_COLLECT:
+    allow_in_town_claims: true
+  CUSTOM_PLUGIN_GRANTED:
+    allow_in_town_claims: true
+levels:
+  1:
+    required: 6
+    display_name: '&eJajka I'
+  2:
+    required: 24
+    display_name: '&eJajka II'
+  3:
+    required: 192
+    display_name: '&eJajka III'
+  4:
+    required: 576
+    display_name: '&eJajka IV'
+  5:
+    required: 1728
+    display_name: '&eJajka V'
+  6:
+    required: 8064
+    display_name: '&eJajka VI'
+  7:
+    required: 17280
+    display_name: '&eJajka VII'
+reward_claim_mode: AUTO
+placeholder:
+  progress_bar:
+    length: 20
+    filled_char: ■
+    empty_char: □
+city_scaling:
+  enabled: true
+  reference-members: 5
+  category: EASY
+  active-hours-per-member-l7: 4
+  manual-rate-per-player: 120.0
+  reference-addons:
+    1: 1
+    2: 4
+    3: 27
+    4: 80
+    5: 240
+    6: 1120
+    7: 2400

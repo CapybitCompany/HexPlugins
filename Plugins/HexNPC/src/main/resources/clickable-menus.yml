@@ -1,0 +1,75 @@
+# HexNPC native clickable menus.
+# Replaces the former HexNPCClickFix payload comments in npcs.yml.
+# This file is not rewritten when /hexnpc edits NPC positions/skins/actions.
+menus:
+  tutorial_on-click_0:
+    timeout-seconds: 300
+    lines:
+      - '&f&l------------------&6&lPoradnik&f&l------------------'
+      - '&fWitaj &e<nick>&f, co chcesz wiedzieć?'
+      - '&7(kliknij w odpowiedni temat)'
+      - '&f-------------------------------------------------'
+    options:
+      - text: '&61. &fJak założyć miasto?'
+        hover: '&7Kliknij, aby przeczytać.'
+        response:
+          - '&f'
+          - '&f'
+          - '&f------------&6Zakładanie miasta (cuboida)&f------------'
+          - '&6• &fPotrzebujesz stworzyć &c&lSerce Miasta&f.'
+          - '&6• &fCrafting znajduje się obok mnie, na hologramie.'
+          - '&6• &fPostaw je w wybranym, bezpiecznym miejscu.'
+          - '&6• &fDo zarządzania miastem, służy komenda &c/&ltown&f.'
+          - '&6• &fZnajdziesz tam informacje na temat chunków, minionków i członków miasta'
+          - '&f-----------------------------------------------'
+      - text: '&62. &fCzym są minionki&f?'
+        hover: '&7Kliknij, aby przeczytać.'
+        response:
+          - '&f'
+          - '&f'
+          - '&f-------------------&6Minionki&f-------------------'
+          - '&f• Minion to automatyczny pracownik, który zbiera surowce i bloki.'
+          - '&f• Pozwalają rozwijać kolekcję oraz odblokowywać nowe rzeczy.'
+          - '&f• Możesz je ulepszać, a cały zbiór wiki o minionach'
+          - '  znajduje się w obsłudze miasta &c/&ltown&f.'
+          - '&f--------------------------------------------'
+      - text: '&63. &fCzym są kolekcje?'
+        hover: '&7Kliknij, aby przeczytać.'
+        response:
+          - '&f'
+          - '&f'
+          - '&f-----------------&6Kolekcje&f-----------------'
+          - '&6• &fLicznik postępu twojego miasta.'
+          - '&6• &fPo zdobyciu bloków lub surowców, przedmiotów...'
+          - '  kolekcje rosną i rozwijają się'
+          - '&f------------------------------------------'
+
+  kasyno_info_on-click_0:
+    timeout-seconds: 300
+    lines:
+      - '&f&l------------------&6&lKasyno&f&l------------------'
+      - '&fWitaj &e<nick>&f, co chcesz wiedzieć?'
+      - '&7(kliknij w odpowiedni temat)'
+      - '&f-------------------------------------------------'
+    options:
+      - text: '&61. &fCzym jest &6Bus Driver&f?'
+        hover: '&7Kliknij, aby przeczytać.'
+        response:
+          - '&f'
+          - '&f'
+          - '&f--------------------&6Bus Driver&f--------------------'
+          - '&6• &fGra karciana na ryzyko. Zacznij od wyboru stawki.'
+          - '&6• &fPotem zgadujesz etapy: &6kolor&f, &6wyżej&8/&6niżej&f, &6pomiędzy&8/&6poza &fi &6znak&f.'
+          - '&6• &fPo każdej dobrej odpowiedzi rośnie możliwa wypłata. '
+          - '&6• &fMożesz wypłacić wcześniej albo grać dalej po więcej.'
+          - '&f-------------------------------------------------'
+      - text: '&62. &fCzym jest &6Jednoręki Bandyta&f?'
+        hover: '&7Kliknij, aby przeczytać.'
+        response:
+          - '&f'
+          - '&f'
+          - '&f---------------&6Jednoręki Bandyta&f---------------'
+          - '&6• &fSlot machine. Wybierasz stawkę i liczbę linii.'
+          - '&6• &fkręcisz, a wygrana wpada za pasujące symbole na aktywnych liniach.'
+          - '&6• &fDroższe symbole i większa stawka oznaczają większą możliwą wypłatę.'
+          - '&f----------------------------------------------'

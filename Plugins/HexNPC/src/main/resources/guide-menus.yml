@@ -1,0 +1,377 @@
+guides:
+  server:
+    title: "&0&lPORADNIK SERWERA"
+    size: 45
+    background:
+      material: BLACK_STAINED_GLASS_PANE
+      hide-tooltip: true
+    entries:
+      city:
+        slot: 10
+        icon:
+          material: HEART_OF_THE_SEA
+          name: "&6Miasto"
+          lore:
+            - "&7Jak założyć i obsługiwać własne miasto."
+        target: server_city
+      minions:
+        slot: 12
+        icon:
+          material: ARMOR_STAND
+          name: "&6Minionki"
+          lore:
+            - "&7Automatyczni pracownicy Twojego miasta."
+        target: server_minions
+      collections:
+        slot: 14
+        icon:
+          material: BOOK
+          name: "&6Kolekcje"
+          lore:
+            - "&7Postęp i rozwój Twojego miasta."
+        target: server_collections
+      economy:
+        slot: 16
+        icon:
+          material: GOLD_INGOT
+          name: "&6Ekonomia"
+          lore:
+            - "&7Pieniądze, HexCoins, zarabianie i wydatki."
+        target: server_economy
+
+  server_city:
+    title: "&0&lMIASTO"
+    size: 27
+    parent: server
+    back-slot: 20
+    background:
+      material: BLACK_STAINED_GLASS_PANE
+      hide-tooltip: true
+    entries:
+      header:
+        slot: 4
+        icon:
+          material: HEART_OF_THE_SEA
+          name: "&6Miasto"
+          lore:
+            - "&7Jak założyć i obsługiwać własne miasto."
+      heart:
+        slot: 10
+        icon:
+          material: RED_DYE
+          name: "&6Serce Miasta"
+          lore:
+            - "&7Aby założyć miasto, potrzebujesz stworzyć"
+            - "&c&lSerce Miasta&7."
+      crafting:
+        slot: 11
+        icon:
+          material: CRAFTING_TABLE
+          name: "&6Crafting"
+          lore:
+            - "&7Receptura Serca Miasta znajduje się"
+            - "&7przy NPC poradnika / na hologramie obok niego."
+      create:
+        slot: 12
+        icon:
+          material: GRASS_BLOCK
+          name: "&6Założenie miasta"
+          lore:
+            - "&7Postaw Serce Miasta w wybranym,"
+            - "&7bezpiecznym miejscu."
+      management:
+        slot: 13
+        icon:
+          material: COMPASS
+          name: "&6Zarządzanie"
+          lore:
+            - "&7Do zarządzania miastem służy komenda:"
+            - "&f/town"
+      town_menu:
+        slot: 14
+        icon:
+          material: CHEST
+          name: "&6Menu miasta"
+          lore:
+            - "&7Znajdziesz tam informacje i obsługę:"
+            - "&f• chunków"
+            - "&f• minionków"
+            - "&f• członków miasta"
+
+  server_minions:
+    title: "&0&lMINIONKI"
+    size: 27
+    parent: server
+    back-slot: 20
+    background:
+      material: BLACK_STAINED_GLASS_PANE
+      hide-tooltip: true
+    entries:
+      header:
+        slot: 4
+        icon:
+          material: ARMOR_STAND
+          name: "&6Minionki"
+          lore:
+            - "&7Automatyczni pracownicy Twojego miasta."
+      what:
+        slot: 10
+        icon:
+          material: PLAYER_HEAD
+          name: "&6Minion"
+          lore:
+            - "&7Minion to automatyczny pracownik,"
+            - "&7który zbiera surowce i bloki."
+      development:
+        slot: 11
+        icon:
+          material: EXPERIENCE_BOTTLE
+          name: "&6Rozwój"
+          lore:
+            - "&7Minionki pomagają rozwijać kolekcje"
+            - "&7oraz odblokowywać nowe rzeczy."
+      upgrades:
+        slot: 12
+        icon:
+          material: ANVIL
+          name: "&6Ulepszanie"
+          lore:
+            - "&7Minionki można rozwijać i ulepszać."
+      more:
+        slot: 13
+        icon:
+          material: BOOK
+          name: "&6Więcej informacji"
+          lore:
+            - "&7Pełna obsługa i informacje o minionach"
+            - "&7znajdują się w menu miasta:"
+            - "&f/town"
+
+  server_collections:
+    title: "&0&lKOLEKCJE"
+    size: 27
+    parent: server
+    back-slot: 20
+    background:
+      material: BLACK_STAINED_GLASS_PANE
+      hide-tooltip: true
+    entries:
+      header:
+        slot: 4
+        icon:
+          material: BOOK
+          name: "&6Kolekcje"
+          lore:
+            - "&7Postęp Twojego miasta."
+      what:
+        slot: 10
+        icon:
+          material: WRITABLE_BOOK
+          name: "&6Kolekcje"
+          lore:
+            - "&7Kolekcje są licznikiem postępu"
+            - "&7Twojego miasta."
+      progress:
+        slot: 11
+        icon:
+          material: IRON_PICKAXE
+          name: "&6Zdobywanie postępu"
+          lore:
+            - "&7Po zdobywaniu bloków, surowców"
+            - "&7i innych przedmiotów kolekcje rosną."
+      development:
+        slot: 12
+        icon:
+          material: EMERALD
+          name: "&6Rozwój miasta"
+          lore:
+            - "&7Rosnące kolekcje są jednym z elementów"
+            - "&7dalszego rozwoju miasta."
+
+  server_economy:
+    title: "&0&lEKONOMIA"
+    size: 27
+    parent: server
+    back-slot: 20
+    background:
+      material: BLACK_STAINED_GLASS_PANE
+      hide-tooltip: true
+    entries:
+      header:
+        slot: 4
+        icon:
+          material: GOLD_INGOT
+          name: "&6Ekonomia"
+          lore:
+            - "&7Jak działa $, HexCoins, zarabianie i wydawanie."
+      what:
+        slot: 10
+        icon:
+          material: CHEST
+          name: "&6Ekonomia serwera"
+          lore:
+            - "&7Ekonomia to system zarabiania i wydawania"
+            - "&7walut podczas rozwoju na serwerze."
+      money:
+        slot: 11
+        icon:
+          material: SUNFLOWER
+          name: "&6Waluta $"
+          lore:
+            - "&7$ to podstawowa waluta serwera."
+            - "&7Zdobywasz ją podczas normalnej rozgrywki"
+            - "&7i wykorzystujesz w systemach ekonomicznych serwera."
+      earning:
+        slot: 12
+        icon:
+          material: GOLD_NUGGET
+          name: "&6Jak zarabiać?"
+          lore:
+            - "&7Pieniądze możesz zdobywać m.in. przez:"
+            - "&f• sprzedaż surowców i przedmiotów w sklepach NPC"
+            - "&f• aktywności i nagrody dostępne na serwerze"
+            - "&f• systemy rozwoju zapewniające nagrody"
+      spending:
+        slot: 13
+        icon:
+          material: EMERALD
+          name: "&6Na co wydawać?"
+          lore:
+            - "&7Pieniądze wykorzystujesz m.in. w:"
+            - "&f• sklepach NPC"
+            - "&f• wybranych systemach rozwoju"
+            - "&f• innych aktywnościach wymagających podstawowej waluty"
+      hexcoins:
+        slot: 14
+        icon:
+          material: AMETHYST_SHARD
+          name: "&dHexCoins"
+          lore:
+            - "&7HexCoins to waluta premium."
+            - "&7Można ją kupić lub zdobyć w wybranych"
+            - "&7eventach i nagrodach na serwerze."
+            - "&7Służy m.in. do zakupów w Premium Shopie."
+
+  arcade:
+    title: "&0&lARCADE ROOM"
+    size: 27
+    background:
+      material: BLACK_STAINED_GLASS_PANE
+      hide-tooltip: true
+    entries:
+      busdriver:
+        slot: 11
+        icon:
+          material: PAPER
+          name: "&6Bus Driver"
+          lore:
+            - "&7Gra karciana oparta na kolejnych decyzjach i ryzyku."
+        target: arcade_busdriver
+      slot_machine:
+        slot: 15
+        icon:
+          material: GOLD_INGOT
+          name: "&6Jednoręki Bandyta"
+          lore:
+            - "&7Automat z liniami i symbolami."
+        target: arcade_slot
+
+  arcade_busdriver:
+    title: "&0&lBUS DRIVER"
+    size: 27
+    parent: arcade
+    back-slot: 20
+    background:
+      material: BLACK_STAINED_GLASS_PANE
+      hide-tooltip: true
+    entries:
+      header:
+        slot: 4
+        icon:
+          material: PAPER
+          name: "&6Bus Driver"
+          lore:
+            - "&7Gra karciana oparta na kolejnych decyzjach i ryzyku."
+      start:
+        slot: 10
+        icon:
+          material: GOLD_NUGGET
+          name: "&6Rozpoczęcie gry"
+          lore:
+            - "&7Gra karciana na ryzyko."
+            - "&7Zacznij od wyboru stawki."
+      stages:
+        slot: 11
+        icon:
+          material: MAP
+          name: "&6Etapy"
+          lore:
+            - "&7Kolejno zgadujesz:"
+            - "&f• kolor"
+            - "&f• wyżej / niżej"
+            - "&f• pomiędzy / poza"
+            - "&f• znak"
+      win:
+        slot: 12
+        icon:
+          material: EMERALD
+          name: "&6Wygrana"
+          lore:
+            - "&7Po każdej dobrej odpowiedzi rośnie"
+            - "&7możliwa wypłata."
+      risk:
+        slot: 13
+        icon:
+          material: REDSTONE
+          name: "&6Decyzja"
+          lore:
+            - "&7Możesz wypłacić wcześniej albo"
+            - "&7grać dalej po większą nagrodę."
+
+  arcade_slot:
+    title: "&0&lJEDNORĘKI BANDYTA"
+    size: 27
+    parent: arcade
+    back-slot: 20
+    background:
+      material: BLACK_STAINED_GLASS_PANE
+      hide-tooltip: true
+    entries:
+      header:
+        slot: 4
+        icon:
+          material: GOLD_INGOT
+          name: "&6Jednoręki Bandyta"
+          lore:
+            - "&7Automat z liniami i symbolami."
+      start:
+        slot: 10
+        icon:
+          material: GOLD_NUGGET
+          name: "&6Rozpoczęcie"
+          lore:
+            - "&7Wybierasz stawkę i liczbę linii."
+      spin:
+        slot: 11
+        icon:
+          material: CLOCK
+          name: "&6Kręcenie"
+          lore:
+            - "&7Uruchamiasz maszynę, a wynik jest"
+            - "&7prezentowany na aktywnych liniach."
+      win:
+        slot: 12
+        icon:
+          material: EMERALD
+          name: "&6Wygrana"
+          lore:
+            - "&7Wygrana wpada za pasujące symbole"
+            - "&7na aktywnych liniach."
+      rewards:
+        slot: 13
+        icon:
+          material: DIAMOND
+          name: "&6Nagrody"
+          lore:
+            - "&7Droższe symbole i większa stawka oznaczają"
+            - "&7większą możliwą wypłatę."

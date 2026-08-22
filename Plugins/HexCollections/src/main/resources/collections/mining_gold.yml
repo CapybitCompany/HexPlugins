@@ -1,0 +1,92 @@
+id: mining.gold
+aliases:
+- mining_gold
+- gold
+- zloto
+- złoto
+- minecraft:gold_ingot
+enabled: true
+display:
+  name: '&6Złoto'
+  category: mining
+  menu_slot: 18
+  icon:
+    material: GOLD_INGOT
+valid_sources:
+- NATURAL_BLOCK_BREAK
+- MINION_COLLECT
+- CUSTOM_PLUGIN_GRANTED
+sources:
+- trigger: minions.resource.generated
+  amount-from: amount
+  filters:
+    collectionId: mining.gold
+    resourceId: gold
+- trigger: minions.resource.generated
+  amount-from: amount
+  filters:
+    collectionId: mining.gold
+    resourceId: gold_ore
+source_rules:
+  NATURAL_BLOCK_BREAK:
+    allowed_materials:
+    - GOLD_ORE
+    - DEEPSLATE_GOLD_ORE
+    allowed_worlds:
+    - world
+    - resource_world
+    - mining_world
+    blocked_worlds:
+    - spawn
+    allow_in_town_claims: false
+    deny_player_placed_blocks: true
+    deny_recently_broken_blocks: true
+  MINION_COLLECT:
+    allowed_minion_types:
+    - GOLD_MINION
+    - gold
+    allow_in_town_claims: true
+  CUSTOM_PLUGIN_GRANTED:
+    allow_in_town_claims: true
+levels:
+  1:
+    required: 4
+    display_name: '&6Złoto I'
+  2:
+    required: 16
+    display_name: '&6Złoto II'
+  3:
+    required: 128
+    display_name: '&6Złoto III'
+  4:
+    required: 384
+    display_name: '&6Złoto IV'
+  5:
+    required: 1152
+    display_name: '&6Złoto V'
+  6:
+    required: 5376
+    display_name: '&6Złoto VI'
+  7:
+    required: 11520
+    display_name: '&6Złoto VII'
+reward_claim_mode: AUTO
+placeholder:
+  progress_bar:
+    length: 20
+    filled_char: ■
+    empty_char: □
+city_scaling:
+  enabled: true
+  reference-members: 5
+  category: EASY
+  active-hours-per-member-l7: 4
+  manual-rate-per-player: 164.57
+  reference-addons:
+    1: 2
+    2: 5
+    3: 37
+    4: 110
+    5: 330
+    6: 1536
+    7: 3292

@@ -12,7 +12,10 @@ public record ResourceDefinition(
         String collectionId,
         double worth,
         int stackSize,
-        List<String> tags
+        List<String> tags,
+        boolean compressionEnabled,
+        boolean blockConvertible,
+        Material compressedMaterial
 ) {
 }
 

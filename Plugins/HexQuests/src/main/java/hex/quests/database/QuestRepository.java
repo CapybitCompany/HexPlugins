@@ -8,7 +8,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
-public final class QuestRepository {
+public final class QuestRepository implements DailySelectionRepository {
     private final Db db;
 
     public QuestRepository(Db db) {
@@ -39,6 +39,43 @@ public final class QuestRepository {
                 "PRIMARY KEY (town_id, player_uuid, quest_id, assigned_for_date, objective_id)," +
                 "KEY idx_quest (quest_id)" +
                 ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin");
+
+        db.update("CREATE TABLE IF NOT EXISTS " + db.t("quest_daily_selection") + " (" +
+                "assigned_for_date VARCHAR(10) NOT NULL," +
+                "slot_index INT NOT NULL," +
+                "quest_id VARCHAR(128) NOT NULL," +
+                "created_at BIGINT NOT NULL," +
+                "PRIMARY KEY (assigned_for_date, slot_index)," +
+                "KEY idx_daily_selection_date (assigned_for_date)" +
+                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin");
+    }
+
+    @Override
+    public List<String> ensureDailySelection(LocalDate date, List<String> proposedQuestIds) {
+        String day = date.toString();
+        return db.tx(tx -> {
+            List<String> existing = tx.query("SELECT quest_id FROM " + tx.t("quest_daily_selection") +
+                            " WHERE assigned_for_date=? ORDER BY slot_index ASC",
+                    rs -> rs.getString("quest_id"), day);
+            if (!existing.isEmpty()) {
+                return existing;
+            }
+
+            long now = System.currentTimeMillis();
+            for (int i = 0; i < proposedQuestIds.size(); i++) {
+                tx.update("INSERT INTO " + tx.t("quest_daily_selection") +
+                                " (assigned_for_date, slot_index, quest_id, created_at) VALUES (?, ?, ?, ?)",
+                        day, i, proposedQuestIds.get(i), now);
+            }
+            return List.copyOf(proposedQuestIds);
+        });
+    }
+
+    @Override
+    public List<String> loadDailySelection(LocalDate date) {
+        return db.query("SELECT quest_id FROM " + db.t("quest_daily_selection") +
+                        " WHERE assigned_for_date=? ORDER BY slot_index ASC",
+                rs -> rs.getString("quest_id"), date.toString());
     }
 
     public void ensureDailyAssigned(UUID townId, UUID playerUuid, LocalDate date, List<QuestDefinition> selected) {

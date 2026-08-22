@@ -1,0 +1,823 @@
+machines:
+  uranium_enricher:
+    enabled: true
+    type: URANIUM_ENRICHER
+    display-name: <gold>Wzbogacacz uranu</gold>
+    base-block: DISPENSER
+    special-item: uranium_enricher
+    station-id: URANIUM_ENRICHER
+    menu:
+      input-slot: 20
+      output-slot: 24
+      arrow-slot: 22
+      fuel-slot: 40
+    storage:
+      slots: 5
+      output-stack-size: 16
+    energy:
+      enabled: true
+      generator: false
+      buffer-capacity: 500
+      eu-per-second: 100
+      battery-slot: -1
+      battery-extra-capacity: 0
+      transfer-per-second: 250
+      fallback-fuel-eu:
+        REDSTONE: 10
+        REDSTONE_BLOCK: 50
+      fallback-fuel-burn-seconds:
+        REDSTONE: 1
+        REDSTONE_BLOCK: 5
+    recipes:
+      raw_uranium:
+        input:
+          material: EMERALD
+          custom-model-data: 12001
+          amount: 1
+        output:
+          special-item: enriched_uranium
+          amount: 1
+        success-chance: 0.05
+        time-seconds: 7200
+      uranium_block:
+        input:
+          material: EMERALD_BLOCK
+          special-item: uranium_block
+          amount: 1
+        output:
+          special-item: enriched_uranium
+          amount: 1
+        success-chance: 0.33
+        time-seconds: 7200
+      compressed_uranium:
+        input:
+          material: EMERALD_BLOCK
+          special-item: compressed_uranium
+          amount: 1
+        output:
+          special-item: enriched_uranium
+          amount: 8
+        success-chance: 1.0
+        time-seconds: 7200
+  smelting_furnace:
+    enabled: true
+    type: SMELTING_FURNACE
+    display-name: <gold>Piec hutniczy</gold>
+    base-block: FURNACE
+    special-item: smelting_furnace
+    station-id: SMELTING_FURNACE
+    menu:
+      input-slot: 20
+      secondary-slot: 21
+      fuel-slot: 29
+      arrow-slot: 22
+      output-slot: 24
+    storage:
+      slots: 5
+      output-stack-size: 64
+    recipes:
+      steel:
+        input:
+          material: IRON_INGOT
+          amount: 1
+        secondary:
+          material: COAL
+          amount: 4
+        fuel:
+          special-item: compressed_oak_plank
+          material: OAK_PLANKS
+          amount: 1
+        output:
+          special-item: steel_ingot
+          amount: 1
+        success-chance: 1.0
+        time-seconds: 120
+      steel_combustion_fuel:
+        input:
+          material: IRON_INGOT
+          amount: 4
+        secondary:
+          material: COAL
+          amount: 16
+        fuel:
+          special-item: combustion_fuel
+          material: BLAZE_POWDER
+          amount: 1
+        output:
+          special-item: steel_ingot
+          amount: 4
+        success-chance: 1.0
+        time-seconds: 120
+      iron_fast:
+        input:
+          material: RAW_IRON
+          amount: 2
+        fuel:
+          material: COAL
+          amount: 1
+        output:
+          material: IRON_INGOT
+          amount: 2
+        success-chance: 1.0
+        time-seconds: 8
+      gold_fast:
+        input:
+          material: RAW_GOLD
+          amount: 2
+        fuel:
+          material: COAL
+          amount: 1
+        output:
+          material: GOLD_INGOT
+          amount: 2
+        success-chance: 1.0
+        time-seconds: 8
+      copper_fast:
+        input:
+          material: RAW_COPPER
+          amount: 2
+        fuel:
+          material: COAL
+          amount: 1
+        output:
+          material: COPPER_INGOT
+          amount: 2
+        success-chance: 1.0
+        time-seconds: 8
+      stone_fast:
+        input:
+          material: COBBLESTONE
+          amount: 2
+        fuel:
+          material: COAL
+          amount: 1
+        output:
+          material: STONE
+          amount: 2
+        success-chance: 1.0
+        time-seconds: 8
+      brick_fast:
+        input:
+          material: CLAY_BALL
+          amount: 2
+        fuel:
+          material: COAL
+          amount: 1
+        output:
+          material: BRICK
+          amount: 2
+        success-chance: 1.0
+        time-seconds: 8
+      iron_dust_to_ingot:
+        input:
+          special-item: iron_dust
+          amount: 1
+        fuel:
+          material: COAL
+          amount: 1
+        output:
+          material: IRON_INGOT
+          amount: 1
+        success-chance: 1.0
+        time-seconds: 8
+      gold_dust_to_ingot:
+        input:
+          special-item: gold_dust
+          amount: 1
+        fuel:
+          material: COAL
+          amount: 1
+        output:
+          material: GOLD_INGOT
+          amount: 1
+        success-chance: 1.0
+        time-seconds: 8
+      copper_dust_to_ingot:
+        input:
+          special-item: copper_dust
+          amount: 1
+        fuel:
+          material: COAL
+          amount: 1
+        output:
+          material: COPPER_INGOT
+          amount: 1
+        success-chance: 1.0
+        time-seconds: 8
+      diamond_dust_to_diamond:
+        input:
+          special-item: diamond_dust
+          amount: 1
+        fuel:
+          material: COAL
+          amount: 1
+        output:
+          material: DIAMOND
+          amount: 1
+        success-chance: 1.0
+        time-seconds: 8
+      enriched_redstone_dust_to_redstone:
+        input:
+          special-item: redstone_dust_rich
+          amount: 1
+        fuel:
+          material: COAL
+          amount: 1
+        output:
+          material: REDSTONE
+          amount: 2
+        success-chance: 1.0
+        time-seconds: 8
+      lapis_dust_to_lapis:
+        input:
+          special-item: lapis_dust
+          amount: 1
+        fuel:
+          material: COAL
+          amount: 1
+        output:
+          material: LAPIS_LAZULI
+          amount: 2
+        success-chance: 1.0
+        time-seconds: 8
+      tin_ore_to_ingot:
+        input:
+          material: RAW_IRON
+          custom-model-data: 14001
+          amount: 1
+        fuel:
+          material: COAL
+          amount: 1
+        output:
+          special-item: tin_ingot
+          amount: 1
+        success-chance: 1.0
+        time-seconds: 8
+  electric_furnace:
+    enabled: true
+    type: ELECTRIC_FURNACE
+    display-name: <gold>Piec elektryczny</gold>
+    base-block: FURNACE
+    special-item: electric_furnace
+    station-id: ELECTRIC_FURNACE
+    menu:
+      input-slots:
+      - 19
+      - 20
+      fuel-slot: 40
+      arrow-slot: 22
+      output-slots:
+      - 24
+      - 25
+      input-storage-extension-slot: 38
+      output-storage-extension-slot: 42
+    storage:
+      slots: 0
+      output-stack-size: 64
+    energy:
+      enabled: true
+      generator: false
+      buffer-capacity: 1000
+      eu-per-second: 30
+      transfer-per-second: 250
+      battery-slot: 49
+      battery-extra-capacity: 0
+      fallback-fuel-eu:
+        REDSTONE: 10
+        REDSTONE_BLOCK: 50
+      fallback-fuel-burn-seconds:
+        REDSTONE: 1
+        REDSTONE_BLOCK: 5
+    recipes: {}
+  coal_generator:
+    enabled: true
+    type: COAL_GENERATOR
+    display-name: <dark_blue>Generator węglowy</dark_blue>
+    base-block: FURNACE
+    special-item: coal_generator
+    station-id: COAL_GENERATOR
+    menu:
+      fuel-slot: 22
+      fuel-storage-extension-slot: 40
+    energy:
+      enabled: true
+      generator: true
+      buffer-capacity: 10000
+      transfer-per-second: 250
+      battery-slot: 31
+      battery-extra-capacity: 0
+      fuel-eu:
+        COAL: 400
+        COAL_BLOCK: 4000
+        combustion_fuel: 16000
+        compressed_coal: 51200
+        biofuel: 12800
+      fuel-burn-seconds:
+        COAL: 8
+        COAL_BLOCK: 80
+        combustion_fuel: 320
+        compressed_coal: 1024
+        biofuel: 256
+    recipes: {}
+  solar_panel_generator:
+    enabled: true
+    type: SOLAR_PANEL_GENERATOR
+    display-name: <dark_blue>Panel słoneczny</dark_blue>
+    base-block: FURNACE
+    special-item: solar_panel_generator
+    station-id: SOLAR_PANEL_GENERATOR
+    menu: {}
+    energy:
+      enabled: true
+      generator: true
+      buffer-capacity: 10000
+      eu-per-second: 15
+      transfer-per-second: 250
+      battery-slot: 40
+      battery-extra-capacity: 0
+    recipes: {}
+  accumulator:
+    enabled: true
+    type: ACCUMULATOR
+    display-name: <red>Akumulator</red>
+    base-block: BARREL
+    special-item: accumulator
+    station-id: ACCUMULATOR
+    menu:
+      fuel-slot: 40
+    energy:
+      enabled: true
+      generator: false
+      buffer-capacity: 250000
+      eu-per-second: 0
+      transfer-per-second: 32
+      battery-slot: 22
+      battery-extra-capacity: 0
+      fallback-fuel-eu:
+        REDSTONE: 10
+        REDSTONE_BLOCK: 50
+      fallback-fuel-burn-seconds:
+        REDSTONE: 1
+        REDSTONE_BLOCK: 5
+    recipes: {}
+  macerator:
+    enabled: true
+    type: MACERATOR
+    display-name: <gold>Macerator</gold>
+    base-block: DISPENSER
+    special-item: macerator
+    station-id: MACERATOR
+    menu:
+      input-slot: 20
+      fuel-slot: 40
+      output-slot: 24
+      arrow-slot: 22
+      input-storage-extension-slot: 38
+      output-storage-extension-slot: 42
+    energy:
+      enabled: true
+      generator: false
+      buffer-capacity: 500
+      eu-per-second: 25
+      battery-slot: 41
+      battery-extra-capacity: 0
+      fallback-fuel-eu:
+        REDSTONE: 10
+        REDSTONE_BLOCK: 50
+      fallback-fuel-burn-seconds:
+        REDSTONE: 1
+        REDSTONE_BLOCK: 5
+    recipes:
+      iron_ore_block_to_dust:
+        input:
+          material: IRON_ORE
+          amount: 1
+        output:
+          special-item: iron_dust
+          amount: 2
+        time-seconds: 8
+        success-chance: 1.0
+      gold_ore_block_to_dust:
+        input:
+          material: GOLD_ORE
+          amount: 1
+        output:
+          special-item: gold_dust
+          amount: 2
+        time-seconds: 8
+        success-chance: 1.0
+      copper_ore_block_to_dust:
+        input:
+          material: COPPER_ORE
+          amount: 1
+        output:
+          special-item: copper_dust
+          amount: 2
+        time-seconds: 8
+        success-chance: 1.0
+      diamond_ore_to_dust:
+        input:
+          material: DIAMOND_ORE
+          amount: 1
+        output:
+          special-item: diamond_dust
+          amount: 2
+        time-seconds: 8
+        success-chance: 1.0
+      coal_to_dust:
+        input:
+          material: COAL
+          amount: 1
+        output:
+          special-item: coal_dust
+          amount: 1
+        time-seconds: 8
+        success-chance: 1.0
+      tin_ore_to_dust:
+        input:
+          material: RAW_IRON
+          custom-model-data: 14001
+          amount: 1
+        output:
+          special-item: tin_dust
+          amount: 2
+        time-seconds: 8
+        success-chance: 1.0
+      deepslate_iron_ore_to_dust:
+        input:
+          material: DEEPSLATE_IRON_ORE
+          amount: 1
+        output:
+          special-item: iron_dust
+          amount: 2
+        time-seconds: 8
+        success-chance: 1.0
+      deepslate_gold_ore_to_dust:
+        input:
+          material: DEEPSLATE_GOLD_ORE
+          amount: 1
+        output:
+          special-item: gold_dust
+          amount: 2
+        time-seconds: 8
+        success-chance: 1.0
+      deepslate_copper_ore_to_dust:
+        input:
+          material: DEEPSLATE_COPPER_ORE
+          amount: 1
+        output:
+          special-item: copper_dust
+          amount: 2
+        time-seconds: 8
+        success-chance: 1.0
+      deepslate_diamond_ore_to_dust:
+        input:
+          material: DEEPSLATE_DIAMOND_ORE
+          amount: 1
+        output:
+          special-item: diamond_dust
+          amount: 2
+        time-seconds: 8
+        success-chance: 1.0
+      lapis_ore_to_lapis:
+        input:
+          material: LAPIS_ORE
+          amount: 1
+        output:
+          material: LAPIS_LAZULI
+          amount: 10
+        time-seconds: 8
+        success-chance: 1.0
+      deepslate_lapis_ore_to_lapis:
+        input:
+          material: DEEPSLATE_LAPIS_ORE
+          amount: 1
+        output:
+          material: LAPIS_LAZULI
+          amount: 10
+        time-seconds: 8
+        success-chance: 1.0
+      redstone_ore_to_redstone:
+        input:
+          material: REDSTONE_ORE
+          amount: 1
+        output:
+          material: REDSTONE
+          amount: 6
+        time-seconds: 8
+        success-chance: 1.0
+      deepslate_redstone_ore_to_redstone:
+        input:
+          material: DEEPSLATE_REDSTONE_ORE
+          amount: 1
+        output:
+          material: REDSTONE
+          amount: 6
+        time-seconds: 8
+        success-chance: 1.0
+      raw_iron_to_dust:
+        input:
+          material: RAW_IRON
+          amount: 1
+        output:
+          special-item: iron_dust
+          amount: 2
+        time-seconds: 8
+        success-chance: 1.0
+      raw_gold_to_dust:
+        input:
+          material: RAW_GOLD
+          amount: 1
+        output:
+          special-item: gold_dust
+          amount: 2
+        time-seconds: 8
+        success-chance: 1.0
+      raw_copper_to_dust:
+        input:
+          material: RAW_COPPER
+          amount: 1
+        output:
+          special-item: copper_dust
+          amount: 2
+        time-seconds: 8
+        success-chance: 1.0
+  extractor:
+    enabled: true
+    type: EXTRACTOR
+    display-name: <gold>Ekstraktor</gold>
+    base-block: DISPENSER
+    special-item: extractor
+    station-id: EXTRACTOR
+    menu:
+      input-slot: 20
+      fuel-slot: 40
+      arrow-slot: 22
+      output-slot: 24
+    storage:
+      slots: 5
+      output-stack-size: 16
+    energy:
+      enabled: true
+      generator: false
+      buffer-capacity: 500
+      eu-per-second: 20
+      battery-slot: 41
+      battery-extra-capacity: 0
+      fallback-fuel-eu:
+        REDSTONE: 10
+        REDSTONE_BLOCK: 50
+      fallback-fuel-burn-seconds:
+        REDSTONE: 1
+        REDSTONE_BLOCK: 5
+    recipes:
+      compressed_spruce_wood_to_resin:
+        input:
+          special-item: compressed_spruce_wood
+          material: SPRUCE_LOG
+          amount: 1
+        output:
+          special-item: spruce_resin
+          amount: 1
+        success-chance: 1.0
+        time-seconds: 1200
+  electric_mill:
+    enabled: false
+    type: ELECTRIC_MILL
+    display-name: <gold>Elektryczny kompostor</gold>
+    base-block: BARREL
+    special-item: electric_mill
+    station-id: ELECTRIC_MILL
+    menu:
+      input-slot: 20
+      fuel-slot: 49
+      arrow-slot: 22
+      output-slot: 24
+      input-storage-extension-slot: 38
+      output-storage-extension-slot: 42
+    storage:
+      slots: 0
+      output-stack-size: 64
+    energy:
+      enabled: true
+      generator: false
+      buffer-capacity: 1000
+      eu-per-second: 10
+      battery-slot: 40
+      battery-extra-capacity: 0
+      fallback-fuel-eu:
+        REDSTONE: 10
+        REDSTONE_BLOCK: 50
+      fallback-fuel-burn-seconds:
+        REDSTONE: 1
+        REDSTONE_BLOCK: 5
+    recipes:
+      wheat_to_refined_wheat:
+        input:
+          material: WHEAT
+          amount: 1
+        output:
+          special-item: refined_wheat
+          amount: 1
+        success-chance: 0.2
+        time-seconds: 30
+  meat_refinery:
+    enabled: false
+    type: MEAT_REFINERY
+    display-name: <gold>Rafinator mięsa</gold>
+    base-block: DAYLIGHT_DETECTOR
+    special-item: meat_refinery
+    station-id: MEAT_REFINERY
+    menu:
+      input-slot: 20
+      fuel-slot: 49
+      arrow-slot: 22
+      output-slot: 24
+      input-storage-extension-slot: 38
+      output-storage-extension-slot: 42
+    storage:
+      slots: 0
+      output-stack-size: 64
+    energy:
+      enabled: true
+      generator: false
+      buffer-capacity: 1500
+      eu-per-second: 20
+      battery-slot: 40
+      battery-extra-capacity: 0
+      fallback-fuel-eu:
+        REDSTONE: 10
+        REDSTONE_BLOCK: 50
+      fallback-fuel-burn-seconds:
+        REDSTONE: 1
+        REDSTONE_BLOCK: 5
+    recipes:
+      porkchop_to_refined_meat:
+        input:
+          material: PORKCHOP
+          amount: 1
+        output:
+          special-item: refined_meat
+          amount: 1
+        success-chance: 0.25
+        time-seconds: 16
+      beef_to_refined_meat:
+        input:
+          material: BEEF
+          amount: 1
+        output:
+          special-item: refined_meat
+          amount: 1
+        success-chance: 0.25
+        time-seconds: 16
+      chicken_to_refined_meat:
+        input:
+          material: CHICKEN
+          amount: 1
+        output:
+          special-item: refined_meat
+          amount: 1
+        success-chance: 0.25
+        time-seconds: 16
+      mutton_to_refined_meat:
+        input:
+          material: MUTTON
+          amount: 1
+        output:
+          special-item: refined_meat
+          amount: 1
+        success-chance: 0.25
+        time-seconds: 16
+      rabbit_to_refined_meat:
+        input:
+          material: RABBIT
+          amount: 1
+        output:
+          special-item: refined_meat
+          amount: 1
+        success-chance: 0.25
+        time-seconds: 16
+      cooked_porkchop_to_refined_meat:
+        input:
+          material: COOKED_PORKCHOP
+          amount: 1
+        output:
+          special-item: refined_meat
+          amount: 1
+        success-chance: 0.25
+        time-seconds: 16
+      cooked_beef_to_refined_meat:
+        input:
+          material: COOKED_BEEF
+          amount: 1
+        output:
+          special-item: refined_meat
+          amount: 1
+        success-chance: 0.25
+        time-seconds: 16
+      cooked_chicken_to_refined_meat:
+        input:
+          material: COOKED_CHICKEN
+          amount: 1
+        output:
+          special-item: refined_meat
+          amount: 1
+        success-chance: 0.25
+        time-seconds: 16
+      cooked_mutton_to_refined_meat:
+        input:
+          material: COOKED_MUTTON
+          amount: 1
+        output:
+          special-item: refined_meat
+          amount: 1
+        success-chance: 0.25
+        time-seconds: 16
+      cooked_rabbit_to_refined_meat:
+        input:
+          material: COOKED_RABBIT
+          amount: 1
+        output:
+          special-item: refined_meat
+          amount: 1
+        success-chance: 0.25
+        time-seconds: 16
+  compressor:
+    enabled: true
+    type: COMPRESSOR
+    display-name: <gold>Kompresor</gold>
+    base-block: DISPENSER
+    special-item: compressor
+    station-id: COMPRESSOR
+    menu:
+      input-slot: 20
+      secondary-slot: 21
+      fuel-slot: 40
+      output-slot: 24
+      arrow-slot: 22
+    energy:
+      enabled: true
+      generator: false
+      buffer-capacity: 500
+      eu-per-second: 50
+      battery-slot: 41
+      battery-extra-capacity: 0
+      fallback-fuel-eu:
+        REDSTONE: 10
+        REDSTONE_BLOCK: 50
+      fallback-fuel-burn-seconds:
+        REDSTONE: 1
+        REDSTONE_BLOCK: 5
+    recipes:
+      coal_dust_to_graphite:
+        input:
+          special-item: coal_dust
+          amount: 16
+        output:
+          special-item: graphite
+          amount: 1
+        time-seconds: 90
+        success-chance: 1.0
+      coal_to_diamond:
+        input:
+          material: COAL
+          amount: 64
+        output:
+          material: DIAMOND
+          amount: 1
+        time-seconds: 90
+        success-chance: 1.0
+  advanced_accumulator:
+    enabled: false
+    type: ACCUMULATOR
+    display-name: <red>Zaawansowany Akumulator</red>
+    base-block: BARREL
+    special-item: advanced_accumulator
+    station-id: ADVANCED_ACCUMULATOR
+    menu: {}
+    energy:
+      enabled: true
+      generator: false
+      buffer-capacity: 2500000
+      eu-per-second: 0
+      transfer-per-second: 128
+      battery-slot: 40
+      battery-extra-capacity: 0
+    recipes: {}
+  super_capacitor:
+    enabled: false
+    type: ACCUMULATOR
+    display-name: <red>Akumulator Super Kondensator</red>
+    base-block: BARREL
+    special-item: super_capacitor
+    station-id: SUPER_CAPACITOR
+    menu: {}
+    energy:
+      enabled: true
+      generator: false
+      buffer-capacity: 20000000
+      eu-per-second: 0
+      transfer-per-second: 256
+      battery-slot: 40
+      battery-extra-capacity: 0
+    recipes: {}

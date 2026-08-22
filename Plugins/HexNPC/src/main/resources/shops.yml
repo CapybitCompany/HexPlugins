@@ -1,0 +1,1407 @@
+# ==========================================================
+# HexNPC - katalog sklepów
+# ==========================================================
+# Każdy sklep identyfikowany jest kluczem pod "shops:". Akcje NPC odwołują
+# się do niego przez:
+#   actions:
+#     on-click:
+#       - { type: npc-shop, shop: starter }
+#
+# ----------------------------------------------------------
+# TRYB ROZMIESZCZENIA (placement) — PRIORYTET
+# ----------------------------------------------------------
+# Tryb sklepu jest ustalany w tej kolejności (pierwszy pasujący wygrywa):
+#   1. <shop>.placement
+#   2. <shop>.layout.placement
+#   3. dowolny item z jawnym 'slot'  ->  MANUAL (zgodność ze starymi plikami)
+#   4. globalny shops.default-layout.placement z config.yml
+# Jeśli podasz jednocześnie <shop>.placement oraz <shop>.layout.placement o
+# różnych wartościach, wygrywa <shop>.placement (w konsoli pojawi się
+# ostrzeżenie). Nieprawidłowa wartość placement nie znika po cichu —
+# jest logowana, a plugin schodzi do kolejnego prawidłowego fallbacku.
+#
+#   AUTO   -> itemy są rozmieszczane WYŁĄCZNIE wg kolejności w tym pliku.
+#             Wypełniają layout.item-slots; gdy sloty jednej strony się
+#             zapełnią, kolejne itemy przechodzą na następną stronę.
+#             W trybie AUTO pola item.slot ORAZ item.page są IGNOROWANE.
+#   MANUAL -> itemy trafiają dokładnie na swoje 'slot' oraz 'page'. Sloty
+#             zarezerwowane dla nawigacji (previous/page/next) są zabronione;
+#             taki item zostanie pominięty z ostrzeżeniem (bez przesuwania).
+#             Ta sama liczba slotu na różnych stronach jest dozwolona.
+#
+# ----------------------------------------------------------
+# POLA SKLEPU
+# ----------------------------------------------------------
+#   title       - tytuł GUI (kody kolorów przez &)
+#   size        - rozmiar inventory (9, 18, 27, 36, 45 lub 54)
+#   placement   - AUTO lub MANUAL (patrz wyżej)
+#   currency    - MONEY (domyślne) lub HEX_COINS; brak = MONEY
+#   sell-slot   - (opcjonalne, zgodność wstecz) slot przycisku „Sprzedaj"
+#                 w widoku szczegółów. Równoważne layout.detail.sell-slot.
+#   layout      - (opcjonalne) nadpisania układu tylko dla tego sklepu.
+#                 Struktura identyczna jak shops.default-layout w config.yml
+#                 (może zawierać także 'placement').
+#   items       - mapa item-id -> definicja itemu
+#
+# ----------------------------------------------------------
+# POLA ITEMU
+# ----------------------------------------------------------
+#   material        - nazwa Material z Bukkita (case-insensitive)
+#   amount          - BAZOWA jednostka CENY (1..maxStack materiału). To NIE
+#                     jest wybrana ilość transakcji ani limit — służy jedynie
+#                     do przeliczenia ceny.
+#   slot            - slot w widoku głównym (tylko MANUAL; 0-based)
+#   page            - strona itemu (tylko MANUAL; domyślnie 0)
+#   display-name    - nazwa wyświetlana w GUI (kody kolorów przez &)
+#   lore            - lista linii lore w GUI
+#   buy-price       - cena ZA 'amount' sztuk przy zakupie
+#   sell-price      - kwota ZA 'amount' sztuk przy sprzedaży
+#   buy-enabled     - czy zakup jest dozwolony
+#   sell-enabled    - czy sprzedaż jest dozwolona
+#   sell-match      - PLAIN_MATERIAL: zgodność samego materiału (bez customów,
+#                       gdy prevent-selling-custom-items = true).
+#                     EXACT_ITEM: porównuje materiał, display-name i lore
+#                       skonfigurowane w czystym szablonie. Dodatkowe linie GUI
+#                       z cenami i podpowiedziami nie należą do porównania.
+#                       Enchanty/PDC i inne dodatkowe metadane nadal nie są
+#                       generowane ręcznie przez shops.yml; custom item może
+#                       być jednak pobrany przez HexCustomItems (patrz reward).
+#   custom-model-data   - opcjonalny CMD ikony/fizycznego itemu
+#   icon-custom-item-id - opcjonalne ID HexCustomItems używane jako baza ikony
+#   single-purchase-view - true: małe GUI 27 z Cofnij/Kup, bez wyboru ilości
+#   one-time.enabled    - zakup tylko raz; ownership sprawdzany permissionem
+#   one-time.permission - permission oznaczający już posiadany benefit
+#   action.type         - DETAILS (domyślne), PLAYER_COMMAND lub NONE
+#   action.command      - komenda gracza dla PLAYER_COMMAND (placeholdery: <player>,
+#                         <uuid>, <shop>, <item>, <quantity>)
+#   reward.type         - ITEM (legacy), CONSOLE_COMMANDS lub HEX_CUSTOM_ITEM
+#   reward.commands     - komendy konsoli wykonywane po udanym withdraw
+#   reward.verify-permission - opcjonalny permission weryfikujący command reward
+#   reward.item-id      - ID HexCustomItems dla HEX_CUSTOM_ITEM
+#   reward.amount       - liczba custom itemów wydawanych w pakiecie
+#   max-buy-amount  - DZIENNY limit kupna (liczba sztuk) na gracza i parę
+#                     shop-id:item-id. 0 lub brak = bez limitu. Reset o północy
+#                     dnia serwera; stan trwały w buy-limits.yml. Dotyczy
+#                     WYŁĄCZNIE kupna — sprzedaż nie jest nim ograniczona.
+#
+# ----------------------------------------------------------
+# ILOŚĆ TRANSAKCJI I CENY
+# ----------------------------------------------------------
+# Wybrana ilość transakcji jest niezależna od 'amount' i od dziennego limitu.
+# Gracz może kupić/sprzedać dowolną dodatnią ilość, aż do technicznego
+# maksimum 100000 sztuk na JEDNĄ transakcję (ochrona przed przepełnieniem).
+# To maksimum obowiązuje niezależnie od max-buy-amount.
+#
+#   cena_jednostkowa = buy-price / amount
+#   cena_łączna      = cena_jednostkowa * wybrana_ilość
+# Obliczenia w BigDecimal, zaokrąglenie HALF_UP do shops.price-scale.
+# Gdy wybrana ilość == amount, cena łączna == cena z konfiguracji —
+# istniejące sklepy nie zmieniają cen.
+#
+# Uwaga: dla PLAIN_MATERIAL Buy-Flow oddaje graczowi „gołą" wersję itemu
+# (sam Material), aby mógł ją bez problemu sprzedać z powrotem.
+
+shops:
+  # ===== Jedyny aktywny sklep przykładowy =====
+  starter:
+    title: "&8Sklep startowy"
+    size: 54
+    placement: AUTO
+    items:
+      cobblestone:
+        material: COBBLESTONE
+        amount: 64
+        display-name: "&7Bruk"
+        lore:
+          - "&8Podstawowy blok budowlany"
+        buy-price: "100.00"
+        sell-price: "25.00"
+        buy-enabled: true
+        sell-enabled: true
+        sell-match: PLAIN_MATERIAL
+      diamond:
+        material: DIAMOND
+        amount: 1
+        display-name: "&bDiament"
+        lore:
+          - "&7Cenny surowiec"
+        buy-price: "500.00"
+        sell-price: "200.00"
+        buy-enabled: true
+        sell-enabled: true
+        sell-match: PLAIN_MATERIAL
+        # Demonstracja funkcji: dzienny limit 64 diamentów na gracza.
+        max-buy-amount: 64
+        
+  premium_shop:
+    title: "&0&lPREMIUM SHOP"
+    currency: HEX_COINS
+    size: 54
+    placement: MANUAL
+    layout:
+      filler:
+        material: BLACK_STAINED_GLASS_PANE
+        name: " "
+    items:
+      particle_effects:
+        material: BLAZE_POWDER
+        amount: 1
+        slot: 10
+        display-name: "&dParticle"
+        lore:
+          - "&7Kosmetyczne efekty particle."
+          - "&7Ceny i zakup są obsługiwane"
+          - "&7przez menu kosmetyków."
+        buy-enabled: false
+        sell-enabled: false
+        action:
+          type: PLAYER_COMMAND
+          command: "uc menu Particle-Effects"
+
+      sit_permission:
+        material: STICK
+        custom-model-data: 9020
+        amount: 1
+        slot: 12
+        display-name: "&a/sit"
+        lore:
+          - "&7Umożliwia siadanie komendą &f/sit"
+        buy-price: "3"
+        sell-price: "0"
+        buy-enabled: true
+        sell-enabled: false
+        single-purchase-view: true
+        one-time:
+          enabled: true
+          permission: "GSit.Sit"
+        reward:
+          type: CONSOLE_COMMANDS
+          commands:
+            - "lp user <player> permission set GSit.Sit true"
+          verify-permission: "GSit.Sit"
+
+      spin_permission:
+        material: STICK
+        custom-model-data: 9021
+        amount: 1
+        slot: 14
+        display-name: "&a/spin"
+        lore:
+          - "&7Umożliwia kręcenie się komendą &f/spin"
+        buy-price: "4"
+        sell-price: "0"
+        buy-enabled: true
+        sell-enabled: false
+        single-purchase-view: true
+        one-time:
+          enabled: true
+          permission: "GSit.Spin"
+        reward:
+          type: CONSOLE_COMMANDS
+          commands:
+            - "lp user <player> permission set GSit.Spin true"
+          verify-permission: "GSit.Spin"
+
+      epic_key_1:
+        material: TRIAL_KEY
+        custom-model-data: 9007
+        icon-custom-item-id: "epic_key"
+        amount: 1
+        slot: 19
+        display-name: "&5Epicki klucz"
+        lore:
+          - "&7Pakiet: &f1x epicki klucz"
+        buy-price: "3"
+        sell-price: "0"
+        buy-enabled: true
+        sell-enabled: false
+        single-purchase-view: true
+        reward:
+          type: HEX_CUSTOM_ITEM
+          item-id: "epic_key"
+          amount: 1
+
+      epic_key_3:
+        material: TRIAL_KEY
+        custom-model-data: 9007
+        icon-custom-item-id: "epic_key"
+        amount: 3
+        slot: 20
+        display-name: "&5Pęk epickich kluczy &7(x3)"
+        lore:
+          - "&7Pakiet: &f3x epicki klucz"
+        buy-price: "7"
+        sell-price: "0"
+        buy-enabled: true
+        sell-enabled: false
+        single-purchase-view: true
+        reward:
+          type: HEX_CUSTOM_ITEM
+          item-id: "epic_key"
+          amount: 3
+
+      epic_key_5:
+        material: TRIAL_KEY
+        custom-model-data: 9007
+        icon-custom-item-id: "epic_key"
+        amount: 5
+        slot: 21
+        display-name: "&5Zestaw epickich kluczy &7(x5)"
+        lore:
+          - "&7Pakiet: &f5x epicki klucz"
+        buy-price: "10"
+        sell-price: "0"
+        buy-enabled: true
+        sell-enabled: false
+        single-purchase-view: true
+        reward:
+          type: HEX_CUSTOM_ITEM
+          item-id: "epic_key"
+          amount: 5
+
+      premium_key_1:
+        material: TRIAL_KEY
+        custom-model-data: 9008
+        icon-custom-item-id: "premium_key"
+        amount: 1
+        slot: 23
+        display-name: "&6Premium klucz"
+        lore:
+          - "&7Pakiet: &f1x premium klucz"
+        buy-price: "5"
+        sell-price: "0"
+        buy-enabled: true
+        sell-enabled: false
+        single-purchase-view: true
+        reward:
+          type: HEX_CUSTOM_ITEM
+          item-id: "premium_key"
+          amount: 1
+
+      premium_key_3:
+        material: TRIAL_KEY
+        custom-model-data: 9008
+        icon-custom-item-id: "premium_key"
+        amount: 3
+        slot: 24
+        display-name: "&6Pęk premium kluczy &7(x3)"
+        lore:
+          - "&7Pakiet: &f3x premium klucz"
+        buy-price: "12"
+        sell-price: "0"
+        buy-enabled: true
+        sell-enabled: false
+        single-purchase-view: true
+        reward:
+          type: HEX_CUSTOM_ITEM
+          item-id: "premium_key"
+          amount: 3
+
+      premium_key_5:
+        material: TRIAL_KEY
+        custom-model-data: 9008
+        icon-custom-item-id: "premium_key"
+        amount: 5
+        slot: 25
+        display-name: "&6Zestaw premium kluczy &7(x5)"
+        lore:
+          - "&7Pakiet: &f5x premium klucz"
+        buy-price: "18"
+        sell-price: "0"
+        buy-enabled: true
+        sell-enabled: false
+        single-purchase-view: true
+        reward:
+          type: HEX_CUSTOM_ITEM
+          item-id: "premium_key"
+          amount: 5
+
+      custom_tag:
+        material: NAME_TAG
+        amount: 1
+        slot: 30
+        display-name: "&dWłasna etykieta"
+        lore:
+          - "&7Ustaw własny tekst wyświetlany nad postacią."
+          - "&7Po odblokowaniu możesz zmieniać go wielokrotnie."
+          - ""
+          - "&7Kliknij po zakupie, aby edytować etykietę."
+        # Plan nie definiował ceny. 10 HC jest wartością wdrożeniową i można ją zmienić w YAML.
+        buy-price: "10"
+        sell-price: "0"
+        buy-enabled: true
+        sell-enabled: false
+        single-purchase-view: true
+        one-time:
+          enabled: true
+          permission: "hexnpc.feature.custom_tag"
+        reward:
+          type: CONSOLE_COMMANDS
+          commands:
+            - "lp user <player> permission set hexnpc.feature.custom_tag true"
+          verify-permission: "hexnpc.feature.custom_tag"
+        owned-action:
+          type: RUN_WORKFLOW
+          workflow: "custom_tag_menu"
+        post-purchase-action:
+          type: RUN_WORKFLOW
+          workflow: "custom_tag_create"
+
+      minion_skins_soon:
+        material: PLAYER_HEAD
+        amount: 1
+        slot: 31
+        display-name: "&dSkiny minionów / serc"
+        lore:
+          - "&8SOON"
+        buy-enabled: false
+        sell-enabled: false
+        action:
+          type: NONE
+
+      pets_soon:
+        material: BONE
+        amount: 1
+        slot: 32
+        display-name: "&dPetsy"
+        lore:
+          - "&8SOON"
+        buy-enabled: false
+        sell-enabled: false
+        action:
+          type: NONE
+  npc_shop1:
+    title: "&0&lSklep bloków"
+    size: 54
+    placement: AUTO
+    items:
+      bricks:
+        material: BRICKS
+        amount: 1
+        display-name: "&fBricks"
+        buy-price: "15.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      terracotta:
+        material: TERRACOTTA
+        amount: 1
+        display-name: "&fTerracotta"
+        buy-price: "8.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      white_glazed_terracotta:
+        material: WHITE_GLAZED_TERRACOTTA
+        amount: 1
+        display-name: "&fWhite Glazed Terracotta"
+        buy-price: "12.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      orange_glazed_terracotta:
+        material: ORANGE_GLAZED_TERRACOTTA
+        amount: 1
+        display-name: "&fOrange Glazed Terracotta"
+        buy-price: "12.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      magenta_glazed_terracotta:
+        material: MAGENTA_GLAZED_TERRACOTTA
+        amount: 1
+        display-name: "&fMagenta Glazed Terracotta"
+        buy-price: "12.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      light_blue_glazed_terracotta:
+        material: LIGHT_BLUE_GLAZED_TERRACOTTA
+        amount: 1
+        display-name: "&fLight Blue Glazed Terracotta"
+        buy-price: "12.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      yellow_glazed_terracotta:
+        material: YELLOW_GLAZED_TERRACOTTA
+        amount: 1
+        display-name: "&fYellow Glazed Terracotta"
+        buy-price: "12.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      lime_glazed_terracotta:
+        material: LIME_GLAZED_TERRACOTTA
+        amount: 1
+        display-name: "&fLime Glazed Terracotta"
+        buy-price: "12.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      pink_glazed_terracotta:
+        material: PINK_GLAZED_TERRACOTTA
+        amount: 1
+        display-name: "&fPink Glazed Terracotta"
+        buy-price: "12.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      gray_glazed_terracotta:
+        material: GRAY_GLAZED_TERRACOTTA
+        amount: 1
+        display-name: "&fGray Glazed Terracotta"
+        buy-price: "12.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      light_gray_glazed_terracotta:
+        material: LIGHT_GRAY_GLAZED_TERRACOTTA
+        amount: 1
+        display-name: "&fLight Gray Glazed Terracotta"
+        buy-price: "12.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      cyan_glazed_terracotta:
+        material: CYAN_GLAZED_TERRACOTTA
+        amount: 1
+        display-name: "&fCyan Glazed Terracotta"
+        buy-price: "12.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      purple_glazed_terracotta:
+        material: PURPLE_GLAZED_TERRACOTTA
+        amount: 1
+        display-name: "&fPurple Glazed Terracotta"
+        buy-price: "12.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      blue_glazed_terracotta:
+        material: BLUE_GLAZED_TERRACOTTA
+        amount: 1
+        display-name: "&fBlue Glazed Terracotta"
+        buy-price: "12.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      brown_glazed_terracotta:
+        material: BROWN_GLAZED_TERRACOTTA
+        amount: 1
+        display-name: "&fBrown Glazed Terracotta"
+        buy-price: "12.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      green_glazed_terracotta:
+        material: GREEN_GLAZED_TERRACOTTA
+        amount: 1
+        display-name: "&fGreen Glazed Terracotta"
+        buy-price: "12.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      red_glazed_terracotta:
+        material: RED_GLAZED_TERRACOTTA
+        amount: 1
+        display-name: "&fRed Glazed Terracotta"
+        buy-price: "12.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      black_glazed_terracotta:
+        material: BLACK_GLAZED_TERRACOTTA
+        amount: 1
+        display-name: "&fBlack Glazed Terracotta"
+        buy-price: "12.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      white_concrete_powder:
+        material: WHITE_CONCRETE_POWDER
+        amount: 1
+        display-name: "&fWhite Concrete Powder"
+        buy-price: "6.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      orange_concrete_powder:
+        material: ORANGE_CONCRETE_POWDER
+        amount: 1
+        display-name: "&fOrange Concrete Powder"
+        buy-price: "6.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      magenta_concrete_powder:
+        material: MAGENTA_CONCRETE_POWDER
+        amount: 1
+        display-name: "&fMagenta Concrete Powder"
+        buy-price: "6.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      light_blue_concrete_powder:
+        material: LIGHT_BLUE_CONCRETE_POWDER
+        amount: 1
+        display-name: "&fLight Blue Concrete Powder"
+        buy-price: "6.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      yellow_concrete_powder:
+        material: YELLOW_CONCRETE_POWDER
+        amount: 1
+        display-name: "&fYellow Concrete Powder"
+        buy-price: "6.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      lime_concrete_powder:
+        material: LIME_CONCRETE_POWDER
+        amount: 1
+        display-name: "&fLime Concrete Powder"
+        buy-price: "6.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      pink_concrete_powder:
+        material: PINK_CONCRETE_POWDER
+        amount: 1
+        display-name: "&fPink Concrete Powder"
+        buy-price: "6.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      gray_concrete_powder:
+        material: GRAY_CONCRETE_POWDER
+        amount: 1
+        display-name: "&fGray Concrete Powder"
+        buy-price: "6.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      light_gray_concrete_powder:
+        material: LIGHT_GRAY_CONCRETE_POWDER
+        amount: 1
+        display-name: "&fLight Gray Concrete Powder"
+        buy-price: "6.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      cyan_concrete_powder:
+        material: CYAN_CONCRETE_POWDER
+        amount: 1
+        display-name: "&fCyan Concrete Powder"
+        buy-price: "6.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      purple_concrete_powder:
+        material: PURPLE_CONCRETE_POWDER
+        amount: 1
+        display-name: "&fPurple Concrete Powder"
+        buy-price: "6.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      blue_concrete_powder:
+        material: BLUE_CONCRETE_POWDER
+        amount: 1
+        display-name: "&fBlue Concrete Powder"
+        buy-price: "6.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      brown_concrete_powder:
+        material: BROWN_CONCRETE_POWDER
+        amount: 1
+        display-name: "&fBrown Concrete Powder"
+        buy-price: "6.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      green_concrete_powder:
+        material: GREEN_CONCRETE_POWDER
+        amount: 1
+        display-name: "&fGreen Concrete Powder"
+        buy-price: "6.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      red_concrete_powder:
+        material: RED_CONCRETE_POWDER
+        amount: 1
+        display-name: "&fRed Concrete Powder"
+        buy-price: "6.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      black_concrete_powder:
+        material: BLACK_CONCRETE_POWDER
+        amount: 1
+        display-name: "&fBlack Concrete Powder"
+        buy-price: "6.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      white_concrete:
+        material: WHITE_CONCRETE
+        amount: 1
+        display-name: "&fWhite Concrete"
+        buy-price: "8.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      orange_concrete:
+        material: ORANGE_CONCRETE
+        amount: 1
+        display-name: "&fOrange Concrete"
+        buy-price: "8.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      magenta_concrete:
+        material: MAGENTA_CONCRETE
+        amount: 1
+        display-name: "&fMagenta Concrete"
+        buy-price: "8.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      light_blue_concrete:
+        material: LIGHT_BLUE_CONCRETE
+        amount: 1
+        display-name: "&fLight Blue Concrete"
+        buy-price: "8.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      yellow_concrete:
+        material: YELLOW_CONCRETE
+        amount: 1
+        display-name: "&fYellow Concrete"
+        buy-price: "8.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      lime_concrete:
+        material: LIME_CONCRETE
+        amount: 1
+        display-name: "&fLime Concrete"
+        buy-price: "8.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      pink_concrete:
+        material: PINK_CONCRETE
+        amount: 1
+        display-name: "&fPink Concrete"
+        buy-price: "8.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      gray_concrete:
+        material: GRAY_CONCRETE
+        amount: 1
+        display-name: "&fGray Concrete"
+        buy-price: "8.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      light_gray_concrete:
+        material: LIGHT_GRAY_CONCRETE
+        amount: 1
+        display-name: "&fLight Gray Concrete"
+        buy-price: "8.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      cyan_concrete:
+        material: CYAN_CONCRETE
+        amount: 1
+        display-name: "&fCyan Concrete"
+        buy-price: "8.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      purple_concrete:
+        material: PURPLE_CONCRETE
+        amount: 1
+        display-name: "&fPurple Concrete"
+        buy-price: "8.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      blue_concrete:
+        material: BLUE_CONCRETE
+        amount: 1
+        display-name: "&fBlue Concrete"
+        buy-price: "8.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      brown_concrete:
+        material: BROWN_CONCRETE
+        amount: 1
+        display-name: "&fBrown Concrete"
+        buy-price: "8.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      green_concrete:
+        material: GREEN_CONCRETE
+        amount: 1
+        display-name: "&fGreen Concrete"
+        buy-price: "8.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      red_concrete:
+        material: RED_CONCRETE
+        amount: 1
+        display-name: "&fRed Concrete"
+        buy-price: "8.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      black_concrete:
+        material: BLACK_CONCRETE
+        amount: 1
+        display-name: "&fBlack Concrete"
+        buy-price: "8.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      white_wool:
+        material: WHITE_WOOL
+        amount: 1
+        display-name: "&fWhite Wool"
+        buy-price: "8.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      orange_wool:
+        material: ORANGE_WOOL
+        amount: 1
+        display-name: "&fOrange Wool"
+        buy-price: "8.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      magenta_wool:
+        material: MAGENTA_WOOL
+        amount: 1
+        display-name: "&fMagenta Wool"
+        buy-price: "8.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      light_blue_wool:
+        material: LIGHT_BLUE_WOOL
+        amount: 1
+        display-name: "&fLight Blue Wool"
+        buy-price: "8.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      yellow_wool:
+        material: YELLOW_WOOL
+        amount: 1
+        display-name: "&fYellow Wool"
+        buy-price: "8.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      lime_wool:
+        material: LIME_WOOL
+        amount: 1
+        display-name: "&fLime Wool"
+        buy-price: "8.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      pink_wool:
+        material: PINK_WOOL
+        amount: 1
+        display-name: "&fPink Wool"
+        buy-price: "8.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      gray_wool:
+        material: GRAY_WOOL
+        amount: 1
+        display-name: "&fGray Wool"
+        buy-price: "8.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      light_gray_wool:
+        material: LIGHT_GRAY_WOOL
+        amount: 1
+        display-name: "&fLight Gray Wool"
+        buy-price: "8.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      cyan_wool:
+        material: CYAN_WOOL
+        amount: 1
+        display-name: "&fCyan Wool"
+        buy-price: "8.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      purple_wool:
+        material: PURPLE_WOOL
+        amount: 1
+        display-name: "&fPurple Wool"
+        buy-price: "8.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      blue_wool:
+        material: BLUE_WOOL
+        amount: 1
+        display-name: "&fBlue Wool"
+        buy-price: "8.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      brown_wool:
+        material: BROWN_WOOL
+        amount: 1
+        display-name: "&fBrown Wool"
+        buy-price: "8.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      green_wool:
+        material: GREEN_WOOL
+        amount: 1
+        display-name: "&fGreen Wool"
+        buy-price: "8.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      red_wool:
+        material: RED_WOOL
+        amount: 1
+        display-name: "&fRed Wool"
+        buy-price: "8.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      black_wool:
+        material: BLACK_WOOL
+        amount: 1
+        display-name: "&fBlack Wool"
+        buy-price: "8.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      moss_block:
+        material: MOSS_BLOCK
+        amount: 1
+        display-name: "&fMoss Block"
+        buy-price: "40.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      pale_moss_block:
+        material: PALE_MOSS_BLOCK
+        amount: 1
+        display-name: "&fPale Moss Block"
+        buy-price: "12.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      dripstone_block:
+        material: DRIPSTONE_BLOCK
+        amount: 1
+        display-name: "&fDripstone Block"
+        buy-price: "50.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      calcite:
+        material: CALCITE
+        amount: 1
+        display-name: "&fCalcite"
+        buy-price: "12.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      prismarine:
+        material: PRISMARINE
+        amount: 1
+        display-name: "&fPrismarine"
+        buy-price: "30.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      prismarine_bricks:
+        material: PRISMARINE_BRICKS
+        amount: 1
+        display-name: "&fPrismarine Bricks"
+        buy-price: "40.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      dark_prismarine:
+        material: DARK_PRISMARINE
+        amount: 1
+        display-name: "&fDark Prismarine"
+        buy-price: "50.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      sea_lantern:
+        material: SEA_LANTERN
+        amount: 1
+        display-name: "&fSea Lantern"
+        buy-price: "200.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      quartz_block:
+        material: QUARTZ_BLOCK
+        amount: 1
+        display-name: "&fBlock of Quartz"
+        buy-price: "45.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      quartz_pillar:
+        material: QUARTZ_PILLAR
+        amount: 1
+        display-name: "&fQuartz Pillar"
+        buy-price: "48.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      chiseled_quartz_block:
+        material: CHISELED_QUARTZ_BLOCK
+        amount: 1
+        display-name: "&fChiseled Quartz Block"
+        buy-price: "48.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      quartz_bricks:
+        material: QUARTZ_BRICKS
+        amount: 1
+        display-name: "&fQuartz Bricks"
+        buy-price: "48.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      amethyst_block:
+        material: AMETHYST_BLOCK
+        amount: 1
+        display-name: "&fBlock of Amethyst"
+        buy-price: "40.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      resin_bricks:
+        material: RESIN_BRICKS
+        amount: 1
+        display-name: "&fResin Bricks"
+        buy-price: "200.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      chiseled_resin_bricks:
+        material: CHISELED_RESIN_BRICKS
+        amount: 1
+        display-name: "&fChiseled Resin Bricks"
+        buy-price: "200.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      shroomlight:
+        material: SHROOMLIGHT
+        amount: 1
+        display-name: "&fShroomlight"
+        buy-price: "50.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      ochre_froglight:
+        material: OCHRE_FROGLIGHT
+        amount: 1
+        display-name: "&fOchre Froglight"
+        buy-price: "1000.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      verdant_froglight:
+        material: VERDANT_FROGLIGHT
+        amount: 1
+        display-name: "&fVerdant Froglight"
+        buy-price: "1000.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+      pearlescent_froglight:
+        material: PEARLESCENT_FROGLIGHT
+        amount: 1
+        display-name: "&fPearlescent Froglight"
+        buy-price: "1000.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+        
+  npc_shop2:
+    title: "&0&lSklep surowców"
+    size: 54
+    placement: AUTO
+    items:
+      coal:
+        material: COAL
+        amount: 1
+        display-name: "&fWęgiel"
+        buy-price: "20.00"
+        sell-price: "0.40"
+        buy-enabled: true
+        sell-enabled: true
+        sell-match: PLAIN_MATERIAL
+      copper_ingot:
+        material: COPPER_INGOT
+        amount: 1
+        display-name: "&fMiedź"
+        buy-price: "5.00"
+        sell-price: "0.10"
+        buy-enabled: true
+        sell-enabled: true
+        sell-match: PLAIN_MATERIAL
+      iron_ingot:
+        material: IRON_INGOT
+        amount: 1
+        display-name: "&fIron"
+        buy-price: "65.00"
+        sell-price: "1.30"
+        buy-enabled: true
+        sell-enabled: true
+        sell-match: PLAIN_MATERIAL
+      gold_ingot:
+        material: GOLD_INGOT
+        amount: 1
+        display-name: "&fGold"
+        buy-price: "85.00"
+        sell-price: "1.70"
+        buy-enabled: true
+        sell-enabled: true
+        sell-match: PLAIN_MATERIAL
+      emerald:
+        material: EMERALD
+        amount: 1
+        display-name: "&fEmerald"
+        buy-price: "210.00"
+        sell-price: "4.20"
+        buy-enabled: true
+        sell-enabled: true
+        sell-match: PLAIN_MATERIAL
+      lapis_lazuli:
+        material: LAPIS_LAZULI
+        amount: 1
+        display-name: "&fLapis"
+        buy-price: "3.00"
+        sell-price: "0.06"
+        buy-enabled: true
+        sell-enabled: true
+        sell-match: PLAIN_MATERIAL
+      diamond:
+        material: DIAMOND
+        amount: 1
+        display-name: "&fDiament"
+        buy-price: "200.00"
+        sell-price: "4.00"
+        buy-enabled: true
+        sell-enabled: true
+        sell-match: PLAIN_MATERIAL
+      ancient_debris:
+        material: ANCIENT_DEBRIS
+        amount: 1
+        display-name: "&fAncient Debris"
+        buy-price: "1250.00"
+        sell-price: "25.00"
+        buy-enabled: true
+        sell-enabled: true
+        sell-match: PLAIN_MATERIAL
+      quartz:
+        material: QUARTZ
+        amount: 1
+        display-name: "&fKwarc"
+        buy-price: "5.00"
+        sell-price: "0.10"
+        buy-enabled: true
+        sell-enabled: true
+        sell-match: PLAIN_MATERIAL
+      amethyst_shard:
+        material: AMETHYST_SHARD
+        amount: 1
+        display-name: "&fAmetyst Shard"
+        buy-price: "9.00"
+        sell-price: "0.18"
+        buy-enabled: true
+        sell-enabled: true
+        sell-match: PLAIN_MATERIAL
+      flint:
+        material: FLINT
+        amount: 1
+        display-name: "&fFlint"
+        buy-price: "15.00"
+        sell-price: "0.30"
+        buy-enabled: true
+        sell-enabled: true
+        sell-match: PLAIN_MATERIAL
+      wheat:
+        material: WHEAT
+        amount: 1
+        display-name: "&fPszenica"
+        buy-price: "2.50"
+        sell-price: "0.05"
+        buy-enabled: true
+        sell-enabled: true
+        sell-match: PLAIN_MATERIAL
+      bone:
+        material: BONE
+        amount: 1
+        display-name: "&fKość"
+        buy-price: "19.00"
+        sell-price: "0.38"
+        buy-enabled: true
+        sell-enabled: true
+        sell-match: PLAIN_MATERIAL
+      string:
+        material: STRING
+        amount: 1
+        display-name: "&fNić"
+        buy-price: "16.50"
+        sell-price: "0.33"
+        buy-enabled: true
+        sell-enabled: true
+        sell-match: PLAIN_MATERIAL
+      feather:
+        material: FEATHER
+        amount: 1
+        display-name: "&fPióro"
+        buy-price: "100.00"
+        sell-price: "2.00"
+        buy-enabled: true
+        sell-enabled: true
+        sell-match: PLAIN_MATERIAL
+      leather:
+        material: LEATHER
+        amount: 1
+        display-name: "&fSkóra"
+        buy-price: "120.00"
+        sell-price: "2.40"
+        buy-enabled: true
+        sell-enabled: true
+        sell-match: PLAIN_MATERIAL
+      rabbit_hide:
+        material: RABBIT_HIDE
+        amount: 1
+        display-name: "&fSkóra zająca"
+        buy-price: "195.00"
+        sell-price: "3.90"
+        buy-enabled: true
+        sell-enabled: true
+        sell-match: PLAIN_MATERIAL
+      honeycomb:
+        material: HONEYCOMB
+        amount: 1
+        display-name: "&fHoneycomb"
+        buy-price: "12.50"
+        sell-price: "0.25"
+        buy-enabled: true
+        sell-enabled: true
+        sell-match: PLAIN_MATERIAL
+      black_dye:
+        material: BLACK_DYE
+        amount: 1
+        display-name: "&fCzarny barwnik"
+        buy-price: "600.00"
+        sell-price: "12.00"
+        buy-enabled: true
+        sell-enabled: true
+        sell-match: PLAIN_MATERIAL
+      slime_ball:
+        material: SLIME_BALL
+        amount: 1
+        display-name: "&fSlimeball"
+        buy-price: "10.00"
+        sell-price: "0.20"
+        buy-enabled: true
+        sell-enabled: true
+        sell-match: PLAIN_MATERIAL
+      clay_ball:
+        material: CLAY_BALL
+        amount: 1
+        display-name: "&fGlina"
+        buy-price: "1.50"
+        sell-price: "0.03"
+        buy-enabled: true
+        sell-enabled: true
+        sell-match: PLAIN_MATERIAL
+      blaze_rod:
+        material: BLAZE_ROD
+        amount: 1
+        display-name: "&fBlazerod"
+        buy-price: "150.00"
+        sell-price: "3.00"
+        buy-enabled: true
+        sell-enabled: true
+        sell-match: PLAIN_MATERIAL
+      nether_wart:
+        material: NETHER_WART
+        amount: 1
+        display-name: "&fBrodawka netheru"
+        buy-price: "3.00"
+        sell-price: "0.06"
+        buy-enabled: true
+        sell-enabled: true
+        sell-match: PLAIN_MATERIAL
+      gunpowder:
+        material: GUNPOWDER
+        amount: 1
+        display-name: "&fCzarny proch"
+        buy-price: "17.50"
+        sell-price: "0.35"
+        buy-enabled: true
+        sell-enabled: true
+        sell-match: PLAIN_MATERIAL
+      spider_eye:
+        material: SPIDER_EYE
+        amount: 1
+        display-name: "&fOko pająka"
+        buy-price: "16.50"
+        sell-price: "0.33"
+        buy-enabled: true
+        sell-enabled: true
+        sell-match: PLAIN_MATERIAL
+      magma_cream:
+        material: MAGMA_CREAM
+        amount: 1
+        display-name: "&fMagmacream"
+        buy-price: "15.00"
+        sell-price: "0.30"
+        buy-enabled: true
+        sell-enabled: true
+        sell-match: PLAIN_MATERIAL
+      apple:
+        material: APPLE
+        amount: 1
+        display-name: "&fJabłko"
+        buy-price: "1050.00"
+        sell-price: "21.00"
+        buy-enabled: true
+        sell-enabled: true
+        sell-match: PLAIN_MATERIAL
+      melon_slice:
+        material: MELON_SLICE
+        amount: 1
+        display-name: "&fMelon Slice"
+        buy-price: "1.50"
+        sell-price: "0.03"
+        buy-enabled: true
+        sell-enabled: true
+        sell-match: PLAIN_MATERIAL
+      potato:
+        material: POTATO
+        amount: 1
+        display-name: "&fZiemniak"
+        buy-price: "2.00"
+        sell-price: "0.04"
+        buy-enabled: true
+        sell-enabled: true
+        sell-match: PLAIN_MATERIAL
+      rotten_flesh:
+        material: ROTTEN_FLESH
+        amount: 1
+        display-name: "&fMięso zombie"
+        buy-price: "9.00"
+        sell-price: "0.18"
+        buy-enabled: true
+        sell-enabled: true
+        sell-match: PLAIN_MATERIAL
+
+# ==========================================================
+# PRZYKŁADY (NIEAKTYWNE) — aby użyć, USUŃ znak # z początku linii
+# i przenieś wpisy pod klucz "shops:" powyżej.
+# ==========================================================
+#
+# ----- Przykład MANUAL: pełna kontrola slotów, wiele stron, layout-override -----
+# shops:
+#   kopalnia:
+#     title: "&8Kopalnia"
+#     size: 27
+#     placement: MANUAL          # (można też zapisać w layout.placement)
+#     layout:
+#       navigation:
+#         previous-slot: 18
+#         page-slot: 22
+#         next-slot: 26
+#     items:
+#       coal:
+#         material: COAL
+#         amount: 64
+#         slot: 10               # strona 0
+#         page: 0
+#         display-name: "&8Węgiel"
+#         buy-price: "50.00"
+#         sell-price: "20.00"
+#       gold_ingot:
+#         material: GOLD_INGOT
+#         amount: 8
+#         slot: 16               # strona 0
+#         page: 0
+#         display-name: "&6Sztabka złota"
+#         buy-price: "120.00"
+#         sell-price: "60.00"
+#       iron_ingot:
+#         material: IRON_INGOT
+#         amount: 16
+#         slot: 10               # ta sama liczba slotu, ale strona 1 — OK
+#         page: 1
+#         display-name: "&fSztabka żelaza"
+#         buy-price: "80.00"
+#         sell-price: "40.00"
+#
+# ----- Przykład pełnego nadpisania layoutu (AUTO) -----
+# shops:
+#   własny_sklep:
+#     title: "&8Własny sklep"
+#     size: 54
+#     placement: AUTO
+#     layout:
+#       item-slots: [10, 12, 14, 16, 28, 30, 32, 34]
+#       navigation:
+#         previous-slot: 45
+#         page-slot: 49
+#         next-slot: 53
+#       filler:
+#         material: BLACK_STAINED_GLASS_PANE
+#         name: " "
+#       detail:
+#         preview-slot: 4
+#         selected-info-slot: 13
+#         quantity-slots: [19, 21, 23]
+#         custom-quantity-slot: 25
+#         buy-slot: 38
+#         sell-all-slot: 40
+#         sell-slot: 42
+#         back-slot: 49
+#     items:
+#       emerald:
+#         material: EMERALD
+#         amount: 1
+#         display-name: "&aSzmaragd"
+#         buy-price: "300.00"
+#         sell-price: "150.00"

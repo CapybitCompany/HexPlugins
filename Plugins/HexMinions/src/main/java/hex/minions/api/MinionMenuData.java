@@ -1,5 +1,7 @@
 package hex.minions.api;
 
+import hex.minions.config.TierDefinition;
+
 import java.util.Map;
 import java.util.UUID;
 
@@ -17,14 +19,22 @@ public record MinionMenuData(
         int storageUsed,
         int storageLimit,
         int storagePercent,
-        int actionTimeSeconds,
+        double actionTimeSeconds,
         String state,
         boolean canUpgrade,
         String nextUpgradeRequirementsText,
         int menuSlotHint,
         int storageSlotsUnlocked,
+        int activeBoosterTier,
+        long boosterSecondsRemaining,
+        int boosterDurationSeconds,
+        int boosterItemsQueued,
+        double boosterSpeedBoostPercent,
         String headMaterial,
         Map<String, Long> storage
 ) {
+    public String actionTimeText() {
+        return TierDefinition.formatSeconds(actionTimeSeconds);
+    }
 }
 

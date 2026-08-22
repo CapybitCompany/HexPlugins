@@ -1,0 +1,5503 @@
+version: v1
+board-count: 100
+boards:
+  1:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 3
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 2
+      - slot: 31
+        type: LESS_THAN
+        value: 4
+      - slot: 34
+        type: LESS_THAN
+        value: 5
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 7
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 8
+      - slot: 34
+        type: LESS_THAN
+        value: 9
+      - slot: 28
+        type: GREATER_THAN
+        value: 6
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+  2:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 6
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 7
+      - slot: 34
+        type: LESS_THAN
+        value: 8
+      - slot: 28
+        type: GREATER_THAN
+        value: 5
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 14
+      hints:
+      - slot: 34
+        type: GREATER_THAN
+        value: 11
+      - slot: 28
+        type: GREATER_THAN
+        value: 13
+      - slot: 31
+        type: GREATER_THAN
+        value: 12
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+  3:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 9
+      hints:
+      - slot: 34
+        type: GREATER_THAN
+        value: 7
+      - slot: 28
+        type: GREATER_THAN
+        value: 8
+      - slot: 31
+        type: LESS_THAN
+        value: 10
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 8
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 7
+      - slot: 31
+        type: LESS_THAN
+        value: 9
+      - slot: 34
+        type: LESS_THAN
+        value: 10
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+  4:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 12
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 11
+      - slot: 31
+        type: LESS_THAN
+        value: 13
+      - slot: 34
+        type: GREATER_THAN
+        value: 10
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 2
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 4
+      - slot: 34
+        type: LESS_THAN
+        value: 5
+      - slot: 28
+        type: LESS_THAN
+        value: 3
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+  5:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 2
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 4
+      - slot: 34
+        type: LESS_THAN
+        value: 5
+      - slot: 28
+        type: LESS_THAN
+        value: 3
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 9
+      hints:
+      - slot: 34
+        type: GREATER_THAN
+        value: 7
+      - slot: 28
+        type: GREATER_THAN
+        value: 8
+      - slot: 31
+        type: LESS_THAN
+        value: 10
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+  6:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 5
+      hints:
+      - slot: 34
+        type: LESS_THAN
+        value: 7
+      - slot: 28
+        type: GREATER_THAN
+        value: 4
+      - slot: 31
+        type: LESS_THAN
+        value: 6
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 3
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 2
+      - slot: 31
+        type: LESS_THAN
+        value: 4
+      - slot: 34
+        type: LESS_THAN
+        value: 5
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+  7:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 8
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 7
+      - slot: 31
+        type: LESS_THAN
+        value: 9
+      - slot: 34
+        type: LESS_THAN
+        value: 10
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 10
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 11
+      - slot: 34
+        type: GREATER_THAN
+        value: 8
+      - slot: 28
+        type: GREATER_THAN
+        value: 9
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+  8:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 11
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 12
+      - slot: 34
+        type: GREATER_THAN
+        value: 9
+      - slot: 28
+        type: GREATER_THAN
+        value: 10
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 4
+      hints:
+      - slot: 34
+        type: LESS_THAN
+        value: 6
+      - slot: 28
+        type: GREATER_THAN
+        value: 3
+      - slot: 31
+        type: LESS_THAN
+        value: 5
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+  9:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 14
+      hints:
+      - slot: 34
+        type: GREATER_THAN
+        value: 11
+      - slot: 28
+        type: GREATER_THAN
+        value: 13
+      - slot: 31
+        type: GREATER_THAN
+        value: 12
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 11
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 10
+      - slot: 31
+        type: LESS_THAN
+        value: 12
+      - slot: 34
+        type: GREATER_THAN
+        value: 9
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+  10:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 4
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 3
+      - slot: 31
+        type: LESS_THAN
+        value: 5
+      - slot: 34
+        type: LESS_THAN
+        value: 6
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 5
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 6
+      - slot: 34
+        type: LESS_THAN
+        value: 7
+      - slot: 28
+        type: GREATER_THAN
+        value: 4
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+  11:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 7
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 8
+      - slot: 34
+        type: LESS_THAN
+        value: 9
+      - slot: 28
+        type: GREATER_THAN
+        value: 6
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 12
+      hints:
+      - slot: 34
+        type: GREATER_THAN
+        value: 10
+      - slot: 28
+        type: GREATER_THAN
+        value: 11
+      - slot: 31
+        type: LESS_THAN
+        value: 13
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+  12:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 10
+      hints:
+      - slot: 34
+        type: GREATER_THAN
+        value: 8
+      - slot: 28
+        type: GREATER_THAN
+        value: 9
+      - slot: 31
+        type: LESS_THAN
+        value: 11
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 6
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 5
+      - slot: 31
+        type: LESS_THAN
+        value: 7
+      - slot: 34
+        type: LESS_THAN
+        value: 8
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+  13:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 13
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 12
+      - slot: 31
+        type: LESS_THAN
+        value: 14
+      - slot: 34
+        type: GREATER_THAN
+        value: 11
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 13
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 14
+      - slot: 34
+        type: GREATER_THAN
+        value: 11
+      - slot: 28
+        type: GREATER_THAN
+        value: 12
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+  14:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 3
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 4
+      - slot: 34
+        type: LESS_THAN
+        value: 5
+      - slot: 28
+        type: GREATER_THAN
+        value: 2
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 7
+      hints:
+      - slot: 34
+        type: LESS_THAN
+        value: 9
+      - slot: 28
+        type: GREATER_THAN
+        value: 6
+      - slot: 31
+        type: LESS_THAN
+        value: 8
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+  15:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 6
+      hints:
+      - slot: 34
+        type: LESS_THAN
+        value: 8
+      - slot: 28
+        type: GREATER_THAN
+        value: 5
+      - slot: 31
+        type: LESS_THAN
+        value: 7
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 14
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 13
+      - slot: 31
+        type: GREATER_THAN
+        value: 12
+      - slot: 34
+        type: GREATER_THAN
+        value: 11
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+  16:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 9
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 8
+      - slot: 31
+        type: LESS_THAN
+        value: 10
+      - slot: 34
+        type: GREATER_THAN
+        value: 7
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 8
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 9
+      - slot: 34
+        type: LESS_THAN
+        value: 10
+      - slot: 28
+        type: GREATER_THAN
+        value: 7
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+  17:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 12
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 13
+      - slot: 34
+        type: GREATER_THAN
+        value: 10
+      - slot: 28
+        type: GREATER_THAN
+        value: 11
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 2
+      hints:
+      - slot: 34
+        type: LESS_THAN
+        value: 5
+      - slot: 28
+        type: LESS_THAN
+        value: 3
+      - slot: 31
+        type: LESS_THAN
+        value: 4
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+  18:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 2
+      hints:
+      - slot: 34
+        type: LESS_THAN
+        value: 5
+      - slot: 28
+        type: LESS_THAN
+        value: 3
+      - slot: 31
+        type: LESS_THAN
+        value: 4
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 9
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 8
+      - slot: 31
+        type: LESS_THAN
+        value: 10
+      - slot: 34
+        type: GREATER_THAN
+        value: 7
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+  19:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 5
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 4
+      - slot: 31
+        type: LESS_THAN
+        value: 6
+      - slot: 34
+        type: LESS_THAN
+        value: 7
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 3
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 4
+      - slot: 34
+        type: LESS_THAN
+        value: 5
+      - slot: 28
+        type: GREATER_THAN
+        value: 2
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+  20:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 8
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 9
+      - slot: 34
+        type: LESS_THAN
+        value: 10
+      - slot: 28
+        type: GREATER_THAN
+        value: 7
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 10
+      hints:
+      - slot: 34
+        type: GREATER_THAN
+        value: 8
+      - slot: 28
+        type: GREATER_THAN
+        value: 9
+      - slot: 31
+        type: LESS_THAN
+        value: 11
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+  21:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 11
+      hints:
+      - slot: 34
+        type: GREATER_THAN
+        value: 9
+      - slot: 28
+        type: GREATER_THAN
+        value: 10
+      - slot: 31
+        type: LESS_THAN
+        value: 12
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 4
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 3
+      - slot: 31
+        type: LESS_THAN
+        value: 5
+      - slot: 34
+        type: LESS_THAN
+        value: 6
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+  22:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 14
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 13
+      - slot: 31
+        type: GREATER_THAN
+        value: 12
+      - slot: 34
+        type: GREATER_THAN
+        value: 11
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 11
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 12
+      - slot: 34
+        type: GREATER_THAN
+        value: 9
+      - slot: 28
+        type: GREATER_THAN
+        value: 10
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+  23:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 4
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 5
+      - slot: 34
+        type: LESS_THAN
+        value: 6
+      - slot: 28
+        type: GREATER_THAN
+        value: 3
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 5
+      hints:
+      - slot: 34
+        type: LESS_THAN
+        value: 7
+      - slot: 28
+        type: GREATER_THAN
+        value: 4
+      - slot: 31
+        type: LESS_THAN
+        value: 6
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+  24:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 7
+      hints:
+      - slot: 34
+        type: LESS_THAN
+        value: 9
+      - slot: 28
+        type: GREATER_THAN
+        value: 6
+      - slot: 31
+        type: LESS_THAN
+        value: 8
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 12
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 11
+      - slot: 31
+        type: LESS_THAN
+        value: 13
+      - slot: 34
+        type: GREATER_THAN
+        value: 10
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+  25:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 10
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 9
+      - slot: 31
+        type: LESS_THAN
+        value: 11
+      - slot: 34
+        type: GREATER_THAN
+        value: 8
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 6
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 7
+      - slot: 34
+        type: LESS_THAN
+        value: 8
+      - slot: 28
+        type: GREATER_THAN
+        value: 5
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+  26:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 13
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 14
+      - slot: 34
+        type: GREATER_THAN
+        value: 11
+      - slot: 28
+        type: GREATER_THAN
+        value: 12
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 13
+      hints:
+      - slot: 34
+        type: GREATER_THAN
+        value: 11
+      - slot: 28
+        type: GREATER_THAN
+        value: 12
+      - slot: 31
+        type: LESS_THAN
+        value: 14
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+  27:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 3
+      hints:
+      - slot: 34
+        type: LESS_THAN
+        value: 5
+      - slot: 28
+        type: GREATER_THAN
+        value: 2
+      - slot: 31
+        type: LESS_THAN
+        value: 4
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 7
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 6
+      - slot: 31
+        type: LESS_THAN
+        value: 8
+      - slot: 34
+        type: LESS_THAN
+        value: 9
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+  28:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 6
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 5
+      - slot: 31
+        type: LESS_THAN
+        value: 7
+      - slot: 34
+        type: LESS_THAN
+        value: 8
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 14
+      hints:
+      - slot: 31
+        type: GREATER_THAN
+        value: 12
+      - slot: 34
+        type: GREATER_THAN
+        value: 11
+      - slot: 28
+        type: GREATER_THAN
+        value: 13
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+  29:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 9
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 10
+      - slot: 34
+        type: GREATER_THAN
+        value: 7
+      - slot: 28
+        type: GREATER_THAN
+        value: 8
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 8
+      hints:
+      - slot: 34
+        type: LESS_THAN
+        value: 10
+      - slot: 28
+        type: GREATER_THAN
+        value: 7
+      - slot: 31
+        type: LESS_THAN
+        value: 9
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+  30:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 12
+      hints:
+      - slot: 34
+        type: GREATER_THAN
+        value: 10
+      - slot: 28
+        type: GREATER_THAN
+        value: 11
+      - slot: 31
+        type: LESS_THAN
+        value: 13
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 2
+      hints:
+      - slot: 28
+        type: LESS_THAN
+        value: 3
+      - slot: 31
+        type: LESS_THAN
+        value: 4
+      - slot: 34
+        type: LESS_THAN
+        value: 5
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+  31:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 2
+      hints:
+      - slot: 28
+        type: LESS_THAN
+        value: 3
+      - slot: 31
+        type: LESS_THAN
+        value: 4
+      - slot: 34
+        type: LESS_THAN
+        value: 5
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 9
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 10
+      - slot: 34
+        type: GREATER_THAN
+        value: 7
+      - slot: 28
+        type: GREATER_THAN
+        value: 8
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+  32:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 5
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 6
+      - slot: 34
+        type: LESS_THAN
+        value: 7
+      - slot: 28
+        type: GREATER_THAN
+        value: 4
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 3
+      hints:
+      - slot: 34
+        type: LESS_THAN
+        value: 5
+      - slot: 28
+        type: GREATER_THAN
+        value: 2
+      - slot: 31
+        type: LESS_THAN
+        value: 4
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+  33:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 8
+      hints:
+      - slot: 34
+        type: LESS_THAN
+        value: 10
+      - slot: 28
+        type: GREATER_THAN
+        value: 7
+      - slot: 31
+        type: LESS_THAN
+        value: 9
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 10
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 9
+      - slot: 31
+        type: LESS_THAN
+        value: 11
+      - slot: 34
+        type: GREATER_THAN
+        value: 8
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+  34:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 11
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 10
+      - slot: 31
+        type: LESS_THAN
+        value: 12
+      - slot: 34
+        type: GREATER_THAN
+        value: 9
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 4
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 5
+      - slot: 34
+        type: LESS_THAN
+        value: 6
+      - slot: 28
+        type: GREATER_THAN
+        value: 3
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+  35:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 14
+      hints:
+      - slot: 31
+        type: GREATER_THAN
+        value: 12
+      - slot: 34
+        type: GREATER_THAN
+        value: 11
+      - slot: 28
+        type: GREATER_THAN
+        value: 13
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 11
+      hints:
+      - slot: 34
+        type: GREATER_THAN
+        value: 9
+      - slot: 28
+        type: GREATER_THAN
+        value: 10
+      - slot: 31
+        type: LESS_THAN
+        value: 12
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+  36:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 4
+      hints:
+      - slot: 34
+        type: LESS_THAN
+        value: 6
+      - slot: 28
+        type: GREATER_THAN
+        value: 3
+      - slot: 31
+        type: LESS_THAN
+        value: 5
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 5
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 4
+      - slot: 31
+        type: LESS_THAN
+        value: 6
+      - slot: 34
+        type: LESS_THAN
+        value: 7
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+  37:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 7
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 6
+      - slot: 31
+        type: LESS_THAN
+        value: 8
+      - slot: 34
+        type: LESS_THAN
+        value: 9
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 12
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 13
+      - slot: 34
+        type: GREATER_THAN
+        value: 10
+      - slot: 28
+        type: GREATER_THAN
+        value: 11
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+  38:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 10
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 11
+      - slot: 34
+        type: GREATER_THAN
+        value: 8
+      - slot: 28
+        type: GREATER_THAN
+        value: 9
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 6
+      hints:
+      - slot: 34
+        type: LESS_THAN
+        value: 8
+      - slot: 28
+        type: GREATER_THAN
+        value: 5
+      - slot: 31
+        type: LESS_THAN
+        value: 7
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+  39:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 13
+      hints:
+      - slot: 34
+        type: GREATER_THAN
+        value: 11
+      - slot: 28
+        type: GREATER_THAN
+        value: 12
+      - slot: 31
+        type: LESS_THAN
+        value: 14
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 13
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 12
+      - slot: 31
+        type: LESS_THAN
+        value: 14
+      - slot: 34
+        type: GREATER_THAN
+        value: 11
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+  40:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 3
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 2
+      - slot: 31
+        type: LESS_THAN
+        value: 4
+      - slot: 34
+        type: LESS_THAN
+        value: 5
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 7
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 8
+      - slot: 34
+        type: LESS_THAN
+        value: 9
+      - slot: 28
+        type: GREATER_THAN
+        value: 6
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+  41:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 6
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 7
+      - slot: 34
+        type: LESS_THAN
+        value: 8
+      - slot: 28
+        type: GREATER_THAN
+        value: 5
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 14
+      hints:
+      - slot: 34
+        type: GREATER_THAN
+        value: 11
+      - slot: 28
+        type: GREATER_THAN
+        value: 13
+      - slot: 31
+        type: GREATER_THAN
+        value: 12
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+  42:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 9
+      hints:
+      - slot: 34
+        type: GREATER_THAN
+        value: 7
+      - slot: 28
+        type: GREATER_THAN
+        value: 8
+      - slot: 31
+        type: LESS_THAN
+        value: 10
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 8
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 7
+      - slot: 31
+        type: LESS_THAN
+        value: 9
+      - slot: 34
+        type: LESS_THAN
+        value: 10
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+  43:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 12
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 11
+      - slot: 31
+        type: LESS_THAN
+        value: 13
+      - slot: 34
+        type: GREATER_THAN
+        value: 10
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 2
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 4
+      - slot: 34
+        type: LESS_THAN
+        value: 5
+      - slot: 28
+        type: LESS_THAN
+        value: 3
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+  44:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 2
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 4
+      - slot: 34
+        type: LESS_THAN
+        value: 5
+      - slot: 28
+        type: LESS_THAN
+        value: 3
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 9
+      hints:
+      - slot: 34
+        type: GREATER_THAN
+        value: 7
+      - slot: 28
+        type: GREATER_THAN
+        value: 8
+      - slot: 31
+        type: LESS_THAN
+        value: 10
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+  45:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 5
+      hints:
+      - slot: 34
+        type: LESS_THAN
+        value: 7
+      - slot: 28
+        type: GREATER_THAN
+        value: 4
+      - slot: 31
+        type: LESS_THAN
+        value: 6
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 3
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 2
+      - slot: 31
+        type: LESS_THAN
+        value: 4
+      - slot: 34
+        type: LESS_THAN
+        value: 5
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+  46:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 8
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 7
+      - slot: 31
+        type: LESS_THAN
+        value: 9
+      - slot: 34
+        type: LESS_THAN
+        value: 10
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 10
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 11
+      - slot: 34
+        type: GREATER_THAN
+        value: 8
+      - slot: 28
+        type: GREATER_THAN
+        value: 9
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+  47:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 11
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 12
+      - slot: 34
+        type: GREATER_THAN
+        value: 9
+      - slot: 28
+        type: GREATER_THAN
+        value: 10
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 4
+      hints:
+      - slot: 34
+        type: LESS_THAN
+        value: 6
+      - slot: 28
+        type: GREATER_THAN
+        value: 3
+      - slot: 31
+        type: LESS_THAN
+        value: 5
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+  48:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 14
+      hints:
+      - slot: 34
+        type: GREATER_THAN
+        value: 11
+      - slot: 28
+        type: GREATER_THAN
+        value: 13
+      - slot: 31
+        type: GREATER_THAN
+        value: 12
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 11
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 10
+      - slot: 31
+        type: LESS_THAN
+        value: 12
+      - slot: 34
+        type: GREATER_THAN
+        value: 9
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+  49:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 4
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 3
+      - slot: 31
+        type: LESS_THAN
+        value: 5
+      - slot: 34
+        type: LESS_THAN
+        value: 6
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 5
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 6
+      - slot: 34
+        type: LESS_THAN
+        value: 7
+      - slot: 28
+        type: GREATER_THAN
+        value: 4
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+  50:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 7
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 8
+      - slot: 34
+        type: LESS_THAN
+        value: 9
+      - slot: 28
+        type: GREATER_THAN
+        value: 6
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 12
+      hints:
+      - slot: 34
+        type: GREATER_THAN
+        value: 10
+      - slot: 28
+        type: GREATER_THAN
+        value: 11
+      - slot: 31
+        type: LESS_THAN
+        value: 13
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+  51:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 10
+      hints:
+      - slot: 34
+        type: GREATER_THAN
+        value: 8
+      - slot: 28
+        type: GREATER_THAN
+        value: 9
+      - slot: 31
+        type: LESS_THAN
+        value: 11
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 6
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 5
+      - slot: 31
+        type: LESS_THAN
+        value: 7
+      - slot: 34
+        type: LESS_THAN
+        value: 8
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+  52:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 13
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 12
+      - slot: 31
+        type: LESS_THAN
+        value: 14
+      - slot: 34
+        type: GREATER_THAN
+        value: 11
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 13
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 14
+      - slot: 34
+        type: GREATER_THAN
+        value: 11
+      - slot: 28
+        type: GREATER_THAN
+        value: 12
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+  53:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 3
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 4
+      - slot: 34
+        type: LESS_THAN
+        value: 5
+      - slot: 28
+        type: GREATER_THAN
+        value: 2
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 7
+      hints:
+      - slot: 34
+        type: LESS_THAN
+        value: 9
+      - slot: 28
+        type: GREATER_THAN
+        value: 6
+      - slot: 31
+        type: LESS_THAN
+        value: 8
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+  54:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 6
+      hints:
+      - slot: 34
+        type: LESS_THAN
+        value: 8
+      - slot: 28
+        type: GREATER_THAN
+        value: 5
+      - slot: 31
+        type: LESS_THAN
+        value: 7
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 14
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 13
+      - slot: 31
+        type: GREATER_THAN
+        value: 12
+      - slot: 34
+        type: GREATER_THAN
+        value: 11
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+  55:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 9
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 8
+      - slot: 31
+        type: LESS_THAN
+        value: 10
+      - slot: 34
+        type: GREATER_THAN
+        value: 7
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 8
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 9
+      - slot: 34
+        type: LESS_THAN
+        value: 10
+      - slot: 28
+        type: GREATER_THAN
+        value: 7
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+  56:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 12
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 13
+      - slot: 34
+        type: GREATER_THAN
+        value: 10
+      - slot: 28
+        type: GREATER_THAN
+        value: 11
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 2
+      hints:
+      - slot: 34
+        type: LESS_THAN
+        value: 5
+      - slot: 28
+        type: LESS_THAN
+        value: 3
+      - slot: 31
+        type: LESS_THAN
+        value: 4
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+  57:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 2
+      hints:
+      - slot: 34
+        type: LESS_THAN
+        value: 5
+      - slot: 28
+        type: LESS_THAN
+        value: 3
+      - slot: 31
+        type: LESS_THAN
+        value: 4
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 9
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 8
+      - slot: 31
+        type: LESS_THAN
+        value: 10
+      - slot: 34
+        type: GREATER_THAN
+        value: 7
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+  58:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 5
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 4
+      - slot: 31
+        type: LESS_THAN
+        value: 6
+      - slot: 34
+        type: LESS_THAN
+        value: 7
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 3
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 4
+      - slot: 34
+        type: LESS_THAN
+        value: 5
+      - slot: 28
+        type: GREATER_THAN
+        value: 2
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+  59:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 8
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 9
+      - slot: 34
+        type: LESS_THAN
+        value: 10
+      - slot: 28
+        type: GREATER_THAN
+        value: 7
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 10
+      hints:
+      - slot: 34
+        type: GREATER_THAN
+        value: 8
+      - slot: 28
+        type: GREATER_THAN
+        value: 9
+      - slot: 31
+        type: LESS_THAN
+        value: 11
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+  60:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 11
+      hints:
+      - slot: 34
+        type: GREATER_THAN
+        value: 9
+      - slot: 28
+        type: GREATER_THAN
+        value: 10
+      - slot: 31
+        type: LESS_THAN
+        value: 12
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 4
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 3
+      - slot: 31
+        type: LESS_THAN
+        value: 5
+      - slot: 34
+        type: LESS_THAN
+        value: 6
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+  61:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 14
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 13
+      - slot: 31
+        type: GREATER_THAN
+        value: 12
+      - slot: 34
+        type: GREATER_THAN
+        value: 11
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 11
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 12
+      - slot: 34
+        type: GREATER_THAN
+        value: 9
+      - slot: 28
+        type: GREATER_THAN
+        value: 10
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+  62:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 4
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 5
+      - slot: 34
+        type: LESS_THAN
+        value: 6
+      - slot: 28
+        type: GREATER_THAN
+        value: 3
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 5
+      hints:
+      - slot: 34
+        type: LESS_THAN
+        value: 7
+      - slot: 28
+        type: GREATER_THAN
+        value: 4
+      - slot: 31
+        type: LESS_THAN
+        value: 6
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+  63:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 7
+      hints:
+      - slot: 34
+        type: LESS_THAN
+        value: 9
+      - slot: 28
+        type: GREATER_THAN
+        value: 6
+      - slot: 31
+        type: LESS_THAN
+        value: 8
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 12
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 11
+      - slot: 31
+        type: LESS_THAN
+        value: 13
+      - slot: 34
+        type: GREATER_THAN
+        value: 10
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+  64:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 10
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 9
+      - slot: 31
+        type: LESS_THAN
+        value: 11
+      - slot: 34
+        type: GREATER_THAN
+        value: 8
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 6
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 7
+      - slot: 34
+        type: LESS_THAN
+        value: 8
+      - slot: 28
+        type: GREATER_THAN
+        value: 5
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+  65:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 13
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 14
+      - slot: 34
+        type: GREATER_THAN
+        value: 11
+      - slot: 28
+        type: GREATER_THAN
+        value: 12
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 13
+      hints:
+      - slot: 34
+        type: GREATER_THAN
+        value: 11
+      - slot: 28
+        type: GREATER_THAN
+        value: 12
+      - slot: 31
+        type: LESS_THAN
+        value: 14
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+  66:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 3
+      hints:
+      - slot: 34
+        type: LESS_THAN
+        value: 5
+      - slot: 28
+        type: GREATER_THAN
+        value: 2
+      - slot: 31
+        type: LESS_THAN
+        value: 4
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 7
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 6
+      - slot: 31
+        type: LESS_THAN
+        value: 8
+      - slot: 34
+        type: LESS_THAN
+        value: 9
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+  67:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 6
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 5
+      - slot: 31
+        type: LESS_THAN
+        value: 7
+      - slot: 34
+        type: LESS_THAN
+        value: 8
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 14
+      hints:
+      - slot: 31
+        type: GREATER_THAN
+        value: 12
+      - slot: 34
+        type: GREATER_THAN
+        value: 11
+      - slot: 28
+        type: GREATER_THAN
+        value: 13
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+  68:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 9
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 10
+      - slot: 34
+        type: GREATER_THAN
+        value: 7
+      - slot: 28
+        type: GREATER_THAN
+        value: 8
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 8
+      hints:
+      - slot: 34
+        type: LESS_THAN
+        value: 10
+      - slot: 28
+        type: GREATER_THAN
+        value: 7
+      - slot: 31
+        type: LESS_THAN
+        value: 9
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+  69:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 12
+      hints:
+      - slot: 34
+        type: GREATER_THAN
+        value: 10
+      - slot: 28
+        type: GREATER_THAN
+        value: 11
+      - slot: 31
+        type: LESS_THAN
+        value: 13
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 2
+      hints:
+      - slot: 28
+        type: LESS_THAN
+        value: 3
+      - slot: 31
+        type: LESS_THAN
+        value: 4
+      - slot: 34
+        type: LESS_THAN
+        value: 5
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+  70:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 2
+      hints:
+      - slot: 28
+        type: LESS_THAN
+        value: 3
+      - slot: 31
+        type: LESS_THAN
+        value: 4
+      - slot: 34
+        type: LESS_THAN
+        value: 5
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 9
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 10
+      - slot: 34
+        type: GREATER_THAN
+        value: 7
+      - slot: 28
+        type: GREATER_THAN
+        value: 8
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+  71:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 5
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 6
+      - slot: 34
+        type: LESS_THAN
+        value: 7
+      - slot: 28
+        type: GREATER_THAN
+        value: 4
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 3
+      hints:
+      - slot: 34
+        type: LESS_THAN
+        value: 5
+      - slot: 28
+        type: GREATER_THAN
+        value: 2
+      - slot: 31
+        type: LESS_THAN
+        value: 4
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+  72:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 8
+      hints:
+      - slot: 34
+        type: LESS_THAN
+        value: 10
+      - slot: 28
+        type: GREATER_THAN
+        value: 7
+      - slot: 31
+        type: LESS_THAN
+        value: 9
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 10
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 9
+      - slot: 31
+        type: LESS_THAN
+        value: 11
+      - slot: 34
+        type: GREATER_THAN
+        value: 8
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+  73:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 11
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 10
+      - slot: 31
+        type: LESS_THAN
+        value: 12
+      - slot: 34
+        type: GREATER_THAN
+        value: 9
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 4
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 5
+      - slot: 34
+        type: LESS_THAN
+        value: 6
+      - slot: 28
+        type: GREATER_THAN
+        value: 3
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+  74:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 14
+      hints:
+      - slot: 31
+        type: GREATER_THAN
+        value: 12
+      - slot: 34
+        type: GREATER_THAN
+        value: 11
+      - slot: 28
+        type: GREATER_THAN
+        value: 13
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 11
+      hints:
+      - slot: 34
+        type: GREATER_THAN
+        value: 9
+      - slot: 28
+        type: GREATER_THAN
+        value: 10
+      - slot: 31
+        type: LESS_THAN
+        value: 12
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+  75:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 4
+      hints:
+      - slot: 34
+        type: LESS_THAN
+        value: 6
+      - slot: 28
+        type: GREATER_THAN
+        value: 3
+      - slot: 31
+        type: LESS_THAN
+        value: 5
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 5
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 4
+      - slot: 31
+        type: LESS_THAN
+        value: 6
+      - slot: 34
+        type: LESS_THAN
+        value: 7
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+  76:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 7
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 6
+      - slot: 31
+        type: LESS_THAN
+        value: 8
+      - slot: 34
+        type: LESS_THAN
+        value: 9
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 12
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 13
+      - slot: 34
+        type: GREATER_THAN
+        value: 10
+      - slot: 28
+        type: GREATER_THAN
+        value: 11
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+  77:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 10
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 11
+      - slot: 34
+        type: GREATER_THAN
+        value: 8
+      - slot: 28
+        type: GREATER_THAN
+        value: 9
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 6
+      hints:
+      - slot: 34
+        type: LESS_THAN
+        value: 8
+      - slot: 28
+        type: GREATER_THAN
+        value: 5
+      - slot: 31
+        type: LESS_THAN
+        value: 7
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+  78:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 13
+      hints:
+      - slot: 34
+        type: GREATER_THAN
+        value: 11
+      - slot: 28
+        type: GREATER_THAN
+        value: 12
+      - slot: 31
+        type: LESS_THAN
+        value: 14
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 13
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 12
+      - slot: 31
+        type: LESS_THAN
+        value: 14
+      - slot: 34
+        type: GREATER_THAN
+        value: 11
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+  79:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 3
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 2
+      - slot: 31
+        type: LESS_THAN
+        value: 4
+      - slot: 34
+        type: LESS_THAN
+        value: 5
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 7
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 8
+      - slot: 34
+        type: LESS_THAN
+        value: 9
+      - slot: 28
+        type: GREATER_THAN
+        value: 6
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+  80:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 6
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 7
+      - slot: 34
+        type: LESS_THAN
+        value: 8
+      - slot: 28
+        type: GREATER_THAN
+        value: 5
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 14
+      hints:
+      - slot: 34
+        type: GREATER_THAN
+        value: 11
+      - slot: 28
+        type: GREATER_THAN
+        value: 13
+      - slot: 31
+        type: GREATER_THAN
+        value: 12
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+  81:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 9
+      hints:
+      - slot: 34
+        type: GREATER_THAN
+        value: 7
+      - slot: 28
+        type: GREATER_THAN
+        value: 8
+      - slot: 31
+        type: LESS_THAN
+        value: 10
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 8
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 7
+      - slot: 31
+        type: LESS_THAN
+        value: 9
+      - slot: 34
+        type: LESS_THAN
+        value: 10
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+  82:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 12
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 11
+      - slot: 31
+        type: LESS_THAN
+        value: 13
+      - slot: 34
+        type: GREATER_THAN
+        value: 10
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 2
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 4
+      - slot: 34
+        type: LESS_THAN
+        value: 5
+      - slot: 28
+        type: LESS_THAN
+        value: 3
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+  83:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 2
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 4
+      - slot: 34
+        type: LESS_THAN
+        value: 5
+      - slot: 28
+        type: LESS_THAN
+        value: 3
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 9
+      hints:
+      - slot: 34
+        type: GREATER_THAN
+        value: 7
+      - slot: 28
+        type: GREATER_THAN
+        value: 8
+      - slot: 31
+        type: LESS_THAN
+        value: 10
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+  84:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 5
+      hints:
+      - slot: 34
+        type: LESS_THAN
+        value: 7
+      - slot: 28
+        type: GREATER_THAN
+        value: 4
+      - slot: 31
+        type: LESS_THAN
+        value: 6
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 3
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 2
+      - slot: 31
+        type: LESS_THAN
+        value: 4
+      - slot: 34
+        type: LESS_THAN
+        value: 5
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+  85:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 8
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 7
+      - slot: 31
+        type: LESS_THAN
+        value: 9
+      - slot: 34
+        type: LESS_THAN
+        value: 10
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 10
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 11
+      - slot: 34
+        type: GREATER_THAN
+        value: 8
+      - slot: 28
+        type: GREATER_THAN
+        value: 9
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+  86:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 11
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 12
+      - slot: 34
+        type: GREATER_THAN
+        value: 9
+      - slot: 28
+        type: GREATER_THAN
+        value: 10
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 4
+      hints:
+      - slot: 34
+        type: LESS_THAN
+        value: 6
+      - slot: 28
+        type: GREATER_THAN
+        value: 3
+      - slot: 31
+        type: LESS_THAN
+        value: 5
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+  87:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 14
+      hints:
+      - slot: 34
+        type: GREATER_THAN
+        value: 11
+      - slot: 28
+        type: GREATER_THAN
+        value: 13
+      - slot: 31
+        type: GREATER_THAN
+        value: 12
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 11
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 10
+      - slot: 31
+        type: LESS_THAN
+        value: 12
+      - slot: 34
+        type: GREATER_THAN
+        value: 9
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+  88:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 4
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 3
+      - slot: 31
+        type: LESS_THAN
+        value: 5
+      - slot: 34
+        type: LESS_THAN
+        value: 6
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 5
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 6
+      - slot: 34
+        type: LESS_THAN
+        value: 7
+      - slot: 28
+        type: GREATER_THAN
+        value: 4
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+  89:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 7
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 8
+      - slot: 34
+        type: LESS_THAN
+        value: 9
+      - slot: 28
+        type: GREATER_THAN
+        value: 6
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 12
+      hints:
+      - slot: 34
+        type: GREATER_THAN
+        value: 10
+      - slot: 28
+        type: GREATER_THAN
+        value: 11
+      - slot: 31
+        type: LESS_THAN
+        value: 13
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+  90:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 10
+      hints:
+      - slot: 34
+        type: GREATER_THAN
+        value: 8
+      - slot: 28
+        type: GREATER_THAN
+        value: 9
+      - slot: 31
+        type: LESS_THAN
+        value: 11
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 6
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 5
+      - slot: 31
+        type: LESS_THAN
+        value: 7
+      - slot: 34
+        type: LESS_THAN
+        value: 8
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+  91:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 13
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 12
+      - slot: 31
+        type: LESS_THAN
+        value: 14
+      - slot: 34
+        type: GREATER_THAN
+        value: 11
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 13
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 14
+      - slot: 34
+        type: GREATER_THAN
+        value: 11
+      - slot: 28
+        type: GREATER_THAN
+        value: 12
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+  92:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 3
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 4
+      - slot: 34
+        type: LESS_THAN
+        value: 5
+      - slot: 28
+        type: GREATER_THAN
+        value: 2
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 7
+      hints:
+      - slot: 34
+        type: LESS_THAN
+        value: 9
+      - slot: 28
+        type: GREATER_THAN
+        value: 6
+      - slot: 31
+        type: LESS_THAN
+        value: 8
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+  93:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 6
+      hints:
+      - slot: 34
+        type: LESS_THAN
+        value: 8
+      - slot: 28
+        type: GREATER_THAN
+        value: 5
+      - slot: 31
+        type: LESS_THAN
+        value: 7
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 14
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 13
+      - slot: 31
+        type: GREATER_THAN
+        value: 12
+      - slot: 34
+        type: GREATER_THAN
+        value: 11
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+  94:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 9
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 8
+      - slot: 31
+        type: LESS_THAN
+        value: 10
+      - slot: 34
+        type: GREATER_THAN
+        value: 7
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 8
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 9
+      - slot: 34
+        type: LESS_THAN
+        value: 10
+      - slot: 28
+        type: GREATER_THAN
+        value: 7
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+  95:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 12
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 13
+      - slot: 34
+        type: GREATER_THAN
+        value: 10
+      - slot: 28
+        type: GREATER_THAN
+        value: 11
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 2
+      hints:
+      - slot: 34
+        type: LESS_THAN
+        value: 5
+      - slot: 28
+        type: LESS_THAN
+        value: 3
+      - slot: 31
+        type: LESS_THAN
+        value: 4
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+  96:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 2
+      hints:
+      - slot: 34
+        type: LESS_THAN
+        value: 5
+      - slot: 28
+        type: LESS_THAN
+        value: 3
+      - slot: 31
+        type: LESS_THAN
+        value: 4
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 9
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 8
+      - slot: 31
+        type: LESS_THAN
+        value: 10
+      - slot: 34
+        type: GREATER_THAN
+        value: 7
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+  97:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 5
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 4
+      - slot: 31
+        type: LESS_THAN
+        value: 6
+      - slot: 34
+        type: LESS_THAN
+        value: 7
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 3
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 4
+      - slot: 34
+        type: LESS_THAN
+        value: 5
+      - slot: 28
+        type: GREATER_THAN
+        value: 2
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+  98:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 8
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 9
+      - slot: 34
+        type: LESS_THAN
+        value: 10
+      - slot: 28
+        type: GREATER_THAN
+        value: 7
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 10
+      hints:
+      - slot: 34
+        type: GREATER_THAN
+        value: 8
+      - slot: 28
+        type: GREATER_THAN
+        value: 9
+      - slot: 31
+        type: LESS_THAN
+        value: 11
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: DIAMONDS
+      hints:
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+  99:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: CLUBS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 11
+      hints:
+      - slot: 34
+        type: GREATER_THAN
+        value: 9
+      - slot: 28
+        type: GREATER_THAN
+        value: 10
+      - slot: 31
+        type: LESS_THAN
+        value: 12
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 4
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 3
+      - slot: 31
+        type: LESS_THAN
+        value: 5
+      - slot: 34
+        type: LESS_THAN
+        value: 6
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: HEARTS
+      hints:
+      - slot: 31
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 34
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 28
+        type: NOT_SUIT
+        value: SPADES
+  100:
+    version: 1
+    stages:
+    - id: 1
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS
+    - id: 2
+      type: RANK_DEDUCTION
+      target: 14
+      hints:
+      - slot: 28
+        type: GREATER_THAN
+        value: 13
+      - slot: 31
+        type: GREATER_THAN
+        value: 12
+      - slot: 34
+        type: GREATER_THAN
+        value: 11
+    - id: 3
+      type: RANK_DEDUCTION
+      target: 11
+      hints:
+      - slot: 31
+        type: LESS_THAN
+        value: 12
+      - slot: 34
+        type: GREATER_THAN
+        value: 9
+      - slot: 28
+        type: GREATER_THAN
+        value: 10
+    - id: 4
+      type: SUIT_DEDUCTION
+      target: SPADES
+      hints:
+      - slot: 34
+        type: NOT_SUIT
+        value: DIAMONDS
+      - slot: 28
+        type: NOT_SUIT
+        value: CLUBS
+      - slot: 31
+        type: NOT_SUIT
+        value: HEARTS

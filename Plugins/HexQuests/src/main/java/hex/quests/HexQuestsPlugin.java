@@ -5,6 +5,8 @@ import hex.core.api.trigger.TriggerListener;
 import hex.core.api.trigger.TriggerService;
 import hex.quests.config.DailyPoolRegistry;
 import hex.quests.config.QuestRegistry;
+import hex.quests.api.QuestContentResolver;
+import hex.quests.api.QuestRuntimeView;
 import hex.quests.database.QuestRepository;
 import hex.quests.model.QuestDefinition;
 import hex.quests.model.QuestObjective;
@@ -14,6 +16,7 @@ import hex.towns.api.TownsApi;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -32,7 +35,7 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.UUID;
 
-public final class HexQuestsPlugin extends JavaPlugin implements TabExecutor, Listener {
+public final class HexQuestsPlugin extends JavaPlugin implements TabExecutor, Listener, QuestRuntimeView {
     private HexApi hex;
     private TownsApi towns;
     private TriggerService triggers;
@@ -63,9 +66,10 @@ public final class HexQuestsPlugin extends JavaPlugin implements TabExecutor, Li
 
         reloadQuests();
         getServer().getPluginManager().registerEvents(this, this);
-        if (getCommand("hexquests") != null) {
-            getCommand("hexquests").setExecutor(this);
-            getCommand("hexquests").setTabCompleter(this);
+        PluginCommand hexQuestsCommand = getCommand("hexquests");
+        if (hexQuestsCommand != null) {
+            hexQuestsCommand.setExecutor(this);
+            hexQuestsCommand.setTabCompleter(this);
         }
         getLogger().info("HexQuests enabled");
     }
@@ -98,6 +102,18 @@ public final class HexQuestsPlugin extends JavaPlugin implements TabExecutor, Li
             subscriptions.forEach((triggerId, listener) -> triggers.unsubscribe(triggerId, listener));
         }
         subscriptions.clear();
+    }
+
+    public boolean isTriggerActive(String triggerId) {
+        if (triggerId == null || triggerId.isBlank()) {
+            return false;
+        }
+        return subscriptions.keySet().stream().anyMatch(active -> active.equalsIgnoreCase(triggerId));
+    }
+
+    public QuestContentResolver contentResolver() {
+        var registration = Bukkit.getServicesManager().getRegistration(QuestContentResolver.class);
+        return registration == null ? null : registration.getProvider();
     }
 
     private void assignDaily(Player player) {
@@ -177,7 +193,7 @@ public final class HexQuestsPlugin extends JavaPlugin implements TabExecutor, Li
         }
     }
 
-    private static LocalDate today() {
+    public static LocalDate today() {
         return LocalDate.now(ZoneOffset.UTC);
     }
 

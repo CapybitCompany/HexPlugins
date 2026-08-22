@@ -1,9 +1,6 @@
 # VishopBroadcast
-# Komenda: /vishopbroadcast <nick> <usluga> [liczba] [kwota] [opcjonalneId]
-# Przykłady:
-#   /vishopbroadcast HaViX Elita - 49.99
-#   /vishopbroadcast HaViX Coins 1000 19.99
-#   /vishopbroadcast HaViX Dar 50
+# Ten jar działa na podserwerze wyłącznie jako czytnik. Komendę zakupu
+# /vishopbroadcast wykonuje VishopBroadcastProxy na Velocity.
 #
 # Format wiadomości obsługuje MiniMessage oraz placeholdery:
 # {player}, {uuid}, {service}, {service_raw}, {amount}, {price}, {amount_part}, {price_part}, {info}, {date}, {server}
@@ -15,55 +12,24 @@ settings:
   skip-existing-logs-on-startup: true
   # Minimalna przerwa między kolejnymi wiadomościami, jeśli dana usługa pokazuje się wyłącznie na czacie.
   min-chat-only-interval-seconds: 1
-  cleanup:
-    enabled: true
-    hour: 3
-    minute: 0
-    retention-days: 30
-  # Zabezpiecza przed sytuacją, w której ViShop wykona tę samą komendę na kilku serwerach naraz.
-  # Bez ID zakupu plugin uznaje za duplikat taki sam zakup: gracz + usługa + liczba + kwota,
-  # wykonany w tym krótkim oknie czasu. Jeśli ViShop kiedyś udostępni stabilne ID transakcji,
-  # możesz je podać jako ostatni argument komendy i wtedy deduplikacja jest dokładna po ID.
-  dedupe:
-    enabled: true
-    window-seconds: 10
-
 tables:
-  player-totals: "vishop_player_totals"
   purchase-logs: "vishop_purchase_logs"
-  purchase-dedupe: "vishop_purchase_dedupe"
 
 messages:
   no-permission: "<red>Nie masz uprawnień do tej komendy."
-  usage: "<red>Użycie: <white>/vishopbroadcast [nick] [usluga] [liczba] [kwota]"
-  unknown-service: "<red>Nieznana lub wyłączona usługa: <white>{service}</white>."
-  amount-required: "<red>Ta usługa wymaga podania liczby: <white>/vishopbroadcast [nick] {service} [liczba] [kwota]"
-  price-required: "<red>Ta usługa wymaga podania kwoty: <white>/vishopbroadcast [nick] {service} [liczba] [kwota]"
-  invalid-price: "<red>Kwota musi być liczbą, np. <white>19.99</white>."
-  queued: "<green>Zapisano zakup <white>{service}</white> dla gracza <white>{player}</white>."
-  duplicate: "<yellow>Pominięto duplikat zakupu <white>{purchase_id}</white> — suma wydatków nie została naliczona ponownie."
-  duplicate-auto: "<yellow>Pominięto automatycznie wykryty duplikat zakupu — suma wydatków nie została naliczona ponownie."
+  reader-only: "<yellow>Ten podserwer tylko odczytuje zakupy. Komendę zakupu wykonaj na proxy Velocity."
   reloaded: "<green>Przeładowano konfigurację VishopBroadcast."
-  db-error: "<red>Nie udało się zapisać zakupu w bazie danych. Sprawdź konsolę."
-
 format:
   date-pattern: "yyyy-MM-dd HH:mm:ss"
   price-decimals: 2
   amount-part: " <dark_gray>x</dark_gray><white>{amount}</white>"
   price-part: " <gray>za</gray> <green>{price} zł</green>"
-  no-amount: ""
-  no-price: ""
-  log-info: "{player} kupił {service}{amount_part}{price_part}"
 
-# Obsługiwane usługi. Klucz sekcji jest kanoniczną nazwą usługi zapisywaną w logach.
+# Definicje wyglądu broadcastu. Klucz sekcji musi odpowiadać service_key zapisanemu przez proxy.
 services:
   Vip:
     enabled: true
-    aliases: ["vip", "VIP"]
     display-name: "<yellow>VIP</yellow>"
-    amount-required: false
-    price-required: false
-    price-from-amount-when-price-missing: false
     display:
       channels: ["CHAT"]
       duration-seconds: 4
@@ -83,11 +49,7 @@ services:
         fade-out-ticks: 20
   SVIP:
     enabled: true
-    aliases: ["svip", "SVIP"]
     display-name: "<aqua>SVIP</aqua>"
-    amount-required: false
-    price-required: false
-    price-from-amount-when-price-missing: false
     display:
       channels: ["CHAT"]
       duration-seconds: 5
@@ -106,11 +68,7 @@ services:
         fade-out-ticks: 20
   Elita:
     enabled: true
-    aliases: ["elita", "Elita", "ELITA"]
     display-name: "<gradient:#ff55ff:#ffaa00><bold>ELITA</bold></gradient>"
-    amount-required: false
-    price-required: false
-    price-from-amount-when-price-missing: false
     display:
       # Wszystkie domyślne komunikaty ViShop są wyświetlane wyłącznie na czacie.
       channels: ["CHAT"]
@@ -127,11 +85,7 @@ services:
         fade-out-ticks: 20
   Coins:
     enabled: true
-    aliases: ["coins", "monety", "Monety", "COINS"]
     display-name: "<gold>monety</gold>"
-    amount-required: true
-    price-required: false
-    price-from-amount-when-price-missing: false
     amount-part: " <gray>w liczbie</gray> <yellow>{amount}</yellow>"
     display:
       channels: ["CHAT"]
@@ -148,12 +102,7 @@ services:
         fade-out-ticks: 10
   Dar:
     enabled: true
-    aliases: ["dar", "donate", "darowizna", "Dar"]
     display-name: "<green>darowiznę</green>"
-    amount-required: true
-    price-required: false
-    # /vishopbroadcast HaViX Dar 50 potraktuje 50 jednocześnie jako liczbę i kwotę dodawaną do sumy wydatków.
-    price-from-amount-when-price-missing: true
     amount-part: " <gray>w kwocie</gray> <green>{amount} zł</green>"
     price-part: ""
     display:
