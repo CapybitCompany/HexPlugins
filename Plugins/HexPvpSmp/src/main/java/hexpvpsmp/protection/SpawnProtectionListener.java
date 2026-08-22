@@ -6,6 +6,7 @@ import hexpvpsmp.config.HexPvpConfig;
 import hexpvpsmp.config.SpawnConfig;
 import hexpvpsmp.config.WorldConfig;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
@@ -23,6 +24,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockSpreadEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
@@ -133,6 +135,28 @@ public final class SpawnProtectionListener implements Listener {
         if (isHungerDisabledAt(player.getLocation())) {
             event.setCancelled(true);
         }
+    }
+
+    @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
+    public void onPlayerEnvironmentalDamage(EntityDamageEvent event) {
+        if (!isEnabled() || !(event.getEntity() instanceof Player player)) {
+            return;
+        }
+        if (!isSpawnSafeDamageCause(event.getCause(), player)) {
+            return;
+        }
+        ProtectionService protection = plugin.protectionService();
+        if (protection != null && protection.isSpawnSafezone(player.getLocation())) {
+            event.setCancelled(true);
+        }
+    }
+
+    private boolean isSpawnSafeDamageCause(EntityDamageEvent.DamageCause cause, Player player) {
+        if (cause == EntityDamageEvent.DamageCause.FALL) {
+            return true;
+        }
+        return cause == EntityDamageEvent.DamageCause.CONTACT
+                && player.getLocation().getBlock().getType() == Material.SWEET_BERRY_BUSH;
     }
 
     // ---- Environmental griefing -----------------------------------------
