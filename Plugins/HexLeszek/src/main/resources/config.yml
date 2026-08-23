@@ -1,0 +1,19 @@
+enabled: true
+
+storage:
+  file: "players.yml"
+
+tracking:
+  update-interval-seconds: 300
+
+reward:
+  amount: 30
+  command: "hexeconomy add {player} {amount}"
+
+messages:
+  player-only: "&cTa komenda jest dostepna tylko dla gracza."
+  no-permission: "&cNie masz uprawnien do uzycia tej komendy."
+  disabled: "&cTa akcja jest obecnie wylaczona."
+  already-claimed: "&4HEX&f: &dLeszek &fjuz przekazal Ci nagrode. Dziekujemy za gre!"
+  reward-success: "&4HEX&f: &dLeszek &fofiaruje Ci 30&a$&f! Miłej gry!"
+  reward-failed: "&cNie udalo sie przyznac nagrody. Zglos to administracji."

@@ -1,0 +1,16 @@
+name: HexLeszek
+version: '1.0.0'
+main: hexleszek.HexLeszekPlugin
+api-version: '1.21.11'
+description: One-time Leszek campaign reward and playtime tracker.
+authors: [HexDevTeam]
+
+commands:
+  leszek:
+    description: Odbiera jednorazowa nagrode od Leszka.
+    usage: /leszek
+
+permissions:
+  hexleszek.use:
+    description: Allows using /leszek.
+    default: false
