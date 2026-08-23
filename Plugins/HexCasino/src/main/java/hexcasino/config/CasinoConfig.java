@@ -143,6 +143,7 @@ public record CasinoConfig(
             int exitSlot,
             int infoSlot,
             List<Integer> suitSlots,
+            List<Integer> rankSlots,
             GuiItem filler,
             GuiItem balanceItem,
             GuiItem startItem,
@@ -161,7 +162,11 @@ public record CasinoConfig(
             GuiItem cashoutUnavailableItem,
             GuiItem multiplierItem,
             GuiItem exitItem,
+            GuiItem activeExitItem,
             GuiItem multiplierLockedItem,
+            GuiItem hintItem,
+            GuiItem rankItem,
+            GuiItem stageItem,
             GuiItem infoItem,
             String infoRoundLine
     ) {
@@ -176,19 +181,45 @@ public record CasinoConfig(
             List<Integer> reelGridSlots,
             int actionSlot,
             int betSlot,
+            int difficultySlot,
+            int stopLineLeftSlot,
+            int stopLineRightSlot,
             int balanceSlot,
             int exitSlot,
             int infoSlot,
+            ReelPreviewGui preview,
             GuiItem filler,
             GuiItem balanceItem,
             GuiItem spinAvailableItem,
             GuiItem spinUnavailableItem,
             GuiItem rollingItem,
             GuiItem betItem,
+            GuiItem difficultyItem,
+            GuiItem rewardModeUnavailableItem,
+            GuiItem dailyLimitItem,
+            GuiItem stopLineLeftItem,
+            GuiItem stopLineRightItem,
             GuiItem exitItem,
             GuiItem highlightItem,
             GuiItem infoItem,
             String infoSymbolLine
+    ) {
+    }
+
+    public record ReelPreviewGui(
+            String title,
+            int size,
+            int backSlot,
+            int previousReelSlot,
+            int nextReelSlot,
+            int previousPageSlot,
+            int nextPageSlot,
+            GuiItem filler,
+            GuiItem backItem,
+            GuiItem previousReelItem,
+            GuiItem nextReelItem,
+            GuiItem previousPageItem,
+            GuiItem nextPageItem
     ) {
     }
 

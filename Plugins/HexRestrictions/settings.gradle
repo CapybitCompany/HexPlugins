@@ -1,0 +1,6 @@
+def sharedSettings = file('../gradle/standalone-plugin-settings.gradle')
+if (sharedSettings.exists()) {
+    apply from: sharedSettings
+} else {
+    rootProject.name = 'HexRestrictions'
+}

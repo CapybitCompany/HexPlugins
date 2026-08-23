@@ -16,8 +16,8 @@ class SlotEngineTest {
             11, 12, 13, 14, 15,
             20, 21, 22, 23, 24);
     private static final Map<String, Double> REWARDS = Map.of(
-            "flint", 0.50D, "melon_slice", 0.75D, "gold_nugget", 1.00D, "blaze_powder", 1.50D,
-            "amethyst_shard", 2.00D, "emerald", 3.00D, "diamond", 5.00D, "nether_star", 8.00D);
+            "flint", 1.00D, "melon_slice", 1.50D, "gold_nugget", 2.00D, "blaze_powder", 3.00D,
+            "amethyst_shard", 4.00D, "emerald", 6.00D, "diamond", 10.00D, "nether_star", 16.00D);
     private final SlotEngine engine = new SlotEngine();
 
     @Test void geometryContainsExactlyOneEightAndTwentyTwoPatterns() {
@@ -67,7 +67,7 @@ class SlotEngineTest {
                 "blaze_powder","u5","u6");
         SlotSpinResult result = engine.evaluate(outcome, layout, config(), 60.0D, REWARDS);
         assertEquals(1, result.winningPatternCount());
-        assertEquals(60.0D / 8.0D * 1.50D, result.win(), 1e-9);
+        assertEquals(60.0D / 8.0D * 3.00D, result.win(), 1e-9);
     }
 
     @Test void longDiagonalsAreCountedInFiveByThree() {
@@ -97,7 +97,7 @@ class SlotEngineTest {
         Arrays.fill(symbols, "nether_star");
         SlotSpinResult result = engine.evaluate(new SlotOutcome(5,3,symbols), layout(5), config(), 60.0D, REWARDS);
         assertEquals(22, result.winningPatternCount());
-        assertEquals(60.0D * 8.0D, result.win(), 1e-9);
+        assertEquals(60.0D * 16.0D, result.win(), 1e-9);
     }
 
     private SlotLayout layout(int reels) { return SlotLayout.centered(reels,3,MAX_GRID); }

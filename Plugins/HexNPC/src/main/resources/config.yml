@@ -220,4 +220,5 @@ shops:
     gui-confirm-sell: "&6Potwierdź sprzedaż"
     gui-confirm-quantity: "&7Ilość: &f<amount>x"
     gui-confirm-price: "&7Łączna cena: &e<price>"
+    gui-confirm-preview-hint: "&8Podgląd produktu — zatwierdź zielonym przyciskiem."
     gui-cancel-button: "&cAnuluj"

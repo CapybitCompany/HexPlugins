@@ -10,6 +10,7 @@ import hex.towns.api.TownsApi;
 import hex.towns.api.TownsListener;
 import hex.towns.model.Town;
 import hex.towns.guide.TownGuideService;
+import hex.towns.heart.TownHeartService;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -24,11 +25,13 @@ public final class TownsApiImpl implements TownsApi {
     private final TownsService service;
     private final TownDataRegistry dataRegistry;
     private final TownGuideService guideService;
+    private final TownHeartService heartService;
 
-    public TownsApiImpl(TownsService service, TownDataRegistry dataRegistry, TownGuideService guideService) {
+    public TownsApiImpl(TownsService service, TownDataRegistry dataRegistry, TownGuideService guideService, TownHeartService heartService) {
         this.service = service;
         this.dataRegistry = dataRegistry;
         this.guideService = guideService;
+        this.heartService = heartService;
     }
 
     @Override public Optional<Town> findTown(UUID townId) { return service.findTown(townId); }
@@ -42,6 +45,7 @@ public final class TownsApiImpl implements TownsApi {
     @Override public boolean canActAsMember(UUID playerId, UUID townId) { return service.canActAsMember(playerId, townId); }
     @Override public boolean isProtected(Location loc) { return service.protectedTownAt(loc).isPresent(); }
     @Override public boolean canBuild(Player player, Location loc) { return service.canBuild(player, loc); }
+    @Override public boolean isHeartProtected(Location loc) { return heartService != null && heartService.protectedHeartAt(loc).isPresent(); }
     @Override public boolean isPvpAllowed(Location loc) { return service.isPvpAllowed(loc); }
     @Override public TownBoundItems townBoundItems() { return service.townBoundItems(); }
     @Override public boolean can(UUID playerId, UUID townId, TownPermission permission) { return service.can(playerId, townId, permission); }

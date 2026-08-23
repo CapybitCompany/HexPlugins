@@ -60,13 +60,16 @@ public final class TownRenameAnvilListener implements Listener {
             // Używamy natywnego widoku kowadła gracza zamiast Bukkit.createInventory(ANVIL).
             // Paper 1.21.1 udostępnia AnvilView#getRenameText()/setRepairCost(), co pozwala
             // obsłużyć wpisywany tekst bez refleksji i bez polegania na wrapperze Inventory.
+            // Aktywujemy sesję przed openAnvil(), ponieważ Paper może wywołać pierwszy
+            // PrepareAnvilEvent jeszcze w trakcie otwierania widoku.
+            active.add(playerId);
             org.bukkit.inventory.InventoryView opened = player.openAnvil(null, true);
             if (!(opened instanceof AnvilView view)) {
+                active.remove(playerId);
                 plugin.getLogger().warning("Nie udało się otworzyć natywnego kowadła zmiany nazwy dla " + player.getName());
                 return;
             }
 
-            active.add(playerId);
             AnvilInventory inventory = view.getTopInventory();
             inventory.setItem(INPUT_SLOT, renamePaper("Nazwa miasta", "Wpisz nową nazwę"));
             view.setRepairCost(0);

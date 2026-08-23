@@ -73,16 +73,17 @@ public final class HexTownsPlugin extends JavaPlugin {
         TownDataRegistry dataRegistry = new TownDataRegistry(hexApi, repository);
         this.townsService = new TownsService(this, hexApi, repository, dataRegistry, this.config);
         this.townGuideService = new TownGuideService(this, townsService);
-        this.townsApi = new TownsApiImpl(townsService, dataRegistry, townGuideService);
         this.visualCheckService = new VisualCheckService(this, townsService, this.config);
         this.renameAnvilListener = new TownRenameAnvilListener(this, hexApi, townsService, this.config);
         this.coopDecisionMenu = new TownCoopDecisionMenu(this, hexApi, townsService);
         this.townMapService = new TownMapService(this, hexApi, townsService, this.config);
         this.nativeTownMenu = new NativeTownMenu(this, hexApi, townsService, visualCheckService, this.config, renameAnvilListener, townMapService, coopDecisionMenu, townGuideService);
+        this.townGuideService.setTownMenuOpener(nativeTownMenu::openMain);
         TownHeartItem townHeartItem = new TownHeartItem(this);
         townHeartItem.registerRecipe();
         this.townHeartRenderer = new TownHeartRenderer(this);
         this.townHeartService = new TownHeartService(this, hexApi, repository, townsService, townHeartRenderer);
+        this.townsApi = new TownsApiImpl(townsService, dataRegistry, townGuideService, townHeartService);
         this.townHeartReconciliationService = new TownHeartReconciliationService(townsService, townHeartService, townHeartRenderer);
         this.townsService.setWorldCleanupHandler(townHeartService::cleanupJob);
         this.townHeartListener = new TownHeartListener(this, hexApi, townsService, this.config, townHeartItem, townHeartService, nativeTownMenu);

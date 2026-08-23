@@ -71,9 +71,10 @@
 #   single-purchase-view - true: małe GUI 27 z Cofnij/Kup, bez wyboru ilości
 #   one-time.enabled    - zakup tylko raz; ownership sprawdzany permissionem
 #   one-time.permission - permission oznaczający już posiadany benefit
-#   action.type         - DETAILS (domyślne), PLAYER_COMMAND lub NONE
+#   action.type         - DETAILS (domyślne), PLAYER_COMMAND, RUN_WORKFLOW lub NONE
 #   action.command      - komenda gracza dla PLAYER_COMMAND (placeholdery: <player>,
 #                         <uuid>, <shop>, <item>, <quantity>)
+#   action.workflow     - ID workflow dla RUN_WORKFLOW
 #   reward.type         - ITEM (legacy), CONSOLE_COMMANDS lub HEX_CUSTOM_ITEM
 #   reward.commands     - komendy konsoli wykonywane po udanym withdraw
 #   reward.verify-permission - opcjonalny permission weryfikujący command reward
@@ -150,13 +151,15 @@ shops:
         display-name: "&dParticle"
         lore:
           - "&7Kosmetyczne efekty particle."
-          - "&7Ceny i zakup są obsługiwane"
-          - "&7przez menu kosmetyków."
+          - "&7Dostępnych efektów: &f8"
+          - "&7Każdy kosztuje: &66 HexCoins"
+          - ""
+          - "&eKliknij, aby przejść do particle."
         buy-enabled: false
         sell-enabled: false
         action:
-          type: PLAYER_COMMAND
-          command: "uc menu Particle-Effects"
+          type: RUN_WORKFLOW
+          workflow: "premium_particles_menu"
 
       sit_permission:
         material: STICK
@@ -370,6 +373,229 @@ shops:
         sell-enabled: false
         action:
           type: NONE
+  premium_particles:
+    title: "&0&lPARTICLE"
+    currency: HEX_COINS
+    size: 27
+    placement: MANUAL
+    layout:
+      filler:
+        material: BLACK_STAINED_GLASS_PANE
+        name: " "
+    items:
+      blood_helix:
+        material: REDSTONE
+        amount: 1
+        slot: 9
+        display-name: "&dBloodHelix"
+        lore:
+          - "&7Efekt particle z UltraCosmetics."
+          - "&7Jednorazowe odblokowanie."
+        buy-price: "6"
+        sell-price: "0"
+        buy-enabled: true
+        sell-enabled: false
+        single-purchase-view: true
+        one-time:
+          enabled: true
+          permission: "ultracosmetics.particleeffects.bloodhelix"
+        reward:
+          type: CONSOLE_COMMANDS
+          commands:
+            - "lp user <player> permission set ultracosmetics.particleeffects.bloodhelix true"
+          verify-permission: "ultracosmetics.particleeffects.bloodhelix"
+        post-purchase-action:
+          type: RUN_WORKFLOW
+          workflow: "premium_particles_menu"
+
+      enchanted:
+        material: BOOK
+        amount: 1
+        slot: 10
+        display-name: "&dEnchanted"
+        lore:
+          - "&7Efekt particle z UltraCosmetics."
+          - "&7Jednorazowe odblokowanie."
+        buy-price: "6"
+        sell-price: "0"
+        buy-enabled: true
+        sell-enabled: false
+        single-purchase-view: true
+        one-time:
+          enabled: true
+          permission: "ultracosmetics.particleeffects.enchanted"
+        reward:
+          type: CONSOLE_COMMANDS
+          commands:
+            - "lp user <player> permission set ultracosmetics.particleeffects.enchanted true"
+          verify-permission: "ultracosmetics.particleeffects.enchanted"
+        post-purchase-action:
+          type: RUN_WORKFLOW
+          workflow: "premium_particles_menu"
+
+      rainbow_wings:
+        material: YELLOW_DYE
+        amount: 1
+        slot: 11
+        display-name: "&dRainbowWings"
+        lore:
+          - "&7Efekt particle z UltraCosmetics."
+          - "&7Jednorazowe odblokowanie."
+        buy-price: "6"
+        sell-price: "0"
+        buy-enabled: true
+        sell-enabled: false
+        single-purchase-view: true
+        one-time:
+          enabled: true
+          permission: "ultracosmetics.particleeffects.rainbowwings"
+        reward:
+          type: CONSOLE_COMMANDS
+          commands:
+            - "lp user <player> permission set ultracosmetics.particleeffects.rainbowwings true"
+          verify-permission: "ultracosmetics.particleeffects.rainbowwings"
+        post-purchase-action:
+          type: RUN_WORKFLOW
+          workflow: "premium_particles_menu"
+
+      flame_rings:
+        material: BLAZE_POWDER
+        amount: 1
+        slot: 12
+        display-name: "&dFlameRings"
+        lore:
+          - "&7Efekt particle z UltraCosmetics."
+          - "&7Jednorazowe odblokowanie."
+        buy-price: "6"
+        sell-price: "0"
+        buy-enabled: true
+        sell-enabled: false
+        single-purchase-view: true
+        one-time:
+          enabled: true
+          permission: "ultracosmetics.particleeffects.flamerings"
+        reward:
+          type: CONSOLE_COMMANDS
+          commands:
+            - "lp user <player> permission set ultracosmetics.particleeffects.flamerings true"
+          verify-permission: "ultracosmetics.particleeffects.flamerings"
+        post-purchase-action:
+          type: RUN_WORKFLOW
+          workflow: "premium_particles_menu"
+
+      green_sparks:
+        material: EMERALD
+        amount: 1
+        slot: 14
+        display-name: "&dGreenSparks"
+        lore:
+          - "&7Efekt particle z UltraCosmetics."
+          - "&7Jednorazowe odblokowanie."
+        buy-price: "6"
+        sell-price: "0"
+        buy-enabled: true
+        sell-enabled: false
+        single-purchase-view: true
+        one-time:
+          enabled: true
+          permission: "ultracosmetics.particleeffects.greensparks"
+        reward:
+          type: CONSOLE_COMMANDS
+          commands:
+            - "lp user <player> permission set ultracosmetics.particleeffects.greensparks true"
+          verify-permission: "ultracosmetics.particleeffects.greensparks"
+        post-purchase-action:
+          type: RUN_WORKFLOW
+          workflow: "premium_particles_menu"
+
+      frozen_walk:
+        material: SNOWBALL
+        amount: 1
+        slot: 15
+        display-name: "&dFrozenWalk"
+        lore:
+          - "&7Efekt particle z UltraCosmetics."
+          - "&7Jednorazowe odblokowanie."
+        buy-price: "6"
+        sell-price: "0"
+        buy-enabled: true
+        sell-enabled: false
+        single-purchase-view: true
+        one-time:
+          enabled: true
+          permission: "ultracosmetics.particleeffects.frozenwalk"
+        reward:
+          type: CONSOLE_COMMANDS
+          commands:
+            - "lp user <player> permission set ultracosmetics.particleeffects.frozenwalk true"
+          verify-permission: "ultracosmetics.particleeffects.frozenwalk"
+        post-purchase-action:
+          type: RUN_WORKFLOW
+          workflow: "premium_particles_menu"
+
+      shadow_footprints:
+        material: BLACK_WOOL
+        amount: 1
+        slot: 16
+        display-name: "&dShadowFootprints"
+        lore:
+          - "&7Efekt particle z UltraCosmetics."
+          - "&7Jednorazowe odblokowanie."
+        buy-price: "6"
+        sell-price: "0"
+        buy-enabled: true
+        sell-enabled: false
+        single-purchase-view: true
+        one-time:
+          enabled: true
+          permission: "ultracosmetics.particleeffects.shadowfootprints"
+        reward:
+          type: CONSOLE_COMMANDS
+          commands:
+            - "lp user <player> permission set ultracosmetics.particleeffects.shadowfootprints true"
+          verify-permission: "ultracosmetics.particleeffects.shadowfootprints"
+        post-purchase-action:
+          type: RUN_WORKFLOW
+          workflow: "premium_particles_menu"
+
+      divine_halo:
+        material: GLOWSTONE
+        amount: 1
+        slot: 17
+        display-name: "&dDivineHalo"
+        lore:
+          - "&7Efekt particle z UltraCosmetics."
+          - "&7Jednorazowe odblokowanie."
+        buy-price: "6"
+        sell-price: "0"
+        buy-enabled: true
+        sell-enabled: false
+        single-purchase-view: true
+        one-time:
+          enabled: true
+          permission: "ultracosmetics.particleeffects.divinehalo"
+        reward:
+          type: CONSOLE_COMMANDS
+          commands:
+            - "lp user <player> permission set ultracosmetics.particleeffects.divinehalo true"
+          verify-permission: "ultracosmetics.particleeffects.divinehalo"
+        post-purchase-action:
+          type: RUN_WORKFLOW
+          workflow: "premium_particles_menu"
+
+      back_to_premium:
+        material: RED_WOOL
+        amount: 1
+        slot: 13
+        display-name: "&cWróć do Premium Shop"
+        lore:
+          - "&7Kliknij, aby wrócić."
+        buy-enabled: false
+        sell-enabled: false
+        action:
+          type: RUN_WORKFLOW
+          workflow: "premium_shop_menu"
+
   npc_shop1:
     title: "&0&lSklep bloków"
     size: 54

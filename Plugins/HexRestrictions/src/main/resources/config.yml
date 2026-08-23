@@ -1,0 +1,42 @@
+config-version: 1
+
+restrictions:
+  enabled: true
+
+  # Bukkit Material names. Examples: ELYTRA, TOTEM_OF_UNDYING, END_CRYSTAL.
+  # minecraft:elytra is also accepted.
+  forbidden-items: []
+
+  # Namespaced enchantment keys. Short vanilla names such as MENDING are accepted too.
+  forbidden-enchantments:
+    - minecraft:mending
+
+  # Even if a forbidden enchant somehow reaches an item through another plugin,
+  # its runtime effect is blocked when Paper exposes a dedicated event for it.
+  block-runtime-effects: true
+
+scanning:
+  players:
+    on-join: true
+    on-respawn: true
+    periodic: true
+    interval-ticks: 100
+
+  containers:
+    on-open: true
+    on-chunk-load: true
+    scan-loaded-chunks-on-enable: true
+    chunks-per-tick: 8
+
+  villagers:
+    remove-existing-forbidden-trades-on-chunk-scan: true
+
+messages:
+  prefix: "&8[&6Hex&8] "
+  blocked-item: "&cTen przedmiot jest wyłączony na tym serwerze."
+  blocked-enchantment: "&cTen enchant jest wyłączony na tym serwerze."
+  cleaned-player: "&eUsunięto z Twojego ekwipunku niedozwolone elementy: &6%count%&e."
+
+logging:
+  blocked-actions: false
+  scan-summaries: true

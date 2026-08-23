@@ -42,6 +42,12 @@ public interface TownsApi {
 
     boolean canBuild(Player player, Location loc);
 
+    /**
+     * Returns true only for the small protected geometry of an active town heart
+     * (3x3x3 around the heart plus its 3x3 bedrock foundation).
+     */
+    default boolean isHeartProtected(Location loc) { return false; }
+
     boolean isPvpAllowed(Location loc);
 
     TownBoundItems townBoundItems();

@@ -231,6 +231,7 @@ public final class ShopGuiBuilder {
         List<Component> lore = new ArrayList<>();
         lore.add(component(msg().guiConfirmQuantity(), "amount", String.valueOf(quantity)));
         lore.add(component(msg().guiConfirmPrice(), "price", formatPrice(shop, totalPrice)));
+        lore.add(component(msg().guiConfirmPreviewHint()));
         ItemStack preview = displayStack(item, lore);
         preview.setAmount(clampDisplayAmount(preview, quantity));
         inv.setItem(cfg.previewSlot(), hideFlags(preview));
@@ -290,14 +291,15 @@ public final class ShopGuiBuilder {
 
     private ItemStack buildIcon(Shop shop, ShopItem item, Player player) {
         List<Component> extra = new ArrayList<>();
-        boolean ownedInteractive = player != null
+        boolean owned = player != null
                 && item.oneTime().enabled()
-                && item.hasOwnedAction()
                 && player.hasPermission(item.oneTime().permission());
-        if (ownedInteractive) {
+        if (owned) {
             extra.add(Component.empty());
             extra.add(LegacyFormat.component("&aOdblokowano"));
-            extra.add(LegacyFormat.component("&eKliknij, aby zarządzać."));
+            extra.add(LegacyFormat.component(item.hasOwnedAction()
+                    ? "&eKliknij, aby zarządzać."
+                    : "&7Ten element został już zakupiony."));
             return hideFlags(displayStack(item, extra));
         }
         if (item.hasBuyPrice() || item.hasSellPrice() || item.action().type() != ShopItemActionType.NONE) {

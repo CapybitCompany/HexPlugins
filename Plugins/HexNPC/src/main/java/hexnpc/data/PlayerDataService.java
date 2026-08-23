@@ -17,6 +17,7 @@ public final class PlayerDataService {
     private final ConcurrentMap<UUID, CompletableFuture<Void>> loads = new ConcurrentHashMap<>();
     private volatile CompletableFuture<Void> initFuture;
     private volatile boolean ready;
+    private volatile Throwable initError;
 
     public PlayerDataService(PlayerDataRepository repository, Logger logger) {
         this.repository = repository;
@@ -30,7 +31,10 @@ public final class PlayerDataService {
     public synchronized CompletableFuture<Void> init() {
         if (!available()) return failed(new IllegalStateException("HexCore database unavailable"));
         if (initFuture == null) {
-            initFuture = repository.init().whenComplete((ignored, error) -> ready = error == null);
+            initFuture = repository.init().whenComplete((ignored, error) -> {
+                ready = error == null;
+                initError = error;
+            });
         }
         return initFuture;
     }
@@ -38,6 +42,21 @@ public final class PlayerDataService {
     /** True only after the persistence schema has initialized successfully. */
     public boolean ready() {
         return available() && ready;
+    }
+
+    /** Human-readable diagnostic state; intended for admin logs/commands only. */
+    public String status() {
+        if (!available()) return "unavailable (HexCore DatabaseService not resolved)";
+        if (ready) return "ready";
+        CompletableFuture<Void> current = initFuture;
+        if (current == null || !current.isDone()) return "initializing";
+        Throwable error = initError;
+        if (error == null) return "not-ready";
+        Throwable cause = error;
+        while (cause.getCause() != null && cause.getCause() != cause) cause = cause.getCause();
+        String message = cause.getMessage();
+        return "failed (" + cause.getClass().getSimpleName()
+                + (message == null || message.isBlank() ? "" : ": " + message) + ")";
     }
 
     private CompletableFuture<Void> readyFuture() {
@@ -50,16 +69,31 @@ public final class PlayerDataService {
         if (playerId == null) return failed(new IllegalArgumentException("playerId"));
         if (loaded.contains(playerId)) return CompletableFuture.completedFuture(null);
         if (!available()) return failed(new IllegalStateException("HexCore database unavailable"));
-        return loads.computeIfAbsent(playerId, id -> readyFuture().thenCompose(ignored -> repository.load(id)).thenAccept(values -> {
-            ConcurrentMap<String, String> map = new ConcurrentHashMap<>();
-            if (values != null) map.putAll(values);
-            cache.put(id, map);
-            loaded.add(id);
-        }).whenComplete((ignored, error) -> {
-            loads.remove(id);
+
+        CompletableFuture<Void> existing = loads.get(playerId);
+        if (existing != null) return existing;
+
+        CompletableFuture<Void> created = readyFuture()
+                .thenCompose(ignored -> repository.load(playerId))
+                .thenAccept(values -> {
+                    ConcurrentMap<String, String> map = new ConcurrentHashMap<>();
+                    if (values != null) map.putAll(values);
+                    cache.put(playerId, map);
+                    loaded.add(playerId);
+                });
+
+        CompletableFuture<Void> raced = loads.putIfAbsent(playerId, created);
+        if (raced != null) return raced;
+
+        // Attach cleanup only after the future is visible in the map. Using
+        // computeIfAbsent(...whenComplete(remove)) can recursively mutate the same
+        // ConcurrentHashMap bin when the backend completes synchronously.
+        created.whenComplete((ignored, error) -> {
+            loads.remove(playerId, created);
             if (error != null && logger != null) logger.log(Level.WARNING,
-                    "HexNPC: failed to load player data for " + id + ": " + error.getMessage());
-        }));
+                    "HexNPC: failed to load player data for " + playerId + ": " + error.getMessage());
+        });
+        return created;
     }
 
     public String getCached(UUID playerId, String key) {

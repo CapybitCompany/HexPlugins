@@ -110,4 +110,5 @@ public final class SlotEngine {
 
         return new SlotSpinResult(win, hits, bestSymbol, patternStake);
     }
+
 }

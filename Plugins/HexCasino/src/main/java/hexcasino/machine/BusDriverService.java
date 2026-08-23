@@ -55,9 +55,6 @@ import java.util.function.Supplier;
 
 /** Deterministic BusDriver deduction game. Runtime outcome contains no RNG. */
 public final class BusDriverService implements Listener {
-    private static final List<Integer> SUIT_ANSWER_SLOTS = List.of(10, 12, 14, 16);
-    private static final List<Integer> RANK_ANSWER_SLOTS = List.of(9,10,11,12,13,14,15,16,17,18,19,20,21);
-
     private final JavaPlugin plugin;
     private final Supplier<CasinoConfig> configSupplier;
     private final BusDriverDeductionEngine engine = new BusDriverDeductionEngine();
@@ -229,7 +226,7 @@ public final class BusDriverService implements Listener {
 
         BusDriverGuiHolder holder = new BusDriverGuiHolder(player.getUniqueId(), machine.id());
         CasinoConfig.BusDriverGui gui = config.busDriver().gui();
-        Inventory inventory = Bukkit.createInventory(holder, gui.size(), Text.legacy("&cBUS DRIVER — DEDUKCJA", Map.of()));
+        Inventory inventory = Bukkit.createInventory(holder, gui.size(), Text.legacy(gui.title(), Map.of()));
         holder.setInventory(inventory);
         BusDriverSession session = new BusDriverSession(player.getUniqueId(), machine, inventory,
                 optionIndex(config.busDriver().betOptions(), config.busDriver().defaultBet()));
@@ -352,7 +349,7 @@ public final class BusDriverService implements Listener {
         if (slot == gui.cashoutSlot()) return true;
         BusDriverBoard.StageDefinition stage = session.currentStage();
         if (stage == null) return false;
-        return stage.type() == BusDriverBoard.StageType.SUIT_DEDUCTION ? SUIT_ANSWER_SLOTS.contains(slot) : RANK_ANSWER_SLOTS.contains(slot);
+        return stage.type() == BusDriverBoard.StageType.SUIT_DEDUCTION ? gui.suitSlots().contains(slot) : gui.rankSlots().contains(slot);
     }
 
     public void onStrictDecisionPacket(UUID playerId, int windowId, int stateId, int slot, long packetReceiveNano) {
@@ -385,11 +382,12 @@ public final class BusDriverService implements Listener {
     }
 
     private String answerForSlot(BusDriverBoard.StageDefinition stage, int slot) {
+        CasinoConfig.BusDriverGui gui = configSupplier.get().busDriver().gui();
         if (stage.type() == BusDriverBoard.StageType.SUIT_DEDUCTION) {
-            int index = SUIT_ANSWER_SLOTS.indexOf(slot);
+            int index = gui.suitSlots().indexOf(slot);
             return index < 0 ? null : BusDriverDeductionEngine.Suit.values()[index].name();
         }
-        int index = RANK_ANSWER_SLOTS.indexOf(slot);
+        int index = gui.rankSlots().indexOf(slot);
         return index < 0 ? null : Integer.toString(BusDriverDeductionEngine.MIN_RANK + index);
     }
 
@@ -510,94 +508,97 @@ public final class BusDriverService implements Listener {
     }
 
     private void renderIdle(BusDriverSession session, Player player) {
-        CasinoConfig config = configSupplier.get(); CasinoConfig.BusDriverGui gui = config.busDriver().gui(); OptionalDouble balance = CasinoEconomy.balance(player, config);
-        ItemStack filler = item(gui.filler(), placeholders(player, session, balance));
-        for (int i=0;i<session.inventory().getSize();i++) session.inventory().setItem(i, filler.clone());
-        Map<String,String> ph=placeholders(player, session, balance);
+        CasinoConfig config = configSupplier.get();
+        CasinoConfig.BusDriverGui gui = config.busDriver().gui();
+        OptionalDouble balance = CasinoEconomy.balance(player, config);
+        Map<String,String> ph = placeholders(player, session, balance);
+        ItemStack filler = item(gui.filler(), ph);
+        for (int i = 0; i < session.inventory().getSize(); i++) session.inventory().setItem(i, filler.clone());
         set(session.inventory(), gui.balanceSlot(), item(gui.balanceItem(), ph));
-        set(session.inventory(), gui.multiplierSlot(), settingsItem(session));
+        set(session.inventory(), gui.multiplierSlot(), item(gui.multiplierItem(), ph));
         set(session.inventory(), gui.exitSlot(), item(gui.exitItem(), ph));
-        set(session.inventory(), gui.infoSlot(), infoItem(session));
-        if (balance.isPresent() && balance.getAsDouble()+0.0001D >= bet(config, session)) set(session.inventory(), gui.cardSlot(), startItem(session));
-        else set(session.inventory(), gui.cardSlot(), item(gui.noFundsItem(), ph));
+        set(session.inventory(), gui.infoSlot(), item(gui.infoItem(), ph));
+        if (balance.isPresent() && balance.getAsDouble() + 0.0001D >= bet(config, session)) {
+            set(session.inventory(), gui.cardSlot(), item(gui.startItem(), ph));
+        } else {
+            set(session.inventory(), gui.cardSlot(), item(gui.noFundsItem(), ph));
+        }
         player.updateInventory();
     }
 
     private void renderStage(BusDriverSession session, Player player) {
-        CasinoConfig config = configSupplier.get(); CasinoConfig.BusDriverGui gui = config.busDriver().gui(); OptionalDouble balance = CasinoEconomy.balance(player, config);
-        ItemStack filler = item(gui.filler(), placeholders(player, session, balance));
-        for (int i=0;i<session.inventory().getSize();i++) session.inventory().setItem(i, filler.clone());
-        set(session.inventory(), gui.balanceSlot(), item(gui.balanceItem(), placeholders(player,session,balance)));
-        set(session.inventory(), gui.multiplierSlot(), item(gui.multiplierLockedItem(), Map.of()));
-        set(session.inventory(), gui.exitSlot(), newItem(Material.BARRIER,"&cPrzerwij próbę",List.of("&7Przerwanie zużywa planszę i kończy próbę bez nagrody.")));
-        set(session.inventory(), gui.infoSlot(), infoItem(session));
+        CasinoConfig config = configSupplier.get();
+        CasinoConfig.BusDriverGui gui = config.busDriver().gui();
+        OptionalDouble balance = CasinoEconomy.balance(player, config);
+        Map<String,String> ph = placeholders(player, session, balance);
+        ItemStack filler = item(gui.filler(), ph);
+        for (int i = 0; i < session.inventory().getSize(); i++) session.inventory().setItem(i, filler.clone());
+        set(session.inventory(), gui.balanceSlot(), item(gui.balanceItem(), ph));
+        set(session.inventory(), gui.multiplierSlot(), item(gui.multiplierLockedItem(), ph));
+        set(session.inventory(), gui.exitSlot(), item(gui.activeExitItem(), ph));
+        set(session.inventory(), gui.infoSlot(), item(gui.infoItem(), ph));
         for (BusDriverBoard.HintDefinition hint : session.currentStage().hints()) {
-            set(session.inventory(), hint.slot(), newItem(Material.PAPER, "&fPodpowiedź", List.of("&7" + engine.hintText(hint))));
+            Map<String,String> hintPh = new LinkedHashMap<>(ph);
+            hintPh.put("hint", engine.hintText(hint));
+            set(session.inventory(), hint.slot(), item(gui.hintItem(), hintPh));
         }
-        renderAnswers(session);
-        if (session.currentWin() > 0.0D) set(session.inventory(), gui.cashoutSlot(), item(gui.cashoutItem(), placeholders(player,session,balance)));
-        else set(session.inventory(), gui.cashoutSlot(), item(gui.cashoutUnavailableItem(), placeholders(player,session,balance)));
+        renderAnswers(session, ph);
+        if (session.currentWin() > 0.0D) set(session.inventory(), gui.cashoutSlot(), item(gui.cashoutItem(), ph));
+        else set(session.inventory(), gui.cashoutSlot(), item(gui.cashoutUnavailableItem(), ph));
         player.updateInventory();
     }
 
-    private void renderAnswers(BusDriverSession session) {
+    private void renderAnswers(BusDriverSession session, Map<String,String> basePh) {
         BusDriverBoard.StageDefinition stage = session.currentStage();
+        CasinoConfig.BusDriverGui gui = configSupplier.get().busDriver().gui();
         if (stage.type() == BusDriverBoard.StageType.SUIT_DEDUCTION) {
-            CasinoConfig.BusDriverGui gui = configSupplier.get().busDriver().gui();
-            CasinoConfig.GuiItem[] items = {gui.heartsItem(),gui.diamondsItem(),gui.clubsItem(),gui.spadesItem()};
-            for (int i=0;i<4;i++) set(session.inventory(), SUIT_ANSWER_SLOTS.get(i), item(items[i], Map.of()));
+            CasinoConfig.GuiItem[] items = {gui.heartsItem(), gui.diamondsItem(), gui.clubsItem(), gui.spadesItem()};
+            for (int i = 0; i < 4; i++) set(session.inventory(), gui.suitSlots().get(i), item(items[i], basePh));
         } else {
-            for (int i=0;i<RANK_ANSWER_SLOTS.size();i++) {
-                int rank=BusDriverDeductionEngine.MIN_RANK+i;
-                set(session.inventory(), RANK_ANSWER_SLOTS.get(i), newItem(Material.PAPER,"&f&l"+BusDriverDeductionEngine.rankLabel(rank),List.of("&7Kliknij, aby wybrać tę rangę.")));
+            for (int i = 0; i < gui.rankSlots().size(); i++) {
+                int rank = BusDriverDeductionEngine.MIN_RANK + i;
+                Map<String,String> ph = new LinkedHashMap<>(basePh);
+                ph.put("rank", BusDriverDeductionEngine.rankLabel(rank));
+                set(session.inventory(), gui.rankSlots().get(i), item(gui.rankItem(), ph));
             }
         }
     }
 
     private void renderTimerItem(BusDriverSession session, Player player, boolean open, long elapsedMs) {
-        int remaining=Math.max(0, session.decisionTimeMs()-(int)Math.min(Integer.MAX_VALUE,elapsedMs));
-        String time=String.format(Locale.US,"%.1f",remaining/1000.0D);
-        List<String> lore=new ArrayList<>();
-        lore.add("&7Plansza: &f#"+session.boardIndex()+" / "+boards.count());
-        lore.add("&7Etap: &f"+(session.stageIndex()+1)+" / "+session.board().stages().size());
-        lore.add("&7Typ: &f"+(session.currentStage().type()==BusDriverBoard.StageType.SUIT_DEDUCTION?"kolor karty":"ranga karty"));
-        lore.add(open?"&eCzas: &f"+time+" s":"&cCzas minął — oczekiwanie na opóźnione kliknięcie...");
-        set(session.inventory(), configSupplier.get().busDriver().gui().cardSlot(), newItem(Material.CLOCK,"&fPróba dedukcji",lore));
+        int remaining = Math.max(0, session.decisionTimeMs() - (int)Math.min(Integer.MAX_VALUE, elapsedMs));
+        String time = String.format(Locale.US, "%.1f", remaining / 1000.0D);
+        Map<String,String> ph = new LinkedHashMap<>(placeholders(player, session, OptionalDouble.empty()));
+        ph.put("stage", Integer.toString(session.stageIndex() + 1));
+        ph.put("stage_count", Integer.toString(session.board().stages().size()));
+        ph.put("stage_type", session.currentStage().type() == BusDriverBoard.StageType.SUIT_DEDUCTION ? "kolor karty" : "ranga karty");
+        ph.put("time", time);
+        ph.put("timer_line", open ? "&eCzas: &f" + time + " s" : "&cCzas minął — oczekiwanie na opóźnione kliknięcie...");
+        set(session.inventory(), configSupplier.get().busDriver().gui().cardSlot(), item(configSupplier.get().busDriver().gui().stageItem(), ph));
         player.updateInventory();
     }
 
-    private ItemStack startItem(BusDriverSession session) {
-        CasinoConfig config=configSupplier.get(); int current=stateStore.nextBoard(session.playerId(),boards.count()); int next=current>=boards.count()?1:current+1;
-        return newItem(Material.LIME_DYE,"&a&lROZPOCZNIJ PRÓBĘ",List.of(
-                "&7Gra dedukcyjna — wszystkie informacje są na planszy.",
-                "&7Aktualna plansza: &f#"+current+" / "+boards.count(),
-                "&7Następna plansza: &f#"+next,
-                "&7Koszt: &a"+CasinoEconomy.money(bet(config,session))+"$",
-                "&7Czas/etap: &f"+settings.decisionTimeMs(session.betIndex(),config.busDriver().betOptions().size())+" ms",
-                "&8Nic nie jest losowane w trakcie gry."));
-    }
-
-    private ItemStack settingsItem(BusDriverSession session) {
-        CasinoConfig config=configSupplier.get();
-        return newItem(Material.WHITE_DYE,"&fWariant gry",List.of(
-                "&ePPM: &fZmień koszt",
-                "&7Koszt: &f"+CasinoEconomy.money(bet(config,session))+"$",
-                "&7Tier: &f"+settings.tierId(session.betIndex(),config.busDriver().betOptions().size()),
-                "&7Czas na etap: &f"+settings.decisionTimeMs(session.betIndex(),config.busDriver().betOptions().size())+" ms"));
-    }
-
-    private ItemStack infoItem(BusDriverSession session) {
-        int current = session.boardIndex()>0?session.boardIndex():stateStore.nextBoard(session.playerId(),boards.count()); int next=current>=boards.count()?1:current+1;
-        return newItem(Material.BOOK,"&fBusDriver — Próba dedukcji",List.of(
-                "&7Plansza: &f#"+current+" / "+boards.count(),"&7Następna: &f#"+next,
-                "&7Każda plansza ma stałe odpowiedzi i podpowiedzi.","&7Komplet podpowiedzi daje dokładnie jedną odpowiedź.","&8Brak losowania w runtime."));
-    }
-
     private Map<String,String> placeholders(Player player, BusDriverSession session, OptionalDouble balance) {
-        CasinoConfig config=configSupplier.get(); double bet=bet(config,session); List<Double> payouts=config.busDriver().payoutLadder(); int nextRound=Math.min(session.completedRounds()+1,payouts.size());
-        Map<String,String> v=new LinkedHashMap<>(); v.put("player",player.getName()); v.put("balance",balance.isPresent()?CasinoEconomy.money(balance.getAsDouble()):"0");
-        v.put("balance_display",balance.isPresent()?CasinoEconomy.money(balance.getAsDouble()):"-"); v.put("bet",CasinoEconomy.money(bet)); v.put("total_cost",CasinoEconomy.money(bet));
-        v.put("current_win",CasinoEconomy.money(session.currentWin())); v.put("next_cashout",CasinoEconomy.money(bet*payouts.get(Math.max(0,nextRound-1)))); return v;
+        CasinoConfig config = configSupplier.get();
+        double bet = bet(config, session);
+        List<Double> payouts = config.busDriver().payoutLadder();
+        int nextRound = Math.min(session.completedRounds() + 1, payouts.size());
+        int board = session.boardIndex() > 0 ? session.boardIndex() : stateStore.nextBoard(session.playerId(), boards.count());
+        Map<String,String> v = new LinkedHashMap<>();
+        v.put("player", player.getName());
+        v.put("balance", balance.isPresent() ? CasinoEconomy.money(balance.getAsDouble()) : "0");
+        v.put("balance_display", balance.isPresent() ? CasinoEconomy.money(balance.getAsDouble()) : "-");
+        v.put("bet", CasinoEconomy.money(bet));
+        v.put("total_cost", CasinoEconomy.money(bet));
+        v.put("current_win", CasinoEconomy.money(session.currentWin()));
+        v.put("next_cashout", CasinoEconomy.money(bet * payouts.get(Math.max(0, nextRound - 1))));
+        v.put("board", Integer.toString(board));
+        v.put("board_count", Integer.toString(boards.count()));
+        v.put("tier", settings.tierId(session.betIndex(), config.busDriver().betOptions().size()));
+        v.put("decision_time_ms", Integer.toString(settings.decisionTimeMs(session.betIndex(), config.busDriver().betOptions().size())));
+        v.put("decision_time_s", String.format(Locale.US, "%.1f", settings.decisionTimeMs(session.betIndex(), config.busDriver().betOptions().size()) / 1000.0D));
+        v.put("stage", Integer.toString(session.stageIndex() + 1));
+        v.put("stage_count", session.board() == null ? "4" : Integer.toString(session.board().stages().size()));
+        return v;
     }
 
     public List<String> verificationLines() {
@@ -630,7 +631,6 @@ public final class BusDriverService implements Listener {
     private int optionIndex(List<Double> options,double preferred){for(int i=0;i<options.size();i++)if(Math.abs(options.get(i)-preferred)<0.0001)return i;return 0;}
     private int nextIndex(int current,int size){return size<=1?0:(current+1)%size;}
     private void set(Inventory inv,int slot,ItemStack item){if(slot>=0&&slot<inv.getSize())inv.setItem(slot,item);}
-    private ItemStack newItem(Material material,String name,List<String> lore){ItemStack s=new ItemStack(material);ItemMeta m=s.getItemMeta();if(m!=null){m.displayName(Text.component(name));m.lore(lore.isEmpty()?null:Text.lore(lore,Map.of()));m.addItemFlags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP);s.setItemMeta(m);}return s;}
     private ItemStack item(CasinoConfig.GuiItem cfg,Map<String,String> ph){ItemStack s=baseItem(cfg);ItemMeta m=s.getItemMeta();if(m!=null){applyHeadProfile(m,cfg);m.displayName(Text.component(cfg.name(),ph));m.lore(cfg.lore().isEmpty()?null:Text.lore(cfg.lore(),ph));applyFlags(m,cfg);s.setItemMeta(m);}return s;}
     private ItemStack baseItem(CasinoConfig.GuiItem cfg){if(!isBlank(cfg.headTexture()))return new ItemStack(cfg.material());ItemStack h=headDatabaseItem(cfg.headId());return h!=null?h:new ItemStack(cfg.material());}
     private ItemStack headDatabaseItem(String id){if(isBlank(id))return null;try{Class<?> c=Class.forName("me.arcaniax.hdb.api.HeadDatabaseAPI");Object api=c.getDeclaredConstructor().newInstance();Object it=c.getMethod("getItemHead",String.class).invoke(api,id);if(it instanceof ItemStack s&&!s.getType().isAir())return s.clone();}catch(Throwable ignored){}return null;}

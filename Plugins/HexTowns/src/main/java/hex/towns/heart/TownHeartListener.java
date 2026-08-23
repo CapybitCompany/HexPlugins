@@ -33,6 +33,7 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.InventoryView;
+import org.bukkit.inventory.view.AnvilView;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -109,7 +110,19 @@ public final class TownHeartListener implements Listener {
             return;
         }
         event.setCancelled(true);
-        openPlacementMenu(event.getPlayer(), event.getBlockPlaced().getLocation(), item.clone());
+
+        // Miasto ma powstać w CHUNKU BLOKU KLIKNIĘTEGO przez gracza, a nie w chunku
+        // bloku, który Bukkit uznaje za \"postawiony\". Na granicy chunków getBlockPlaced()
+        // może znajdować się już w sąsiednim chunku. Zachowujemy wysokość niedoszłego
+        // postawienia, ale X/Z bierzemy z getBlockAgainst(), więc town.heart() wskazuje
+        // dokładnie kliknięty chunk. TownHeartService i tak centruje serce na +8/+8.
+        Location placementTarget = event.getBlockPlaced().getLocation().clone();
+        Block clickedBlock = event.getBlockAgainst();
+        if (clickedBlock != null) {
+            placementTarget.setX(clickedBlock.getX() + 0.5D);
+            placementTarget.setZ(clickedBlock.getZ() + 0.5D);
+        }
+        openPlacementMenu(event.getPlayer(), placementTarget, item.clone());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -241,6 +254,35 @@ public final class TownHeartListener implements Listener {
     @EventHandler
     public void onClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
+
+        // Natywne kowadło Paper nie pozwala ustawić własnego InventoryHoldera.
+        // Dlatego sesję nazwy podczas tworzenia rozpoznajemy po UUID gracza, zanim
+        // przejdziemy do zwykłych menu TownHeartMenuHolder.
+        if (activeNameAnvils.contains(player.getUniqueId()) && event.getView() instanceof AnvilView view) {
+            event.setCancelled(true);
+            if (event.getRawSlot() != ANVIL_RESULT_SLOT) return;
+
+            PendingHeartPlacement placement = pending.get(player.getUniqueId());
+            if (placement == null || placement.expired()) {
+                pending.remove(player.getUniqueId());
+                activeNameAnvils.remove(player.getUniqueId());
+                player.closeInventory();
+                api.ui().send(player, "towns.confirm.expired");
+                return;
+            }
+
+            String name = anvilRenameText(view.getTopInventory(), view);
+            String normalized = townsService.normalizeTownNameForInput(name);
+            if (normalized.isBlank()) {
+                api.ui().send(player, "towns.rename.invalid", UiTokens.of("max", String.valueOf(config.maxNameLength())));
+                return;
+            }
+            pending.put(player.getUniqueId(), placement.withName(normalized));
+            activeNameAnvils.remove(player.getUniqueId());
+            openConfirmMenu(player, normalized);
+            return;
+        }
+
         if (!(event.getInventory().getHolder() instanceof TownHeartMenuHolder holder)) return;
         event.setCancelled(true);
         if (!holder.playerId().equals(player.getUniqueId())) return;
@@ -266,33 +308,21 @@ public final class TownHeartListener implements Listener {
             }
             return;
         }
-        if (holder.kind() == TownHeartMenuHolder.Kind.NAME_ANVIL && event.getRawSlot() == ANVIL_RESULT_SLOT) {
-            String name = anvilRenameText(event.getInventory(), event.getView());
-            String normalized = townsService.normalizeTownNameForInput(name);
-            if (normalized.isBlank()) {
-                api.ui().send(player, "towns.rename.invalid", UiTokens.of("max", String.valueOf(config.maxNameLength())));
-                return;
-            }
-            pending.put(player.getUniqueId(), placement.withName(normalized));
-            activeNameAnvils.remove(player.getUniqueId());
-            openConfirmMenu(player, normalized);
-        }
     }
 
     @EventHandler
     public void onPrepareAnvil(PrepareAnvilEvent event) {
-        if (!(event.getInventory().getHolder() instanceof TownHeartMenuHolder holder)) return;
-        if (holder.kind() != TownHeartMenuHolder.Kind.NAME_ANVIL) return;
         if (!(event.getView().getPlayer() instanceof Player player)) return;
         if (!activeNameAnvils.contains(player.getUniqueId())) return;
-        setAnvilRepairCost(event.getView(), 0);
-        String raw = anvilRenameText(event.getInventory(), event.getView());
+        if (!(event.getView() instanceof AnvilView view)) return;
+        view.setRepairCost(0);
+        String raw = anvilRenameText(event.getInventory(), view);
         event.setResult(named(Material.NAME_TAG, raw == null || raw.isBlank() ? "Nazwa miasta" : raw, List.of("§7Kliknij, aby wrócić do menu potwierdzenia.")));
     }
 
     @EventHandler
     public void onClose(InventoryCloseEvent event) {
-        if (event.getInventory().getHolder() instanceof TownHeartMenuHolder holder && holder.kind() == TownHeartMenuHolder.Kind.NAME_ANVIL) {
+        if (event.getView() instanceof AnvilView) {
             activeNameAnvils.remove(event.getPlayer().getUniqueId());
         }
     }
@@ -349,10 +379,32 @@ public final class TownHeartListener implements Listener {
     }
 
     private void openNameAnvil(Player player, String currentName) {
-        Inventory inv = Bukkit.createInventory(new TownHeartMenuHolder(TownHeartMenuHolder.Kind.NAME_ANVIL, player.getUniqueId(), null), InventoryType.ANVIL, "Nazwa miasta");
-        inv.setItem(ANVIL_INPUT_SLOT, named(Material.NAME_TAG, currentName, List.of("§7Wpisz nazwę miasta.")));
-        activeNameAnvils.add(player.getUniqueId());
-        player.openInventory(inv);
+        if (player == null || !player.isOnline()) return;
+        UUID playerId = player.getUniqueId();
+        activeNameAnvils.remove(playerId);
+        player.closeInventory();
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            if (!player.isOnline()) return;
+            PendingHeartPlacement placement = pending.get(playerId);
+            if (placement == null || placement.expired()) {
+                pending.remove(playerId);
+                api.ui().send(player, "towns.confirm.expired");
+                return;
+            }
+
+            // Używamy natywnego kowadła Paper. Bukkit.createInventory(ANVIL) potrafi
+            // nie udostępniać poprawnie wpisywanego tekstu na nowych wersjach Paper.
+            // Sesję aktywujemy PRZED openAnvil(), żeby nie zgubić pierwszego PrepareAnvilEvent.
+            activeNameAnvils.add(playerId);
+            InventoryView opened = player.openAnvil(null, true);
+            if (!(opened instanceof AnvilView view)) {
+                activeNameAnvils.remove(playerId);
+                plugin.getLogger().warning("Nie udało się otworzyć natywnego kowadła nazwy miasta dla " + player.getName());
+                return;
+            }
+            view.getTopInventory().setItem(ANVIL_INPUT_SLOT, named(Material.NAME_TAG, currentName, List.of("§7Wpisz nazwę miasta.")));
+            view.setRepairCost(0);
+        });
     }
 
     private void openBaseMenu(Player player, UUID townId) {

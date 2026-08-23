@@ -14,6 +14,7 @@ public record SkillSlotSettings(
         List<SlotDifficulty> difficulties,
         String defaultDifficulty,
         Map<String, Double> rewards,
+        double fiveByThreePayoutMultiplier,
         String reelSetVersion,
         int reelSetCount,
         double dailyRewardThreshold,
@@ -38,25 +39,27 @@ public record SkillSlotSettings(
 ) {
     public static SkillSlotSettings load(FileConfiguration config) {
         String root = "slot-skill-machine.";
-        // Current production variants are fixed pairs: 1$/250ms, 2$/225ms and 5$/200ms.
-        // Keep a single neutral base cost so the selected difficulty/variant defines the full price.
+        // Five production variants. 250 ms and 200 ms remain the endpoints; the three
+        // middle values are evenly interpolated and rounded to whole milliseconds.
+        // A neutral base cost keeps one clickable variant selector responsible for both price and speed.
         List<Double> costs = List.of(1.0D);
 
         List<SlotDifficulty> difficulties = new ArrayList<>();
-        difficulties.add(difficulty(config, root + "difficulty-levels.normal", "normal", "Normalny", 1, 250, true));
-        difficulties.add(difficulty(config, root + "difficulty-levels.hard", "hard", "Trudny", 2, 225, true));
-        // User explicitly enabled all three reward variants. The expert variant is now 5$/200ms.
-        difficulties.add(difficulty(config, root + "difficulty-levels.expert", "expert", "Ekspert", 5, 200, true));
+        difficulties.add(difficulty(config, root + "difficulty-levels.normal", "normal", "1$", 1, 250, true));
+        difficulties.add(difficulty(config, root + "difficulty-levels.low-mid", "low-mid", "10$", 10, 238, true));
+        difficulties.add(difficulty(config, root + "difficulty-levels.hard", "hard", "20$", 20, 225, true));
+        difficulties.add(difficulty(config, root + "difficulty-levels.high-mid", "high-mid", "50$", 50, 213, true));
+        difficulties.add(difficulty(config, root + "difficulty-levels.expert", "expert", "100$", 100, 200, true));
 
         Map<String, Double> rewards = new LinkedHashMap<>();
-        rewards.put("flint", config.getDouble(root + "rewards.flint", 0.50D));
-        rewards.put("melon_slice", config.getDouble(root + "rewards.melon_slice", 0.75D));
-        rewards.put("gold_nugget", config.getDouble(root + "rewards.gold_nugget", 1.00D));
-        rewards.put("blaze_powder", config.getDouble(root + "rewards.blaze_powder", 1.50D));
-        rewards.put("amethyst_shard", config.getDouble(root + "rewards.amethyst_shard", 2.00D));
-        rewards.put("emerald", config.getDouble(root + "rewards.emerald", 3.00D));
-        rewards.put("diamond", config.getDouble(root + "rewards.diamond", 5.00D));
-        rewards.put("nether_star", config.getDouble(root + "rewards.nether_star", 8.00D));
+        rewards.put("flint", config.getDouble(root + "rewards.flint", 1.00D));
+        rewards.put("melon_slice", config.getDouble(root + "rewards.melon_slice", 1.50D));
+        rewards.put("gold_nugget", config.getDouble(root + "rewards.gold_nugget", 2.00D));
+        rewards.put("blaze_powder", config.getDouble(root + "rewards.blaze_powder", 3.00D));
+        rewards.put("amethyst_shard", config.getDouble(root + "rewards.amethyst_shard", 4.00D));
+        rewards.put("emerald", config.getDouble(root + "rewards.emerald", 6.00D));
+        rewards.put("diamond", config.getDouble(root + "rewards.diamond", 10.00D));
+        rewards.put("nether_star", config.getDouble(root + "rewards.nether_star", 16.00D));
         rewards.replaceAll((key, value) -> Math.max(0.0D, value));
 
         ZoneId zone;
@@ -70,6 +73,7 @@ public record SkillSlotSettings(
                 List.copyOf(costs), List.copyOf(difficulties),
                 config.getString(root + "difficulty-levels.default", "normal"),
                 Map.copyOf(rewards),
+                Math.max(0.0D, config.getDouble(root + "layout-payout-multipliers.5x3", 4.0D)),
                 config.getString(root + "deterministic.reel-set-version", "v1"),
                 Math.max(1, config.getInt(root + "deterministic.reel-set-count", 100)),
                 Math.max(0.0D, config.getDouble(root + "daily-limits.rewards-stop-threshold", 500.0D)),
@@ -114,6 +118,13 @@ public record SkillSlotSettings(
     public int difficultyIndex(String id) {
         for (int i = 0; i < difficulties.size(); i++) if (difficulties.get(i).id().equalsIgnoreCase(id)) return i;
         return 0;
+    }
+
+    public Map<String, Double> rewardsForLayout(int reels) {
+        if (reels != 5 || Math.abs(fiveByThreePayoutMultiplier - 1.0D) < 1.0E-12D) return rewards;
+        Map<String, Double> scaled = new LinkedHashMap<>();
+        rewards.forEach((id, multiplier) -> scaled.put(id, multiplier * fiveByThreePayoutMultiplier));
+        return Map.copyOf(scaled);
     }
 
     public boolean paidModeReady(boolean packetBridgeReady) {

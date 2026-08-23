@@ -64,9 +64,18 @@ public final class WorkflowService {
      * callers fail before charging a player.
      */
     public boolean canRun(String workflowId) {
+        return unavailableReason(workflowId).isEmpty();
+    }
+
+    /** Empty string means runnable; otherwise returns an admin-facing reason. */
+    public String unavailableReason(String workflowId) {
         WorkflowDefinition definition = registry.workflow(workflowId).orElse(null);
-        if (definition == null) return false;
-        return !usesPlayerData(definition.actions()) || playerData.ready();
+        if (definition == null) return "workflow not found";
+        if (usesPlayerData(definition.actions(), new java.util.HashSet<>())) {
+            if (!playerData.available()) return "player-data storage unavailable: " + playerData.status();
+            if (!playerData.ready()) return "player-data storage not ready: " + playerData.status();
+        }
+        return "";
     }
 
     public CompletableFuture<ActionResult> startWorkflow(Player player, String workflowId,
@@ -313,13 +322,29 @@ public final class WorkflowService {
     }
 
     private boolean usesPlayerData(List<WorkflowAction> actions) {
+        return usesPlayerData(actions, new java.util.HashSet<>());
+    }
+
+    private boolean usesPlayerData(List<WorkflowAction> actions, java.util.Set<String> visitingWorkflows) {
         if (actions == null) return false;
         for (WorkflowAction action : actions) {
             if (action instanceof SetPlayerDataAction || action instanceof DeletePlayerDataAction) return true;
             if (action instanceof AnvilInputAction anvil && anvil.initialText().contains("{data:")) return true;
             if (action instanceof ConditionAction condition) {
                 for (ConditionDefinition def : condition.conditions()) if (def.type().startsWith("player_data")) return true;
-                if (usesPlayerData(condition.thenActions()) || usesPlayerData(condition.elseActions())) return true;
+                if (usesPlayerData(condition.thenActions(), visitingWorkflows)
+                        || usesPlayerData(condition.elseActions(), visitingWorkflows)) return true;
+            }
+            if (action instanceof RunWorkflowAction nested) {
+                String id = nested.workflow() == null ? "" : nested.workflow().trim().toLowerCase(java.util.Locale.ROOT);
+                if (!id.isEmpty() && visitingWorkflows.add(id)) {
+                    WorkflowDefinition definition = registry.workflow(id).orElse(null);
+                    try {
+                        if (definition != null && usesPlayerData(definition.actions(), visitingWorkflows)) return true;
+                    } finally {
+                        visitingWorkflows.remove(id);
+                    }
+                }
             }
         }
         return false;

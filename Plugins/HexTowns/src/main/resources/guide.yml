@@ -10,6 +10,11 @@ main:
       - '&7Gracze współdzielą kolekcje, rozwijają'
       - '&7miniony i zdobywają Punkty Miasta.'
       - '&7Miasto może zajmować kolejne chunki.'
+    location-warning:
+      - ''
+      - '&cUwaga: &7położonego Serca Miasta'
+      - '&7nie da się później przenieść.'
+      - '&eMądrze wybierz lokalizację miasta przed postawieniem.'
   growth:
     name: '&aPunkty Miasta'
     lore:
@@ -36,6 +41,13 @@ main:
       - '&7Postęp kolekcji jest wspólny.'
       - '&7Zdobywanie właściwych zasobów i wykonywanie'
       - '&7akcji zwiększa wynik całego miasta.'
+      - ''
+      - '&eMinion dolicza surowiec od razu po produkcji,'
+      - '&egdy surowiec trafi do jego magazynu lub'
+      - '&epodłączonej skrzynki. Nie musisz go odbierać.'
+      - '&8Jeśli magazyn jest pełny i drop nie zostanie'
+      - '&8przyjęty, nie zwiększy kolekcji.'
+      - ''
       - '&7Rozwój kolekcji może dawać Punkty Miasta.'
   minions:
     name: '&eMiniony'

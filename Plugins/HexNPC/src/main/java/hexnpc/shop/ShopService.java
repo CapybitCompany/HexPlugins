@@ -179,8 +179,12 @@ public final class ShopService {
         if (cfg == null) {
             return;
         }
-        if (alreadyOwned(player, item) && item.hasOwnedAction()) {
-            executeConfiguredAction(player, shop, item, item.ownedAction());
+        if (alreadyOwned(player, item)) {
+            if (item.hasOwnedAction()) {
+                executeConfiguredAction(player, shop, item, item.ownedAction());
+            } else {
+                denyAlreadyPurchased(player, cfg);
+            }
             return;
         }
         int qty = clampQuantity(selectedQuantity);
@@ -218,10 +222,13 @@ public final class ShopService {
             return;
         }
         if (action.type() == ShopItemActionType.RUN_WORKFLOW) {
-            if (workflowService == null || !workflowService.canRun(action.workflow())) {
+            String unavailable = workflowService == null
+                    ? "workflow service unavailable"
+                    : workflowService.unavailableReason(action.workflow());
+            if (!unavailable.isEmpty()) {
                 sendMessage(player, cfg.messages().actionFailed());
                 logger.warning("HexNPC: shop '" + shop.id() + "' item '" + item.id()
-                        + "' references unavailable workflow '" + action.workflow() + "'");
+                        + "' references unavailable workflow '" + action.workflow() + "': " + unavailable);
                 return;
             }
             player.closeInventory();
@@ -390,13 +397,17 @@ public final class ShopService {
             return;
         }
         if (item.hasPostPurchaseAction()
-                && item.postPurchaseAction().type() == ShopItemActionType.RUN_WORKFLOW
-                && (workflowService == null || !workflowService.canRun(item.postPurchaseAction().workflow()))) {
-            sendMessage(player, cfg.messages().actionFailed());
-            logger.warning("HexNPC: purchase blocked before charge because post-purchase workflow '"
-                    + item.postPurchaseAction().workflow() + "' is unavailable for shop '"
-                    + shop.id() + "' item '" + item.id() + "'");
-            return;
+                && item.postPurchaseAction().type() == ShopItemActionType.RUN_WORKFLOW) {
+            String unavailable = workflowService == null
+                    ? "workflow service unavailable"
+                    : workflowService.unavailableReason(item.postPurchaseAction().workflow());
+            if (!unavailable.isEmpty()) {
+                sendMessage(player, cfg.messages().actionFailed());
+                logger.warning("HexNPC: purchase blocked before charge because post-purchase workflow '"
+                        + item.postPurchaseAction().workflow() + "' is unavailable for shop '"
+                        + shop.id() + "' item '" + item.id() + "': " + unavailable);
+                return;
+            }
         }
         if (!economy.isAvailable(shop.currency())) {
             sendMessage(player, cfg.messages().economyMissing());

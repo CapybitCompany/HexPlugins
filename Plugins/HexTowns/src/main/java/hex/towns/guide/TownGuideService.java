@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 /** Shared entry point used by /town guide, TownsApi and all HexTowns GUI entry points. */
 public final class TownGuideService {
@@ -33,11 +34,16 @@ public final class TownGuideService {
     private final Plugin plugin;
     private final TownsService towns;
     private volatile YamlConfiguration config;
+    private volatile Consumer<Player> townMenuOpener;
 
     public TownGuideService(Plugin plugin, TownsService towns) {
         this.plugin = plugin;
         this.towns = towns;
         reload();
+    }
+
+    public void setTownMenuOpener(Consumer<Player> townMenuOpener) {
+        this.townMenuOpener = townMenuOpener;
     }
 
     public void reload() {
@@ -50,7 +56,7 @@ public final class TownGuideService {
         if (player == null) return;
         Inventory inv = inventory(player, NativeTownMenuHolder.Page.GUIDE, 54, text("title", "&8Przewodnik miasta"));
         fill(inv);
-        inv.setItem(11, configuredItem("main.city", Material.RED_BED));
+        inv.setItem(11, cityGuideItem());
         inv.setItem(13, growthMainItem(player));
         inv.setItem(15, configuredItem("main.players", Material.PLAYER_HEAD));
         inv.setItem(29, configuredItem("main.collections", Material.BOOK));
@@ -134,7 +140,18 @@ public final class TownGuideService {
 
     private void openTownMenu(Player player) {
         player.closeInventory();
-        Bukkit.getScheduler().runTask(plugin, () -> player.performCommand("town"));
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            if (!player.isOnline()) return;
+            Consumer<Player> opener = townMenuOpener;
+            if (opener != null) {
+                // NativeTownMenu.openMain(...) resolves membership at the moment of return:
+                // no town -> outsider/main view, town member -> member/manage view.
+                opener.accept(player);
+                return;
+            }
+            // Defensive fallback for unusual startup/integration paths.
+            player.performCommand("townmenu");
+        });
     }
 
     private void putCategory(Inventory inv, int slot, Material icon, String category, List<Object> raw) {
@@ -229,6 +246,21 @@ public final class TownGuideService {
             lore.add(1, "");
         });
         return item(Material.EXPERIENCE_BOTTLE, text("main.growth.name", "&aPunkty Miasta"), lore);
+    }
+
+    private ItemStack cityGuideItem() {
+        List<String> lore = new ArrayList<>(lines("main.city.lore"));
+        List<String> warning = lines("main.city.location-warning");
+        if (warning.isEmpty()) {
+            warning = List.of(
+                    "",
+                    "&cUwaga: &7położonego Serca Miasta",
+                    "&7nie da się później przenieść.",
+                    "&eMądrze wybierz lokalizację miasta przed postawieniem."
+            );
+        }
+        lore.addAll(warning);
+        return item(Material.RED_BED, text("main.city.name", "&cMiasto i rozwój"), lore);
     }
 
     private ItemStack configuredItem(String path, Material fallback) {

@@ -19,6 +19,7 @@ def pluginProjects = [
     'HexPortals',
     'HexQuests',
     'HexRankExpiry',
+    'HexRestrictions',
     'HexSequence',
     'HexSkills',
     'HexTowns',

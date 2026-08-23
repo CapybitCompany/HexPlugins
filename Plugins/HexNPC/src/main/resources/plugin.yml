@@ -1,5 +1,5 @@
 name: HexNPC
-version: '1.5.2'
+version: '1.5.12'
 main: hexnpc.HexNpcPlugin
 api-version: '1.21.11'
 description: Player-skin NPCs with dialogue, guide/workflow GUIs, persistent player data, native clickable menus and configurable shops.

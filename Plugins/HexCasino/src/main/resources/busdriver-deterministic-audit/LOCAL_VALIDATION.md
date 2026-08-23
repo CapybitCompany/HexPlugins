@@ -8,6 +8,7 @@ Implemented from PLAN_BUSDRIVER_DETERMINISTIC_DEDUCTION_100_BOARDS_v3.
 - 100/100 board definitions are unique.
 - 400 total stages.
 - Every stage has exactly 3 hints.
+- The 3 hint tiles of every stage occupy adjacent slots 30/31/32 with no filler gap between them.
 - Every hint is true for its target.
 - Every full hint set resolves to exactly one candidate and that candidate equals the stored target.
 - `busdriver_boards.yml` SHA-256 matches `busdriver_boards.sha256`.

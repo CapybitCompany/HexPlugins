@@ -33,8 +33,8 @@ public final class CasinoConfigLoader {
                 ? List.copyOf(config.getIntegerList("slot-machine.line-options"))
                 : List.of(1, 3, 5));
         List<Double> baseBetOptions = config.isList("slot-machine.base-bet-options")
-                ? positiveDoubles(config.getDoubleList("slot-machine.base-bet-options"), List.of(1.0D, 2.0D, 5.0D, 10.0D, 20.0D))
-                : positiveDoubles(config.getDoubleList("slot-machine.bet-per-line-options"), List.of(1.0D, 2.0D, 5.0D, 10.0D, 20.0D));
+                ? positiveDoubles(config.getDoubleList("slot-machine.base-bet-options"), List.of(1.0D, 10.0D, 20.0D, 50.0D, 100.0D))
+                : positiveDoubles(config.getDoubleList("slot-machine.bet-per-line-options"), List.of(1.0D, 10.0D, 20.0D, 50.0D, 100.0D));
         double defaultBaseBet = config.contains("slot-machine.default-base-bet")
                 ? config.getDouble("slot-machine.default-base-bet", 1.0D)
                 : config.getDouble("slot-machine.default-bet-per-line", 1.0D);
@@ -273,7 +273,7 @@ public final class CasinoConfigLoader {
         }
         List<Double> betOptions = positiveDoubles(
                 config.getDoubleList("bus-driver.bet-options"),
-                List.of(5.0D, 20.0D, 30.0D, 50.0D, 100.0D));
+                List.of(1.0D, 10.0D, 20.0D, 50.0D, 100.0D));
         double defaultBet = Math.max(0.01D, config.getDouble("bus-driver.default-bet", 20.0D));
         ensureOptionExists("bus-driver.default-bet", defaultBet, betOptions);
 
@@ -389,6 +389,12 @@ public final class CasinoConfigLoader {
     }
 
     private void validateBusDriverGui(CasinoConfig.BusDriverGui gui) {
+        validateGuiSlot("bus-driver.gui.card-slot", gui.cardSlot(), gui.size());
+        validateGuiSlot("bus-driver.gui.cashout-slot", gui.cashoutSlot(), gui.size());
+        validateGuiSlot("bus-driver.gui.multiplier-slot", gui.multiplierSlot(), gui.size());
+        validateGuiSlot("bus-driver.gui.balance-slot", gui.balanceSlot(), gui.size());
+        validateGuiSlot("bus-driver.gui.exit-slot", gui.exitSlot(), gui.size());
+        validateGuiSlot("bus-driver.gui.info-slot", gui.infoSlot(), gui.size());
         if (gui.suitSlots().size() != 4 || new HashSet<>(gui.suitSlots()).size() != 4) {
             throw new IllegalArgumentException("bus-driver.gui.suit-slots must contain exactly 4 unique slots");
         }
@@ -397,11 +403,19 @@ public final class CasinoConfigLoader {
                 throw new IllegalArgumentException("bus-driver.gui.suit-slots contains out-of-range slot: " + slot);
             }
         }
+        if (gui.rankSlots().size() != 13 || new HashSet<>(gui.rankSlots()).size() != 13) {
+            throw new IllegalArgumentException("bus-driver.gui.rank-slots must contain exactly 13 unique slots");
+        }
+        for (int slot : gui.rankSlots()) {
+            if (slot < 0 || slot >= gui.size()) {
+                throw new IllegalArgumentException("bus-driver.gui.rank-slots contains out-of-range slot: " + slot);
+            }
+        }
     }
 
     private CasinoConfig.BusDriverGui loadBusDriverGui(FileConfiguration config, Logger logger) {
         return new CasinoConfig.BusDriverGui(
-                config.getString("bus-driver.gui.title", "&cBUS DRIVER"),
+                config.getString("bus-driver.gui.title", "&cBUS DRIVER — DEDUKCJA"),
                 normalizeGuiSize(config.getInt("bus-driver.gui.size", 54)),
                 config.getInt("bus-driver.gui.card-slot", 22),
                 config.getInt("bus-driver.gui.lower-slot", 12),
@@ -411,17 +425,19 @@ public final class CasinoConfigLoader {
                 config.getInt("bus-driver.gui.balance-slot", 46),
                 config.getInt("bus-driver.gui.exit-slot", 45),
                 config.getInt("bus-driver.gui.info-slot", 53),
-                config.isList("bus-driver.gui.suit-slots") ? config.getIntegerList("bus-driver.gui.suit-slots")
-                        : List.of(10, 11, 15, 16),
+                config.isList("bus-driver.gui.suit-slots") ? List.copyOf(config.getIntegerList("bus-driver.gui.suit-slots"))
+                        : List.of(10, 12, 14, 16),
+                config.isList("bus-driver.gui.rank-slots") ? List.copyOf(config.getIntegerList("bus-driver.gui.rank-slots"))
+                        : List.of(9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21),
                 guiItem(config, "bus-driver.gui.filler", Material.BLACK_STAINED_GLASS_PANE, "", List.of(), true, logger),
                 guiItem(config, "bus-driver.gui.balance-item", Material.BUNDLE, "&aŚrodki: &f{balance_display}", List.of(), false, logger),
-                withLore(guiItem(config, "bus-driver.gui.start-item", Material.LIME_DYE, "&a&lROZPOCZNIJ",
-                                List.of(), false, logger),
-                        List.of("&c&m--------------------", "&fStawka: &a{total_cost}$",
-                                "&7Pełna gra: &f4 etapy", "&7Pierwszy cashout: &a{next_cashout}$",
-                                "&c&m--------------------", "&7Stawkę zmienisz w ustawieniach gry.")),
+                guiItem(config, "bus-driver.gui.start-item", Material.LIME_DYE, "&a&lROZPOCZNIJ PRÓBĘ",
+                        List.of("&7Gra dedukcyjna — wszystkie informacje są na planszy.",
+                                "&7Aktualna plansza: &f#{board} / {board_count}",
+                                "&7Koszt: &a{total_cost}$",
+                                "&8Nic nie jest losowane w trakcie gry."), false, logger),
                 guiItem(config, "bus-driver.gui.no-funds-item", Material.RED_DYE, "&cBrak środków",
-                        List.of("&c&m--------------------", "&7Wymagane: &f{total_cost}$", "&7Twoje środki: &f{balance_display}"), false, logger),
+                        List.of("&7Koszt próby: &f{total_cost}$", "&7Twoje środki: &f{balance_display}"), false, logger),
                 guiItem(config, "bus-driver.gui.red-item", Material.RED_BUNDLE, "&c&lCZERWONA", List.of(), false, logger),
                 guiItem(config, "bus-driver.gui.black-item", Material.BLACK_BUNDLE, "&8&lCZARNA", List.of(), false, logger),
                 guiItem(config, "bus-driver.gui.lower-item", Material.PLAYER_HEAD, "&c&lNIZEJ", List.of(), false,
@@ -441,20 +457,35 @@ public final class CasinoConfigLoader {
                 guiItem(config, "bus-driver.gui.cashout-item", Material.GOLD_INGOT, "&e&lWYPŁAĆ",
                         List.of("&c&m--------------------", "&7Aktualna wygrana: &a{current_win}$"), false, logger),
                 guiItem(config, "bus-driver.gui.cashout-unavailable-item", Material.GRAY_DYE, "&7Brak wygranej do wypłaty", List.of(), false, logger),
-                withLore(guiItem(config, "bus-driver.gui.multiplier-item", Material.WHITE_DYE, "&fUstawienia gry:",
-                                List.of(), false, logger),
-                        List.of("&c&m--------------------", "&ePPM: &fZmień stawkę",
-                                "&c&m--------------------", "&7Stawka: &f{bet}$", "&7Etapy: &f4")),
+                guiItem(config, "bus-driver.gui.multiplier-item", Material.WHITE_DYE, "&fWariant gry",
+                        List.of("&ePPM: &fZmień koszt", "&7Koszt: &f{total_cost}$", "&7Tier: &f{tier}",
+                                "&7Czas na etap: &f{decision_time_ms} ms"), false, logger),
                 guiItem(config, "bus-driver.gui.exit-item", Material.BARRIER, "&cWyjście", List.of(), false, logger),
+                guiItem(config, "bus-driver.gui.active-exit-item", Material.BARRIER, "&cPrzerwij próbę",
+                        List.of("&7Przerwanie zużywa planszę i kończy próbę bez nagrody."), false, logger),
                 guiItem(config, "bus-driver.gui.multiplier-locked-item", Material.BLACK_STAINED_GLASS_PANE, "",
                         List.of(), true, logger),
-                withLore(guiItem(config, "bus-driver.gui.info-item", Material.PLAYER_HEAD, "&fBus Driver",
-                                List.of(), false, "8767", null,
-                                "46ba63344f49dd1c4f5488e926bf3d9e2b29916a6c50d610bb40a5273dc8c82", logger),
-                        List.of("&c&m--------------------", "&7Twoja aktualna stawka: &f{total_cost}$",
-                                "&7Gra zawsze obejmuje wszystkie &f4 etapy&7.",
-                                "&c&m--------------------", "&ePotencjalne wygrane:", "{round_payouts}",
-                                "&c&m--------------------", "&7Aktualna wygrana: &a{current_win}$")),
+                guiItem(config, "bus-driver.gui.hint-item", Material.PAPER, "&fPodpowiedź",
+                        List.of("&7{hint}"), false, logger),
+                guiItem(config, "bus-driver.gui.rank-item", Material.PAPER, "&f&l{rank}",
+                        List.of("&7Kliknij, aby wybrać tę rangę."), false, logger),
+                guiItem(config, "bus-driver.gui.stage-item", Material.CLOCK, "&fPróba dedukcji",
+                        List.of("&7Plansza: &f#{board} / {board_count}",
+                                "&7Etap: &f{stage} / {stage_count}",
+                                "&7Typ: &f{stage_type}",
+                                "{timer_line}"), false, logger),
+                guiItem(config, "bus-driver.gui.info-item", Material.BOOK, "&fBusDriver — Poradnik",
+                        List.of("&7Plansza: &f#{board} / {board_count}", "", "&eJak grać?",
+                                "&7Każda próba ma &f4 etapy&7.",
+                                "&7Na każdy etap masz &f5 sekund&7.",
+                                "&7Najedź na &f3 podpowiedzi&7 ustawione obok siebie",
+                                "&7i wywnioskuj jedyną poprawną odpowiedź.",
+                                "&7Etap może dotyczyć &fkoloru&7 albo &frangi karty&7.",
+                                "&7Po poprawnej odpowiedzi przechodzisz dalej.",
+                                "&7Gdy masz nagrodę, możesz użyć &eWYPŁAĆ&7 i zakończyć próbę.",
+                                "&cBłędna odpowiedź lub koniec czasu kończy próbę bez nagrody.", "",
+                                "&8Plansze i podpowiedzi są stałe — wynik zależy od dedukcji i czasu."),
+                        false, logger),
                 config.getString("bus-driver.gui.info-item.round-line", "&e{round}. runda: &a{x}$")
         );
     }
@@ -473,35 +504,66 @@ public final class CasinoConfigLoader {
     private CasinoConfig.Gui loadGui(FileConfiguration config, Logger logger) {
         List<Integer> gridSlots = loadReelGridSlots(config);
         return new CasinoConfig.Gui(
-                config.getString("gui.title", "&cJEDNORĘKI BANDYTA"),
+                config.getString("gui.title", "&6REEL CHALLENGE"),
                 normalizeGuiSize(config.getInt("gui.size", 54)),
                 gridSlots,
                 config.getInt("gui.action-slot", 39),
                 config.getInt("gui.bet-slot", 41),
+                config.getInt("gui.difficulty-slot", 40),
+                config.getInt("gui.stop-line-left-slot", 10),
+                config.getInt("gui.stop-line-right-slot", 16),
                 config.getInt("gui.balance-slot", 46),
                 config.getInt("gui.exit-slot", 45),
                 config.getInt("gui.info-slot", 53),
+                loadReelPreviewGui(config, logger),
                 guiItem(config, "gui.filler", Material.BLACK_STAINED_GLASS_PANE, "", List.of(), true, logger),
-                guiItem(config, "gui.balance-item", Material.BUNDLE, "&aŚrodki: &f{balance_display}", List.of(), false, logger),
-                guiItem(config, "gui.spin-available-item", Material.LIME_DYE, "&d&lZAKRĘĆ!",
-                        List.of("&c&m--------------------", "&fAktualny koszt: &a{total_cost}",
-                                "&c&m--------------------", "&7Stawka bazowa: &f{base_bet}", "&7Układ: &f{layout}"),
-                        false, logger),
+                guiItem(config, "gui.balance-item", Material.BUNDLE, "&aŚrodki: &f{balance_display}$", List.of(), false, logger),
+                guiItem(config, "gui.spin-available-item", Material.LIME_DYE, "&a&lSTART PRÓBY",
+                        List.of("&7Koszt próby: &f{total_cost}$", "&7Tempo: &f{frame_ms} ms", "&7Zestaw: &f#{next_set}",
+                                "", "&7Stała sekwencja — brak losowania."), false, logger),
                 guiItem(config, "gui.spin-unavailable-item", Material.RED_DYE, "&cBrak środków",
-                        List.of("&c&m--------------------", "&7Wymagane: &f{total_cost}$", "&7Twoje środki: &f{balance_display}"),
-                        false, logger),
-                guiItem(config, "gui.rolling-item", Material.YELLOW_DYE, "&eZatrzymaj bęben", List.of(), false, logger),
-                guiItem(config, "gui.bet-item", Material.WHITE_DYE, "&fUstawienia gry:",
-                        List.of("&c&m--------------------", "&eLPM: &fZmień stawkę bazową", "&ePPM: &fZmień układ",
-                                "&c&m--------------------", "&7Stawka bazowa: &f{base_bet}", "&7Układ: &f{layout}"),
-                        false, logger),
+                        List.of("&7Koszt próby: &f{total_cost}$"), false, logger),
+                guiItem(config, "gui.rolling-item", Material.YELLOW_DYE, "&eSTOP — bęben {current_reel}/{reel_count}",
+                        List.of("&7Aktywny bęben jest podświetlony.", "&7Kliknięcie zatrzymuje dokładnie widzianą rewizję."), false, logger),
+                guiItem(config, "gui.bet-item", Material.WHITE_DYE, "&fUkład: &e{layout}",
+                        List.of("&eKliknij: &fzmień układ", "", "&7Wygrane: poziom, pion i każdy poprawny skos."), false, logger),
+                guiItem(config, "gui.difficulty-item", Material.CLOCK, "&fWariant wejściowy: &e{total_cost}$",
+                        List.of("&eKliknij: &fzmień wariant", "", "&7Koszt próby: &f{total_cost}$",
+                                "&7Tempo: &f{frame_ms} ms / pozycję"), false, logger),
+                guiItem(config, "gui.reward-mode-unavailable-item", Material.GRAY_DYE, "&cTryb nagród niedostępny",
+                        List.of("&7Wymagany jest aktywny PacketEvents/stateId resolver."), false, logger),
+                guiItem(config, "gui.daily-limit-item", Material.RED_DYE, "&eDzienny limit nagród Arcade",
+                        List.of("&7Dzisiaj: &f{daily_rewards}$", "&7Próg kolejnej próby: &f{daily_threshold}$",
+                                "&7Kolejna płatna próba jutro."), false, logger),
+                guiItem(config, "gui.stop-line-left-item", Material.ARROW, "&eLINIA STOP &f→",
+                        List.of("&7Aktywny bęben jest dodatkowo podświetlony."), false, logger),
+                guiItem(config, "gui.stop-line-right-item", Material.ARROW, "&f← &eLINIA STOP",
+                        List.of("&7Zatrzymujesz dokładnie widoczną pozycję."), false, logger),
                 guiItem(config, "gui.exit-item", Material.BARRIER, "&cWyjście", List.of(), false, logger),
-                guiItem(config, "gui.highlight-item", Material.LIME_STAINED_GLASS_PANE, "&a&lWYGRANA", List.of(), true, logger),
-                guiItem(config, "gui.info-item", Material.PLAYER_HEAD, "&fLegenda Wypłat",
-                        List.of("&c&m--------------------", "&7Pion, poziom i każdy skos wygrywa.",
-                                "&7Wiele trafień sumuje się.", "&c&m--------------------", "{symbol_payouts}"),
+                guiItem(config, "gui.highlight-item", Material.LIME_STAINED_GLASS_PANE, "&a&lNAGRODA", List.of(), true, logger),
+                guiItem(config, "gui.info-item", Material.PLAYER_HEAD, "&fNagrody za trafienie",
+                        List.of("&7Pion, poziom i każdy poprawny skos liczą się.",
+                                "&7Wiele trafień sumuje się bez limitu jednej próby.", "", "{symbol_payouts}"),
                         false, "8767", null, "46ba63344f49dd1c4f5488e926bf3d9e2b29916a6c50d610bb40a5273dc8c82", logger),
-                config.getString("gui.info-item.symbol-line", "&e{index}. {legend_name} &7(&a{payout}$&7)")
+                config.getString("gui.info-item.symbol-line", "&e{legend_name_plain} &7x{reward_multiplier} &8(&a{payout}$&8)")
+        );
+    }
+
+    private CasinoConfig.ReelPreviewGui loadReelPreviewGui(FileConfiguration config, Logger logger) {
+        return new CasinoConfig.ReelPreviewGui(
+                config.getString("gui.preview.title", "&6ZESTAW #{set} &8| &fBęben {reel}"),
+                normalizeGuiSize(config.getInt("gui.preview.size", 54)),
+                config.getInt("gui.preview.back-slot", 45),
+                config.getInt("gui.preview.previous-reel-slot", 47),
+                config.getInt("gui.preview.next-reel-slot", 48),
+                config.getInt("gui.preview.previous-page-slot", 50),
+                config.getInt("gui.preview.next-page-slot", 51),
+                guiItem(config, "gui.preview.filler", Material.BLACK_STAINED_GLASS_PANE, "", List.of(), true, logger),
+                guiItem(config, "gui.preview.back-item", Material.BARRIER, "&cPowrót", List.of(), false, logger),
+                guiItem(config, "gui.preview.previous-reel-item", Material.ARROW, "&ePoprzedni bęben", List.of(), false, logger),
+                guiItem(config, "gui.preview.next-reel-item", Material.ARROW, "&eNastępny bęben", List.of(), false, logger),
+                guiItem(config, "gui.preview.previous-page-item", Material.PAPER, "&eStrona 1", List.of("&7Pozycje 0–44"), false, logger),
+                guiItem(config, "gui.preview.next-page-item", Material.PAPER, "&eStrona 2", List.of("&7Pozycje 45–85"), false, logger)
         );
     }
 
@@ -559,9 +621,11 @@ public final class CasinoConfigLoader {
 
         return new CasinoConfig.Gui(
                 gui.title(), gui.size(), effectiveSlots,
-                gui.actionSlot(), gui.betSlot(), gui.balanceSlot(), gui.exitSlot(), gui.infoSlot(),
+                gui.actionSlot(), gui.betSlot(), gui.difficultySlot(), gui.stopLineLeftSlot(), gui.stopLineRightSlot(),
+                gui.balanceSlot(), gui.exitSlot(), gui.infoSlot(), gui.preview(),
                 gui.filler(), gui.balanceItem(), spinAvailable, gui.spinUnavailableItem(),
-                rolling, bet, gui.exitItem(), gui.highlightItem(), info,
+                rolling, bet, gui.difficultyItem(), gui.rewardModeUnavailableItem(), gui.dailyLimitItem(),
+                gui.stopLineLeftItem(), gui.stopLineRightItem(), gui.exitItem(), gui.highlightItem(), info,
                 gui.infoSymbolLine()
         );
     }
@@ -1037,6 +1101,19 @@ public final class CasinoConfigLoader {
         if (slotMachine.baseBetOptions().stream().noneMatch(value -> Math.abs(value - slotMachine.defaultBaseBet()) < 0.0001D)) {
             throw new IllegalArgumentException("slot-machine.default-base-bet must exist in slot-machine.base-bet-options");
         }
+        validateGuiSlot("gui.action-slot", gui.actionSlot(), gui.size());
+        validateGuiSlot("gui.bet-slot", gui.betSlot(), gui.size());
+        validateGuiSlot("gui.difficulty-slot", gui.difficultySlot(), gui.size());
+        validateGuiSlot("gui.stop-line-left-slot", gui.stopLineLeftSlot(), gui.size());
+        validateGuiSlot("gui.stop-line-right-slot", gui.stopLineRightSlot(), gui.size());
+        validateGuiSlot("gui.balance-slot", gui.balanceSlot(), gui.size());
+        validateGuiSlot("gui.exit-slot", gui.exitSlot(), gui.size());
+        validateGuiSlot("gui.info-slot", gui.infoSlot(), gui.size());
+        validateGuiSlot("gui.preview.back-slot", gui.preview().backSlot(), gui.preview().size());
+        validateGuiSlot("gui.preview.previous-reel-slot", gui.preview().previousReelSlot(), gui.preview().size());
+        validateGuiSlot("gui.preview.next-reel-slot", gui.preview().nextReelSlot(), gui.preview().size());
+        validateGuiSlot("gui.preview.previous-page-slot", gui.preview().previousPageSlot(), gui.preview().size());
+        validateGuiSlot("gui.preview.next-page-slot", gui.preview().nextPageSlot(), gui.preview().size());
         if (gui.reelGridSlots().size() != 15) {
             throw new IllegalArgumentException("gui.reel-grid-slots must contain exactly 15 slots for a 5x3 grid");
         }
@@ -1075,6 +1152,12 @@ public final class CasinoConfigLoader {
         }
         if (totalWeight <= 0.0D) {
             throw new IllegalArgumentException("sum of positive symbols.*.strip-count must be > 0");
+        }
+    }
+
+    private void validateGuiSlot(String path, int slot, int size) {
+        if (slot < 0 || slot >= size) {
+            throw new IllegalArgumentException(path + " contains out-of-range slot: " + slot + " for GUI size " + size);
         }
     }
 

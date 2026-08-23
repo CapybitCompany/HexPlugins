@@ -163,7 +163,6 @@ towns:
       material: RED_CONCRETE
       display-name: '&cSerce miasta'
       custom-model-data: 16002
-    clear-chunk-above-heart: true
   visual-check:
     enabled: true
     block: LIME_CONCRETE

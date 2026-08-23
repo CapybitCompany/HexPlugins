@@ -49,7 +49,7 @@ public final class TownHeartService {
         townsService.forEachTown(town -> loadHeart(town).ifPresent(heart -> {
             hearts.put(town.id(), heart);
             removePhysicalHeartBlock(heart);
-            registerLegacyFoundationIfNeeded(town.id(), heart);
+            migrateFoundationTo3x3(town.id(), heart);
             ensureBedrockFoundation(heart);
             renderer.render(town, heart);
         }), 100);
@@ -87,7 +87,7 @@ public final class TownHeartService {
     }
 
     /**
-     * Installs the heart and records the exact 9x9 foundation footprint before replacing it.
+     * Installs the heart and records the exact 3x3 foundation footprint before replacing it.
      * The footprint makes destroy ownership-aware and allows retry-safe restoration.
      */
     public TownHeartLocation installHeart(Town town, Location placementHint) {
@@ -107,7 +107,7 @@ public final class TownHeartService {
         repository.replaceHeartFoundation(town.id(), world.getName(), footprint);
 
         try {
-            clearHeartChunk(heart);
+            clearHeartArea(heart);
             ensureBedrockFoundation(heart);
             Block block = world.getBlockAt(x, y, z);
             block.setType(Material.AIR, false);
@@ -206,38 +206,81 @@ public final class TownHeartService {
         World world = Bukkit.getWorld(heart.world());
         if (world == null) return List.of();
         int foundationY = Math.max(world.getMinHeight(), heart.y() - 2);
-        List<TownRepository.FoundationBlock> blocks = new ArrayList<>(81);
-        for (int x = heart.x() - 4; x <= heart.x() + 4; x++) {
-            for (int z = heart.z() - 4; z <= heart.z() + 4; z++) {
+        List<TownRepository.FoundationBlock> blocks = new ArrayList<>(9);
+        for (int x = heart.x() - 1; x <= heart.x() + 1; x++) {
+            for (int z = heart.z() - 1; z <= heart.z() + 1; z++) {
                 blocks.add(new TownRepository.FoundationBlock(x, foundationY, z, world.getBlockAt(x, foundationY, z).getType().name()));
             }
         }
         return blocks;
     }
 
-    private void registerLegacyFoundationIfNeeded(UUID townId, TownHeartLocation heart) {
-        if (!repository.loadHeartFoundation(townId).isEmpty()) return;
+    /**
+     * Shrinks foundations created by older builds from 9x9 to 3x3.
+     *
+     * For blocks tracked in the restoration table we restore the material that existed
+     * before the old foundation was installed. Very old hearts may not have restoration
+     * data; in that deterministic legacy ring the old BEDROCK is replaced with AIR.
+     * The repository is then rewritten to contain only the retained 3x3 footprint, so a
+     * later town destroy restores exactly the blocks still owned by the current heart.
+     */
+    private void migrateFoundationTo3x3(UUID townId, TownHeartLocation heart) {
         World world = Bukkit.getWorld(heart.world());
         if (world == null) return;
         int foundationY = Math.max(world.getMinHeight(), heart.y() - 2);
-        List<TownRepository.FoundationBlock> legacy = new ArrayList<>(81);
-        for (int x = heart.x() - 4; x <= heart.x() + 4; x++) {
-            for (int z = heart.z() - 4; z <= heart.z() + 4; z++) {
-                // Existing active-town metadata is the ownership proof for this deterministic
-                // legacy footprint. We intentionally restore AIR on legacy destroy rather than
-                // pretending to know what existed before older plugin versions placed bedrock.
-                legacy.add(new TownRepository.FoundationBlock(x, foundationY, z, Material.AIR.name()));
+        List<TownRepository.FoundationBlock> saved = repository.loadHeartFoundation(townId);
+        Map<String, TownRepository.FoundationBlock> byPosition = new java.util.HashMap<>();
+        for (TownRepository.FoundationBlock block : saved) {
+            byPosition.put(block.x() + ":" + block.y() + ":" + block.z(), block);
+        }
+
+        boolean legacyFootprint = saved.isEmpty() || saved.stream().anyMatch(block ->
+                block.y() == foundationY
+                        && (Math.abs(block.x() - heart.x()) > 1 || Math.abs(block.z() - heart.z()) > 1));
+
+        // Remove the old 9x9 ring once. After the repository has been rewritten to 3x3,
+        // later restarts no longer scan or touch the now-buildable ring around the heart.
+        if (legacyFootprint) {
+            for (int x = heart.x() - 4; x <= heart.x() + 4; x++) {
+                for (int z = heart.z() - 4; z <= heart.z() + 4; z++) {
+                    if (Math.abs(x - heart.x()) <= 1 && Math.abs(z - heart.z()) <= 1) continue;
+                    Block block = world.getBlockAt(x, foundationY, z);
+                    if (block.getType() != Material.BEDROCK) continue;
+                    TownRepository.FoundationBlock previous = byPosition.get(x + ":" + foundationY + ":" + z);
+                    Material material = previous == null ? Material.AIR : Material.matchMaterial(previous.previousMaterial());
+                    if (material == null) material = Material.AIR;
+                    block.setType(material, false);
+                }
             }
         }
-        repository.replaceHeartFoundation(townId, heart.world(), legacy);
+
+        List<TownRepository.FoundationBlock> retained = new ArrayList<>(9);
+        for (int x = heart.x() - 1; x <= heart.x() + 1; x++) {
+            for (int z = heart.z() - 1; z <= heart.z() + 1; z++) {
+                TownRepository.FoundationBlock previous = byPosition.get(x + ":" + foundationY + ":" + z);
+                if (previous != null) {
+                    retained.add(previous);
+                    continue;
+                }
+                Block current = world.getBlockAt(x, foundationY, z);
+                // For legacy hearts without restoration data the current BEDROCK was created
+                // by HexTowns, but the original material is unknowable. Keep the historical
+                // safe fallback of AIR for eventual heart removal.
+                String previousMaterial = current.getType() == Material.BEDROCK
+                        ? Material.AIR.name()
+                        : current.getType().name();
+                retained.add(new TownRepository.FoundationBlock(x, foundationY, z, previousMaterial));
+            }
+        }
+        repository.replaceHeartFoundation(townId, heart.world(), retained);
     }
 
     private void ensureBedrockFoundation(TownHeartLocation heart) {
         World world = Bukkit.getWorld(heart.world());
         if (world == null) return;
         int foundationY = Math.max(world.getMinHeight(), heart.y() - 2);
-        for (int x = heart.x() - 4; x <= heart.x() + 4; x++) {
-            for (int z = heart.z() - 4; z <= heart.z() + 4; z++) {
+        for (int x = heart.x() - 1; x <= heart.x() + 1; x++) {
+            for (int z = heart.z() - 1; z <= heart.z() + 1; z++) {
                 world.getBlockAt(x, foundationY, z).setType(Material.BEDROCK, false);
             }
         }
@@ -268,15 +311,15 @@ public final class TownHeartService {
         if (block.getType() == Material.RED_CONCRETE) block.setType(Material.AIR, false);
     }
 
-    private void clearHeartChunk(TownHeartLocation heart) {
+    private void clearHeartArea(TownHeartLocation heart) {
         World world = Bukkit.getWorld(heart.world());
         if (world == null) return;
-        int minX = heart.chunkX() << 4;
-        int minZ = heart.chunkZ() << 4;
         int fromY = Math.max(world.getMinHeight(), heart.y() - 1);
         int toY = world.getMaxHeight() - 1;
-        for (int x = minX; x < minX + 16; x++) {
-            for (int z = minZ; z < minZ + 16; z++) {
+        // Creating a heart only clears a 5x5 column centered on the heart. The rest of
+        // the heart chunk is left untouched and remains fully buildable.
+        for (int x = heart.x() - 2; x <= heart.x() + 2; x++) {
+            for (int z = heart.z() - 2; z <= heart.z() + 2; z++) {
                 for (int y = fromY; y <= toY; y++) {
                     if (x == heart.x() && y == heart.y() && z == heart.z()) continue;
                     world.getBlockAt(x, y, z).setType(Material.AIR, false);

@@ -15,7 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 public final class HexGUIPlugin extends JavaPlugin {
-    private static final int CURRENT_CONFIG_VERSION = 3;
+    private static final int CURRENT_CONFIG_VERSION = 6;
     private volatile HubConfig hubConfig;
     private HubMenu hubMenu;
 
@@ -42,7 +42,7 @@ public final class HexGUIPlugin extends JavaPlugin {
         }
 
         getServer().getPluginManager().registerEvents(hubMenu, this);
-        getLogger().info("HexGUI 1.1.0 aktywny. Hub graczy: /hex");
+        getLogger().info("HexGUI 1.2.2 aktywny. Hub graczy: /hex");
     }
 
     public boolean reloadHubConfig() {
@@ -83,10 +83,33 @@ public final class HexGUIPlugin extends JavaPlugin {
                 replaceSection(defaults, "menu");
                 replaceSection(defaults, "entries");
             }
+            if (version < 4) {
+                // v4 dodaje wejście do informacji o rangach oraz osobne menu rang.
+                // Istniejących kafelków administratora nie nadpisujemy.
+                copySectionIfMissing(defaults, "entries.ranks");
+                copySectionIfMissing(defaults, "rank-menu");
+            }
+            if (version < 5) {
+                // v5 aktualizuje treści benefitów rang. Zachowujemy układ i stylistykę,
+                // ale podmieniamy sekcję rank-menu, aby istniejący config dostał nowe lore.
+                replaceSection(defaults, "rank-menu");
+            }
+            if (version < 6) {
+                // v6 koryguje wyłącznie kolory tytułów rang w istniejących konfiguracjach.
+                // Nie nadpisujemy lore, slotów ani ikon administratora.
+                getConfig().set("rank-menu.entries.vip.name",
+                        defaults.getString("rank-menu.entries.vip.name", "&e&lVIP"));
+                getConfig().set("rank-menu.entries.svip.name",
+                        defaults.getString("rank-menu.entries.svip.name", "&6&lSVIP"));
+                getConfig().set("rank-menu.entries.elita.name",
+                        defaults.getString("rank-menu.entries.elita.name", "&b&lELITA"));
+                getConfig().set("rank-menu.entries.media.name",
+                        defaults.getString("rank-menu.entries.media.name", "&d&lMEDIA"));
+            }
             getConfig().set("config-version", CURRENT_CONFIG_VERSION);
             saveConfig();
             getLogger().info("Zaktualizowano config.yml HexGUI do wersji " + CURRENT_CONFIG_VERSION
-                    + " (nowy układ HEX CENTRUM).");
+                    + " (HEX CENTRUM + zaktualizowane menu rang).");
         } catch (Exception exception) {
             getLogger().warning("Nie udało się automatycznie zmigrować config.yml HexGUI: " + exception);
         }

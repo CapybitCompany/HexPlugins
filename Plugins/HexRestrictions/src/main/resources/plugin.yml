@@ -1,0 +1,16 @@
+name: HexRestrictions
+version: '1.0.0'
+main: hex.restrictions.HexRestrictionsPlugin
+api-version: "1.21"
+description: Config-driven forbidden items and enchantments enforcement for Hex SMP
+authors: [HexTeam]
+commands:
+  hexrestrictions:
+    description: Manage HexRestrictions
+    usage: /hexrestrictions <status|reload|scan>
+    permission: hexrestrictions.admin
+    aliases: [hexrestrict]
+permissions:
+  hexrestrictions.admin:
+    description: Allows managing HexRestrictions
+    default: op

@@ -1,4 +1,4 @@
-config-version: 3
+config-version: 6
 
 # HexGUI - centralny hub menu
 #
@@ -248,3 +248,110 @@ entries:
     icon:
       material: COMPASS
       custom-model-data: 0
+
+  ranks:
+    enabled: true
+    slot: 35
+    name: "&6Rangi"
+    lore:
+      - "&7Sprawdź rangi dostępne na serwerze"
+      - "&7i wszystkie ich przywileje."
+      - ""
+      - "&eKliknij, aby otworzyć."
+    command: "hex ranks"
+    action: COMMAND
+    run-as: PLAYER
+    close-on-click: true
+    required-plugins: []
+    permission: ""
+    icon:
+      material: NETHER_STAR
+      custom-model-data: 0
+
+rank-menu:
+  title: "&0&lRANGI"
+  rows: 3
+
+  filler:
+    material: BLACK_STAINED_GLASS_PANE
+    hide-tooltip: true
+
+  entries:
+    vip:
+      enabled: true
+      slot: 10
+      material: IRON_BLOCK
+      name: "&e&lVIP"
+      lore:
+        - "&7Korzyści rangi:"
+        - ""
+        - "&8• &7Hex-Coins: &66 &8(&7waluta premium&8)"
+        - "&8  &fPrzy każdym zakupie."
+        - "&8• &7Podatek w domu aukcyjnym: &69%"
+        - "&8  &7przy wystawianiu przedmiotów."
+        - "&8• &7Możesz wystawić więcej aukcji."
+        - "&8• &7Strefa AFK: drop co &69 min"
+        - "&8  &7Większa szansa na loot."
+        - "&8• &7SetHome: &62"
+        - "&8• &7Daily Rewards: &flepsze nagrody"
+        - "&8• &7HexChat: &fbiały tekst, cooldown &65s"
+        - "&8  &7zamiast 10s."
+        - "&8• &7Prefix na serwerze i Discordzie."
+        - "&8• &7Limit wielkości miasta: &6+1"
+        - "&8• &7Limit członków miasta: &6+1 &8(&7maks. 10&8)"
+
+    svip:
+      enabled: true
+      slot: 12
+      material: GOLD_BLOCK
+      name: "&6&lSVIP"
+      lore:
+        - "&7Korzyści rangi:"
+        - ""
+        - "&8• &7Hex-Coins: &612 &8(&7waluta premium&8)"
+        - "&8  &fPrzy każdym zakupie."
+        - "&8• &7Podatek w domu aukcyjnym: &67%"
+        - "&8  &7przy wystawianiu przedmiotów."
+        - "&8• &7Możesz wystawić więcej aukcji."
+        - "&8• &7Strefa AFK: drop co &68 min"
+        - "&8  &7Większa szansa na loot."
+        - "&8• &7SetHome: &63"
+        - "&8• &7Daily Rewards: &flepsze nagrody"
+        - "&8• &7HexChat: &fbiały tekst, cooldown &62s"
+        - "&8  &7zamiast 10s."
+        - "&8• &7Prefix na serwerze i Discordzie."
+        - "&8• &7Limit wielkości miasta: &6+1"
+        - "&8• &7Limit członków miasta: &6+1 &8(&7maks. 10&8)"
+
+    elita:
+      enabled: true
+      slot: 14
+      material: DIAMOND_BLOCK
+      name: "&b&lELITA"
+      lore:
+        - "&7Korzyści rangi:"
+        - ""
+        - "&8• &7Hex-Coins: &620 &8(&7waluta premium&8)"
+        - "&8  &fPrzy każdym zakupie."
+        - "&8• &7Podatek w domu aukcyjnym: &65%"
+        - "&8  &7przy wystawianiu przedmiotów."
+        - "&8• &7Możesz wystawić więcej aukcji."
+        - "&8• &7Strefa AFK: drop co &66 min"
+        - "&8  &7Większa szansa na loot."
+        - "&8• &7SetHome: &65"
+        - "&8• &7Daily Rewards: &fnajlepsze nagrody"
+        - "&8• &7HexChat: &fbiały tekst, brak cooldownu"
+        - "&8• &7Prefix na serwerze i Discordzie."
+        - "&8• &7Limit wielkości miasta: &6+2"
+        - "&8• &7Limit członków miasta: &6+2 &8(&7maks. 10&8)"
+
+    media:
+      enabled: true
+      slot: 16
+      material: EMERALD_BLOCK
+      name: "&d&lMEDIA"
+      lore:
+        - "&7Korzyści rangi:"
+        - ""
+        - "&8• &7Wszystkie przywileje rangi ELITA"
+        - "&8• &7Ranga na Discordzie serwera"

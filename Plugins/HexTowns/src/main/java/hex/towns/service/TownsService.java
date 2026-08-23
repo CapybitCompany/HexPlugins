@@ -354,6 +354,7 @@ public final class TownsService implements Listener {
 
     public CompletableFuture<OperationResult> requestCoop(Player player) {
         UUID playerId = player.getUniqueId();
+        String requesterName = player.getName();
         Location loc = player.getLocation();
         Optional<Town> target = townAt(loc);
         if (target.isEmpty()) {
@@ -382,11 +383,11 @@ public final class TownsService implements Listener {
                     return OperationResult.fail("towns.coop.full");
                 }
                 repository.upsertCoopRequest(activeTown.internalId(), playerId);
-                Player owner = Bukkit.getPlayer(activeTown.ownerId());
-                if (owner != null) {
-                    String requesterName = player.getName();
-                    Bukkit.getScheduler().runTask(plugin, () -> sendCoopRequestNotification(owner, playerId, requesterName));
-                }
+                UUID ownerId = activeTown.ownerId();
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    Player owner = Bukkit.getPlayer(ownerId);
+                    if (owner != null) sendCoopRequestNotification(owner, playerId, requesterName);
+                });
                 return OperationResult.ok("towns.coop.request-created", UiTokens.of("town", activeTown.name()));
             }
         });

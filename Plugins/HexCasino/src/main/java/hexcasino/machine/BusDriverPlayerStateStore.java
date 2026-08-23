@@ -85,7 +85,7 @@ public final class BusDriverPlayerStateStore {
                             yaml.getInt(p + "active.bet-index", 0),
                             yaml.getDouble(p + "active.stake", 0.0D),
                             yaml.getDouble(p + "active.current-win", 0.0D),
-                            yaml.getLong(p + "active.remaining-ms", 3000L),
+                            yaml.getLong(p + "active.remaining-ms", 5000L),
                             yaml.getString(p + "active.machine-id", "")
                     ));
                 }

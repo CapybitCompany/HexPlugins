@@ -85,6 +85,10 @@ public final class BusDriverBoardRepository {
                         String value = String.valueOf(hintMap.get("value"));
                         hints.add(new BusDriverBoard.HintDefinition(slot, hintType, value));
                     }
+                    if (!slots.equals(Set.of(30, 31, 32))) {
+                        throw new IllegalStateException("Board " + boardId + " stage " + stageId
+                                + " must place the three hint tiles directly next to each other in slots 30,31,32");
+                    }
                     stages.add(new BusDriverBoard.StageDefinition(stageId, type, target, hints));
                 }
                 BusDriverBoard board = new BusDriverBoard(boardId, boardVersion, stages);

@@ -8,10 +8,10 @@ boards:
       type: SUIT_DEDUCTION
       target: HEARTS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -21,13 +21,13 @@ boards:
       type: RANK_DEDUCTION
       target: 3
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 2
       - slot: 31
         type: LESS_THAN
         value: 4
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 5
     - id: 3
@@ -37,20 +37,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 8
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 9
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 6
     - id: 4
       type: SUIT_DEDUCTION
       target: CLUBS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -63,13 +63,13 @@ boards:
       type: SUIT_DEDUCTION
       target: DIAMONDS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
     - id: 2
@@ -79,20 +79,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 7
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 8
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 5
     - id: 3
       type: RANK_DEDUCTION
       target: 14
       hints:
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 11
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 13
       - slot: 31
@@ -102,13 +102,13 @@ boards:
       type: SUIT_DEDUCTION
       target: DIAMONDS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
   3:
@@ -121,20 +121,20 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
     - id: 2
       type: RANK_DEDUCTION
       target: 9
       hints:
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 7
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 8
       - slot: 31
@@ -144,13 +144,13 @@ boards:
       type: RANK_DEDUCTION
       target: 8
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 7
       - slot: 31
         type: LESS_THAN
         value: 9
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 10
     - id: 4
@@ -160,10 +160,10 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
   4:
@@ -173,10 +173,10 @@ boards:
       type: SUIT_DEDUCTION
       target: SPADES
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
       - slot: 31
@@ -186,13 +186,13 @@ boards:
       type: RANK_DEDUCTION
       target: 12
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 11
       - slot: 31
         type: LESS_THAN
         value: 13
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 10
     - id: 3
@@ -202,20 +202,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 4
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 5
-      - slot: 28
+      - slot: 30
         type: LESS_THAN
         value: 3
     - id: 4
       type: SUIT_DEDUCTION
       target: SPADES
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
       - slot: 31
@@ -228,13 +228,13 @@ boards:
       type: SUIT_DEDUCTION
       target: HEARTS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
     - id: 2
@@ -244,20 +244,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 4
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 5
-      - slot: 28
+      - slot: 30
         type: LESS_THAN
         value: 3
     - id: 3
       type: RANK_DEDUCTION
       target: 9
       hints:
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 7
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 8
       - slot: 31
@@ -267,13 +267,13 @@ boards:
       type: SUIT_DEDUCTION
       target: CLUBS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
   6:
@@ -286,20 +286,20 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
     - id: 2
       type: RANK_DEDUCTION
       target: 5
       hints:
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 7
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 4
       - slot: 31
@@ -309,13 +309,13 @@ boards:
       type: RANK_DEDUCTION
       target: 3
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 2
       - slot: 31
         type: LESS_THAN
         value: 4
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 5
     - id: 4
@@ -325,10 +325,10 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
   7:
@@ -338,10 +338,10 @@ boards:
       type: SUIT_DEDUCTION
       target: CLUBS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -351,13 +351,13 @@ boards:
       type: RANK_DEDUCTION
       target: 8
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 7
       - slot: 31
         type: LESS_THAN
         value: 9
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 10
     - id: 3
@@ -367,20 +367,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 11
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 8
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 9
     - id: 4
       type: SUIT_DEDUCTION
       target: HEARTS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -393,13 +393,13 @@ boards:
       type: SUIT_DEDUCTION
       target: SPADES
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
     - id: 2
@@ -409,20 +409,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 12
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 9
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 10
     - id: 3
       type: RANK_DEDUCTION
       target: 4
       hints:
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 6
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 3
       - slot: 31
@@ -432,13 +432,13 @@ boards:
       type: SUIT_DEDUCTION
       target: SPADES
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
   9:
@@ -451,20 +451,20 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
     - id: 2
       type: RANK_DEDUCTION
       target: 14
       hints:
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 11
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 13
       - slot: 31
@@ -474,13 +474,13 @@ boards:
       type: RANK_DEDUCTION
       target: 11
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 10
       - slot: 31
         type: LESS_THAN
         value: 12
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 9
     - id: 4
@@ -490,10 +490,10 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
   10:
@@ -503,10 +503,10 @@ boards:
       type: SUIT_DEDUCTION
       target: DIAMONDS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -516,13 +516,13 @@ boards:
       type: RANK_DEDUCTION
       target: 4
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 3
       - slot: 31
         type: LESS_THAN
         value: 5
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 6
     - id: 3
@@ -532,20 +532,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 6
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 7
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 4
     - id: 4
       type: SUIT_DEDUCTION
       target: DIAMONDS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -558,13 +558,13 @@ boards:
       type: SUIT_DEDUCTION
       target: CLUBS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
     - id: 2
@@ -574,20 +574,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 8
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 9
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 6
     - id: 3
       type: RANK_DEDUCTION
       target: 12
       hints:
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 10
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 11
       - slot: 31
@@ -597,13 +597,13 @@ boards:
       type: SUIT_DEDUCTION
       target: HEARTS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
   12:
@@ -616,20 +616,20 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
     - id: 2
       type: RANK_DEDUCTION
       target: 10
       hints:
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 8
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 9
       - slot: 31
@@ -639,13 +639,13 @@ boards:
       type: RANK_DEDUCTION
       target: 6
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 5
       - slot: 31
         type: LESS_THAN
         value: 7
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 8
     - id: 4
@@ -655,10 +655,10 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
   13:
@@ -668,10 +668,10 @@ boards:
       type: SUIT_DEDUCTION
       target: HEARTS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -681,13 +681,13 @@ boards:
       type: RANK_DEDUCTION
       target: 13
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 12
       - slot: 31
         type: LESS_THAN
         value: 14
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 11
     - id: 3
@@ -697,20 +697,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 14
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 11
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 12
     - id: 4
       type: SUIT_DEDUCTION
       target: CLUBS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -723,13 +723,13 @@ boards:
       type: SUIT_DEDUCTION
       target: DIAMONDS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
     - id: 2
@@ -739,20 +739,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 4
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 5
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 2
     - id: 3
       type: RANK_DEDUCTION
       target: 7
       hints:
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 9
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 6
       - slot: 31
@@ -762,13 +762,13 @@ boards:
       type: SUIT_DEDUCTION
       target: DIAMONDS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
   15:
@@ -781,20 +781,20 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
     - id: 2
       type: RANK_DEDUCTION
       target: 6
       hints:
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 8
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 5
       - slot: 31
@@ -804,13 +804,13 @@ boards:
       type: RANK_DEDUCTION
       target: 14
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 13
       - slot: 31
         type: GREATER_THAN
         value: 12
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 11
     - id: 4
@@ -820,10 +820,10 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
   16:
@@ -833,10 +833,10 @@ boards:
       type: SUIT_DEDUCTION
       target: SPADES
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
       - slot: 31
@@ -846,13 +846,13 @@ boards:
       type: RANK_DEDUCTION
       target: 9
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 8
       - slot: 31
         type: LESS_THAN
         value: 10
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 7
     - id: 3
@@ -862,20 +862,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 9
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 10
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 7
     - id: 4
       type: SUIT_DEDUCTION
       target: SPADES
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
       - slot: 31
@@ -888,13 +888,13 @@ boards:
       type: SUIT_DEDUCTION
       target: HEARTS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
     - id: 2
@@ -904,20 +904,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 13
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 10
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 11
     - id: 3
       type: RANK_DEDUCTION
       target: 2
       hints:
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 5
-      - slot: 28
+      - slot: 30
         type: LESS_THAN
         value: 3
       - slot: 31
@@ -927,13 +927,13 @@ boards:
       type: SUIT_DEDUCTION
       target: CLUBS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
   18:
@@ -946,20 +946,20 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
     - id: 2
       type: RANK_DEDUCTION
       target: 2
       hints:
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 5
-      - slot: 28
+      - slot: 30
         type: LESS_THAN
         value: 3
       - slot: 31
@@ -969,13 +969,13 @@ boards:
       type: RANK_DEDUCTION
       target: 9
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 8
       - slot: 31
         type: LESS_THAN
         value: 10
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 7
     - id: 4
@@ -985,10 +985,10 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
   19:
@@ -998,10 +998,10 @@ boards:
       type: SUIT_DEDUCTION
       target: CLUBS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -1011,13 +1011,13 @@ boards:
       type: RANK_DEDUCTION
       target: 5
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 4
       - slot: 31
         type: LESS_THAN
         value: 6
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 7
     - id: 3
@@ -1027,20 +1027,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 4
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 5
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 2
     - id: 4
       type: SUIT_DEDUCTION
       target: HEARTS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -1053,13 +1053,13 @@ boards:
       type: SUIT_DEDUCTION
       target: SPADES
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
     - id: 2
@@ -1069,20 +1069,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 9
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 10
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 7
     - id: 3
       type: RANK_DEDUCTION
       target: 10
       hints:
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 8
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 9
       - slot: 31
@@ -1092,13 +1092,13 @@ boards:
       type: SUIT_DEDUCTION
       target: SPADES
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
   21:
@@ -1111,20 +1111,20 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
     - id: 2
       type: RANK_DEDUCTION
       target: 11
       hints:
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 9
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 10
       - slot: 31
@@ -1134,13 +1134,13 @@ boards:
       type: RANK_DEDUCTION
       target: 4
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 3
       - slot: 31
         type: LESS_THAN
         value: 5
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 6
     - id: 4
@@ -1150,10 +1150,10 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
   22:
@@ -1163,10 +1163,10 @@ boards:
       type: SUIT_DEDUCTION
       target: DIAMONDS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -1176,13 +1176,13 @@ boards:
       type: RANK_DEDUCTION
       target: 14
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 13
       - slot: 31
         type: GREATER_THAN
         value: 12
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 11
     - id: 3
@@ -1192,20 +1192,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 12
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 9
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 10
     - id: 4
       type: SUIT_DEDUCTION
       target: DIAMONDS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -1218,13 +1218,13 @@ boards:
       type: SUIT_DEDUCTION
       target: CLUBS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
     - id: 2
@@ -1234,20 +1234,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 5
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 6
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 3
     - id: 3
       type: RANK_DEDUCTION
       target: 5
       hints:
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 7
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 4
       - slot: 31
@@ -1257,13 +1257,13 @@ boards:
       type: SUIT_DEDUCTION
       target: HEARTS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
   24:
@@ -1276,20 +1276,20 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
     - id: 2
       type: RANK_DEDUCTION
       target: 7
       hints:
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 9
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 6
       - slot: 31
@@ -1299,13 +1299,13 @@ boards:
       type: RANK_DEDUCTION
       target: 12
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 11
       - slot: 31
         type: LESS_THAN
         value: 13
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 10
     - id: 4
@@ -1315,10 +1315,10 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
   25:
@@ -1328,10 +1328,10 @@ boards:
       type: SUIT_DEDUCTION
       target: HEARTS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -1341,13 +1341,13 @@ boards:
       type: RANK_DEDUCTION
       target: 10
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 9
       - slot: 31
         type: LESS_THAN
         value: 11
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 8
     - id: 3
@@ -1357,20 +1357,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 7
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 8
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 5
     - id: 4
       type: SUIT_DEDUCTION
       target: CLUBS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -1383,13 +1383,13 @@ boards:
       type: SUIT_DEDUCTION
       target: DIAMONDS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
     - id: 2
@@ -1399,20 +1399,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 14
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 11
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 12
     - id: 3
       type: RANK_DEDUCTION
       target: 13
       hints:
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 11
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 12
       - slot: 31
@@ -1422,13 +1422,13 @@ boards:
       type: SUIT_DEDUCTION
       target: DIAMONDS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
   27:
@@ -1441,20 +1441,20 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
     - id: 2
       type: RANK_DEDUCTION
       target: 3
       hints:
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 5
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 2
       - slot: 31
@@ -1464,13 +1464,13 @@ boards:
       type: RANK_DEDUCTION
       target: 7
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 6
       - slot: 31
         type: LESS_THAN
         value: 8
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 9
     - id: 4
@@ -1480,10 +1480,10 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
   28:
@@ -1493,10 +1493,10 @@ boards:
       type: SUIT_DEDUCTION
       target: SPADES
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
       - slot: 31
@@ -1506,13 +1506,13 @@ boards:
       type: RANK_DEDUCTION
       target: 6
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 5
       - slot: 31
         type: LESS_THAN
         value: 7
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 8
     - id: 3
@@ -1522,20 +1522,20 @@ boards:
       - slot: 31
         type: GREATER_THAN
         value: 12
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 11
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 13
     - id: 4
       type: SUIT_DEDUCTION
       target: SPADES
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
       - slot: 31
@@ -1548,13 +1548,13 @@ boards:
       type: SUIT_DEDUCTION
       target: HEARTS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
     - id: 2
@@ -1564,20 +1564,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 10
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 7
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 8
     - id: 3
       type: RANK_DEDUCTION
       target: 8
       hints:
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 10
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 7
       - slot: 31
@@ -1587,13 +1587,13 @@ boards:
       type: SUIT_DEDUCTION
       target: CLUBS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
   30:
@@ -1606,20 +1606,20 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
     - id: 2
       type: RANK_DEDUCTION
       target: 12
       hints:
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 10
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 11
       - slot: 31
@@ -1629,13 +1629,13 @@ boards:
       type: RANK_DEDUCTION
       target: 2
       hints:
-      - slot: 28
+      - slot: 30
         type: LESS_THAN
         value: 3
       - slot: 31
         type: LESS_THAN
         value: 4
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 5
     - id: 4
@@ -1645,10 +1645,10 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
   31:
@@ -1658,10 +1658,10 @@ boards:
       type: SUIT_DEDUCTION
       target: CLUBS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -1671,13 +1671,13 @@ boards:
       type: RANK_DEDUCTION
       target: 2
       hints:
-      - slot: 28
+      - slot: 30
         type: LESS_THAN
         value: 3
       - slot: 31
         type: LESS_THAN
         value: 4
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 5
     - id: 3
@@ -1687,20 +1687,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 10
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 7
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 8
     - id: 4
       type: SUIT_DEDUCTION
       target: HEARTS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -1713,13 +1713,13 @@ boards:
       type: SUIT_DEDUCTION
       target: SPADES
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
     - id: 2
@@ -1729,20 +1729,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 6
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 7
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 4
     - id: 3
       type: RANK_DEDUCTION
       target: 3
       hints:
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 5
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 2
       - slot: 31
@@ -1752,13 +1752,13 @@ boards:
       type: SUIT_DEDUCTION
       target: SPADES
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
   33:
@@ -1771,20 +1771,20 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
     - id: 2
       type: RANK_DEDUCTION
       target: 8
       hints:
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 10
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 7
       - slot: 31
@@ -1794,13 +1794,13 @@ boards:
       type: RANK_DEDUCTION
       target: 10
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 9
       - slot: 31
         type: LESS_THAN
         value: 11
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 8
     - id: 4
@@ -1810,10 +1810,10 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
   34:
@@ -1823,10 +1823,10 @@ boards:
       type: SUIT_DEDUCTION
       target: DIAMONDS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -1836,13 +1836,13 @@ boards:
       type: RANK_DEDUCTION
       target: 11
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 10
       - slot: 31
         type: LESS_THAN
         value: 12
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 9
     - id: 3
@@ -1852,20 +1852,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 5
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 6
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 3
     - id: 4
       type: SUIT_DEDUCTION
       target: DIAMONDS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -1878,13 +1878,13 @@ boards:
       type: SUIT_DEDUCTION
       target: CLUBS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
     - id: 2
@@ -1894,20 +1894,20 @@ boards:
       - slot: 31
         type: GREATER_THAN
         value: 12
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 11
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 13
     - id: 3
       type: RANK_DEDUCTION
       target: 11
       hints:
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 9
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 10
       - slot: 31
@@ -1917,13 +1917,13 @@ boards:
       type: SUIT_DEDUCTION
       target: HEARTS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
   36:
@@ -1936,20 +1936,20 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
     - id: 2
       type: RANK_DEDUCTION
       target: 4
       hints:
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 6
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 3
       - slot: 31
@@ -1959,13 +1959,13 @@ boards:
       type: RANK_DEDUCTION
       target: 5
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 4
       - slot: 31
         type: LESS_THAN
         value: 6
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 7
     - id: 4
@@ -1975,10 +1975,10 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
   37:
@@ -1988,10 +1988,10 @@ boards:
       type: SUIT_DEDUCTION
       target: HEARTS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -2001,13 +2001,13 @@ boards:
       type: RANK_DEDUCTION
       target: 7
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 6
       - slot: 31
         type: LESS_THAN
         value: 8
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 9
     - id: 3
@@ -2017,20 +2017,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 13
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 10
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 11
     - id: 4
       type: SUIT_DEDUCTION
       target: CLUBS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -2043,13 +2043,13 @@ boards:
       type: SUIT_DEDUCTION
       target: DIAMONDS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
     - id: 2
@@ -2059,20 +2059,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 11
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 8
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 9
     - id: 3
       type: RANK_DEDUCTION
       target: 6
       hints:
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 8
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 5
       - slot: 31
@@ -2082,13 +2082,13 @@ boards:
       type: SUIT_DEDUCTION
       target: DIAMONDS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
   39:
@@ -2101,20 +2101,20 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
     - id: 2
       type: RANK_DEDUCTION
       target: 13
       hints:
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 11
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 12
       - slot: 31
@@ -2124,13 +2124,13 @@ boards:
       type: RANK_DEDUCTION
       target: 13
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 12
       - slot: 31
         type: LESS_THAN
         value: 14
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 11
     - id: 4
@@ -2140,10 +2140,10 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
   40:
@@ -2153,10 +2153,10 @@ boards:
       type: SUIT_DEDUCTION
       target: SPADES
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
       - slot: 31
@@ -2166,13 +2166,13 @@ boards:
       type: RANK_DEDUCTION
       target: 3
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 2
       - slot: 31
         type: LESS_THAN
         value: 4
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 5
     - id: 3
@@ -2182,20 +2182,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 8
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 9
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 6
     - id: 4
       type: SUIT_DEDUCTION
       target: SPADES
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
       - slot: 31
@@ -2208,13 +2208,13 @@ boards:
       type: SUIT_DEDUCTION
       target: HEARTS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
     - id: 2
@@ -2224,20 +2224,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 7
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 8
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 5
     - id: 3
       type: RANK_DEDUCTION
       target: 14
       hints:
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 11
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 13
       - slot: 31
@@ -2247,13 +2247,13 @@ boards:
       type: SUIT_DEDUCTION
       target: CLUBS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
   42:
@@ -2266,20 +2266,20 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
     - id: 2
       type: RANK_DEDUCTION
       target: 9
       hints:
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 7
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 8
       - slot: 31
@@ -2289,13 +2289,13 @@ boards:
       type: RANK_DEDUCTION
       target: 8
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 7
       - slot: 31
         type: LESS_THAN
         value: 9
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 10
     - id: 4
@@ -2305,10 +2305,10 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
   43:
@@ -2318,10 +2318,10 @@ boards:
       type: SUIT_DEDUCTION
       target: CLUBS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -2331,13 +2331,13 @@ boards:
       type: RANK_DEDUCTION
       target: 12
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 11
       - slot: 31
         type: LESS_THAN
         value: 13
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 10
     - id: 3
@@ -2347,20 +2347,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 4
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 5
-      - slot: 28
+      - slot: 30
         type: LESS_THAN
         value: 3
     - id: 4
       type: SUIT_DEDUCTION
       target: HEARTS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -2373,13 +2373,13 @@ boards:
       type: SUIT_DEDUCTION
       target: SPADES
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
     - id: 2
@@ -2389,20 +2389,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 4
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 5
-      - slot: 28
+      - slot: 30
         type: LESS_THAN
         value: 3
     - id: 3
       type: RANK_DEDUCTION
       target: 9
       hints:
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 7
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 8
       - slot: 31
@@ -2412,13 +2412,13 @@ boards:
       type: SUIT_DEDUCTION
       target: SPADES
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
   45:
@@ -2431,20 +2431,20 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
     - id: 2
       type: RANK_DEDUCTION
       target: 5
       hints:
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 7
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 4
       - slot: 31
@@ -2454,13 +2454,13 @@ boards:
       type: RANK_DEDUCTION
       target: 3
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 2
       - slot: 31
         type: LESS_THAN
         value: 4
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 5
     - id: 4
@@ -2470,10 +2470,10 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
   46:
@@ -2483,10 +2483,10 @@ boards:
       type: SUIT_DEDUCTION
       target: DIAMONDS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -2496,13 +2496,13 @@ boards:
       type: RANK_DEDUCTION
       target: 8
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 7
       - slot: 31
         type: LESS_THAN
         value: 9
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 10
     - id: 3
@@ -2512,20 +2512,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 11
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 8
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 9
     - id: 4
       type: SUIT_DEDUCTION
       target: DIAMONDS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -2538,13 +2538,13 @@ boards:
       type: SUIT_DEDUCTION
       target: CLUBS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
     - id: 2
@@ -2554,20 +2554,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 12
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 9
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 10
     - id: 3
       type: RANK_DEDUCTION
       target: 4
       hints:
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 6
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 3
       - slot: 31
@@ -2577,13 +2577,13 @@ boards:
       type: SUIT_DEDUCTION
       target: HEARTS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
   48:
@@ -2596,20 +2596,20 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
     - id: 2
       type: RANK_DEDUCTION
       target: 14
       hints:
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 11
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 13
       - slot: 31
@@ -2619,13 +2619,13 @@ boards:
       type: RANK_DEDUCTION
       target: 11
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 10
       - slot: 31
         type: LESS_THAN
         value: 12
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 9
     - id: 4
@@ -2635,10 +2635,10 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
   49:
@@ -2648,10 +2648,10 @@ boards:
       type: SUIT_DEDUCTION
       target: HEARTS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -2661,13 +2661,13 @@ boards:
       type: RANK_DEDUCTION
       target: 4
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 3
       - slot: 31
         type: LESS_THAN
         value: 5
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 6
     - id: 3
@@ -2677,20 +2677,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 6
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 7
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 4
     - id: 4
       type: SUIT_DEDUCTION
       target: CLUBS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -2703,13 +2703,13 @@ boards:
       type: SUIT_DEDUCTION
       target: DIAMONDS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
     - id: 2
@@ -2719,20 +2719,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 8
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 9
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 6
     - id: 3
       type: RANK_DEDUCTION
       target: 12
       hints:
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 10
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 11
       - slot: 31
@@ -2742,13 +2742,13 @@ boards:
       type: SUIT_DEDUCTION
       target: DIAMONDS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
   51:
@@ -2761,20 +2761,20 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
     - id: 2
       type: RANK_DEDUCTION
       target: 10
       hints:
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 8
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 9
       - slot: 31
@@ -2784,13 +2784,13 @@ boards:
       type: RANK_DEDUCTION
       target: 6
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 5
       - slot: 31
         type: LESS_THAN
         value: 7
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 8
     - id: 4
@@ -2800,10 +2800,10 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
   52:
@@ -2813,10 +2813,10 @@ boards:
       type: SUIT_DEDUCTION
       target: SPADES
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
       - slot: 31
@@ -2826,13 +2826,13 @@ boards:
       type: RANK_DEDUCTION
       target: 13
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 12
       - slot: 31
         type: LESS_THAN
         value: 14
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 11
     - id: 3
@@ -2842,20 +2842,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 14
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 11
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 12
     - id: 4
       type: SUIT_DEDUCTION
       target: SPADES
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
       - slot: 31
@@ -2868,13 +2868,13 @@ boards:
       type: SUIT_DEDUCTION
       target: HEARTS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
     - id: 2
@@ -2884,20 +2884,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 4
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 5
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 2
     - id: 3
       type: RANK_DEDUCTION
       target: 7
       hints:
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 9
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 6
       - slot: 31
@@ -2907,13 +2907,13 @@ boards:
       type: SUIT_DEDUCTION
       target: CLUBS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
   54:
@@ -2926,20 +2926,20 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
     - id: 2
       type: RANK_DEDUCTION
       target: 6
       hints:
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 8
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 5
       - slot: 31
@@ -2949,13 +2949,13 @@ boards:
       type: RANK_DEDUCTION
       target: 14
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 13
       - slot: 31
         type: GREATER_THAN
         value: 12
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 11
     - id: 4
@@ -2965,10 +2965,10 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
   55:
@@ -2978,10 +2978,10 @@ boards:
       type: SUIT_DEDUCTION
       target: CLUBS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -2991,13 +2991,13 @@ boards:
       type: RANK_DEDUCTION
       target: 9
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 8
       - slot: 31
         type: LESS_THAN
         value: 10
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 7
     - id: 3
@@ -3007,20 +3007,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 9
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 10
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 7
     - id: 4
       type: SUIT_DEDUCTION
       target: HEARTS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -3033,13 +3033,13 @@ boards:
       type: SUIT_DEDUCTION
       target: SPADES
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
     - id: 2
@@ -3049,20 +3049,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 13
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 10
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 11
     - id: 3
       type: RANK_DEDUCTION
       target: 2
       hints:
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 5
-      - slot: 28
+      - slot: 30
         type: LESS_THAN
         value: 3
       - slot: 31
@@ -3072,13 +3072,13 @@ boards:
       type: SUIT_DEDUCTION
       target: SPADES
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
   57:
@@ -3091,20 +3091,20 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
     - id: 2
       type: RANK_DEDUCTION
       target: 2
       hints:
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 5
-      - slot: 28
+      - slot: 30
         type: LESS_THAN
         value: 3
       - slot: 31
@@ -3114,13 +3114,13 @@ boards:
       type: RANK_DEDUCTION
       target: 9
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 8
       - slot: 31
         type: LESS_THAN
         value: 10
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 7
     - id: 4
@@ -3130,10 +3130,10 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
   58:
@@ -3143,10 +3143,10 @@ boards:
       type: SUIT_DEDUCTION
       target: DIAMONDS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -3156,13 +3156,13 @@ boards:
       type: RANK_DEDUCTION
       target: 5
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 4
       - slot: 31
         type: LESS_THAN
         value: 6
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 7
     - id: 3
@@ -3172,20 +3172,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 4
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 5
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 2
     - id: 4
       type: SUIT_DEDUCTION
       target: DIAMONDS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -3198,13 +3198,13 @@ boards:
       type: SUIT_DEDUCTION
       target: CLUBS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
     - id: 2
@@ -3214,20 +3214,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 9
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 10
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 7
     - id: 3
       type: RANK_DEDUCTION
       target: 10
       hints:
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 8
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 9
       - slot: 31
@@ -3237,13 +3237,13 @@ boards:
       type: SUIT_DEDUCTION
       target: HEARTS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
   60:
@@ -3256,20 +3256,20 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
     - id: 2
       type: RANK_DEDUCTION
       target: 11
       hints:
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 9
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 10
       - slot: 31
@@ -3279,13 +3279,13 @@ boards:
       type: RANK_DEDUCTION
       target: 4
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 3
       - slot: 31
         type: LESS_THAN
         value: 5
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 6
     - id: 4
@@ -3295,10 +3295,10 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
   61:
@@ -3308,10 +3308,10 @@ boards:
       type: SUIT_DEDUCTION
       target: HEARTS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -3321,13 +3321,13 @@ boards:
       type: RANK_DEDUCTION
       target: 14
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 13
       - slot: 31
         type: GREATER_THAN
         value: 12
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 11
     - id: 3
@@ -3337,20 +3337,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 12
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 9
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 10
     - id: 4
       type: SUIT_DEDUCTION
       target: CLUBS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -3363,13 +3363,13 @@ boards:
       type: SUIT_DEDUCTION
       target: DIAMONDS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
     - id: 2
@@ -3379,20 +3379,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 5
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 6
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 3
     - id: 3
       type: RANK_DEDUCTION
       target: 5
       hints:
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 7
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 4
       - slot: 31
@@ -3402,13 +3402,13 @@ boards:
       type: SUIT_DEDUCTION
       target: DIAMONDS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
   63:
@@ -3421,20 +3421,20 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
     - id: 2
       type: RANK_DEDUCTION
       target: 7
       hints:
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 9
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 6
       - slot: 31
@@ -3444,13 +3444,13 @@ boards:
       type: RANK_DEDUCTION
       target: 12
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 11
       - slot: 31
         type: LESS_THAN
         value: 13
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 10
     - id: 4
@@ -3460,10 +3460,10 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
   64:
@@ -3473,10 +3473,10 @@ boards:
       type: SUIT_DEDUCTION
       target: SPADES
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
       - slot: 31
@@ -3486,13 +3486,13 @@ boards:
       type: RANK_DEDUCTION
       target: 10
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 9
       - slot: 31
         type: LESS_THAN
         value: 11
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 8
     - id: 3
@@ -3502,20 +3502,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 7
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 8
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 5
     - id: 4
       type: SUIT_DEDUCTION
       target: SPADES
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
       - slot: 31
@@ -3528,13 +3528,13 @@ boards:
       type: SUIT_DEDUCTION
       target: HEARTS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
     - id: 2
@@ -3544,20 +3544,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 14
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 11
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 12
     - id: 3
       type: RANK_DEDUCTION
       target: 13
       hints:
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 11
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 12
       - slot: 31
@@ -3567,13 +3567,13 @@ boards:
       type: SUIT_DEDUCTION
       target: CLUBS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
   66:
@@ -3586,20 +3586,20 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
     - id: 2
       type: RANK_DEDUCTION
       target: 3
       hints:
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 5
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 2
       - slot: 31
@@ -3609,13 +3609,13 @@ boards:
       type: RANK_DEDUCTION
       target: 7
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 6
       - slot: 31
         type: LESS_THAN
         value: 8
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 9
     - id: 4
@@ -3625,10 +3625,10 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
   67:
@@ -3638,10 +3638,10 @@ boards:
       type: SUIT_DEDUCTION
       target: CLUBS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -3651,13 +3651,13 @@ boards:
       type: RANK_DEDUCTION
       target: 6
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 5
       - slot: 31
         type: LESS_THAN
         value: 7
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 8
     - id: 3
@@ -3667,20 +3667,20 @@ boards:
       - slot: 31
         type: GREATER_THAN
         value: 12
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 11
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 13
     - id: 4
       type: SUIT_DEDUCTION
       target: HEARTS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -3693,13 +3693,13 @@ boards:
       type: SUIT_DEDUCTION
       target: SPADES
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
     - id: 2
@@ -3709,20 +3709,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 10
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 7
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 8
     - id: 3
       type: RANK_DEDUCTION
       target: 8
       hints:
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 10
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 7
       - slot: 31
@@ -3732,13 +3732,13 @@ boards:
       type: SUIT_DEDUCTION
       target: SPADES
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
   69:
@@ -3751,20 +3751,20 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
     - id: 2
       type: RANK_DEDUCTION
       target: 12
       hints:
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 10
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 11
       - slot: 31
@@ -3774,13 +3774,13 @@ boards:
       type: RANK_DEDUCTION
       target: 2
       hints:
-      - slot: 28
+      - slot: 30
         type: LESS_THAN
         value: 3
       - slot: 31
         type: LESS_THAN
         value: 4
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 5
     - id: 4
@@ -3790,10 +3790,10 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
   70:
@@ -3803,10 +3803,10 @@ boards:
       type: SUIT_DEDUCTION
       target: DIAMONDS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -3816,13 +3816,13 @@ boards:
       type: RANK_DEDUCTION
       target: 2
       hints:
-      - slot: 28
+      - slot: 30
         type: LESS_THAN
         value: 3
       - slot: 31
         type: LESS_THAN
         value: 4
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 5
     - id: 3
@@ -3832,20 +3832,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 10
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 7
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 8
     - id: 4
       type: SUIT_DEDUCTION
       target: DIAMONDS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -3858,13 +3858,13 @@ boards:
       type: SUIT_DEDUCTION
       target: CLUBS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
     - id: 2
@@ -3874,20 +3874,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 6
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 7
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 4
     - id: 3
       type: RANK_DEDUCTION
       target: 3
       hints:
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 5
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 2
       - slot: 31
@@ -3897,13 +3897,13 @@ boards:
       type: SUIT_DEDUCTION
       target: HEARTS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
   72:
@@ -3916,20 +3916,20 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
     - id: 2
       type: RANK_DEDUCTION
       target: 8
       hints:
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 10
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 7
       - slot: 31
@@ -3939,13 +3939,13 @@ boards:
       type: RANK_DEDUCTION
       target: 10
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 9
       - slot: 31
         type: LESS_THAN
         value: 11
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 8
     - id: 4
@@ -3955,10 +3955,10 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
   73:
@@ -3968,10 +3968,10 @@ boards:
       type: SUIT_DEDUCTION
       target: HEARTS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -3981,13 +3981,13 @@ boards:
       type: RANK_DEDUCTION
       target: 11
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 10
       - slot: 31
         type: LESS_THAN
         value: 12
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 9
     - id: 3
@@ -3997,20 +3997,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 5
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 6
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 3
     - id: 4
       type: SUIT_DEDUCTION
       target: CLUBS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -4023,13 +4023,13 @@ boards:
       type: SUIT_DEDUCTION
       target: DIAMONDS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
     - id: 2
@@ -4039,20 +4039,20 @@ boards:
       - slot: 31
         type: GREATER_THAN
         value: 12
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 11
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 13
     - id: 3
       type: RANK_DEDUCTION
       target: 11
       hints:
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 9
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 10
       - slot: 31
@@ -4062,13 +4062,13 @@ boards:
       type: SUIT_DEDUCTION
       target: DIAMONDS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
   75:
@@ -4081,20 +4081,20 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
     - id: 2
       type: RANK_DEDUCTION
       target: 4
       hints:
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 6
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 3
       - slot: 31
@@ -4104,13 +4104,13 @@ boards:
       type: RANK_DEDUCTION
       target: 5
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 4
       - slot: 31
         type: LESS_THAN
         value: 6
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 7
     - id: 4
@@ -4120,10 +4120,10 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
   76:
@@ -4133,10 +4133,10 @@ boards:
       type: SUIT_DEDUCTION
       target: SPADES
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
       - slot: 31
@@ -4146,13 +4146,13 @@ boards:
       type: RANK_DEDUCTION
       target: 7
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 6
       - slot: 31
         type: LESS_THAN
         value: 8
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 9
     - id: 3
@@ -4162,20 +4162,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 13
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 10
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 11
     - id: 4
       type: SUIT_DEDUCTION
       target: SPADES
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
       - slot: 31
@@ -4188,13 +4188,13 @@ boards:
       type: SUIT_DEDUCTION
       target: HEARTS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
     - id: 2
@@ -4204,20 +4204,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 11
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 8
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 9
     - id: 3
       type: RANK_DEDUCTION
       target: 6
       hints:
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 8
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 5
       - slot: 31
@@ -4227,13 +4227,13 @@ boards:
       type: SUIT_DEDUCTION
       target: CLUBS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
   78:
@@ -4246,20 +4246,20 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
     - id: 2
       type: RANK_DEDUCTION
       target: 13
       hints:
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 11
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 12
       - slot: 31
@@ -4269,13 +4269,13 @@ boards:
       type: RANK_DEDUCTION
       target: 13
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 12
       - slot: 31
         type: LESS_THAN
         value: 14
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 11
     - id: 4
@@ -4285,10 +4285,10 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
   79:
@@ -4298,10 +4298,10 @@ boards:
       type: SUIT_DEDUCTION
       target: CLUBS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -4311,13 +4311,13 @@ boards:
       type: RANK_DEDUCTION
       target: 3
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 2
       - slot: 31
         type: LESS_THAN
         value: 4
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 5
     - id: 3
@@ -4327,20 +4327,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 8
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 9
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 6
     - id: 4
       type: SUIT_DEDUCTION
       target: HEARTS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -4353,13 +4353,13 @@ boards:
       type: SUIT_DEDUCTION
       target: SPADES
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
     - id: 2
@@ -4369,20 +4369,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 7
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 8
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 5
     - id: 3
       type: RANK_DEDUCTION
       target: 14
       hints:
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 11
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 13
       - slot: 31
@@ -4392,13 +4392,13 @@ boards:
       type: SUIT_DEDUCTION
       target: SPADES
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
   81:
@@ -4411,20 +4411,20 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
     - id: 2
       type: RANK_DEDUCTION
       target: 9
       hints:
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 7
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 8
       - slot: 31
@@ -4434,13 +4434,13 @@ boards:
       type: RANK_DEDUCTION
       target: 8
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 7
       - slot: 31
         type: LESS_THAN
         value: 9
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 10
     - id: 4
@@ -4450,10 +4450,10 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
   82:
@@ -4463,10 +4463,10 @@ boards:
       type: SUIT_DEDUCTION
       target: DIAMONDS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -4476,13 +4476,13 @@ boards:
       type: RANK_DEDUCTION
       target: 12
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 11
       - slot: 31
         type: LESS_THAN
         value: 13
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 10
     - id: 3
@@ -4492,20 +4492,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 4
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 5
-      - slot: 28
+      - slot: 30
         type: LESS_THAN
         value: 3
     - id: 4
       type: SUIT_DEDUCTION
       target: DIAMONDS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -4518,13 +4518,13 @@ boards:
       type: SUIT_DEDUCTION
       target: CLUBS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
     - id: 2
@@ -4534,20 +4534,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 4
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 5
-      - slot: 28
+      - slot: 30
         type: LESS_THAN
         value: 3
     - id: 3
       type: RANK_DEDUCTION
       target: 9
       hints:
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 7
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 8
       - slot: 31
@@ -4557,13 +4557,13 @@ boards:
       type: SUIT_DEDUCTION
       target: HEARTS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
   84:
@@ -4576,20 +4576,20 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
     - id: 2
       type: RANK_DEDUCTION
       target: 5
       hints:
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 7
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 4
       - slot: 31
@@ -4599,13 +4599,13 @@ boards:
       type: RANK_DEDUCTION
       target: 3
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 2
       - slot: 31
         type: LESS_THAN
         value: 4
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 5
     - id: 4
@@ -4615,10 +4615,10 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
   85:
@@ -4628,10 +4628,10 @@ boards:
       type: SUIT_DEDUCTION
       target: HEARTS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -4641,13 +4641,13 @@ boards:
       type: RANK_DEDUCTION
       target: 8
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 7
       - slot: 31
         type: LESS_THAN
         value: 9
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 10
     - id: 3
@@ -4657,20 +4657,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 11
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 8
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 9
     - id: 4
       type: SUIT_DEDUCTION
       target: CLUBS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -4683,13 +4683,13 @@ boards:
       type: SUIT_DEDUCTION
       target: DIAMONDS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
     - id: 2
@@ -4699,20 +4699,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 12
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 9
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 10
     - id: 3
       type: RANK_DEDUCTION
       target: 4
       hints:
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 6
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 3
       - slot: 31
@@ -4722,13 +4722,13 @@ boards:
       type: SUIT_DEDUCTION
       target: DIAMONDS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
   87:
@@ -4741,20 +4741,20 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
     - id: 2
       type: RANK_DEDUCTION
       target: 14
       hints:
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 11
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 13
       - slot: 31
@@ -4764,13 +4764,13 @@ boards:
       type: RANK_DEDUCTION
       target: 11
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 10
       - slot: 31
         type: LESS_THAN
         value: 12
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 9
     - id: 4
@@ -4780,10 +4780,10 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
   88:
@@ -4793,10 +4793,10 @@ boards:
       type: SUIT_DEDUCTION
       target: SPADES
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
       - slot: 31
@@ -4806,13 +4806,13 @@ boards:
       type: RANK_DEDUCTION
       target: 4
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 3
       - slot: 31
         type: LESS_THAN
         value: 5
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 6
     - id: 3
@@ -4822,20 +4822,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 6
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 7
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 4
     - id: 4
       type: SUIT_DEDUCTION
       target: SPADES
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
       - slot: 31
@@ -4848,13 +4848,13 @@ boards:
       type: SUIT_DEDUCTION
       target: HEARTS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
     - id: 2
@@ -4864,20 +4864,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 8
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 9
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 6
     - id: 3
       type: RANK_DEDUCTION
       target: 12
       hints:
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 10
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 11
       - slot: 31
@@ -4887,13 +4887,13 @@ boards:
       type: SUIT_DEDUCTION
       target: CLUBS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
   90:
@@ -4906,20 +4906,20 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
     - id: 2
       type: RANK_DEDUCTION
       target: 10
       hints:
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 8
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 9
       - slot: 31
@@ -4929,13 +4929,13 @@ boards:
       type: RANK_DEDUCTION
       target: 6
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 5
       - slot: 31
         type: LESS_THAN
         value: 7
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 8
     - id: 4
@@ -4945,10 +4945,10 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
   91:
@@ -4958,10 +4958,10 @@ boards:
       type: SUIT_DEDUCTION
       target: CLUBS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -4971,13 +4971,13 @@ boards:
       type: RANK_DEDUCTION
       target: 13
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 12
       - slot: 31
         type: LESS_THAN
         value: 14
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 11
     - id: 3
@@ -4987,20 +4987,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 14
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 11
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 12
     - id: 4
       type: SUIT_DEDUCTION
       target: HEARTS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -5013,13 +5013,13 @@ boards:
       type: SUIT_DEDUCTION
       target: SPADES
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
     - id: 2
@@ -5029,20 +5029,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 4
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 5
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 2
     - id: 3
       type: RANK_DEDUCTION
       target: 7
       hints:
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 9
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 6
       - slot: 31
@@ -5052,13 +5052,13 @@ boards:
       type: SUIT_DEDUCTION
       target: SPADES
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
   93:
@@ -5071,20 +5071,20 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
     - id: 2
       type: RANK_DEDUCTION
       target: 6
       hints:
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 8
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 5
       - slot: 31
@@ -5094,13 +5094,13 @@ boards:
       type: RANK_DEDUCTION
       target: 14
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 13
       - slot: 31
         type: GREATER_THAN
         value: 12
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 11
     - id: 4
@@ -5110,10 +5110,10 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
   94:
@@ -5123,10 +5123,10 @@ boards:
       type: SUIT_DEDUCTION
       target: DIAMONDS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -5136,13 +5136,13 @@ boards:
       type: RANK_DEDUCTION
       target: 9
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 8
       - slot: 31
         type: LESS_THAN
         value: 10
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 7
     - id: 3
@@ -5152,20 +5152,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 9
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 10
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 7
     - id: 4
       type: SUIT_DEDUCTION
       target: DIAMONDS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -5178,13 +5178,13 @@ boards:
       type: SUIT_DEDUCTION
       target: CLUBS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
     - id: 2
@@ -5194,20 +5194,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 13
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 10
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 11
     - id: 3
       type: RANK_DEDUCTION
       target: 2
       hints:
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 5
-      - slot: 28
+      - slot: 30
         type: LESS_THAN
         value: 3
       - slot: 31
@@ -5217,13 +5217,13 @@ boards:
       type: SUIT_DEDUCTION
       target: HEARTS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
   96:
@@ -5236,20 +5236,20 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
     - id: 2
       type: RANK_DEDUCTION
       target: 2
       hints:
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 5
-      - slot: 28
+      - slot: 30
         type: LESS_THAN
         value: 3
       - slot: 31
@@ -5259,13 +5259,13 @@ boards:
       type: RANK_DEDUCTION
       target: 9
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 8
       - slot: 31
         type: LESS_THAN
         value: 10
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 7
     - id: 4
@@ -5275,10 +5275,10 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
   97:
@@ -5288,10 +5288,10 @@ boards:
       type: SUIT_DEDUCTION
       target: HEARTS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -5301,13 +5301,13 @@ boards:
       type: RANK_DEDUCTION
       target: 5
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 4
       - slot: 31
         type: LESS_THAN
         value: 6
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 7
     - id: 3
@@ -5317,20 +5317,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 4
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 5
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 2
     - id: 4
       type: SUIT_DEDUCTION
       target: CLUBS
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
@@ -5343,13 +5343,13 @@ boards:
       type: SUIT_DEDUCTION
       target: DIAMONDS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
     - id: 2
@@ -5359,20 +5359,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 9
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 10
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 7
     - id: 3
       type: RANK_DEDUCTION
       target: 10
       hints:
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 8
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 9
       - slot: 31
@@ -5382,13 +5382,13 @@ boards:
       type: SUIT_DEDUCTION
       target: DIAMONDS
       hints:
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
   99:
@@ -5401,20 +5401,20 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: HEARTS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
     - id: 2
       type: RANK_DEDUCTION
       target: 11
       hints:
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 9
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 10
       - slot: 31
@@ -5424,13 +5424,13 @@ boards:
       type: RANK_DEDUCTION
       target: 4
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 3
       - slot: 31
         type: LESS_THAN
         value: 5
-      - slot: 34
+      - slot: 32
         type: LESS_THAN
         value: 6
     - id: 4
@@ -5440,10 +5440,10 @@ boards:
       - slot: 31
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: CLUBS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: SPADES
   100:
@@ -5453,10 +5453,10 @@ boards:
       type: SUIT_DEDUCTION
       target: SPADES
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
       - slot: 31
@@ -5466,13 +5466,13 @@ boards:
       type: RANK_DEDUCTION
       target: 14
       hints:
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 13
       - slot: 31
         type: GREATER_THAN
         value: 12
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 11
     - id: 3
@@ -5482,20 +5482,20 @@ boards:
       - slot: 31
         type: LESS_THAN
         value: 12
-      - slot: 34
+      - slot: 32
         type: GREATER_THAN
         value: 9
-      - slot: 28
+      - slot: 30
         type: GREATER_THAN
         value: 10
     - id: 4
       type: SUIT_DEDUCTION
       target: SPADES
       hints:
-      - slot: 34
+      - slot: 32
         type: NOT_SUIT
         value: DIAMONDS
-      - slot: 28
+      - slot: 30
         type: NOT_SUIT
         value: CLUBS
       - slot: 31

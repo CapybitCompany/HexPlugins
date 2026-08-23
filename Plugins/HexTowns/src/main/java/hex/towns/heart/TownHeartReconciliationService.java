@@ -131,34 +131,36 @@ public final class TownHeartReconciliationService implements Listener {
         }
         FoundationCandidate candidate = findNearestFoundation(origin);
         if (candidate == null) {
-            return HeartFoundationReport.notFound("Nie znaleziono pelnego, odizolowanego fundamentu 9x9 BEDROCK w poblizu.");
+            return HeartFoundationReport.notFound("Nie znaleziono pelnego, odizolowanego fundamentu Serca Miasta (3x3 lub legacy 9x9) w poblizu.");
         }
 
+        int side = candidate.radius() * 2 + 1;
+        int blockCount = side * side;
         Location center = new Location(candidate.world(), candidate.x() + 0.5D, candidate.y(), candidate.z() + 0.5D);
         boolean protectedByHeart = heartService.protectedHeartAt(center).isPresent();
         boolean protectedByTown = townsService.protectedTownAt(center).isPresent();
         boolean protectedActive = protectedByHeart || protectedByTown;
         if (protectedActive) {
-            return new HeartFoundationReport(true, true, false, candidate.world().getName(), candidate.x(), candidate.y(), candidate.z(), 81,
+            return new HeartFoundationReport(true, true, false, candidate.world().getName(), candidate.x(), candidate.y(), candidate.z(), blockCount,
                     "Fundament nalezy do aktywnego lub niszczonego miasta i nie zostal usuniety.");
         }
         if (!confirm) {
-            return new HeartFoundationReport(true, false, false, candidate.world().getName(), candidate.x(), candidate.y(), candidate.z(), 81,
-                    "Wykryto legacy fundament 9x9. Brak danych restoration; uzyj confirm, aby zastapic 81 blokow BEDROCK powietrzem.");
+            return new HeartFoundationReport(true, false, false, candidate.world().getName(), candidate.x(), candidate.y(), candidate.z(), blockCount,
+                    "Wykryto odizolowany fundament " + side + "x" + side + ". Brak danych restoration; uzyj confirm, aby zastapic " + blockCount + " blokow BEDROCK powietrzem.");
         }
-        if (!isExactFoundation(candidate.world(), candidate.x(), candidate.y(), candidate.z())) {
+        if (!isExactFoundation(candidate.world(), candidate.x(), candidate.y(), candidate.z(), candidate.radius())) {
             return new HeartFoundationReport(true, false, false, candidate.world().getName(), candidate.x(), candidate.y(), candidate.z(), 0,
                     "Fundament zmienil sie od czasu skanu; operacja anulowana.");
         }
-        for (int x = candidate.x() - 4; x <= candidate.x() + 4; x++) {
-            for (int z = candidate.z() - 4; z <= candidate.z() + 4; z++) {
+        for (int x = candidate.x() - candidate.radius(); x <= candidate.x() + candidate.radius(); x++) {
+            for (int z = candidate.z() - candidate.radius(); z <= candidate.z() + candidate.radius(); z++) {
                 candidate.world().getBlockAt(x, candidate.y(), z).setType(Material.AIR, false);
             }
         }
         townsService.audit(null, actor, "HEART_FOUNDATION_ADMIN_PURGE",
-                "world=" + candidate.world().getName() + ",x=" + candidate.x() + ",y=" + candidate.y() + ",z=" + candidate.z() + ",count=81");
-        return new HeartFoundationReport(true, false, true, candidate.world().getName(), candidate.x(), candidate.y(), candidate.z(), 81,
-                "Usunieto 81 blokow legacy fundamentu. Oryginalnego terenu nie mozna bylo odtworzyc.");
+                "world=" + candidate.world().getName() + ",x=" + candidate.x() + ",y=" + candidate.y() + ",z=" + candidate.z() + ",count=" + blockCount);
+        return new HeartFoundationReport(true, false, true, candidate.world().getName(), candidate.x(), candidate.y(), candidate.z(), blockCount,
+                "Usunieto " + blockCount + " blokow fundamentu " + side + "x" + side + ". Oryginalnego terenu nie mozna bylo odtworzyc.");
     }
 
     @EventHandler
@@ -446,11 +448,12 @@ public final class TownHeartReconciliationService implements Listener {
                 for (int z = origin.getBlockZ() - FOUNDATION_SEARCH_RADIUS; z <= origin.getBlockZ() + FOUNDATION_SEARCH_RADIUS; z++) {
                     if (!world.isChunkLoaded(x >> 4, z >> 4)) continue;
                     if (world.getBlockAt(x, y, z).getType() != Material.BEDROCK) continue;
-                    if (!isExactFoundation(world, x, y, z)) continue;
+                    int radius = exactFoundationRadius(world, x, y, z);
+                    if (radius < 0) continue;
                     double distance = squared(origin.getX(), origin.getY(), origin.getZ(), x + 0.5D, y, z + 0.5D);
                     if (distance < bestDistance) {
                         bestDistance = distance;
-                        best = new FoundationCandidate(world, x, y, z);
+                        best = new FoundationCandidate(world, x, y, z, radius);
                     }
                 }
             }
@@ -458,19 +461,26 @@ public final class TownHeartReconciliationService implements Listener {
         return best;
     }
 
-    private boolean isExactFoundation(World world, int centerX, int y, int centerZ) {
+    private int exactFoundationRadius(World world, int centerX, int y, int centerZ) {
+        if (isExactFoundation(world, centerX, y, centerZ, 4)) return 4;
+        if (isExactFoundation(world, centerX, y, centerZ, 1)) return 1;
+        return -1;
+    }
+
+    private boolean isExactFoundation(World world, int centerX, int y, int centerZ, int radius) {
+        int outer = radius + 1;
         // Require the immediate outer ring to be non-bedrock. This avoids treating
         // the natural bottom bedrock layer or a larger admin bedrock platform as a heart footprint.
-        for (int x = centerX - 5; x <= centerX + 5; x++) {
-            if (!loadedAndNotBedrock(world, x, y, centerZ - 5)) return false;
-            if (!loadedAndNotBedrock(world, x, y, centerZ + 5)) return false;
+        for (int x = centerX - outer; x <= centerX + outer; x++) {
+            if (!loadedAndNotBedrock(world, x, y, centerZ - outer)) return false;
+            if (!loadedAndNotBedrock(world, x, y, centerZ + outer)) return false;
         }
-        for (int z = centerZ - 4; z <= centerZ + 4; z++) {
-            if (!loadedAndNotBedrock(world, centerX - 5, y, z)) return false;
-            if (!loadedAndNotBedrock(world, centerX + 5, y, z)) return false;
+        for (int z = centerZ - radius; z <= centerZ + radius; z++) {
+            if (!loadedAndNotBedrock(world, centerX - outer, y, z)) return false;
+            if (!loadedAndNotBedrock(world, centerX + outer, y, z)) return false;
         }
-        for (int x = centerX - 4; x <= centerX + 4; x++) {
-            for (int z = centerZ - 4; z <= centerZ + 4; z++) {
+        for (int x = centerX - radius; x <= centerX + radius; x++) {
+            for (int z = centerZ - radius; z <= centerZ + radius; z++) {
                 if (!world.isChunkLoaded(x >> 4, z >> 4)) return false;
                 if (world.getBlockAt(x, y, z).getType() != Material.BEDROCK) return false;
             }
@@ -502,6 +512,6 @@ public final class TownHeartReconciliationService implements Listener {
     private record Scope(List<Entity> entities, int chunksScanned) {
     }
 
-    private record FoundationCandidate(World world, int x, int y, int z) {
+    private record FoundationCandidate(World world, int x, int y, int z, int radius) {
     }
 }

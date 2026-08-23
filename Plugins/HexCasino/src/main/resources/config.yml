@@ -88,40 +88,55 @@ slot-skill-machine:
     reel-set-count: 100
     per-player-cycle: true
     expose-reel-number: true
-    allow-reel-preview: true
+    allow-reel-preview: false
 
-  # The three production variants are fixed: 1$/250ms, 2$/225ms, 5$/200ms.
+  # Five fixed paid variants. Min/max speed stay at 250/200 ms; middle variants are evenly interpolated.
   stakes:
-    base-options: [1]
+    base-options: [1, 10, 20, 50, 100]
 
   difficulty-levels:
     default: normal
     normal:
-      display-name: 'Normalny'
+      display-name: '1$'
       cost-multiplier: 1
       frame-ms: 250
       enabled: true
+    low-mid:
+      display-name: '10$'
+      cost-multiplier: 10
+      frame-ms: 238
+      enabled: true
     hard:
-      display-name: 'Trudny'
-      cost-multiplier: 2
+      display-name: '20$'
+      cost-multiplier: 20
       frame-ms: 225
       enabled: true
+    high-mid:
+      display-name: '50$'
+      cost-multiplier: 50
+      frame-ms: 213
+      enabled: true
     expert:
-      display-name: 'Ekspert'
-      cost-multiplier: 5
+      display-name: '100$'
+      cost-multiplier: 100
       frame-ms: 200
       enabled: true
 
   rewards:
     normalize-by-pattern-count: true
-    flint: 0.50
-    melon_slice: 0.75
-    gold_nugget: 1.00
-    blaze_powder: 1.50
-    amethyst_shard: 2.00
-    emerald: 3.00
-    diamond: 5.00
-    nether_star: 8.00
+    flint: 1.00
+    melon_slice: 1.50
+    gold_nugget: 2.00
+    blaze_powder: 3.00
+    amethyst_shard: 4.00
+    emerald: 6.00
+    diamond: 10.00
+    nether_star: 16.00
+
+  layout-payout-multipliers:
+    one-line: 1.0
+    3x3: 1.0
+    5x3: 4.0
 
   daily-limits:
     timezone: Europe/Warsaw
@@ -162,7 +177,7 @@ slot-skill-machine:
     expert-enabled: true
 
 slot-machine:
-  base-bet-options: [1, 2, 5]
+  base-bet-options: [1, 10, 20, 50, 100]
   reel-options: [1, 3, 5]
   default-base-bet: 1
   default-reels: 5
@@ -225,18 +240,18 @@ wheel-of-fortune:
       material: LIME_DYE
       name: '&d&lZAKRĘĆ KOŁEM!'
       lore:
-        - '&c&m--------------------'
-        - '&fAktualny koszt: &a{total_cost}'
-        - '&c&m--------------------'
-        - '&7Mnożnik: &f{multiplier}'
+      - '&c&m--------------------'
+      - '&fAktualny koszt: &a{total_cost}'
+      - '&c&m--------------------'
+      - '&7Mnożnik: &f{multiplier}'
       hide-tooltip: false
     no-funds-item:
       material: RED_DYE
       name: '&cBrak środków'
       lore:
-        - '&c&m--------------------'
-        - '&7Wymagane: &f{total_cost}$'
-        - '&7Twoje środki: &f{balance_display}'
+      - '&c&m--------------------'
+      - '&7Wymagane: &f{total_cost}$'
+      - '&7Twoje środki: &f{balance_display}'
       hide-tooltip: false
     rolling-item:
       material: YELLOW_DYE
@@ -247,46 +262,46 @@ wheel-of-fortune:
       material: WHITE_DYE
       name: '&fUstawienia gry:'
       lore:
-        - '&c&m--------------------'
-        - '&eLPM: &fZmień mnożnik'
-        - '&c&m--------------------'
-        - '&7Mnożnik: &f{multiplier}'
+      - '&c&m--------------------'
+      - '&eLPM: &fZmień mnożnik'
+      - '&c&m--------------------'
+      - '&7Mnożnik: &f{multiplier}'
       hide-tooltip: false
     exit-item:
       material: BARRIER
       name: '&cWyjście'
       lore:
-        - '&7Wyjście w trakcie próby oznacza rezygnację bez nagrody.'
+      - '&7Wyjście w trakcie próby oznacza rezygnację bez nagrody.'
       hide-tooltip: false
     info-item:
       material: PAPER
       name: '&fLegenda Koła'
       lore:
-        - '&c&m--------------------'
-        - '{segment_payouts}'
+      - '&c&m--------------------'
+      - '{segment_payouts}'
       segment-line: '&e{index}. {segment_name} &7(&a{multiplier}x&7)'
       hide-tooltip: false
   segment-layout:
-    - lose
-    - x1
-    - lose
-    - x2
-    - x1
-    - lose
-    - x3
-    - x1
-    - lose
-    - x5
-    - x2
-    - lose
-    - x1
-    - x10
-    - lose
-    - x2
-    - x3
-    - lose
-    - x25
-    - x50
+  - lose
+  - x1
+  - lose
+  - x2
+  - x1
+  - lose
+  - x3
+  - x1
+  - lose
+  - x5
+  - x2
+  - lose
+  - x1
+  - x10
+  - lose
+  - x2
+  - x3
+  - lose
+  - x25
+  - x50
   segments:
     lose:
       material: RED_STAINED_GLASS_PANE
@@ -352,7 +367,7 @@ bus-driver:
         z: 943.5
         yaw: 180.0
         pitch: 0.0
-  bet-options: [5, 20, 30, 50, 100]
+  bet-options: [1, 10, 20, 50, 100]
   default-bet: 20
   # Deterministic BusDriver keeps the current four-stage payout ladder.
   payout-ladder: [1.4, 2.2, 2.7, 11]
@@ -361,11 +376,11 @@ bus-driver:
     paid-mode-enabled: true
     board-set-version: v1
     required-board-count: 100
-    rules-version: busdriver-deduction-v3
+    rules-version: busdriver-deduction-v3.1-5s
     decision-time-ms:
-      low: 3000
-      medium: 2700
-      high: 2500
+      low: 5000
+      medium: 5000
+      high: 5000
     input-resolution:
       snapshot-history-ms: 5000
       guaranteed-network-delay-ms: 1000
@@ -388,7 +403,11 @@ bus-driver:
     balance-slot: 46
     exit-slot: 45
     info-slot: 53
-    suit-slots: [10, 11, 15, 16]
+    suit-slots:
+    - 10
+    - 12
+    - 14
+    - 16
     filler:
       material: BLACK_STAINED_GLASS_PANE
       name: ''
@@ -402,22 +421,20 @@ bus-driver:
       hide-additional-tooltip: true
     start-item:
       material: LIME_DYE
-      name: '&a&lROZPOCZNIJ'
+      name: '&a&lROZPOCZNIJ PRÓBĘ'
       lore:
-        - '&c&m--------------------'
-        - '&fStawka: &a{total_cost}$'
-        - '&7Gra dedukcyjna: &f4 etapy'
-        - '&7Pierwszy cashout: &a{next_cashout}$'
-        - '&c&m--------------------'
-        - '&7Każda plansza ma stałe odpowiedzi i podpowiedzi.'
+      - '&7Gra dedukcyjna — wszystkie informacje są na planszy.'
+      - '&7Aktualna plansza: &f#{board} / {board_count}'
+      - '&7Koszt: &a{total_cost}$'
+      - '&8Nic nie jest losowane w trakcie gry.'
       hide-tooltip: false
     no-funds-item:
       material: RED_DYE
       name: '&cBrak środków'
       lore:
-        - '&c&m--------------------'
-        - '&7Wymagane: &f{total_cost}$'
-        - '&7Twoje środki: &f{balance_display}'
+      - '&c&m--------------------'
+      - '&7Wymagane: &f{total_cost}$'
+      - '&7Twoje środki: &f{balance_display}'
       hide-tooltip: false
     red-item:
       material: RED_BUNDLE
@@ -495,8 +512,8 @@ bus-driver:
       material: GOLD_INGOT
       name: '&e&lWYPŁAĆ'
       lore:
-        - '&c&m--------------------'
-        - '&7Aktualna wygrana: &a{current_win}$'
+      - '&c&m--------------------'
+      - '&7Aktualna wygrana: &a{current_win}$'
       hide-tooltip: false
     cashout-unavailable-item:
       material: GRAY_DYE
@@ -505,19 +522,18 @@ bus-driver:
       hide-tooltip: false
     multiplier-item:
       material: WHITE_DYE
-      name: '&fUstawienia gry:'
+      name: '&fWariant gry'
       lore:
-        - '&c&m--------------------'
-        - '&ePPM: &fZmień stawkę'
-        - '&c&m--------------------'
-        - '&7Stawka: &f{bet}$'
-        - '&7Czas zależy od wariantu ceny.'
+      - '&ePPM: &fZmień koszt'
+      - '&7Koszt: &f{total_cost}$'
+      - '&7Tier: &f{tier}'
+      - '&7Czas na etap: &f{decision_time_ms} ms'
       hide-tooltip: false
     exit-item:
       material: BARRIER
       name: '&cWyjście'
       lore:
-        - '&7Wyjście w trakcie próby oznacza rezygnację bez nagrody.'
+      - '&7Wyjście w trakcie próby oznacza rezygnację bez nagrody.'
       hide-tooltip: false
     multiplier-locked-item:
       material: BLACK_STAINED_GLASS_PANE
@@ -525,22 +541,64 @@ bus-driver:
       lore: []
       hide-tooltip: true
     info-item:
-      material: PLAYER_HEAD
-      name: '&fBusDriver — Próba dedukcji'
+      material: BOOK
+      name: '&fBusDriver — Poradnik'
       lore:
-        - '&c&m--------------------'
-        - '&7Twoja aktualna stawka: &f{total_cost}$'
-        - '&7Komplet podpowiedzi prowadzi do jednej odpowiedzi.'
-        - '&c&m--------------------'
-        - '&ePotencjalne wygrane:'
-        - '{round_payouts}'
-        - '&c&m--------------------'
-        - '&7Aktualna wygrana: &a{current_win}$'
-      round-line: '&e{round}. runda: &a{x}$'
+      - '&7Plansza: &f#{board} / {board_count}'
+      - ''
+      - '&eJak grać?'
+      - '&7Każda próba ma &f4 etapy&7.'
+      - '&7Na każdy etap masz &f5 sekund&7.'
+      - '&7Najedź na &f3 podpowiedzi&7 ustawione obok siebie'
+      - '&7i wywnioskuj jedyną poprawną odpowiedź.'
+      - '&7Etap może dotyczyć &fkoloru&7 albo &frangi karty&7.'
+      - '&7Po poprawnej odpowiedzi przechodzisz dalej.'
+      - '&7Gdy masz nagrodę, możesz użyć &eWYPŁAĆ&7 i zakończyć próbę.'
+      - '&cBłędna odpowiedź lub koniec czasu kończy próbę bez nagrody.'
+      - ''
+      - '&8Plansze i podpowiedzi są stałe — wynik zależy od dedukcji i czasu.'
       hide-tooltip: false
-      hide-additional-tooltip: true
-      head-id: "8767"
-      head-texture: "46ba63344f49dd1c4f5488e926bf3d9e2b29916a6c50d610bb40a5273dc8c82"
+    rank-slots:
+    - 9
+    - 10
+    - 11
+    - 12
+    - 13
+    - 14
+    - 15
+    - 16
+    - 17
+    - 18
+    - 19
+    - 20
+    - 21
+    active-exit-item:
+      material: BARRIER
+      name: '&cPrzerwij próbę'
+      lore:
+      - '&7Przerwanie zużywa planszę i kończy próbę bez nagrody.'
+      hide-tooltip: false
+    hint-item:
+      material: PAPER
+      name: '&fPodpowiedź'
+      lore:
+      - '&7{hint}'
+      hide-tooltip: false
+    rank-item:
+      material: PAPER
+      name: '&f&l{rank}'
+      lore:
+      - '&7Kliknij, aby wybrać tę rangę.'
+      hide-tooltip: false
+    stage-item:
+      material: CLOCK
+      name: '&fPróba dedukcji'
+      lore:
+      - '&7Plansza: &f#{board} / {board_count}'
+      - '&7Etap: &f{stage} / {stage_count}'
+      - '&7Typ: &f{stage_type}'
+      - '{timer_line}'
+      hide-tooltip: false
 economy:
   balance-placeholder: '%hexeconomy_balance%'
   remove-command: 'hexeconomy remove {player} {amount}'
@@ -565,7 +623,7 @@ gui:
     hide-tooltip: true
   balance-item:
     material: BUNDLE
-    name: '&aŚrodki: &f{balance_display}'
+    name: '&aŚrodki: &f{balance_display}$'
     lore: []
     hide-tooltip: false
     hide-additional-tooltip: true
@@ -573,35 +631,32 @@ gui:
     material: LIME_DYE
     name: '&a&lSTART PRÓBY'
     lore:
-      - '&c&m--------------------'
-      - '&fKoszt próby: &a{total_cost}'
-      - '&c&m--------------------'
-      - '&7Koszt bazowy: &f{base_bet}$'
-      - '&7Układ: &f{layout}'
+    - '&7Koszt próby: &f{total_cost}$'
+    - '&7Tempo: &f{frame_ms} ms'
+    - '&7Zestaw: &f#{next_set}'
+    - ''
+    - '&7Stała sekwencja — brak losowania.'
     hide-tooltip: false
   spin-unavailable-item:
     material: RED_DYE
     name: '&cBrak środków'
     lore:
-      - '&c&m--------------------'
-      - '&7Wymagane: &f{total_cost}$'
-      - '&7Twoje środki: &f{balance_display}'
+    - '&7Koszt próby: &f{total_cost}$'
     hide-tooltip: false
   rolling-item:
     material: YELLOW_DYE
-    name: '&eZatrzymaj bęben'
-    lore: []
+    name: '&eSTOP — bęben {current_reel}/{reel_count}'
+    lore:
+    - '&7Aktywny bęben jest podświetlony.'
+    - '&7Kliknięcie zatrzymuje dokładnie widzianą rewizję.'
     hide-tooltip: false
   bet-item:
     material: WHITE_DYE
-    name: '&fUstawienia próby:'
+    name: '&fUkład: &e{layout}'
     lore:
-      - '&c&m--------------------'
-      - '&eLPM: &fZmień koszt bazowy'
-      - '&ePPM: &fZmień układ'
-      - '&c&m--------------------'
-      - '&7Koszt bazowy: &f{base_bet}$'
-      - '&7Układ: &f{layout}'
+    - '&eKliknij: &fzmień układ'
+    - ''
+    - '&7Wygrane: poziom, pion i każdy poprawny skos.'
     hide-tooltip: false
   exit-item:
     material: BARRIER
@@ -614,36 +669,110 @@ gui:
     lore: []
     hide-tooltip: true
   info-item:
-    material: PLAYER_HEAD
+    material: PAPER
     name: '&fNagrody za trafienie'
     lore:
-      - '&c&m--------------------'
-      - '&7Pion, poziom i każdy poprawny skos daje nagrodę.'
-      - '&7Wiele trafień sumuje się.'
-      - '&c&m--------------------'
-      - '{symbol_payouts}'
-    symbol-line: '&e{index}. {legend_name} &7(&a{payout}$&7)'
+    - '&7Pion, poziom i każdy poprawny skos liczą się.'
+    - '&7Wiele trafień sumuje się bez limitu jednej próby.'
+    - ''
+    - '{symbol_payouts}'
     hide-tooltip: false
     hide-additional-tooltip: true
-    head-id: "8767"
-    head-texture: "46ba63344f49dd1c4f5488e926bf3d9e2b29916a6c50d610bb40a5273dc8c82"
-
+    symbol-line: '&e{legend_name_plain} &7x{reward_multiplier} &8(&a{payout}$&8)'
+  difficulty-slot: 40
+  stop-line-left-slot: 10
+  stop-line-right-slot: 16
+  difficulty-item:
+    material: CLOCK
+    name: '&fWariant wejściowy: &e{total_cost}$'
+    lore:
+    - '&eKliknij: &fzmień wariant'
+    - ''
+    - '&7Koszt próby: &f{total_cost}$'
+    - '&7Tempo: &f{frame_ms} ms / pozycję'
+    hide-tooltip: false
+  reward-mode-unavailable-item:
+    material: GRAY_DYE
+    name: '&cTryb nagród niedostępny'
+    lore:
+    - '&7Wymagany jest aktywny PacketEvents/stateId resolver.'
+    hide-tooltip: false
+  daily-limit-item:
+    material: RED_DYE
+    name: '&eDzienny limit nagród Arcade'
+    lore:
+    - '&7Dzisiaj: &f{daily_rewards}$'
+    - '&7Próg kolejnej próby: &f{daily_threshold}$'
+    - '&7Kolejna płatna próba jutro.'
+    hide-tooltip: false
+  stop-line-left-item:
+    material: ARROW
+    name: '&eLINIA STOP &f→'
+    lore:
+    - '&7Aktywny bęben jest dodatkowo podświetlony.'
+    hide-tooltip: false
+  stop-line-right-item:
+    material: ARROW
+    name: '&f← &eLINIA STOP'
+    lore:
+    - '&7Zatrzymujesz dokładnie widoczną pozycję.'
+    hide-tooltip: false
+  preview:
+    title: '&6ZESTAW #{set} &8| &fBęben {reel}'
+    size: 54
+    back-slot: 45
+    previous-reel-slot: 47
+    next-reel-slot: 48
+    previous-page-slot: 50
+    next-page-slot: 51
+    filler:
+      material: BLACK_STAINED_GLASS_PANE
+      name: ''
+      lore: []
+      hide-tooltip: true
+    back-item:
+      material: BARRIER
+      name: '&cPowrót'
+      lore: []
+      hide-tooltip: false
+    previous-reel-item:
+      material: ARROW
+      name: '&ePoprzedni bęben'
+      lore: []
+      hide-tooltip: false
+    next-reel-item:
+      material: ARROW
+      name: '&eNastępny bęben'
+      lore: []
+      hide-tooltip: false
+    previous-page-item:
+      material: PAPER
+      name: '&eStrona 1'
+      lore:
+      - '&7Pozycje 0–44'
+      hide-tooltip: false
+    next-page-item:
+      material: PAPER
+      name: '&eStrona 2'
+      lore:
+      - '&7Pozycje 45–85'
+      hide-tooltip: false
 initial-symbols:
-  - gold_nugget
-  - gold_nugget
-  - melon_slice
-  - amethyst_shard
-  - amethyst_shard
-  - diamond
-  - diamond
-  - diamond
-  - diamond
-  - diamond
-  - emerald
-  - emerald
-  - flint
-  - blaze_powder
-  - blaze_powder
+- gold_nugget
+- gold_nugget
+- melon_slice
+- amethyst_shard
+- amethyst_shard
+- diamond
+- diamond
+- diamond
+- diamond
+- diamond
+- emerald
+- emerald
+- flint
+- blaze_powder
+- blaze_powder
 
 symbols:
   # multiplier = historyczny/runtime display fallback; Skill Reel używa slot-skill-machine.rewards.
@@ -654,15 +783,15 @@ symbols:
     display-name: '&8Krzemień'
     legend-name: '&8Krzemień'
     lore: []
-    multiplier: 0.50
+    multiplier: 1.00
     strip-count: 22
     win-actionbar: '&7Trafiono &8Krzemień&7: &a+{win}$ &8| &7Układy: &f{winning_patterns}'
     win-sounds:
-      - enabled: true
-        name: BLOCK_NOTE_BLOCK_PLING
-        volume: 0.65
-        pitch: 0.85
-        delay-ticks: 0
+    - enabled: true
+      name: BLOCK_NOTE_BLOCK_PLING
+      volume: 0.65
+      pitch: 0.85
+      delay-ticks: 0
     win-particles:
       enabled: true
       particle: DUST
@@ -682,15 +811,15 @@ symbols:
     display-name: '&2Arbuz'
     legend-name: '&2Arbuz'
     lore: []
-    multiplier: 0.75
+    multiplier: 1.50
     strip-count: 18
     win-actionbar: '&7Trafiono &2Arbuz&7: &a+{win}$ &8| &7Układy: &f{winning_patterns}'
     win-sounds:
-      - enabled: true
-        name: BLOCK_NOTE_BLOCK_PLING
-        volume: 0.7
-        pitch: 1.0
-        delay-ticks: 0
+    - enabled: true
+      name: BLOCK_NOTE_BLOCK_PLING
+      volume: 0.7
+      pitch: 1.0
+      delay-ticks: 0
     win-particles:
       enabled: true
       particle: DUST
@@ -710,20 +839,20 @@ symbols:
     display-name: '&eZłoto'
     legend-name: '&eZłoto'
     lore: []
-    multiplier: 1.00
+    multiplier: 2.00
     strip-count: 15
     win-actionbar: '&7Trafiono &eZłoto&7: &a+{win}$ &8| &7Układy: &f{winning_patterns}'
     win-sounds:
-      - enabled: true
-        name: ENTITY_EXPERIENCE_ORB_PICKUP
-        volume: 0.85
-        pitch: 1.35
-        delay-ticks: 0
-      - enabled: true
-        name: BLOCK_NOTE_BLOCK_BELL
-        volume: 0.6
-        pitch: 1.45
-        delay-ticks: 3
+    - enabled: true
+      name: ENTITY_EXPERIENCE_ORB_PICKUP
+      volume: 0.85
+      pitch: 1.35
+      delay-ticks: 0
+    - enabled: true
+      name: BLOCK_NOTE_BLOCK_BELL
+      volume: 0.6
+      pitch: 1.45
+      delay-ticks: 3
     win-particles:
       enabled: true
       particle: DUST
@@ -743,20 +872,20 @@ symbols:
     display-name: '&6Płomień'
     legend-name: '&6Płomień'
     lore: []
-    multiplier: 1.50
+    multiplier: 3.00
     strip-count: 11
     win-actionbar: '&7Trafiono &6Płomień&7: &a+{win}$ &8| &7Układy: &f{winning_patterns}'
     win-sounds:
-      - enabled: true
-        name: BLOCK_NOTE_BLOCK_BELL
-        volume: 0.75
-        pitch: 1.2
-        delay-ticks: 0
-      - enabled: true
-        name: ITEM_FIRECHARGE_USE
-        volume: 0.45
-        pitch: 1.55
-        delay-ticks: 3
+    - enabled: true
+      name: BLOCK_NOTE_BLOCK_BELL
+      volume: 0.75
+      pitch: 1.2
+      delay-ticks: 0
+    - enabled: true
+      name: ITEM_FIRECHARGE_USE
+      volume: 0.45
+      pitch: 1.55
+      delay-ticks: 3
     win-particles:
       enabled: true
       particle: DUST
@@ -776,20 +905,20 @@ symbols:
     display-name: '&dAmetyst'
     legend-name: '&dAmetyst'
     lore: []
-    multiplier: 2.00
+    multiplier: 4.00
     strip-count: 9
     win-actionbar: '&7Trafiono &dAmetyst&7: &a+{win}$ &8| &7Układy: &f{winning_patterns}'
     win-sounds:
-      - enabled: true
-        name: BLOCK_AMETHYST_BLOCK_CHIME
-        volume: 0.9
-        pitch: 1.15
-        delay-ticks: 0
-      - enabled: true
-        name: BLOCK_NOTE_BLOCK_CHIME
-        volume: 0.65
-        pitch: 1.45
-        delay-ticks: 4
+    - enabled: true
+      name: BLOCK_AMETHYST_BLOCK_CHIME
+      volume: 0.9
+      pitch: 1.15
+      delay-ticks: 0
+    - enabled: true
+      name: BLOCK_NOTE_BLOCK_CHIME
+      volume: 0.65
+      pitch: 1.45
+      delay-ticks: 4
     win-particles:
       enabled: true
       particle: DUST
@@ -809,20 +938,20 @@ symbols:
     display-name: '&aEmerald'
     legend-name: '&aEmerald'
     lore: []
-    multiplier: 3.00
+    multiplier: 6.00
     strip-count: 6
     win-actionbar: '&7Trafiono &aEmerald&7: &a+{win}$ &8| &7Układy: &f{winning_patterns}'
     win-sounds:
-      - enabled: true
-        name: ENTITY_PLAYER_LEVELUP
-        volume: 0.8
-        pitch: 1.25
-        delay-ticks: 0
-      - enabled: true
-        name: BLOCK_NOTE_BLOCK_PLING
-        volume: 0.75
-        pitch: 1.7
-        delay-ticks: 4
+    - enabled: true
+      name: ENTITY_PLAYER_LEVELUP
+      volume: 0.8
+      pitch: 1.25
+      delay-ticks: 0
+    - enabled: true
+      name: BLOCK_NOTE_BLOCK_PLING
+      volume: 0.75
+      pitch: 1.7
+      delay-ticks: 4
     win-particles:
       enabled: true
       particle: DUST
@@ -842,20 +971,20 @@ symbols:
     display-name: '&bDiament'
     legend-name: '&bDiament'
     lore: []
-    multiplier: 5.00
+    multiplier: 10.00
     strip-count: 3
     win-actionbar: '&7Trafiono &bDiament&7: &a+{win}$ &8| &7Układy: &f{winning_patterns}'
     win-sounds:
-      - enabled: true
-        name: UI_TOAST_CHALLENGE_COMPLETE
-        volume: 0.85
-        pitch: 1.15
-        delay-ticks: 0
-      - enabled: true
-        name: BLOCK_AMETHYST_BLOCK_CHIME
-        volume: 0.9
-        pitch: 1.55
-        delay-ticks: 5
+    - enabled: true
+      name: UI_TOAST_CHALLENGE_COMPLETE
+      volume: 0.85
+      pitch: 1.15
+      delay-ticks: 0
+    - enabled: true
+      name: BLOCK_AMETHYST_BLOCK_CHIME
+      volume: 0.9
+      pitch: 1.55
+      delay-ticks: 5
     win-particles:
       enabled: true
       particle: DUST
@@ -875,25 +1004,25 @@ symbols:
     display-name: '&f&lGwiazda'
     legend-name: '&f&lGwiazda'
     lore: []
-    multiplier: 8.00
+    multiplier: 16.00
     strip-count: 2
     win-actionbar: '&f&lGWIAZDA! &a+{win}$ &8| &7Układy: &f{winning_patterns}'
     win-sounds:
-      - enabled: true
-        name: UI_TOAST_CHALLENGE_COMPLETE
-        volume: 1.0
-        pitch: 1.0
-        delay-ticks: 0
-      - enabled: true
-        name: ENTITY_FIREWORK_ROCKET_BLAST
-        volume: 0.85
-        pitch: 1.25
-        delay-ticks: 4
-      - enabled: true
-        name: ENTITY_PLAYER_LEVELUP
-        volume: 0.95
-        pitch: 1.7
-        delay-ticks: 8
+    - enabled: true
+      name: UI_TOAST_CHALLENGE_COMPLETE
+      volume: 1.0
+      pitch: 1.0
+      delay-ticks: 0
+    - enabled: true
+      name: ENTITY_FIREWORK_ROCKET_BLAST
+      volume: 0.85
+      pitch: 1.25
+      delay-ticks: 4
+    - enabled: true
+      name: ENTITY_PLAYER_LEVELUP
+      volume: 0.95
+      pitch: 1.7
+      delay-ticks: 8
     win-particles:
       enabled: true
       particle: DUST
@@ -927,91 +1056,91 @@ messages:
 
 sounds:
   open:
-    - enabled: true
-      name: ENTITY_EXPERIENCE_ORB_PICKUP
-      volume: 0.85
-      pitch: 1.45
-      delay-ticks: 0
-    - enabled: true
-      name: BLOCK_AMETHYST_BLOCK_CHIME
-      volume: 0.85
-      pitch: 1.2
-      delay-ticks: 2
-    - enabled: true
-      name: BLOCK_NOTE_BLOCK_BELL
-      volume: 0.65
-      pitch: 1.7
-      delay-ticks: 4
+  - enabled: true
+    name: ENTITY_EXPERIENCE_ORB_PICKUP
+    volume: 0.85
+    pitch: 1.45
+    delay-ticks: 0
+  - enabled: true
+    name: BLOCK_AMETHYST_BLOCK_CHIME
+    volume: 0.85
+    pitch: 1.2
+    delay-ticks: 2
+  - enabled: true
+    name: BLOCK_NOTE_BLOCK_BELL
+    volume: 0.65
+    pitch: 1.7
+    delay-ticks: 4
   close:
-    - enabled: true
-      name: ENTITY_ITEM_PICKUP
-      volume: 0.65
-      pitch: 0.8
-      delay-ticks: 0
-    - enabled: true
-      name: BLOCK_AMETHYST_BLOCK_CHIME
-      volume: 0.45
-      pitch: 0.75
-      delay-ticks: 2
+  - enabled: true
+    name: ENTITY_ITEM_PICKUP
+    volume: 0.65
+    pitch: 0.8
+    delay-ticks: 0
+  - enabled: true
+    name: BLOCK_AMETHYST_BLOCK_CHIME
+    volume: 0.45
+    pitch: 0.75
+    delay-ticks: 2
   no-funds:
-    - enabled: true
-      name: ENTITY_VILLAGER_NO
-      volume: 0.9
-      pitch: 1.0
-      delay-ticks: 0
+  - enabled: true
+    name: ENTITY_VILLAGER_NO
+    volume: 0.9
+    pitch: 1.0
+    delay-ticks: 0
   spin-start:
-    - enabled: true
-      name: ENTITY_EXPERIENCE_ORB_PICKUP
-      volume: 1.0
-      pitch: 1.1
-      delay-ticks: 0
-    - enabled: true
-      name: BLOCK_CHAIN_PLACE
-      volume: 0.75
-      pitch: 1.35
-      delay-ticks: 2
+  - enabled: true
+    name: ENTITY_EXPERIENCE_ORB_PICKUP
+    volume: 1.0
+    pitch: 1.1
+    delay-ticks: 0
+  - enabled: true
+    name: BLOCK_CHAIN_PLACE
+    volume: 0.75
+    pitch: 1.35
+    delay-ticks: 2
   roll-tick:
-    - enabled: true
-      name: BLOCK_NOTE_BLOCK_HAT
-      volume: 0.55
-      pitch: 1.2
-      delay-ticks: 0
+  - enabled: true
+    name: BLOCK_NOTE_BLOCK_HAT
+    volume: 0.55
+    pitch: 1.2
+    delay-ticks: 0
   column-stop:
-    - enabled: true
-      name: BLOCK_NOTE_BLOCK_PLING
-      volume: 0.8
-      pitch: 1.4
-      delay-ticks: 0
+  - enabled: true
+    name: BLOCK_NOTE_BLOCK_PLING
+    volume: 0.8
+    pitch: 1.4
+    delay-ticks: 0
   lose:
-    - enabled: true
-      name: BLOCK_NOTE_BLOCK_BASS
-      volume: 0.75
-      pitch: 0.8
-      delay-ticks: 0
-    - enabled: true
-      name: BLOCK_NOTE_BLOCK_BASS
-      volume: 0.75
-      pitch: 0.65
-      delay-ticks: 3
-    - enabled: true
-      name: ENTITY_VILLAGER_NO
-      volume: 0.55
-      pitch: 0.9
-      delay-ticks: 6
+  - enabled: true
+    name: BLOCK_NOTE_BLOCK_BASS
+    volume: 0.75
+    pitch: 0.8
+    delay-ticks: 0
+  - enabled: true
+    name: BLOCK_NOTE_BLOCK_BASS
+    volume: 0.75
+    pitch: 0.65
+    delay-ticks: 3
+  - enabled: true
+    name: ENTITY_VILLAGER_NO
+    volume: 0.55
+    pitch: 0.9
+    delay-ticks: 6
   win-small:
-    - enabled: true
-      name: ENTITY_PLAYER_LEVELUP
-      volume: 0.9
-      pitch: 1.1
-      delay-ticks: 0
+  - enabled: true
+    name: ENTITY_PLAYER_LEVELUP
+    volume: 0.9
+    pitch: 1.1
+    delay-ticks: 0
   win-big:
-    - enabled: true
-      name: UI_TOAST_CHALLENGE_COMPLETE
-      volume: 1.0
-      pitch: 1.0
-      delay-ticks: 0
-    - enabled: true
-      name: ENTITY_FIREWORK_ROCKET_BLAST
-      volume: 0.75
-      pitch: 1.25
-      delay-ticks: 4
+  - enabled: true
+    name: UI_TOAST_CHALLENGE_COMPLETE
+    volume: 1.0
+    pitch: 1.0
+    delay-ticks: 0
+  - enabled: true
+    name: ENTITY_FIREWORK_ROCKET_BLAST
+    volume: 0.75
+    pitch: 1.25
+    delay-ticks: 4

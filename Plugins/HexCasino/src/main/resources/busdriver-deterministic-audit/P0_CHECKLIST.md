@@ -8,7 +8,7 @@
 - [x] no contradictory hint sets
 - [x] per-player sequential board cycle
 - [x] board number shown before start
-- [x] deterministic 3000/2700/2500 ms tiers
+- [x] deterministic 5000 ms decision window for every paid variant
 - [x] stateId/frame snapshot resolver implemented
 - [x] stale/replay/future-state fail-closed path implemented
 - [x] disconnect/restart checkpoint prevents board reroll

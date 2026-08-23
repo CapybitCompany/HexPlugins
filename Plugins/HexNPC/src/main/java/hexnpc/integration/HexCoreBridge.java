@@ -98,28 +98,57 @@ public final class HexCoreBridge {
             return cachedApi;
         }
         try {
-            // HexCore exposes its services through a single accessor on the plugin
-            // class. We look for any zero-arg method whose return type is HexApi
-            // (matched by simple name to avoid a compile-time dependency).
-            Method apiAccessor = findApiAccessor(plugin);
-            if (apiAccessor == null) {
-                invalidate();
-                return null;
-            }
-            apiAccessor.setAccessible(true);
-            Object api = apiAccessor.invoke(plugin);
+            /*
+             * HexCore's supported public integration point is Bukkit ServicesManager:
+             *
+             *   Bukkit.getServicesManager().register(HexApi.class, api, ...)
+             *
+             * HexCore does NOT have to expose a public api()/getApi() method on its
+             * JavaPlugin class. The old bridge assumed such a getter existed, so on
+             * the current HexCore it always resolved null and disabled player-data
+             * backed workflows (including the premium custom tag).
+             *
+             * Keep this compile-time-decoupled: resolve HexApi through HexCore's own
+             * PluginClassLoader and use the raw Class object only for ServicesManager.
+             */
+            Object api = loadRegisteredHexApi(plugin);
+
+            // Backward-compatible fallback for an older/custom HexCore that exposes
+            // HexApi directly but does not register it in ServicesManager.
             if (api == null) {
+                Method apiAccessor = findApiAccessor(plugin);
+                if (apiAccessor != null) {
+                    apiAccessor.setAccessible(true);
+                    api = apiAccessor.invoke(plugin);
+                }
+            }
+
+            if (api == null) {
+                logger.fine("HexNPC: HexCore is enabled but no HexApi provider could be resolved.");
                 invalidate();
                 return null;
             }
+
             Method lookup = api.getClass().getMethod("service", Class.class);
             cachedPlugin = plugin;
             cachedApi = api;
             serviceLookup = lookup;
             return api;
-        } catch (Exception ex) {
-            logger.fine("HexNPC: HexCore reflection probe failed: " + ex.getMessage());
+        } catch (Throwable ex) {
+            logger.fine("HexNPC: HexCore reflection/services probe failed: " + ex.getMessage());
             invalidate();
+            return null;
+        }
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private Object loadRegisteredHexApi(Plugin plugin) {
+        try {
+            ClassLoader loader = plugin.getClass().getClassLoader();
+            Class<?> apiType = Class.forName("hex.core.api.HexApi", false, loader);
+            return Bukkit.getServicesManager().load((Class) apiType);
+        } catch (Throwable ex) {
+            logger.fine("HexNPC: HexCore ServicesManager lookup failed: " + ex.getMessage());
             return null;
         }
     }

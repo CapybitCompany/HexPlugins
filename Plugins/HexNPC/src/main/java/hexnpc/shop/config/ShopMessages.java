@@ -93,6 +93,7 @@ public final class ShopMessages {
     public String guiConfirmSell() { return get("gui-confirm-sell"); }
     public String guiConfirmQuantity() { return get("gui-confirm-quantity"); }
     public String guiConfirmPrice() { return get("gui-confirm-price"); }
+    public String guiConfirmPreviewHint() { return get("gui-confirm-preview-hint"); }
     public String guiCancelButton() { return get("gui-cancel-button"); }
 
     /**
@@ -153,6 +154,7 @@ public final class ShopMessages {
         m.put("gui-confirm-sell", "&6Potwierdź sprzedaż");
         m.put("gui-confirm-quantity", "&7Ilość: &f<amount>x");
         m.put("gui-confirm-price", "&7Łączna cena: &e<price>");
+        m.put("gui-confirm-preview-hint", "&8Podgląd produktu — zatwierdź zielonym przyciskiem.");
         m.put("gui-cancel-button", "&cAnuluj");
         return m;
     }

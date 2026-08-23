@@ -5,6 +5,16 @@ debug:
   workflows: false
 
 workflows:
+  premium_particles_menu:
+    actions:
+      - type: open_shop
+        shop: "premium_particles"
+
+  premium_shop_menu:
+    actions:
+      - type: open_shop
+        shop: "premium_shop"
+
   custom_tag_menu:
     actions:
       - type: condition
@@ -55,9 +65,54 @@ workflows:
             key: "cosmetics.custom_tag"
             value: "{input:tag}"
 
+          - type: set_player_data
+            key: "cosmetics.custom_tag.enabled"
+            value: "true"
+
           - type: message
             text: "&aUstawiono etykietę: &f{input:tag}"
 
+          - type: open_menu
+            menu: "cosmetics_tags"
+        else:
+          - type: message
+            text: "&cNie posiadasz odblokowanej funkcji Własnej etykiety."
+          - type: open_shop
+            shop: "premium_shop"
+
+
+  custom_tag_toggle:
+    actions:
+      - type: condition
+        conditions:
+          - type: permission
+            value: "hexnpc.feature.custom_tag"
+        then:
+          - type: condition
+            conditions:
+              - type: player_data_exists
+                key: "cosmetics.custom_tag"
+            then:
+              - type: condition
+                conditions:
+                  - type: player_data_equals
+                    key: "cosmetics.custom_tag.enabled"
+                    value: "false"
+                then:
+                  - type: set_player_data
+                    key: "cosmetics.custom_tag.enabled"
+                    value: "true"
+                  - type: message
+                    text: "&aEtykieta została włączona."
+                else:
+                  - type: set_player_data
+                    key: "cosmetics.custom_tag.enabled"
+                    value: "false"
+                  - type: message
+                    text: "&eEtykieta została wyłączona."
+            else:
+              - type: message
+                text: "&cNie masz jeszcze utworzonej etykiety."
           - type: open_menu
             menu: "cosmetics_tags"
         else:
@@ -73,6 +128,8 @@ workflows:
           - type: permission
             value: "hexnpc.feature.custom_tag"
         then:
+          - type: delete_player_data
+            key: "cosmetics.custom_tag.enabled"
           - type: delete_player_data
             key: "cosmetics.custom_tag"
           - type: message
@@ -104,12 +161,16 @@ menus:
           - "&f{data:cosmetics.custom_tag|Brak}"
           - ""
           - "&eLPM: &futwórz / edytuj"
-          - "&ePPM: &fusuń"
+          - "&ePPM: &fwłącz / wyłącz"
+          - "&eShift + PPM: &fusuń"
         actions:
           left_click:
             - type: run_workflow
               workflow: "custom_tag_create"
           right_click:
+            - type: run_workflow
+              workflow: "custom_tag_toggle"
+          shift_right_click:
             - type: run_workflow
               workflow: "custom_tag_remove"
 

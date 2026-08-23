@@ -26,14 +26,14 @@ public record BusDriverSettings(
                 cfg.getBoolean(p + "paid-mode-enabled", true),
                 cfg.getString(p + "board-set-version", "v1"),
                 Math.max(1, cfg.getInt(p + "required-board-count", 100)),
-                Math.max(500, cfg.getInt(p + "decision-time-ms.low", 3000)),
-                Math.max(500, cfg.getInt(p + "decision-time-ms.medium", 2700)),
-                Math.max(500, cfg.getInt(p + "decision-time-ms.high", 2500)),
+                Math.max(500, cfg.getInt(p + "decision-time-ms.low", 5000)),
+                Math.max(500, cfg.getInt(p + "decision-time-ms.medium", 5000)),
+                Math.max(500, cfg.getInt(p + "decision-time-ms.high", 5000)),
                 Math.max(1000, cfg.getInt(p + "input-resolution.snapshot-history-ms", 5000)),
                 Math.max(0, cfg.getInt(p + "input-resolution.guaranteed-network-delay-ms", 1000)),
                 Math.max(250, cfg.getInt(p + "input-resolution.max-resolvable-delay-ms", 2000)),
                 cfg.getBoolean(p + "input-resolution.require-packet-state-id", true),
-                cfg.getString(p + "rules-version", "busdriver-deduction-v3")
+                cfg.getString(p + "rules-version", "busdriver-deduction-v3.1-5s")
         );
     }
 

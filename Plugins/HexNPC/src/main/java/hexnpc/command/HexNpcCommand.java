@@ -737,7 +737,7 @@ public final class HexNpcCommand implements CommandExecutor, TabCompleter {
             return true;
         }
         if (args.length < 2) {
-            sender.sendMessage(LegacyFormat.component("&cUżycie: /hexnpc workflow <reload|list|validate|open|run> ..."));
+            sender.sendMessage(LegacyFormat.component("&cUżycie: /hexnpc workflow <reload|list|validate|status|open|run> ..."));
             return true;
         }
         String op = args[1].toLowerCase(Locale.ROOT);
@@ -762,6 +762,17 @@ public final class HexNpcCommand implements CommandExecutor, TabCompleter {
                     for (String error : errors) sender.sendMessage(LegacyFormat.component("&7- &f" + error));
                 }
             }
+            case "status" -> {
+                var playerData = plugin.playerDataService();
+                sender.sendMessage(LegacyFormat.component("&aWorkflow runtime:"));
+                sender.sendMessage(LegacyFormat.component("&7Player data: &f"
+                        + (playerData == null ? "service unavailable" : playerData.status())));
+                for (String id : registry.workflowIds()) {
+                    String reason = workflows.unavailableReason(id);
+                    sender.sendMessage(LegacyFormat.component("&7- &f" + id + " &7→ "
+                            + (reason.isEmpty() ? "&aREADY" : "&cBLOCKED &8(" + reason + "&8)")));
+                }
+            }
             case "open" -> {
                 if (args.length < 3) {
                     sender.sendMessage(LegacyFormat.component("&cUżycie: /hexnpc workflow open <menu-id> [player]"));
@@ -780,7 +791,7 @@ public final class HexNpcCommand implements CommandExecutor, TabCompleter {
                 if (target == null) return true;
                 workflows.startWorkflow(target, args[2], "admin", "", "command");
             }
-            default -> sender.sendMessage(LegacyFormat.component("&cNieznana operacja. Użyj reload|list|validate|open|run."));
+            default -> sender.sendMessage(LegacyFormat.component("&cNieznana operacja. Użyj reload|list|validate|status|open|run."));
         }
         return true;
     }

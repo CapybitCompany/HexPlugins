@@ -1,5 +1,5 @@
 name: HexTowns
-version: 1.0.7
+version: 1.0.11
 main: hex.towns.HexTownsPlugin
 api-version: "1.21"
 

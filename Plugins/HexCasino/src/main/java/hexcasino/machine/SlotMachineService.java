@@ -48,16 +48,6 @@ import java.util.function.Supplier;
 
 /** Deterministic, skill-based Reel Challenge. No outcome RNG exists in this service. */
 public final class SlotMachineService implements Listener {
-    private static final int DIFFICULTY_SLOT = 40;
-    private static final int REEL_SET_SLOT = 42;
-    private static final int STOP_LINE_LEFT_SLOT = 10;
-    private static final int STOP_LINE_RIGHT_SLOT = 16;
-    private static final int PREVIEW_BACK_SLOT = 45;
-    private static final int PREVIEW_PREV_REEL = 47;
-    private static final int PREVIEW_NEXT_REEL = 48;
-    private static final int PREVIEW_PREV_PAGE = 50;
-    private static final int PREVIEW_NEXT_PAGE = 51;
-
     private final JavaPlugin plugin;
     private final Supplier<CasinoConfig> configSupplier;
     private final SlotEngine slotEngine = new SlotEngine();
@@ -192,11 +182,8 @@ public final class SlotMachineService implements Listener {
 
         if (slot == config.gui().betSlot()) {
             adjustLayout(player, session);
-        } else if (slot == DIFFICULTY_SLOT) {
+        } else if (slot == config.gui().difficultySlot()) {
             adjustDifficulty(player, session);
-        } else if (slot == REEL_SET_SLOT) {
-            int nextSet = stateStore.currentNextSet(player.getUniqueId(), settings);
-            openPreview(player, nextSet, 0, 0);
         } else if (slot == config.gui().actionSlot()) {
             startPaid(player, session);
         }
@@ -264,7 +251,7 @@ public final class SlotMachineService implements Listener {
         player.teleport(new Location(world, target.x(), target.y(), target.z(), target.yaw(), target.pitch()));
 
         SlotMachineGuiHolder holder = new SlotMachineGuiHolder(player.getUniqueId(), machine.id());
-        Inventory inventory = Bukkit.createInventory(holder, config.gui().size(), Text.legacy("&6REEL CHALLENGE", Map.of()));
+        Inventory inventory = Bukkit.createInventory(holder, config.gui().size(), Text.legacy(config.gui().title(), Map.of()));
         holder.setInventory(inventory);
         SlotLayout initialLayout = layout(config, config.slotMachine().defaultReels());
         int difficultyIndex = settings.difficultyIndex(settings.defaultDifficulty());
@@ -464,8 +451,9 @@ public final class SlotMachineService implements Listener {
         int[] positions = session.stoppedPositionsCopy();
         SlotOutcome outcome = slotEngine.outcomeFromStoppedPositions(session.activeSet(), session.layout(), positions);
         session.displaySymbols(outcome.symbols());
+        Map<String, Double> rewardMultipliers = rewardMultipliers(session.layout());
         SlotSpinResult result = slotEngine.evaluate(outcome, session.layout(), configSupplier.get(),
-                session.practice() ? chargedStake(session) : session.chargedStake(), settings.rewards());
+                session.practice() ? chargedStake(session) : session.chargedStake(), rewardMultipliers);
         session.state(SlotMachineSession.State.SHOWING_RESULT);
         render(session, player);
 
@@ -615,7 +603,7 @@ public final class SlotMachineService implements Listener {
                 session.gameId(), player.getUniqueId(), reelSets.version(), session.activeSet().index(),
                 session.layout().reels(), selectedBaseCost(session), selectedDifficulty(session).id(),
                 selectedDifficulty(session).frameMs(), session.chargedStake(), session.stoppedPositionsCopy(),
-                session.resolvedStops(), settings.rewards(), result.winningPatternCount(), paidReward, rewardDispatched, dailyDate,
+                session.resolvedStops(), rewardMultipliers(session.layout()), result.winningPatternCount(), paidReward, rewardDispatched, dailyDate,
                 dailyBefore, dailyAfter, dailyAfter + 1.0E-9 >= settings.dailyRewardThreshold()
         ));
     }
@@ -701,6 +689,7 @@ public final class SlotMachineService implements Listener {
 
     private void renderControls(SlotMachineSession session, Player player) {
         CasinoConfig config = configSupplier.get();
+        CasinoConfig.Gui gui = config.gui();
         OptionalDouble balance = CasinoEconomy.balance(player, config);
         SlotDifficulty difficulty = selectedDifficulty(session);
         double charged = chargedStake(session);
@@ -709,112 +698,140 @@ public final class SlotMachineService implements Listener {
         boolean paidReady = settings.paidModeReady(packetBridge != null && packetBridge.ready());
         boolean dailyReady = stateStore.canStartPaid(player.getUniqueId(), settings);
 
-        set(session.inventory(), config.gui().balanceSlot(), simple(Material.BUNDLE, "&aŚrodki: &f" + (balance.isPresent() ? money(balance.getAsDouble()) + "$" : "-"), List.of()));
-        set(session.inventory(), config.gui().betSlot(), simple(Material.WHITE_DYE, "&fUkład: &e" + layoutName(session.layout()),
-                List.of("&eKliknij: &fzmień układ", "", "&7Wygrane: poziom, pion i każdy poprawny skos.")));
-        set(session.inventory(), DIFFICULTY_SLOT, simple(Material.CLOCK,
-                "&fWariant: &e" + money(charged) + "$ &8— &f" + difficulty.displayName(),
-                List.of("&eKliknij: &fzmień wariant", "", "&7Koszt próby: &f" + money(charged) + "$",
-                        "&7Tempo: &f" + difficulty.frameMs() + " ms / pozycję")));
-        set(session.inventory(), REEL_SET_SLOT, simple(Material.COMPASS, "&fZestaw bębnów: &e#" + nextSet + " / " + reelSets.count(),
-                List.of("&7Następny po płatnej próbie: &f#" + (nextSet == reelSets.count() ? 1 : nextSet + 1),
-                        "&7Sekwencja jest stała i deterministyczna.", "&7Tempo: &f" + difficulty.frameMs() + " ms", "",
-                        "&eKliknij, aby zobaczyć pełną sekwencję.")));
-        set(session.inventory(), config.gui().exitSlot(), item(config.gui().exitItem()));
-        set(session.inventory(), config.gui().infoSlot(), rewardLegend(session));
+        Map<String, String> ph = slotPlaceholders(session, balance, difficulty, charged, nextSet, daily);
+        set(session.inventory(), gui.balanceSlot(), item(gui.balanceItem(), ph));
+        set(session.inventory(), gui.betSlot(), item(gui.betItem(), ph));
+        set(session.inventory(), gui.difficultySlot(), item(gui.difficultyItem(), ph));
+        set(session.inventory(), gui.exitSlot(), item(gui.exitItem(), ph));
+        set(session.inventory(), gui.infoSlot(), rewardLegend(session, ph));
 
         if (session.state() == SlotMachineSession.State.ROLLING) {
-            // The side STOP arrows are useful only for the single horizontal line. On 3x3/5x3
-            // the player stops whole vertical reels, so the middle-row arrows are misleading.
             if (session.layout().reels() == 1) {
-                set(session.inventory(), STOP_LINE_LEFT_SLOT, simple(Material.ARROW, "&eLINIA STOP &f→",
-                        List.of("&7Aktywny bęben jest dodatkowo podświetlony.")));
-                set(session.inventory(), STOP_LINE_RIGHT_SLOT, simple(Material.ARROW, "&f← &eLINIA STOP",
-                        List.of("&7Zatrzymujesz dokładnie widoczną pozycję.")));
+                set(session.inventory(), gui.stopLineLeftSlot(), item(gui.stopLineLeftItem(), ph));
+                set(session.inventory(), gui.stopLineRightSlot(), item(gui.stopLineRightItem(), ph));
             }
-            set(session.inventory(), config.gui().actionSlot(), simple(Material.YELLOW_DYE,
-                    "&eSTOP — bęben " + (session.stoppedCount() + 1) + "/" + session.stopUnitCount(),
-                    List.of("&7Aktywny bęben jest podświetlony.", "&7Kliknięcie zatrzymuje dokładnie widzianą rewizję.")));
+            set(session.inventory(), gui.actionSlot(), item(gui.rollingItem(), ph));
         } else if (!paidReady) {
-            set(session.inventory(), config.gui().actionSlot(), simple(Material.GRAY_DYE, "&cTryb nagród niedostępny",
-                    List.of("&7Wymagany jest aktywny PacketEvents/stateId resolver.")));
+            set(session.inventory(), gui.actionSlot(), item(gui.rewardModeUnavailableItem(), ph));
         } else if (!dailyReady) {
-            set(session.inventory(), config.gui().actionSlot(), simple(Material.RED_DYE, "&eDzienny limit nagród Arcade",
-                    List.of("&7Dzisiaj: &f" + money(daily) + "$", "&7Próg kolejnej próby: &f" + money(settings.dailyRewardThreshold()) + "$",
-                            "&7Kolejna płatna próba jutro.")));
+            set(session.inventory(), gui.actionSlot(), item(gui.dailyLimitItem(), ph));
         } else if (balance.isPresent() && balance.getAsDouble() + 0.0001D >= charged) {
-            set(session.inventory(), config.gui().actionSlot(), simple(Material.LIME_DYE, "&a&lSTART PRÓBY",
-                    List.of("&7Koszt próby: &f" + money(charged) + "$", "&7Poziom: &f" + difficulty.displayName(),
-                            "&7Tempo: &f" + difficulty.frameMs() + " ms", "&7Zestaw: &f#" + nextSet,
-                            "", "&7Stała sekwencja — brak losowania.")));
+            set(session.inventory(), gui.actionSlot(), item(gui.spinAvailableItem(), ph));
         } else {
-            set(session.inventory(), config.gui().actionSlot(), simple(Material.RED_DYE, "&cBrak środków",
-                    List.of("&7Koszt próby: &f" + money(charged) + "$")));
+            set(session.inventory(), gui.actionSlot(), item(gui.spinUnavailableItem(), ph));
         }
         player.updateInventory();
     }
 
-    private ItemStack rewardLegend(SlotMachineSession session) {
+    private Map<String, String> slotPlaceholders(SlotMachineSession session,
+                                                  OptionalDouble balance,
+                                                  SlotDifficulty difficulty,
+                                                  double charged,
+                                                  int nextSet,
+                                                  double daily) {
+        Map<String, String> ph = new LinkedHashMap<>();
+        ph.put("balance", balance.isPresent() ? money(balance.getAsDouble()) : "0");
+        ph.put("balance_display", balance.isPresent() ? money(balance.getAsDouble()) : "-");
+        ph.put("base_bet", money(selectedBaseCost(session)));
+        ph.put("total_cost", money(charged));
+        ph.put("charged", money(charged));
+        ph.put("layout", layoutName(session.layout()));
+        ph.put("difficulty", difficulty.displayName());
+        ph.put("frame_ms", Integer.toString(difficulty.frameMs()));
+        ph.put("next_set", Integer.toString(nextSet));
+        ph.put("current_reel", Integer.toString(Math.min(session.stoppedCount() + 1, session.stopUnitCount())));
+        ph.put("reel_count", Integer.toString(session.stopUnitCount()));
+        ph.put("daily_rewards", money(daily));
+        ph.put("daily_threshold", money(settings.dailyRewardThreshold()));
+        return ph;
+    }
+
+    private ItemStack rewardLegend(SlotMachineSession session, Map<String, String> placeholders) {
+        CasinoConfig config = configSupplier.get();
+        CasinoConfig.GuiItem cfg = config.gui().infoItem();
         double patternStake = chargedStake(session) / session.layout().winningPatterns().size();
-        List<String> lore = new ArrayList<>();
-        lore.add("&7Pion, poziom i każdy poprawny skos liczą się.");
-        lore.add("&7Wiele trafień sumuje się bez limitu jednej próby.");
-        lore.add("");
-        for (CasinoConfig.Symbol symbol : configSupplier.get().symbols()) {
-            double reward = settings.rewards().getOrDefault(symbol.id(), 0.0D);
-            lore.add("&e" + stripColors(symbol.legendName()) + " &7x" + money(reward)
-                    + " &8(&a" + money(patternStake * reward) + "$&8)");
+        Map<String, Double> effectiveRewards = rewardMultipliers(session.layout());
+        List<net.kyori.adventure.text.Component> lore = new ArrayList<>();
+        for (String line : cfg.lore()) {
+            if ("{symbol_payouts}".equals(line)) {
+                int index = 1;
+                for (CasinoConfig.Symbol symbol : config.symbols()) {
+                    double reward = effectiveRewards.getOrDefault(symbol.id(), 0.0D);
+                    Map<String, String> linePh = new LinkedHashMap<>(placeholders);
+                    linePh.put("index", Integer.toString(index++));
+                    linePh.put("symbol", symbol.id());
+                    linePh.put("legend_name", symbol.legendName());
+                    linePh.put("legend_name_plain", stripColors(symbol.legendName()));
+                    linePh.put("reward_multiplier", money(reward));
+                    linePh.put("payout", money(patternStake * reward));
+                    lore.add(Text.component(config.gui().infoSymbolLine(), linePh));
+                }
+            } else {
+                lore.add(Text.component(line, placeholders));
+            }
         }
-        return simple(Material.PAPER, "&fNagrody za trafienie", lore);
+        ItemStack stack = item(cfg, placeholders);
+        ItemMeta meta = stack.getItemMeta();
+        if (meta != null) {
+            meta.lore(lore.isEmpty() ? null : lore);
+            stack.setItemMeta(meta);
+        }
+        return stack;
     }
 
     private void openPreview(Player player, int setIndex, int reelIndex, int page) {
+        CasinoConfig config = configSupplier.get();
+        CasinoConfig.ReelPreviewGui gui = config.gui().preview();
         DeterministicReelSet set = reelSets.set(setIndex);
         int safeReel = Math.floorMod(reelIndex, 5);
         int safePage = Math.max(0, Math.min(1, page));
         ReelPreviewGuiHolder holder = new ReelPreviewGuiHolder(player.getUniqueId(), setIndex, safeReel, safePage);
-        Inventory inv = Bukkit.createInventory(holder, 54, Text.legacy("&6ZESTAW #" + setIndex + " &8| &fBęben " + (safeReel + 1), Map.of()));
+        Map<String,String> ph = Map.of(
+                "set", Integer.toString(setIndex),
+                "reel", Integer.toString(safeReel + 1),
+                "page", Integer.toString(safePage + 1)
+        );
+        Inventory inv = Bukkit.createInventory(holder, gui.size(), Text.legacy(gui.title(), ph));
         holder.inventory(inv);
-        ItemStack filler = simple(Material.BLACK_STAINED_GLASS_PANE, "", List.of());
-        for (int i = 0; i < 54; i++) inv.setItem(i, filler.clone());
+        ItemStack filler = item(gui.filler(), ph);
+        for (int i = 0; i < gui.size(); i++) inv.setItem(i, filler.clone());
         ReelStrip strip = set.reel(safeReel);
         int from = safePage * 45;
         int to = Math.min(strip.size(), from + 45);
-        for (int position = from; position < to; position++) {
-            CasinoConfig.Symbol symbol = configSupplier.get().symbolsById().get(strip.symbolAt(position));
-            ItemStack item = symbol == null ? new ItemStack(Material.BARRIER) : symbolItem(symbol);
-            ItemMeta meta = item.getItemMeta();
+        for (int position = from; position < to && position - from < gui.size(); position++) {
+            CasinoConfig.Symbol symbol = config.symbolsById().get(strip.symbolAt(position));
+            ItemStack symbolStack = symbol == null ? new ItemStack(Material.BARRIER) : symbolItem(symbol);
+            ItemMeta meta = symbolStack.getItemMeta();
             if (meta != null) {
                 List<net.kyori.adventure.text.Component> lore = new ArrayList<>();
                 lore.add(Text.component("&7Pozycja: &f" + position));
-                meta.lore(lore); item.setItemMeta(meta);
+                meta.lore(lore);
+                symbolStack.setItemMeta(meta);
             }
-            inv.setItem(position - from, item);
+            inv.setItem(position - from, symbolStack);
         }
-        inv.setItem(PREVIEW_BACK_SLOT, simple(Material.BARRIER, "&cPowrót", List.of()));
-        inv.setItem(PREVIEW_PREV_REEL, simple(Material.ARROW, "&ePoprzedni bęben", List.of()));
-        inv.setItem(PREVIEW_NEXT_REEL, simple(Material.ARROW, "&eNastępny bęben", List.of()));
-        inv.setItem(PREVIEW_PREV_PAGE, simple(Material.PAPER, "&eStrona 1", List.of("&7Pozycje 0–44")));
-        inv.setItem(PREVIEW_NEXT_PAGE, simple(Material.PAPER, "&eStrona 2", List.of("&7Pozycje 45–85")));
-        // Any machine <-> preview or preview <-> preview navigation is an intentional
-        // inventory replacement. Use the common transition helper so the close guard cannot
-        // enqueue a competing reopen on the next tick.
+        inv.setItem(gui.backSlot(), item(gui.backItem(), ph));
+        inv.setItem(gui.previousReelSlot(), item(gui.previousReelItem(), ph));
+        inv.setItem(gui.nextReelSlot(), item(gui.nextReelItem(), ph));
+        inv.setItem(gui.previousPageSlot(), item(gui.previousPageItem(), ph));
+        inv.setItem(gui.nextPageSlot(), item(gui.nextPageItem(), ph));
         SlotMachineSession session = sessionsByPlayer.get(player.getUniqueId());
         if (session != null) transitionInventory(player, session, inv);
         else player.openInventory(inv);
     }
 
     private void handlePreviewClick(Player player, ReelPreviewGuiHolder preview, int slot) {
-        if (slot == PREVIEW_BACK_SLOT) {
+        CasinoConfig.ReelPreviewGui gui = configSupplier.get().gui().preview();
+        if (slot == gui.backSlot()) {
             SlotMachineSession session = sessionsByPlayer.get(player.getUniqueId());
             if (session != null) transitionInventory(player, session, session.inventory());
-        } else if (slot == PREVIEW_PREV_REEL) {
+        } else if (slot == gui.previousReelSlot()) {
             openPreview(player, preview.reelSetIndex(), preview.reelIndex() - 1, preview.page());
-        } else if (slot == PREVIEW_NEXT_REEL) {
+        } else if (slot == gui.nextReelSlot()) {
             openPreview(player, preview.reelSetIndex(), preview.reelIndex() + 1, preview.page());
-        } else if (slot == PREVIEW_PREV_PAGE) {
+        } else if (slot == gui.previousPageSlot()) {
             openPreview(player, preview.reelSetIndex(), preview.reelIndex(), 0);
-        } else if (slot == PREVIEW_NEXT_PAGE) {
+        } else if (slot == gui.nextPageSlot()) {
             openPreview(player, preview.reelSetIndex(), preview.reelIndex(), 1);
         }
     }
@@ -908,6 +925,10 @@ public final class SlotMachineService implements Listener {
         }
     }
 
+    private Map<String, Double> rewardMultipliers(SlotLayout layout) {
+        return settings.rewardsForLayout(layout.reels());
+    }
+
     private double selectedBaseCost(SlotMachineSession session) {
         return settings.baseCosts().get(Math.min(session.costIndex(), settings.baseCosts().size() - 1));
     }
@@ -996,21 +1017,17 @@ public final class SlotMachineService implements Listener {
     }
 
     private ItemStack item(CasinoConfig.GuiItem cfg) {
-        return simple(cfg.material(), cfg.name(), cfg.lore(), cfg.hideTooltip(), cfg.hideAdditionalTooltip());
+        return item(cfg, Map.of());
     }
 
-    private ItemStack simple(Material material, String name, List<String> lore) {
-        return simple(material, name, lore, name.isEmpty(), true);
-    }
-
-    private ItemStack simple(Material material, String name, List<String> lore, boolean hideTooltip, boolean hideAdditional) {
-        ItemStack stack = new ItemStack(material);
+    private ItemStack item(CasinoConfig.GuiItem cfg, Map<String, String> placeholders) {
+        ItemStack stack = new ItemStack(cfg.material());
         ItemMeta meta = stack.getItemMeta();
         if (meta != null) {
-            meta.displayName(Text.component(name));
-            meta.lore(lore.isEmpty() ? null : Text.lore(lore, Map.of()));
-            if (hideAdditional) meta.addItemFlags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
-            if (hideTooltip) {
+            meta.displayName(Text.component(cfg.name(), placeholders));
+            meta.lore(cfg.lore().isEmpty() ? null : Text.lore(cfg.lore(), placeholders));
+            if (cfg.hideAdditionalTooltip()) meta.addItemFlags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
+            if (cfg.hideTooltip()) {
                 meta.addItemFlags(ItemFlag.values());
                 try { meta.setHideTooltip(true); } catch (Throwable ignored) { }
             }
