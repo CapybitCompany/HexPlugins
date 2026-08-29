@@ -1,0 +1,16 @@
+rootProject.name = 'HexCustomItems'
+
+// Standalone build support. In the normal package layout HexCore is a sibling
+// of HexCustomItems. The second candidate also supports repositories where
+// plugins live under a Plugins/ directory but HexCore is kept one level above.
+def hexCoreDir = [
+        file('../HexCore'),
+        file('../../HexCore')
+].find { new File(it, 'build.gradle').isFile() }
+
+if (hexCoreDir == null) {
+    throw new GradleException('HexCustomItems: cannot find HexCore. Expected ../HexCore or ../../HexCore relative to HexCustomItems.')
+}
+
+include ':plugins:HexCore'
+project(':plugins:HexCore').projectDir = hexCoreDir

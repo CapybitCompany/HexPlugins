@@ -60,6 +60,7 @@ public final class MinionCommand implements CommandExecutor, TabCompleter {
             case "give" -> give(sender, args);
             case "list" -> list(sender);
             case "wiki" -> wiki(sender, args);
+            case "dev", "developer" -> developerMode(sender, args);
             case "robots", "roboty" -> hiddenRobots(sender);
             case "pickup" -> playerAction(sender, args, "pickup");
             case "move" -> playerAction(sender, args, "move");
@@ -72,6 +73,27 @@ public final class MinionCommand implements CommandExecutor, TabCompleter {
             default -> sendHelp(sender);
         }
         return true;
+    }
+
+
+    private void developerMode(CommandSender sender, String[] args) {
+        if (!sender.hasPermission("hexminions.admin")) { hex.ui().send(sender, "minions.error.no-permission"); return; }
+        if (!(sender instanceof Player player)) { hex.ui().send(sender, "minions.error.player-only"); return; }
+        String action = args.length >= 2 ? args[1].toLowerCase(java.util.Locale.ROOT) : "toggle";
+        boolean enabled;
+        switch (action) {
+            case "on", "enable", "wlacz" -> enabled = service.setDeveloperMode(player, true);
+            case "off", "disable", "wylacz" -> enabled = service.setDeveloperMode(player, false);
+            case "status" -> enabled = service.developerMode(player);
+            case "toggle" -> enabled = service.toggleDeveloperMode(player);
+            default -> {
+                player.sendMessage("§eUżycie: /minion dev [on|off|toggle|status]");
+                return;
+            }
+        }
+        player.sendMessage(enabled
+                ? "§aTryb developerski HexMinions: WŁĄCZONY §7(Shift w wiki kopiuje itemy, blokady receptur są pomijane)."
+                : "§cTryb developerski HexMinions: WYŁĄCZONY.");
     }
 
     private void give(CommandSender sender, String[] args) {
@@ -268,11 +290,14 @@ public final class MinionCommand implements CommandExecutor, TabCompleter {
         boolean admin = sender.hasPermission("hexminions.admin");
         if (args.length == 1) {
             List<String> values = new ArrayList<>(List.of("help", "list", "wiki"));
-            if (admin) values.addAll(List.of("give", "reload", "admin", "pickup", "move", "select", "select-index", "action"));
+            if (admin) values.addAll(List.of("dev", "give", "reload", "admin", "pickup", "move", "select", "select-index", "action"));
             return partial(args[0], values);
         }
         if (args.length == 3 && args[0].equalsIgnoreCase("give") && admin) {
             return partial(args[2], new ArrayList<>(service.definitions().minionTypes().keySet()));
+        }
+        if (args.length == 2 && (args[0].equalsIgnoreCase("dev") || args[0].equalsIgnoreCase("developer")) && admin) {
+            return partial(args[1], List.of("on", "off", "toggle", "status"));
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("wiki")) {
             ArrayList<String> values = new ArrayList<>();

@@ -1,6 +1,8 @@
 package hex.towns;
 
 import hex.core.api.HexApi;
+import hex.economy.api.HexEconomyApi;
+import hex.towns.bank.TownBankRepository;
 import hex.towns.api.TownsApi;
 import hex.towns.command.TownCommand;
 import hex.towns.config.TownsConfig;
@@ -70,8 +72,14 @@ public final class HexTownsPlugin extends JavaPlugin {
         registerUiDefaults();
 
         TownRepository repository = new TownRepository(hexApi.db().db());
+        TownBankRepository bankRepository = new TownBankRepository(hexApi.db().db());
+        var economyRegistration = Bukkit.getServicesManager().getRegistration(HexEconomyApi.class);
+        HexEconomyApi economy = economyRegistration == null ? null : economyRegistration.getProvider();
+        if (economy == null) {
+            getLogger().warning("HexEconomy service not found. Town Bank will stay unavailable until HexTowns is restarted with HexEconomy enabled.");
+        }
         TownDataRegistry dataRegistry = new TownDataRegistry(hexApi, repository);
-        this.townsService = new TownsService(this, hexApi, repository, dataRegistry, this.config);
+        this.townsService = new TownsService(this, hexApi, repository, bankRepository, economy, dataRegistry, this.config);
         this.townGuideService = new TownGuideService(this, townsService);
         this.visualCheckService = new VisualCheckService(this, townsService, this.config);
         this.renameAnvilListener = new TownRenameAnvilListener(this, hexApi, townsService, this.config);
@@ -83,6 +91,7 @@ public final class HexTownsPlugin extends JavaPlugin {
         townHeartItem.registerRecipe();
         this.townHeartRenderer = new TownHeartRenderer(this);
         this.townHeartService = new TownHeartService(this, hexApi, repository, townsService, townHeartRenderer);
+        this.townsService.setHeartLocationResolver(townId -> townHeartService.heartOf(townId).map(hex.towns.heart.TownHeartLocation::toLocation).filter(java.util.Objects::nonNull));
         this.townsApi = new TownsApiImpl(townsService, dataRegistry, townGuideService, townHeartService);
         this.townHeartReconciliationService = new TownHeartReconciliationService(townsService, townHeartService, townHeartRenderer);
         this.townsService.setWorldCleanupHandler(townHeartService::cleanupJob);
@@ -120,6 +129,7 @@ public final class HexTownsPlugin extends JavaPlugin {
 
         hexApi.db().async(() -> {
             repository.ensureTables();
+            bankRepository.ensureTables();
             return repository.loadInitialState();
         }).thenAccept(state -> Bukkit.getScheduler().runTask(this, () -> {
             townsService.load(state);
@@ -196,6 +206,16 @@ public final class HexTownsPlugin extends JavaPlugin {
             }
             getConfig().set("config-version", 5);
             getLogger().info("Dodano ochronę ognia: członkowie mogą ręcznie rozpalać ogień w swoim mieście bez włączania fire spread.");
+            changed = true;
+        }
+        if (version < 6) {
+            // Miasto/COOP nie może już czyścić prywatnego ekwipunku gracza. Town-bound
+            // progression jest usuwany przy destroy lub odkładany do skrzyń przy sercu przy wyjściu z COOP.
+            getConfig().set("towns.lifecycle.player-reset.leave", "TOWN_BOUND_ONLY");
+            getConfig().set("towns.lifecycle.player-reset.kick", "TOWN_BOUND_ONLY");
+            getConfig().set("towns.lifecycle.player-reset.destroy", "TOWN_BOUND_ONLY");
+            getConfig().set("config-version", 6);
+            getLogger().info("Migracja lifecycle v6: prywatne EQ nie jest czyszczone przy opuszczeniu COOP ani zniszczeniu miasta.");
             changed = true;
         }
         if (changed) saveConfig();
@@ -290,7 +310,7 @@ public final class HexTownsPlugin extends JavaPlugin {
         String[] commands = {
                 "townmenu", "townmanage", "townclaims", "claimy", "towncoop",
                 "towncollections", "towncollectionsresources", "towncollectionsfarming",
-                "towncollectionsanimals", "towncollectionsmobs", "townminions", "towndanger"
+                "towncollectionsanimals", "towncollectionsmobs", "townminions", "townbank", "towndanger"
         };
         for (String commandName : commands) {
             PluginCommand command = getCommand(commandName);

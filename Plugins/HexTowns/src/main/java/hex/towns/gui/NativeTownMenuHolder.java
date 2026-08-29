@@ -30,9 +30,11 @@ public final class NativeTownMenuHolder implements InventoryHolder {
         COLLECTIONS_ANIMALS,
         COLLECTIONS_MOBS,
         MINIONS,
+        BANK,
         GUIDE,
         GUIDE_GROWTH,
         GUIDE_PLAYERS,
+        DUMMY_PERMISSIONS,
         DANGER
     }
 }

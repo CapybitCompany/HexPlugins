@@ -15,6 +15,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
@@ -294,6 +295,11 @@ public final class MinionMenuListener implements Listener {
     }
 
     @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+        service.setDeveloperMode(event.getPlayer(), false);
+    }
+
+    @EventHandler
     public void onClose(InventoryCloseEvent event) {
         Inventory top = event.getInventory();
         if (top.getHolder() instanceof MinionMenuHolder holder) {
@@ -312,7 +318,7 @@ public final class MinionMenuListener implements Listener {
     }
 
     private boolean tryCopyWikiItemForTesting(InventoryClickEvent event, Player player, Inventory top) {
-        if (!service.wikiTestMode() || !event.isShiftClick()) return false;
+        if (!service.developerMode(player) || !event.isShiftClick()) return false;
         ItemStack item = top.getItem(event.getSlot());
         if (item == null || item.getType().isAir()) return false;
         switch (item.getType()) {

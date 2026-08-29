@@ -12,7 +12,12 @@ include 'plugins:IcebergEvent'
 include 'plugins:AreaEffects'
 include 'plugins:HexElimination'
 include 'plugins:HexEndEvent'
+include 'plugins:HexEventBossFight'
+include 'plugins:HexEvents'
+include 'plugins:HexEvents:hexevents-api'
+include 'plugins:HexEvents:hexevents-plugin'
 include 'plugins:HexGUI'
+include 'plugins:HexCustomItems'
 include 'plugins:HexSequence'
 include 'plugins:HexTowns'
 include 'plugins:HexMinions'
@@ -29,9 +34,11 @@ include 'plugins:VishopBroadcastProxy'
 include 'statsapi'
 
 // Physical folder is 'Plugins/...' (capital P), keep logical Gradle path consistent.
+project(':plugins').projectDir = file('Plugins')
 project(':plugins:HexCore').projectDir = file('Plugins/HexCore')
 project(':plugins:UiExample').projectDir = file('Plugins/UiExample')
 project(':plugins:DbExample').projectDir = file('Plugins/DbExample')
+project(':plugins:HexVelocityFallback').projectDir = file('Plugins/HexVelocityFallback')
 project(':plugins:Minigames').projectDir = file('Plugins/Minigames')
 project(':plugins:HexPortals').projectDir = file('Plugins/HexPortals')
 project(':plugins:WaterLevelFlood').projectDir = file('Plugins/WaterLevelFlood')
@@ -40,7 +47,12 @@ project(':plugins:IcebergEvent').projectDir = file('Plugins/IcebergEvent')
 project(':plugins:AreaEffects').projectDir = file('Plugins/AreaEffects')
 project(':plugins:HexElimination').projectDir = file('Plugins/HexElimination')
 project(':plugins:HexEndEvent').projectDir = file('Plugins/HexEndEvent')
+project(':plugins:HexEventBossFight').projectDir = file('Plugins/HexEventBossFight')
+project(':plugins:HexEvents').projectDir = file('Plugins/HexEvents')
+project(':plugins:HexEvents:hexevents-api').projectDir = file('Plugins/HexEvents/hexevents-api')
+project(':plugins:HexEvents:hexevents-plugin').projectDir = file('Plugins/HexEvents/hexevents-plugin')
 project(':plugins:HexGUI').projectDir = file('Plugins/HexGUI')
+project(':plugins:HexCustomItems').projectDir = file('Plugins/HexCustomItems')
 project(':plugins:HexSequence').projectDir = file('Plugins/HexSequence')
 project(':plugins:HexTowns').projectDir = file('Plugins/HexTowns')
 project(':plugins:HexMinions').projectDir = file('Plugins/HexMinions')

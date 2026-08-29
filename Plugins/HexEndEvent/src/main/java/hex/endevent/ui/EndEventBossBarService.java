@@ -50,7 +50,9 @@ public final class EndEventBossBarService {
         long remainingMillis = Math.max(0L, remaining.toMillis());
         float progress = (float) Math.max(0.0, Math.min(1.0, remainingMillis / (double) totalMillis));
         bossBar.progress(progress);
-        bossBar.name(hex.ui().render("endevent.bossbar.active", UiTokens.of("remaining", TimeTextFormatter.duration(remaining))));
+        bossBar.name(hex.ui().render("endevent.bossbar.active",
+                UiTokens.of("remaining", TimeTextFormatter.duration(remaining))
+                        .put("closes", TimeTextFormatter.time(activeSlot.end()))));
 
         Set<UUID> desired = new HashSet<>();
         for (Player player : Bukkit.getOnlinePlayers()) {

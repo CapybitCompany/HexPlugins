@@ -8,6 +8,7 @@ depend:
   - HexCore
 
 softdepend:
+  - HexEvents
   - PlaceholderAPI
 
 commands:

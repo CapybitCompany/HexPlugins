@@ -175,13 +175,14 @@ public final class HexCollectionsPlugin extends JavaPlugin implements TabExecuto
 	}
 
 	/**
-	 * Targeted compatibility migration of the three definitions shipped with the known audit bugs.
-	 * It patches only the affected source/material fields and preserves levels/display/admin customisation.
+	 * Targeted compatibility migrations for bundled collection definitions.
+	 * They patch only known legacy values so unrelated admin customisation remains untouched.
 	 */
 	private void migrateKnownCollectionDefinitions() {
 		migrateNetheriteDefinition();
 		migrateTinDefinition();
 		migrateEmeraldDefinition();
+		migrateSpruceResinDefinition();
 	}
 
 	private void migrateNetheriteDefinition() {
@@ -211,6 +212,25 @@ public final class HexCollectionsPlugin extends JavaPlugin implements TabExecuto
 		yaml.set("source_rules.NATURAL_BLOCK_BREAK", null);
 		yaml.set("source_rules.CUSTOM_PLUGIN_GRANTED.allow_in_town_claims", true);
 		saveMigratedDefinition(file, yaml, "mining.tin: progress now comes only from an actual custom tin drop/minion");
+	}
+
+	private void migrateSpruceResinDefinition() {
+		File file = new File(getDataFolder(), "collections/foraging_spruce_resin.yml");
+		if (!file.isFile()) return;
+		YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
+
+		int[] previous = {4, 63, 250, 1250, 2500, 12500, 25000};
+		int[] scaled = {1, 13, 50, 250, 500, 2500, 5000};
+		for (int level = 1; level <= previous.length; level++) {
+			if (yaml.getInt("levels." + level + ".required", -1) != previous[level - 1]) {
+				return;
+			}
+		}
+
+		for (int level = 1; level <= scaled.length; level++) {
+			yaml.set("levels." + level + ".required", scaled[level - 1]);
+		}
+		saveMigratedDefinition(file, yaml, "foraging.spruce_resin: collection requirements reduced 5x");
 	}
 
 	private void migrateEmeraldDefinition() {

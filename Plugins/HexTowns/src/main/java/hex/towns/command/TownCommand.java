@@ -20,6 +20,11 @@ import hex.towns.heart.HeartPurgeReport;
 import hex.towns.heart.HeartFoundationReport;
 import hex.towns.service.TownsService;
 import hex.towns.visual.VisualCheckService;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -35,6 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.LinkedHashSet;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -128,6 +134,7 @@ public final class TownCommand implements CommandExecutor, TabCompleter {
             case "claims" -> nativeTownMenu.openClaims(player);
             case "collections" -> nativeTownMenu.openCollections(player, hex.towns.gui.NativeTownMenuHolder.Page.COLLECTIONS_RESOURCES);
             case "minions" -> nativeTownMenu.openMinions(player);
+            case "bank" -> nativeTownMenu.openBank(player);
             case "danger" -> nativeTownMenu.openDanger(player);
             case "create" -> handleCreate(player, args);
             case "claim" -> handleAsync(player, service.claim(player));
@@ -364,6 +371,14 @@ public final class TownCommand implements CommandExecutor, TabCompleter {
         }
         if (args.length >= 2 && args[1].equalsIgnoreCase("tp")) {
             handleAdminTp(sender, args);
+            return;
+        }
+        if (args.length >= 2 && (args[1].equalsIgnoreCase("devview") || args[1].equalsIgnoreCase("viewmode"))) {
+            handleAdminDevView(sender, args);
+            return;
+        }
+        if (args.length >= 2 && args[1].equalsIgnoreCase("dummy")) {
+            handleAdminDummy(sender, args);
             return;
         }
         if (args.length >= 2 && args[1].equalsIgnoreCase("cleanup")) {
@@ -655,6 +670,142 @@ public final class TownCommand implements CommandExecutor, TabCompleter {
     }
 
 
+    private void handleAdminDevView(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage("§cPodgląd developerski menu miasta wymaga gracza.");
+            return;
+        }
+        if (!sender.hasPermission("hextowns.admin")) {
+            sender.sendMessage("§cBrak uprawnienia hextowns.admin.");
+            return;
+        }
+
+        String action = args.length >= 3 ? args[2].toLowerCase(Locale.ROOT) : "status";
+        if (action.equals("off") || action.equals("auto") || action.equals("normal") || action.equals("wylacz")) {
+            nativeTownMenu.clearDeveloperView(player);
+            sender.sendMessage("§aPodgląd DEV miasta wyłączony. Menu znów używa twojego prawdziwego członkostwa.");
+            nativeTownMenu.openMain(player);
+            return;
+        }
+        if (action.equals("status")) {
+            var state = nativeTownMenu.developerView(player);
+            if (state.isEmpty()) {
+                sender.sendMessage("§7Podgląd DEV miasta: §fAUTO §8(prawdziwe członkostwo).");
+                return;
+            }
+            Town target = service.findTown(state.get().townId()).orElse(null);
+            sender.sendMessage("§dPodgląd DEV miasta: §f" + state.get().mode() + " §7→ §f"
+                    + (target == null ? state.get().townId() : target.name() + " (#" + target.internalId() + ")"));
+            return;
+        }
+
+        NativeTownMenu.DeveloperViewMode mode;
+        if (action.equals("guest") || action.equals("gosc")) mode = NativeTownMenu.DeveloperViewMode.GUEST;
+        else if (action.equals("member") || action.equals("czlonek")) mode = NativeTownMenu.DeveloperViewMode.MEMBER;
+        else if (action.equals("owner") || action.equals("wlasciciel")) mode = NativeTownMenu.DeveloperViewMode.OWNER;
+        else {
+            sender.sendMessage("§eUżycie: /townadmin devview <guest|member|owner|auto|status> [nazwa|#ID|ID|UUID]");
+            return;
+        }
+
+        Town target = null;
+        if (args.length >= 4 && !args[3].isBlank()) {
+            String ref = joinArgs(args, 3);
+            if (ref.equalsIgnoreCase("here") || ref.equalsIgnoreCase("tutaj")) {
+                target = service.townAt(player.getLocation()).orElse(null);
+            } else if (ref.equalsIgnoreCase("own") || ref.equalsIgnoreCase("self") || ref.equalsIgnoreCase("moje")) {
+                target = service.townIdOf(player.getUniqueId()).flatMap(service::findTown).orElse(null);
+            } else {
+                target = resolveAdminTown(sender, ref);
+            }
+        } else {
+            target = service.townIdOf(player.getUniqueId()).flatMap(service::findTown)
+                    .orElseGet(() -> service.townAt(player.getLocation()).orElse(null));
+        }
+        if (target == null) {
+            sender.sendMessage("§cNie wybrano miasta do podglądu. Podaj nazwę/#ID albo użyj 'own'/'here'.");
+            return;
+        }
+
+        nativeTownMenu.setDeveloperView(player, mode, target);
+        String role = switch (mode) {
+            case GUEST -> "GOŚĆ";
+            case MEMBER -> "CZŁONEK";
+            case OWNER -> "WŁAŚCICIEL";
+        };
+        sender.sendMessage("§dPodgląd DEV: §f" + role + " §7w mieście §f" + target.name() + " §7(#" + target.internalId() + ").");
+        sender.sendMessage("§8Tryb nie zmienia prawdziwego członkostwa, kolekcji, cen ani statystyk. Operacje ekonomiczne/destrukcyjne pozostają chronione.");
+        nativeTownMenu.openMain(player);
+    }
+
+    private void handleAdminDummy(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage("§cDummy developerski wymaga gracza.");
+            return;
+        }
+        if (!sender.hasPermission("hextowns.admin")) {
+            sender.sendMessage("§cBrak uprawnienia hextowns.admin.");
+            return;
+        }
+        String action = args.length >= 3 ? args[2].toLowerCase(Locale.ROOT) : "status";
+        if (action.equals("status")) {
+            var dummy = nativeTownMenu.developerDummy(player).orElse(null);
+            if (dummy == null) {
+                sender.sendMessage("§7Dummy DEV: §fbrak.");
+                return;
+            }
+            Town town = service.findTown(dummy.townId()).orElse(null);
+            sender.sendMessage("§dDummy DEV: §f" + dummy.name() + " §7→ §f" + (town == null ? dummy.townId() : town.name() + " (#" + town.internalId() + ")"));
+            sender.sendMessage("§8Nie jest prawdziwym członkiem i nie wpływa na limity/progresję.");
+            return;
+        }
+        if (action.equals("remove") || action.equals("delete") || action.equals("usun")) {
+            boolean removed = nativeTownMenu.removeDeveloperDummy(player);
+            sender.sendMessage(removed ? "§aUsunięto dummy członka DEV." : "§7Nie miałeś aktywnego dummy członka.");
+            nativeTownMenu.openMain(player);
+            return;
+        }
+        if (action.equals("use") || action.equals("switch") || action.equals("przelacz")) {
+            if (!nativeTownMenu.useDeveloperDummy(player)) {
+                sender.sendMessage("§cNajpierw dodaj dummy: /townadmin dummy add <miasto>.");
+                return;
+            }
+            var dummy = nativeTownMenu.developerDummy(player).orElse(null);
+            sender.sendMessage("§dPrzełączono na dummy członka: §f" + (dummy == null ? "DEV Dummy" : dummy.name()) + "§d.");
+            nativeTownMenu.openMain(player);
+            return;
+        }
+        if (action.equals("permissions") || action.equals("perms") || action.equals("uprawnienia")) {
+            nativeTownMenu.openDeveloperDummyPermissions(player);
+            return;
+        }
+        if (!action.equals("add") && !action.equals("create") && !action.equals("dodaj")) {
+            sender.sendMessage("§eUżycie: /townadmin dummy <add|remove|use|permissions|status> [miasto]");
+            return;
+        }
+
+        Town target = null;
+        if (args.length >= 4 && !args[3].isBlank()) {
+            target = resolveAdminTown(sender, joinArgs(args, 3));
+        } else {
+            var view = nativeTownMenu.developerView(player).orElse(null);
+            if (view != null) target = service.findTown(view.townId()).orElse(null);
+            if (target == null) target = service.townIdOf(player.getUniqueId()).flatMap(service::findTown).orElse(null);
+            if (target == null) target = service.townAt(player.getLocation()).orElse(null);
+        }
+        if (target == null) {
+            sender.sendMessage("§cNie wybrano miasta. Użyj /townadmin dummy add <nazwa|#ID> albo stań w mieście.");
+            return;
+        }
+        NativeTownMenu.DeveloperDummyState dummy = nativeTownMenu.addDeveloperDummy(player, target);
+        if (dummy == null) {
+            sender.sendMessage("§cNie udało się utworzyć dummy członka.");
+            return;
+        }
+        sender.sendMessage("§aDodano runtime-only dummy §f" + dummy.name() + " §ado miasta §f" + target.name() + "§a.");
+        sender.sendMessage("§8Nie trafia do bazy, member count, kolekcji, cen ani statystyk. /townadmin dummy use przełącza widok.");
+    }
+
     private void handleAdminFind(CommandSender sender, String[] args) {
         if (!sender.hasPermission("hextowns.admin.lookup")) {
             sender.sendMessage("§cBrak uprawnienia hextowns.admin.lookup.");
@@ -738,11 +889,15 @@ public final class TownCommand implements CommandExecutor, TabCompleter {
     }
 
     private void sendTownCandidate(CommandSender sender, Town town) {
-        sender.sendMessage("§7#" + town.internalId()
-                + " §f" + town.name()
-                + " §8| §7UUID " + town.id()
-                + " §8| §7world " + town.world()
-                + " §8| §7owner " + town.ownerId());
+        String command = "/townadmin tp #" + town.internalId();
+        Component clickable = Component.text("#" + town.internalId() + " " + town.name(), NamedTextColor.AQUA)
+                .decorate(TextDecoration.UNDERLINED)
+                .clickEvent(ClickEvent.runCommand(command))
+                .hoverEvent(HoverEvent.showText(Component.text("Kliknij, aby teleportować się do Serca Miasta", NamedTextColor.YELLOW)));
+        Component details = Component.text(" | UUID " + town.id()
+                        + " | world " + town.world()
+                        + " | owner " + town.ownerId(), NamedTextColor.DARK_GRAY);
+        sender.sendMessage(clickable.append(details));
     }
 
     private Location safeHeartTeleportLocation(World world, TownHeartLocation heart, Player player) {
@@ -953,11 +1108,14 @@ public final class TownCommand implements CommandExecutor, TabCompleter {
     }
 
     private void sendAdminPage(CommandSender sender, Page<Town> page) {
-        for (Town town : page.items()) {
-            api.ui().send(sender, "towns.map.line", UiTokens.of("line", town.internalId() + " " + town.name() + " " + town.id()));
-        }
+        sender.sendMessage(Component.text("[HexTowns] Lista miast — kliknij nazwę/ID, aby teleportować się do serca.", NamedTextColor.GOLD));
+        for (Town town : page.items()) sendTownCandidate(sender, town);
         if (page.nextCursor() != null) {
-            api.ui().send(sender, "towns.map.line", UiTokens.of("line", "Next cursor: " + page.nextCursor()));
+            String nextCommand = "/townadmin list " + page.nextCursor();
+            sender.sendMessage(Component.text("Następna strona ▶", NamedTextColor.YELLOW)
+                    .decorate(TextDecoration.UNDERLINED)
+                    .clickEvent(ClickEvent.runCommand(nextCommand))
+                    .hoverEvent(HoverEvent.showText(Component.text(nextCommand, NamedTextColor.GRAY))));
         }
     }
 
@@ -1009,7 +1167,18 @@ public final class TownCommand implements CommandExecutor, TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (command.getName().equalsIgnoreCase("townadmin")) {
             if (!sender.hasPermission("hextowns.admin")) return List.of();
-            if (args.length == 1) return filter(List.of("find", "tp", "cleanup", "coop", "metrics", "list", "reload", "addgrowth", "giveheart", "syncgrowth", "heart"), args[0]);
+            if (args.length == 1) return filter(List.of("find", "tp", "devview", "dummy", "cleanup", "coop", "metrics", "list", "reload", "addgrowth", "giveheart", "syncgrowth", "heart"), args[0]);
+            if (args.length >= 2 && args[0].equalsIgnoreCase("tp")) return completeTownRefs(args, 1);
+            if (args.length >= 2 && args[0].equalsIgnoreCase("find")) return completeTownNames(args, 1);
+            if (args.length == 2 && (args[0].equalsIgnoreCase("devview") || args[0].equalsIgnoreCase("viewmode"))) return filter(List.of("guest", "member", "owner", "auto", "status"), args[1]);
+            if (args.length >= 3 && (args[0].equalsIgnoreCase("devview") || args[0].equalsIgnoreCase("viewmode"))
+                    && (args[1].equalsIgnoreCase("guest") || args[1].equalsIgnoreCase("member") || args[1].equalsIgnoreCase("owner"))) {
+                if (args.length == 3 && ("own".startsWith(args[2].toLowerCase(Locale.ROOT)) || "here".startsWith(args[2].toLowerCase(Locale.ROOT))))
+                    return filter(List.of("own", "here"), args[2]);
+                return completeTownRefs(args, 2);
+            }
+            if (args.length == 2 && args[0].equalsIgnoreCase("dummy")) return filter(List.of("add", "remove", "use", "permissions", "status"), args[1]);
+            if (args.length >= 3 && args[0].equalsIgnoreCase("dummy") && args[1].equalsIgnoreCase("add")) return completeTownRefs(args, 2);
             if (args.length == 2 && args[0].equalsIgnoreCase("cleanup")) return filter(List.of("status", "retry", "resume", "scan-orphans", "repair-orphans", "namespaces", "namespace", "cables", "pending-players"), args[1]);
             if (args.length == 2 && args[0].equalsIgnoreCase("coop")) return filter(List.of("debug"), args[1]);
             if (args.length == 2 && args[0].equalsIgnoreCase("heart")) return filter(List.of("scan", "purge-orphans", "purge-visual", "rerender", "cleanup-foundation"), args[1]);
@@ -1021,12 +1190,37 @@ public final class TownCommand implements CommandExecutor, TabCompleter {
             return List.of();
         }
         if (args.length == 1) {
-            List<String> commands = new ArrayList<>(List.of("menu", "guide", "manage", "claims", "collections", "minions", "danger", "create", "claim", "accept", "destroy", "rename", "check", "info", "here", "map", "leave"));
+            List<String> commands = new ArrayList<>(List.of("menu", "guide", "manage", "claims", "collections", "minions", "bank", "danger", "create", "claim", "accept", "destroy", "rename", "check", "info", "here", "map", "leave"));
             if (sender.hasPermission("hextowns.admin")) { commands.add("admin"); commands.add("reload"); }
             return filter(commands, args[0]);
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("admin") && sender.hasPermission("hextowns.admin")) {
-            return filter(List.of("find", "tp", "metrics", "list", "reload", "cleanup", "coop", "addgrowth", "growthadd", "giveheart", "syncgrowth", "growthsync", "heart"), args[1]);
+            return filter(List.of("find", "tp", "devview", "dummy", "metrics", "list", "reload", "cleanup", "coop", "addgrowth", "growthadd", "giveheart", "syncgrowth", "growthsync", "heart"), args[1]);
+        }
+        if (args.length >= 3 && args[0].equalsIgnoreCase("admin") && sender.hasPermission("hextowns.admin")
+                && args[1].equalsIgnoreCase("tp")) {
+            return completeTownRefs(args, 2);
+        }
+        if (args.length >= 3 && args[0].equalsIgnoreCase("admin") && sender.hasPermission("hextowns.admin")
+                && args[1].equalsIgnoreCase("find")) {
+            return completeTownNames(args, 2);
+        }
+        if (args.length == 3 && args[0].equalsIgnoreCase("admin") && sender.hasPermission("hextowns.admin")
+                && (args[1].equalsIgnoreCase("devview") || args[1].equalsIgnoreCase("viewmode"))) {
+            return filter(List.of("guest", "member", "owner", "auto", "status"), args[2]);
+        }
+        if (args.length >= 4 && args[0].equalsIgnoreCase("admin") && sender.hasPermission("hextowns.admin")
+                && (args[1].equalsIgnoreCase("devview") || args[1].equalsIgnoreCase("viewmode"))
+                && (args[2].equalsIgnoreCase("guest") || args[2].equalsIgnoreCase("member") || args[2].equalsIgnoreCase("owner"))) {
+            if (args.length == 4 && ("own".startsWith(args[3].toLowerCase(Locale.ROOT)) || "here".startsWith(args[3].toLowerCase(Locale.ROOT))))
+                return filter(List.of("own", "here"), args[3]);
+            return completeTownRefs(args, 3);
+        }
+        if (args.length == 3 && args[0].equalsIgnoreCase("admin") && args[1].equalsIgnoreCase("dummy") && sender.hasPermission("hextowns.admin")) {
+            return filter(List.of("add", "remove", "use", "permissions", "status"), args[2]);
+        }
+        if (args.length >= 4 && args[0].equalsIgnoreCase("admin") && args[1].equalsIgnoreCase("dummy") && args[2].equalsIgnoreCase("add") && sender.hasPermission("hextowns.admin")) {
+            return completeTownRefs(args, 3);
         }
         if (args.length == 3 && args[0].equalsIgnoreCase("admin") && args[1].equalsIgnoreCase("coop") && sender.hasPermission("hextowns.admin")) {
             return filter(List.of("debug"), args[2]);
@@ -1053,6 +1247,61 @@ public final class TownCommand implements CommandExecutor, TabCompleter {
             return filter(List.of("nearby"), args[3]);
         }
         return List.of();
+    }
+
+    private List<String> completeTownRefs(String[] args, int from) {
+        return completeTownReference(args, from, true);
+    }
+
+    private List<String> completeTownNames(String[] args, int from) {
+        return completeTownReference(args, from, false);
+    }
+
+    private List<String> completeTownReference(String[] args, int from, boolean includeInternalIds) {
+        if (args == null || args.length <= from) return List.of();
+        String query = joinArgs(args, from).trim();
+        String currentArg = args[args.length - 1];
+        String consumed = args.length - 1 > from ? joinArgsRange(args, from, args.length - 1).trim() : "";
+        String consumedPrefix = consumed.isBlank() ? "" : consumed + " ";
+        String lowerQuery = query.toLowerCase(Locale.ROOT);
+        LinkedHashSet<String> suggestions = new LinkedHashSet<>();
+        List<Town> towns = service.activeTowns(200);
+
+        // Names first: they are the useful human-facing completion, including names with spaces.
+        // If part of a multi-word name was already accepted, complete only the remaining current token.
+        for (Town town : towns) {
+            String name = town.name();
+            String lowerName = name.toLowerCase(Locale.ROOT);
+            if (!lowerQuery.isBlank() && !lowerName.startsWith(lowerQuery)) continue;
+            if (!consumedPrefix.isBlank()) {
+                if (!lowerName.startsWith(consumedPrefix.toLowerCase(Locale.ROOT))) continue;
+                String remainder = name.substring(Math.min(name.length(), consumedPrefix.length()));
+                if (!remainder.isBlank()) suggestions.add(remainder);
+            } else {
+                suggestions.add(name);
+            }
+            if (suggestions.size() >= 75) break;
+        }
+
+        // IDs are also convenient for TP/devview, but keep them after names and cap the response.
+        if (includeInternalIds && consumedPrefix.isBlank() && suggestions.size() < 100) {
+            String lowerCurrent = currentArg.toLowerCase(Locale.ROOT);
+            for (Town town : towns) {
+                String id = "#" + town.internalId();
+                if (id.toLowerCase(Locale.ROOT).startsWith(lowerCurrent)) suggestions.add(id);
+                if (suggestions.size() >= 100) break;
+            }
+        }
+        return new ArrayList<>(suggestions);
+    }
+
+    private String joinArgsRange(String[] args, int from, int toExclusive) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = Math.max(0, from); i < Math.min(args.length, toExclusive); i++) {
+            if (builder.length() > 0) builder.append(' ');
+            builder.append(args[i]);
+        }
+        return builder.toString();
     }
 
     private List<String> filter(List<String> values, String prefix) {

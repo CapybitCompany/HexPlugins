@@ -18,13 +18,16 @@ public final class TownRefResolver {
     public Resolution resolve(String token) {
         if (token == null || token.isBlank()) return Resolution.notFound(token);
         String raw = token.trim();
+        if (raw.length() >= 2 && ((raw.startsWith("\"") && raw.endsWith("\"")) || (raw.startsWith("'") && raw.endsWith("'")))) {
+            raw = raw.substring(1, raw.length() - 1).trim();
+        }
 
         if (raw.startsWith("#")) {
             Long id = parseLong(raw.substring(1));
             if (id == null) return Resolution.notFound(raw);
             return service.findTownByInternalId(id)
                     .map(Resolution::found)
-                    .orElseGet(() -> Resolution.notFound(raw));
+                    .orElse(Resolution.notFound(raw));
         }
 
         // Plain numeric IDs are accepted for operator convenience. A numeric town name is only

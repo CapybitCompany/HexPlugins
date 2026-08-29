@@ -1,0 +1,21 @@
+name: HexEvents
+version: 1.0.1
+main: hex.events.HexEventsPlugin
+api-version: '1.21'
+author: Havix
+depend: [HexCore]
+softdepend: [HexEconomy, HexTowns, HexCustomItems, PlaceholderAPI]
+commands:
+  event:
+    description: Centralne menu i komendy eventów HEX
+    usage: /event
+    permission: hexevents.use
+permissions:
+  hexevents.use:
+    default: true
+  hexevents.admin:
+    default: op
+  hexevents.bypass.requirements:
+    default: op
+  hexevents.debug:
+    default: op

@@ -1,4 +1,4 @@
-config-version: 5
+config-version: 6
 towns:
   world-whitelist:
   - world
@@ -143,9 +143,9 @@ towns:
     outsider-build-buffer-chunks: 2
   lifecycle:
     player-reset:
-      leave: FULL
+      leave: TOWN_BOUND_ONLY
       kick: TOWN_BOUND_ONLY
-      destroy: FULL
+      destroy: TOWN_BOUND_ONLY
   growth:
     starting-points: 0
     sync:

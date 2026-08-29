@@ -8,5 +8,6 @@ public enum TownPermission {
     MINION_USE,
     MINION_PICKUP,
     MACHINE_USE,
-    MACHINE_BREAK
+    MACHINE_BREAK,
+    BANK_WITHDRAW
 }

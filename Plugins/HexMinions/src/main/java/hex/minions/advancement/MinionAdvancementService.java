@@ -223,11 +223,22 @@ public final class MinionAdvancementService implements Listener, MinionsListener
     public List<TownAdvancementProgressView> growthPointAdvancements(UUID townId, Player viewer) {
         if (!enabled || townId == null) return List.of();
         PlayerSnapshot snapshot = snapshotTown(townId);
+
+        // Do not issue one town_meta SELECT per advancement from a GUI click. HexTowns stores
+        // these rewards under namespace=minion_advancements, key=growth.<advancementId>, so one
+        // prefix lookup is enough for the entire guide page (currently dozens of milestones).
+        Map<String, String> growthRewardMeta;
+        try {
+            growthRewardMeta = towns.getMetaPrefix(townId, "minion_advancements.growth.");
+        } catch (Throwable ignored) {
+            growthRewardMeta = Map.of();
+        }
+
         List<TownAdvancementProgressView> result = new ArrayList<>();
         for (MinionAdvancementDefinition definition : definitions.values()) {
             if (definition.growthPoints() <= 0) continue;
             ProgressNumbers numbers = progressNumbers(definition.requirement(), snapshot);
-            boolean completed = Boolean.parseBoolean(towns.getMeta(townId, "minion_advancements.growth." + definition.id(), "false"));
+            boolean completed = Boolean.parseBoolean(growthRewardMeta.getOrDefault("growth." + definition.id(), "false"));
             result.add(new TownAdvancementProgressView(
                     definition.id(), definition.title(), definition.description(), definition.icon(),
                     definition.growthPoints(), completed, numbers.current(), numbers.required(),

@@ -14,6 +14,8 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
@@ -49,7 +51,34 @@ public final class TownGuideService {
     public void reload() {
         File file = new File(plugin.getDataFolder(), "guide.yml");
         if (!file.exists()) plugin.saveResource("guide.yml", false);
-        this.config = YamlConfiguration.loadConfiguration(file);
+        YamlConfiguration loaded = YamlConfiguration.loadConfiguration(file);
+        boolean changed = false;
+        boolean hadPermissionsGuide = loaded.isSet("players.permissions-name") && loaded.isSet("players.permissions-lore");
+        try (var stream = plugin.getResource("guide.yml")) {
+            if (stream != null) {
+                YamlConfiguration defaults = YamlConfiguration.loadConfiguration(new InputStreamReader(stream, StandardCharsets.UTF_8));
+                loaded.setDefaults(defaults);
+                loaded.options().copyDefaults(true);
+                if (!hadPermissionsGuide && defaults.contains("players.permissions-name")) {
+                    loaded.set("players.permissions-name", defaults.get("players.permissions-name"));
+                    loaded.set("players.permissions-lore", defaults.getStringList("players.permissions-lore"));
+                    changed = true;
+                }
+            }
+        } catch (Exception ignored) { }
+        List<String> bankLore = new ArrayList<>(loaded.getStringList("main.bank.lore"));
+        for (int i = 0; i < bankLore.size(); i++) {
+            String line = bankLore.get(i);
+            if (line != null && line.contains("Wpłaty:") && line.contains("100") && !line.contains("&6100")) {
+                bankLore.set(i, "&7Wpłaty: &6100, 500, 1k, 2.5k, 5k i 10k$&7.");
+                changed = true;
+            }
+        }
+        loaded.set("main.bank.lore", bankLore);
+        if (changed) {
+            try { loaded.save(file); } catch (Exception error) { plugin.getLogger().warning("Nie udało się zaktualizować guide.yml: " + error.getMessage()); }
+        }
+        this.config = loaded;
     }
 
     public void open(Player player) {
@@ -62,6 +91,7 @@ public final class TownGuideService {
         inv.setItem(29, configuredItem("main.collections", Material.BOOK));
         inv.setItem(31, configuredItem("main.minions", Material.IRON_INGOT));
         inv.setItem(33, configuredItem("main.claims", Material.GRASS_BLOCK));
+        inv.setItem(40, bankGuideItem());
         inv.setItem(BACK_SLOT, item(Material.ARROW, "&ePowrót", List.of("&7Wróć do menu miasta.")));
         inv.setItem(CLOSE_SLOT, item(Material.BARRIER, "&cZamknij", List.of()));
         player.openInventory(inv);
@@ -120,6 +150,25 @@ public final class TownGuideService {
                 "&7W ekranie kolekcji nadal widzisz po prostu",
                 "&7aktualne: zebrano / wymagane."
         )));
+        List<String> permissionLore = new ArrayList<>(lines("players.permissions-lore"));
+        if (permissionLore.isEmpty()) {
+            permissionLore = List.of(
+                    "&7Uprawnienia nadaje i odbiera &6właściciel miasta&7",
+                    "&7w menu Gracze w mieście -> członek -> Uprawnienia.",
+                    "",
+                    "&eBudowanie &8- &7stawianie bloków; wymagane też przy stawianiu urządzeń.",
+                    "&eNiszczenie bloków &8- &7kopanie bloków.",
+                    "&eSkrzynie i magazyny &8- &7otwieranie kontenerów.",
+                    "&eObsługa minionów &8- &7stawianie, używanie i odbieranie produkcji.",
+                    "&ePodnoszenie minionów &8- &7zabieranie minionów jako item.",
+                    "&eObsługa maszyn &8- &7stawianie i korzystanie z maszyn.",
+                    "&eNiszczenie maszyn &8- &7demontaż maszyn.",
+                    "&eWypłaty z Banku &8- &7wypłacanie środków miasta.",
+                    "",
+                    "&8Właściciel ma wszystkie uprawnienia automatycznie."
+            );
+        }
+        inv.setItem(33, item(Material.COMPARATOR, text("players.permissions-name", "&bUprawnienia członków"), permissionLore));
         inv.setItem(BACK_SLOT, item(Material.ARROW, "&ePowrót", List.of("&7Wróć do przewodnika.")));
         inv.setItem(CLOSE_SLOT, item(Material.BARRIER, "&cZamknij", List.of()));
         player.openInventory(inv);
@@ -261,6 +310,22 @@ public final class TownGuideService {
         }
         lore.addAll(warning);
         return item(Material.RED_BED, text("main.city.name", "&cMiasto i rozwój"), lore);
+    }
+
+    private ItemStack bankGuideItem() {
+        List<String> lore = new ArrayList<>(lines("main.bank.lore"));
+        if (lore.isEmpty()) {
+            lore = List.of(
+                    "&7Bank jest dostępny tylko dla członków miasta.",
+                    "&7Wpłaty: &6100, 500, 1k, 2.5k, 5k i 10k$&7.",
+                    "&7Każda wpłata jest objęta podatkiem &c3%&7.",
+                    "&7Wypłaty wymagają odpowiedniego uprawnienia miasta.",
+                    "",
+                    "&7Ujemne saldo odchodzącego członka jest spłacane",
+                    "&7z jego dostępnych pieniędzy, maksymalnie do ich wysokości."
+            );
+        }
+        return item(Material.GOLD_INGOT, text("main.bank.name", "&6Bank Miasta"), lore);
     }
 
     private ItemStack configuredItem(String path, Material fallback) {

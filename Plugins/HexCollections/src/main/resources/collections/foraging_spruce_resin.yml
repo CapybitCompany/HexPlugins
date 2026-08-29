@@ -31,25 +31,25 @@ source_rules:
     allow_in_town_claims: true
 levels:
   1:
-    required: 4
+    required: 1
     display_name: '&bŻywica I'
   2:
-    required: 63
+    required: 13
     display_name: '&bŻywica II'
   3:
-    required: 250
+    required: 50
     display_name: '&bŻywica III'
   4:
-    required: 1250
+    required: 250
     display_name: '&bŻywica IV'
   5:
-    required: 2500
+    required: 500
     display_name: '&bŻywica V'
   6:
-    required: 12500
+    required: 2500
     display_name: '&bŻywica VI'
   7:
-    required: 25000
+    required: 5000
     display_name: '&bŻywica VII'
 reward_claim_mode: AUTO
 placeholder:

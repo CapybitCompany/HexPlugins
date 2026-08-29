@@ -1,5 +1,5 @@
 name: HexRestrictions
-version: '1.0.0'
+version: '1.0.1'
 main: hex.restrictions.HexRestrictionsPlugin
 api-version: "1.21"
 description: Config-driven forbidden items and enchantments enforcement for Hex SMP

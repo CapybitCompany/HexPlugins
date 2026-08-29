@@ -1261,10 +1261,7 @@ public final class MiningRobotManager implements Listener {
         Optional<Town> town = towns.townAt(location);
         if (town.isEmpty()) return false;
         Town t = town.get();
-        boolean inHeartChunk = t.world().equals(location.getWorld().getName())
-                && t.heart().x() == (location.getBlockX() >> 4)
-                && t.heart().z() == (location.getBlockZ() >> 4);
-        if (inHeartChunk) return false;
+        if (towns.isHeartProtected(location)) return false;
         return towns.canActAsMember(playerId, t.id());
     }
 

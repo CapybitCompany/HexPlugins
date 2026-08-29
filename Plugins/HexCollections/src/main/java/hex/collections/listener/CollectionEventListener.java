@@ -10,6 +10,7 @@ import hex.towns.api.TownsApi;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.block.Block;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.entity.Item;
 import org.bukkit.event.EventHandler;
@@ -58,6 +59,19 @@ public final class CollectionEventListener implements Listener {
         // (np. miedz/redstone z Fortune). Bez tego liczylo blok, a nie faktyczny zebrany surowiec.
         if (isOreLike(material)) return;
 
+        // Kaktus i trzcina zrzucaja kolejne segmenty przez fizyke po zniszczeniu dolnego bloku.
+        // BlockDropItemEvent widzi wtedy tylko bezposrednio zniszczony segment, przez co kolekcja
+        // rosla zawsze o 1. Snapshotujemy wysokosc przed zniszczeniem i liczymy faktycznie
+        // zbierane segmenty od kliknietego bloku w gore, maksymalnie 3.
+        if (material == Material.CACTUS || material == Material.SUGAR_CANE) {
+            int harvestedSegments = verticalHarvestSegments(event.getBlock(), material, 3);
+            if (harvestedSegments <= 0) return;
+            String collectionId = cropCollectionId(material);
+            service.registry().find(collectionId).ifPresent(def ->
+                    tryAddCropBreak(def, townId.get(), event, claimRelation, material, harvestedSegments));
+            return;
+        }
+
         // STONE ma specjalne rozróżnienie:
         // - bez Silk Toucha naturalny STONE wpada do kolekcji cobblestone,
         // - z Silk Touchem naturalny STONE wpada do kolekcji stone.
@@ -92,6 +106,8 @@ public final class CollectionEventListener implements Listener {
             }
             return;
         }
+        // Te dwie rosliny sa liczone w BlockBreakEvent na podstawie wysokosci sprzed zniszczenia.
+        if (material == Material.CACTUS || material == Material.SUGAR_CANE) return;
         handleCropDrop(event, material);
     }
 
@@ -160,6 +176,36 @@ public final class CollectionEventListener implements Listener {
             case SUGAR_CANE -> Material.SUGAR_CANE;
             default -> Material.AIR;
         };
+    }
+
+    private int verticalHarvestSegments(Block start, Material material, int maxSegments) {
+        if (start == null || material == null || maxSegments <= 0 || start.getType() != material) return 0;
+        int amount = 0;
+        Block current = start;
+        while (amount < maxSegments && current.getType() == material) {
+            amount++;
+            current = current.getRelative(0, 1, 0);
+        }
+        return amount;
+    }
+
+    private void tryAddCropBreak(CollectionDefinition def, UUID townId, BlockBreakEvent event, ClaimRelation claimRelation, Material material, long amount) {
+        SourceRule rule = def.sourceRules().get(CollectionSource.NATURAL_CROP_HARVEST);
+        if (rule == null || amount <= 0L) return;
+        if (!rule.worldAllowed(event.getBlock().getWorld().getName())) return;
+        if (!claimAllowed(rule, claimRelation)) return;
+        // Zachowujemy dotychczasowa ochrone anty-exploit dla bloku kliknietego przez gracza.
+        // Jezeli ten segment byl recznie postawiony, cala operacja nie nalicza kolekcji.
+        if (rule.denyPlayerPlacedBlocks() && antiExploit.consumePlayerPlaced(event.getBlock().getLocation())) return;
+        if (rule.denyRecentlyBrokenBlocks() && antiExploit.recentlyBroken(event.getBlock().getLocation(), service.settings().recentlyBrokenTtlMs())) return;
+        service.addProgress(new CollectionProgressContext()
+                .playerUuid(event.getPlayer().getUniqueId())
+                .townId(townId)
+                .collectionId(def.id())
+                .amount(Math.min(3L, amount))
+                .source(CollectionSource.NATURAL_CROP_HARVEST)
+                .location(event.getBlock().getLocation())
+                .reason("crop-column-break:" + material));
     }
 
     private void tryAddBlockBreak(CollectionDefinition def, UUID townId, BlockBreakEvent event, ClaimRelation claimRelation, Material material) {

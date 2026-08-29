@@ -79,11 +79,31 @@ public final class TownCoopDecisionMenu implements Listener {
                 "<yellow>Kick usuwa tylko przedmioty przypisane do tego miasta.</yellow>",
                 "<gray>Prywatne EQ, Ender Chest i XP pozostają bez zmian.</gray>"
         )));
-        inv.setItem(PERMISSIONS_SLOT, item(Material.COMPARATOR, "<aqua>Uprawnienia członka</aqua>", List.of("<gray>Ustaw dostęp do budowania, skrzyń, minionów i maszyn.</gray>")));
+        inv.setItem(PERMISSIONS_SLOT, item(Material.COMPARATOR, "<aqua>Uprawnienia członka</aqua>", List.of("<gray>Ustaw dostęp do budowania, skrzyń, minionów, maszyn i wypłat z banku.</gray>")));
         inv.setItem(REJECT_SLOT, item(Material.RED_CONCRETE, "<red>Usuń gracza z miasta</red>", List.of("<gray>Gracz straci dostęp do miasta i town-bound assety.</gray>")));
         inv.setItem(ACCEPT_SLOT, item(Material.LIME_CONCRETE, "<green>Zostaw gracza</green>", List.of("<gray>Anuluj i wróć do menu graczy.</gray>")));
         inv.setItem(BACK_SLOT, item(Material.ARROW, "<yellow>Powrót</yellow>", List.of("<gray>Wróć do menu graczy.</gray>")));
         owner.openInventory(inv);
+    }
+
+    public void openMemberKickAsAdmin(Player admin, Town town, UUID targetId, String targetName) {
+        if (admin == null || town == null || !admin.hasPermission("hextowns.admin")) return;
+        String safeName = safeName(targetId, targetName);
+        Inventory inv = Bukkit.createInventory(new TownCoopDecisionMenuHolder(TownCoopDecisionMenuHolder.Action.MEMBER_KICK, targetId, safeName, town.id(), true), 45,
+                mini.deserialize("<dark_gray>DEV właściciel: " + safeName));
+        fill(inv);
+        inv.setItem(13, item(Material.PLAYER_HEAD, "<light_purple>DEV: członek " + safeName + "</light_purple>", List.of(
+                rankLore(targetId),
+                "",
+                "<gray>Administracyjny widok właściciela miasta.</gray>",
+                "<gray>Możesz naprawić uprawnienia członka.</gray>",
+                "<dark_gray>Kick pozostaje zablokowany, aby uniknąć przypadkowej utraty danych.</dark_gray>"
+        )));
+        inv.setItem(PERMISSIONS_SLOT, item(Material.COMPARATOR, "<aqua>Uprawnienia członka</aqua>", List.of("<gray>Zmień uprawnienia realnego członka jako administrator.</gray>")));
+        inv.setItem(REJECT_SLOT, item(Material.GRAY_CONCRETE, "<gray>Usunięcie gracza zablokowane w DEV</gray>", List.of("<dark_gray>Użyj zwykłej ścieżki właściciela lub narzędzia administracyjnego świadomie.</dark_gray>")));
+        inv.setItem(ACCEPT_SLOT, item(Material.LIME_CONCRETE, "<green>Powrót</green>", List.of("<gray>Wróć do menu graczy.</gray>")));
+        inv.setItem(BACK_SLOT, item(Material.ARROW, "<yellow>Powrót</yellow>", List.of("<gray>Wróć do menu graczy.</gray>")));
+        admin.openInventory(inv);
     }
 
     public void openMemberPermissions(Player owner, UUID targetId, String targetName) {
@@ -97,7 +117,7 @@ public final class TownCoopDecisionMenu implements Listener {
                 mini.deserialize("<dark_gray>Uprawnienia: " + safeName));
         fill(inv);
         var values = service.permissionsOf(targetId, town.id());
-        int[] slots = {10, 11, 12, 13, 14, 15, 16};
+        int[] slots = {10, 11, 12, 13, 14, 15, 16, 22};
         TownPermission[] permissions = TownPermission.values();
         for (int i = 0; i < permissions.length && i < slots.length; i++) {
             TownPermission permission = permissions[i];
@@ -110,6 +130,29 @@ public final class TownCoopDecisionMenu implements Listener {
         owner.openInventory(inv);
     }
 
+
+    public void openMemberPermissionsAsAdmin(Player admin, Town town, UUID targetId, String targetName) {
+        if (admin == null || town == null || !admin.hasPermission("hextowns.admin")) return;
+        String safeName = safeName(targetId, targetName);
+        Inventory inv = Bukkit.createInventory(new TownCoopDecisionMenuHolder(TownCoopDecisionMenuHolder.Action.MEMBER_PERMISSIONS, targetId, safeName, town.id(), true), 45,
+                mini.deserialize("<dark_gray>DEV uprawnienia: " + safeName));
+        fill(inv);
+        var values = service.permissionsOf(targetId, town.id());
+        int[] slots = {10, 11, 12, 13, 14, 15, 16, 22};
+        TownPermission[] permissions = TownPermission.values();
+        for (int i = 0; i < permissions.length && i < slots.length; i++) {
+            TownPermission permission = permissions[i];
+            boolean allowed = values.getOrDefault(permission, true);
+            inv.setItem(slots[i], item(allowed ? Material.LIME_DYE : Material.GRAY_DYE,
+                    (allowed ? "<green>" : "<red>") + permissionLabel(permission) + (allowed ? "</green>" : "</red>"),
+                    List.of("<gray>Status: " + (allowed ? "<green>Dozwolone</green>" : "<red>Zablokowane</red>") + "</gray>",
+                            "<light_purple>Zmiana administracyjna — zapisywana dla realnego członka.</light_purple>",
+                            "<yellow>Kliknij, aby przełączyć.</yellow>")));
+        }
+        inv.setItem(BACK_SLOT, item(Material.ARROW, "<yellow>Powrót</yellow>", List.of("<gray>Wróć do zarządzania członkiem.</gray>")));
+        admin.openInventory(inv);
+    }
+
     private String permissionLabel(TownPermission permission) {
         return switch (permission) {
             case BUILD -> "Budowanie";
@@ -119,6 +162,7 @@ public final class TownCoopDecisionMenu implements Listener {
             case MINION_PICKUP -> "Podnoszenie minionów";
             case MACHINE_USE -> "Obsługa maszyn";
             case MACHINE_BREAK -> "Niszczenie maszyn";
+            case BANK_WITHDRAW -> "Wypłaty z Banku Miasta";
         };
     }
 
@@ -139,7 +183,14 @@ public final class TownCoopDecisionMenu implements Listener {
         if (slot >= event.getInventory().getSize()) return;
         if (holder.action() == TownCoopDecisionMenuHolder.Action.MEMBER_PERMISSIONS && slot == BACK_SLOT) {
             player.closeInventory();
-            Bukkit.getScheduler().runTask(plugin, () -> openMemberKick(player, holder.targetId(), holder.targetName()));
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                if (holder.adminOverride()) {
+                    Town town = holder.townId() == null ? null : service.findTown(holder.townId()).orElse(null);
+                    if (town != null) openMemberKickAsAdmin(player, town, holder.targetId(), holder.targetName());
+                } else {
+                    openMemberKick(player, holder.targetId(), holder.targetName());
+                }
+            });
             return;
         }
         if (slot == BACK_SLOT || (holder.action() == TownCoopDecisionMenuHolder.Action.MEMBER_KICK && slot == ACCEPT_SLOT)) {
@@ -148,25 +199,37 @@ public final class TownCoopDecisionMenu implements Listener {
             return;
         }
         if (holder.action() == TownCoopDecisionMenuHolder.Action.MEMBER_KICK && slot == PERMISSIONS_SLOT) {
-            openMemberPermissions(player, holder.targetId(), holder.targetName());
+            if (holder.adminOverride()) {
+                Town town = holder.townId() == null ? null : service.findTown(holder.townId()).orElse(null);
+                if (town != null) openMemberPermissionsAsAdmin(player, town, holder.targetId(), holder.targetName());
+            } else {
+                openMemberPermissions(player, holder.targetId(), holder.targetName());
+            }
             return;
         }
         if (holder.action() == TownCoopDecisionMenuHolder.Action.MEMBER_PERMISSIONS) {
-            int[] slots = {10, 11, 12, 13, 14, 15, 16};
+            int[] slots = {10, 11, 12, 13, 14, 15, 16, 22};
             TownPermission[] permissions = TownPermission.values();
             for (int i = 0; i < permissions.length && i < slots.length; i++) {
                 if (slot != slots[i]) continue;
-                var town = service.townIdOf(player.getUniqueId()).flatMap(service::findTown).orElse(null);
-                if (town == null || !service.isOwner(player.getUniqueId(), town.id())) return;
+                Town town = holder.adminOverride() && holder.townId() != null
+                        ? service.findTown(holder.townId()).orElse(null)
+                        : service.townIdOf(player.getUniqueId()).flatMap(service::findTown).orElse(null);
+                if (town == null) return;
+                if (!holder.adminOverride() && !service.isOwner(player.getUniqueId(), town.id())) return;
+                if (holder.adminOverride() && !player.hasPermission("hextowns.admin")) return;
                 TownPermission permission = permissions[i];
                 boolean next = !service.permissionsOf(holder.targetId(), town.id()).getOrDefault(permission, true);
-                service.setPermission(player.getUniqueId(), town.id(), holder.targetId(), permission, next)
-                        .whenComplete((ok, error) -> Bukkit.getScheduler().runTask(plugin, () -> {
+                CompletableFuture<Boolean> change = holder.adminOverride()
+                        ? service.setPermissionAsAdmin(player.getUniqueId(), town.id(), holder.targetId(), permission, next)
+                        : service.setPermission(player.getUniqueId(), town.id(), holder.targetId(), permission, next);
+                change.whenComplete((ok, error) -> Bukkit.getScheduler().runTask(plugin, () -> {
                             if (error != null || !Boolean.TRUE.equals(ok)) {
                                 api.ui().send(player, "towns.error.db", hex.core.api.ui.UiTokens.of("error", error == null ? "Nie udało się zmienić uprawnienia." : error.getMessage()));
                                 return;
                             }
-                            openMemberPermissions(player, holder.targetId(), holder.targetName());
+                            if (holder.adminOverride()) openMemberPermissionsAsAdmin(player, town, holder.targetId(), holder.targetName());
+                            else openMemberPermissions(player, holder.targetId(), holder.targetName());
                         }));
                 return;
             }
@@ -180,6 +243,10 @@ public final class TownCoopDecisionMenu implements Listener {
             }
             if (slot == REJECT_SLOT) action = service.rejectCoopRequest(player, holder.targetId(), holder.targetName());
         } else if (holder.action() == TownCoopDecisionMenuHolder.Action.MEMBER_KICK && slot == REJECT_SLOT) {
+            if (holder.adminOverride()) {
+                player.sendMessage("§dTryb DEV właściciela nie wykonuje kicka członka — operacja destrukcyjna pozostaje zablokowana.");
+                return;
+            }
             action = service.kickCoopMember(player, holder.targetId(), holder.targetName());
         }
         if (action == null) return;

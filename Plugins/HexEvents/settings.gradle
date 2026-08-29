@@ -1,0 +1,12 @@
+rootProject.name = 'HexEvents'
+include 'hexevents-api', 'hexevents-plugin'
+include ':plugins'
+project(':plugins').projectDir = file('..')
+include ':plugins:HexCore'
+project(':plugins:HexCore').projectDir = file('../HexCore')
+include ':plugins:HexEconomy'
+project(':plugins:HexEconomy').projectDir = file('../HexEconomy')
+include ':plugins:HexTowns'
+project(':plugins:HexTowns').projectDir = file('../HexTowns')
+include ':plugins:HexCustomItems'
+project(':plugins:HexCustomItems').projectDir = file('../HexCustomItems')

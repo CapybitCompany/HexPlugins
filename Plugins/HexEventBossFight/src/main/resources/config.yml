@@ -1,0 +1,7 @@
+stormbossy:
+  supported-version: "1.0"
+  require-native-schedules-disabled: true
+  require-native-rewards-disabled: true
+tracking:
+  include-projectiles: true
+

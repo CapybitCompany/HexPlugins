@@ -7,6 +7,7 @@ import hex.towns.service.OperationResult;
 import hex.towns.service.TownsService;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -19,6 +20,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.view.AnvilView;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.persistence.PersistentDataType;
 
 import java.util.Set;
 import java.util.UUID;
@@ -34,6 +36,7 @@ public final class TownRenameAnvilListener implements Listener {
     private final HexApi api;
     private final TownsService service;
     private volatile TownsConfig config;
+    private final NamespacedKey technicalItemKey;
     // Sesja jest per gracz. Nie przechowujemy referencji Inventory, ponieważ Paper
     // może zwracać różne wrappery widoku kowadła pomiędzy eventami.
     private final Set<UUID> active = ConcurrentHashMap.newKeySet();
@@ -43,6 +46,7 @@ public final class TownRenameAnvilListener implements Listener {
         this.api = api;
         this.service = service;
         this.config = config;
+        this.technicalItemKey = new NamespacedKey(plugin, "town_rename_technical");
     }
 
     public void reloadConfig(TownsConfig config) {
@@ -106,7 +110,9 @@ public final class TownRenameAnvilListener implements Listener {
         }
 
         active.remove(player.getUniqueId());
+        clearTechnicalAnvil(view);
         player.closeInventory();
+        scheduleTechnicalPurge(player);
         service.renameTown(player, name).whenComplete((result, error) -> Bukkit.getScheduler().runTask(plugin, () -> {
             if (error != null) {
                 Throwable cause = error instanceof CompletionException && error.getCause() != null ? error.getCause() : error;
@@ -122,14 +128,16 @@ public final class TownRenameAnvilListener implements Listener {
     @EventHandler
     public void onClose(InventoryCloseEvent event) {
         if (!(event.getPlayer() instanceof Player player)) return;
-        if (event.getView() instanceof AnvilView) {
-            active.remove(player.getUniqueId());
+        if (event.getView() instanceof AnvilView view && active.remove(player.getUniqueId())) {
+            clearTechnicalAnvil(view);
+            scheduleTechnicalPurge(player);
         }
     }
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         active.remove(event.getPlayer().getUniqueId());
+        purgeTechnicalItems(event.getPlayer());
     }
 
     private String submittedName(AnvilView view, ItemStack clickedResult) {
@@ -160,12 +168,41 @@ public final class TownRenameAnvilListener implements Listener {
         api.ui().send(player, result.templateKey(), result.tokens());
     }
 
+    private void clearTechnicalAnvil(AnvilView view) {
+        if (view == null) return;
+        AnvilInventory top = view.getTopInventory();
+        for (int slot : new int[]{0, 1, 2}) {
+            if (isTechnical(top.getItem(slot))) top.setItem(slot, null);
+        }
+    }
+
+    private void scheduleTechnicalPurge(Player player) {
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            if (player.isOnline()) purgeTechnicalItems(player);
+        });
+    }
+
+    private void purgeTechnicalItems(Player player) {
+        if (player == null) return;
+        for (int slot = 0; slot < player.getInventory().getSize(); slot++) {
+            if (isTechnical(player.getInventory().getItem(slot))) player.getInventory().setItem(slot, null);
+        }
+        if (isTechnical(player.getItemOnCursor())) player.setItemOnCursor(null);
+    }
+
+    private boolean isTechnical(ItemStack item) {
+        if (item == null || item.getType().isAir() || !item.hasItemMeta()) return false;
+        Byte marker = item.getItemMeta().getPersistentDataContainer().get(technicalItemKey, PersistentDataType.BYTE);
+        return marker != null && marker == (byte) 1;
+    }
+
     private ItemStack renamePaper(String name, String lore) {
         ItemStack item = new ItemStack(Material.PAPER);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             meta.setDisplayName(name);
             meta.setLore(java.util.List.of("§7" + lore, "§8Maks. " + config.maxNameLength() + " znaków"));
+            meta.getPersistentDataContainer().set(technicalItemKey, PersistentDataType.BYTE, (byte) 1);
             item.setItemMeta(meta);
         }
         return item;

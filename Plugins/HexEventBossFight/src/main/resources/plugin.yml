@@ -1,0 +1,11 @@
+name: HexEventBossFight
+version: 1.0.0
+main: hex.bossfight.HexBossFightPlugin
+api-version: '1.21'
+author: Havix
+depend: [HexCore, HexEvents, STORMBOSSY]
+softdepend: [WorldGuard]
+permissions:
+  hexeventbossfight.admin:
+    default: op
+

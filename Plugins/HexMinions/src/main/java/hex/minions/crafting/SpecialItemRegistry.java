@@ -424,10 +424,13 @@ public final class SpecialItemRegistry {
                     : configuredUnlockMinion;
             RecipeUnlockRequirement compressedUnlock = new RecipeUnlockRequirement(Map.of(unlockMinionId, resourceCompressedUnlockLevel), RecipeUnlockRequirement.MinionLevelMode.ALL, Map.of(), Map.of(), List.of(), List.of());
             RecipeUnlockRequirement superUnlock = new RecipeUnlockRequirement(Map.of(unlockMinionId, resourceSuperUnlockLevel), RecipeUnlockRequirement.MinionLevelMode.ALL, Map.of(), Map.of(), List.of(), List.of());
-            recipes.putIfAbsent(compressedId, new SpecialRecipeDefinition(compressedId, true, station, normalizeShape(compressedShape),
+            // Compression is generated from resources.yml and is canonical. Do not let an old
+            // server-side special-items.yml keep a stale material/CMD identity (e.g. uranium as
+            // a plain EMERALD), because that turns vanilla items into custom ingredients.
+            recipes.put(compressedId, new SpecialRecipeDefinition(compressedId, true, station, normalizeShape(compressedShape),
                     Map.of('C', new SpecialIngredient(rawMaterial, compressedIngredientAmount, rs.getInt("custom-model-data", 0), "")),
                     compressedId, "", 1, Material.AIR, 1, 0, compressedUnlock));
-            recipes.putIfAbsent(superId, new SpecialRecipeDefinition(superId, true, station, normalizeShape(superShape),
+            recipes.put(superId, new SpecialRecipeDefinition(superId, true, station, normalizeShape(superShape),
                     Map.of('C', new SpecialIngredient(compressedMaterial, superIngredientAmount, compressedCustomModelData, compressedId)),
                     superId, "", 1, Material.AIR, 1, 0, superUnlock));
             index++;
@@ -710,12 +713,46 @@ public final class SpecialItemRegistry {
                 for (Map.Entry<Character, SpecialIngredient> entry : recipe.ingredients().entrySet()) {
                     SpecialIngredient ingredient = entry.getValue();
                     if (ingredient.specialItemId() != null && !ingredient.specialItemId().isBlank()) {
-                        ItemStack exactIngredient = createItem(ingredient.specialItemId(), 1);
-                        if (exactIngredient.getType() != Material.AIR) {
-                            // Critical for generated compression recipes whose raw/compressed/super items can share
-                            // the same vanilla carrier (e.g. DIRT). ExactChoice keeps the PDC/special_item_id
-                            // distinction, so five plain DIRT can never satisfy a super_compressed_dirt recipe.
-                            shaped.setIngredient(entry.getKey(), new RecipeChoice.ExactChoice(exactIngredient));
+                        ItemStack specialCarrier = createItem(ingredient.specialItemId(), 1);
+                        if (specialCarrier.getType() != Material.AIR) {
+                            // Do NOT use ExactChoice here: town-bound special items receive extra HexTowns
+                            // provenance PDC (origin_town_uuid), which correctly changes ItemStack similarity.
+                            // Bukkit only selects the carrier/shape; PrepareItemCraftEvent + matchesMatrix()
+                            // below is the authoritative PDC/special-item validation.
+                            shaped.setIngredient(entry.getKey(), specialCarrier.getType());
+                        }
+                    } else if (ingredient.customModelData() > 0) {
+                        java.util.List<ItemStack> exactChoices = new java.util.ArrayList<>();
+                        for (Material material : ingredient.materialChoices()) {
+                            if (material == null || material == Material.AIR) continue;
+
+                            // Bare CMD carrier: useful for legacy/admin-created resources that do not
+                            // carry a display name. Normal vanilla items have no CMD and cannot match.
+                            ItemStack bare = new ItemStack(material);
+                            ItemMeta bareMeta = bare.getItemMeta();
+                            if (bareMeta != null) {
+                                bareMeta.setCustomModelData(ingredient.customModelData());
+                                bare.setItemMeta(bareMeta);
+                                exactChoices.add(bare);
+                            }
+
+                            // Minion-produced custom resources also carry their canonical display name.
+                            // ExactChoice compares full item meta, so register those variants as well.
+                            for (SpecialItemDefinition def : items.values()) {
+                                if (def.material() != material || def.customModelData() != ingredient.customModelData()) continue;
+                                ItemStack named = new ItemStack(material);
+                                ItemMeta namedMeta = named.getItemMeta();
+                                if (namedMeta == null) continue;
+                                namedMeta.setCustomModelData(ingredient.customModelData());
+                                if (def.displayName() != null && !def.displayName().isBlank()) {
+                                    namedMeta.displayName(miniMessage.deserialize(def.displayName()));
+                                }
+                                named.setItemMeta(namedMeta);
+                                if (exactChoices.stream().noneMatch(named::isSimilar)) exactChoices.add(named);
+                            }
+                        }
+                        if (!exactChoices.isEmpty()) {
+                            shaped.setIngredient(entry.getKey(), new RecipeChoice.ExactChoice(exactChoices));
                         }
                     } else if (ingredient.hasMaterialChoices()) {
                         shaped.setIngredient(entry.getKey(), new RecipeChoice.MaterialChoice(ingredient.materialChoices()));

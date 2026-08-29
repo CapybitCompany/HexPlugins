@@ -9,9 +9,12 @@ def pluginProjects = [
     'HexCasino',
     'HexCollections',
     'HexCore',
+    'HexCustomItems',
     'HexEconomy',
     'HexElimination',
     'HexEndEvent',
+    'HexEventBossFight',
+    'HexEvents',
     'HexGUI',
     'HexMinions',
     'HexNameTags',
@@ -39,3 +42,9 @@ pluginProjects.each { pluginName ->
     include ":plugins:${pluginName}"
     project(":plugins:${pluginName}").projectDir = file(pluginName)
 }
+
+include ':plugins:HexEvents:hexevents-api'
+project(':plugins:HexEvents:hexevents-api').projectDir = file('HexEvents/hexevents-api')
+include ':plugins:HexEvents:hexevents-plugin'
+project(':plugins:HexEvents:hexevents-plugin').projectDir = file('HexEvents/hexevents-plugin')
+

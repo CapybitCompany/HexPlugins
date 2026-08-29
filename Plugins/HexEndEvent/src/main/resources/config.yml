@@ -1,16 +1,16 @@
 event:
-  # Master switch. Domyślnie event jest aktywny; End otwiera się wyłącznie w oknach schedule.
+  # Lokalny safety switch modułu. Harmonogram, czas trwania i prepare-before
+  # publicznego eventu są zarządzane WYŁĄCZNIE przez plugins/HexEvents/events.yml.
   enabled: true
+
+  # Strefa służy tylko do formatowania starych komunikatów/placeholderów HexEndEvent.
   timezone: "Europe/Warsaw"
+
+  # Pola poniżej są zachowane wyłącznie jako kompatybilność starego modelu konfiguracji.
+  # Nie sterują lifecycle i mogą zostać usunięte w przyszłej wersji HexEndEvent.
   duration-minutes: 120
   prepare-before-minutes: 5
-  schedule:
-    - day: TUESDAY
-      time: "18:00"
-    - day: FRIDAY
-      time: "19:00"
-    - day: SUNDAY
-      time: "17:00"
+  schedule: []
 
 access:
   block-all-end-environments: true
@@ -26,6 +26,8 @@ world:
   unload-after-close: true
 
 bossbar:
+  # Aktywny BossBar widoczny graczom znajdującym się w Endzie.
+  # Domyślnie pokazuje dokładną godzinę zamknięcia i odliczanie do końca eventu.
   enabled: true
   update-interval-ticks: 20
   color: "PURPLE"

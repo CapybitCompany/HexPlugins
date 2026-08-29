@@ -1679,6 +1679,7 @@ public final class MinionMenu {
         if (recipe == null) return true;
         if (recipe.unlock().isEmpty()) return true;
         if (player == null) return true;
+        if (service.developerMode(player)) return true;
         UUID townId = service.towns().townIdOf(player.getUniqueId()).orElse(null);
         return townId != null && service.hasRecipeUnlocks(townId, recipe);
     }

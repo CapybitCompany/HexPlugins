@@ -1,0 +1,23 @@
+plugins { id 'java' }
+apply from: file('../../gradle/plugin-generated-jars.gradle')
+
+group = 'hex'
+version = '1.0.1'
+def hexEventsApiProjectPath = findProject(':hexevents-api') != null ? ':hexevents-api' : ':plugins:HexEvents:hexevents-api'
+dependencies {
+    implementation project(hexEventsApiProjectPath)
+    compileOnly project(':plugins:HexCore')
+    compileOnly project(':plugins:HexEconomy')
+    compileOnly project(':plugins:HexTowns')
+    compileOnly project(':plugins:HexCustomItems')
+    compileOnly 'io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT'
+    compileOnly 'me.clip:placeholderapi:2.11.6'
+}
+java { toolchain { languageVersion = JavaLanguageVersion.of(21) } }
+tasks.jar {
+    archiveBaseName = 'HexEvents'
+    // API jest osobnym modułem buildowym, ale runtime kontrakt musi być dostępny
+    // z classloadera HexEvents dla soft/depend pluginów eventowych.
+    from project(hexEventsApiProjectPath).sourceSets.main.output
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}

@@ -1,0 +1,523 @@
+prefix: "&8[&6HexItems&8]&f "
+
+permissions:
+  give: "hex.items.give"
+  reload: "hex.items.reload"
+  item-default: "true"
+
+settings:
+  max-give-amount: 64
+  adminpanel-title: "&8Custom Itemy"
+  menu-shift-give-amount: 16
+
+messages:
+  no-permission: "&cBrak uprawnień."
+  use-no-permission: "&cNie możesz użyć tego przedmiotu."
+  player-not-found: "&cTen gracz nie jest online."
+  invalid-number: "&cNiepoprawna liczba."
+  item-not-found: "&cNie znaleziono przedmiotu: &e<item_id>&c."
+  usage-main: "&7Użycie: &e/hexcustomitem <reload|adminpanel|id player ilość>"
+  usage-give: "&7Użycie: &e/hexcustomitem <item_id> <player> <ilość>"
+  reloaded: "&aKonfiguracja HexCustomItems została przeładowana."
+  given-sender: "&aDano &e<amount>x <item_name> &agraczowi &e<target>&a."
+  given-target: "&7Otrzymałeś &e<amount>x <item_name>&7."
+  list-header: "&7Dostępne przedmioty: &e<items>"
+  cooldown-active: "&cMusisz odczekać &e<time>s&c."
+  drop-blocked: "&cNie możesz wyrzucić tego przedmiotu."
+  combat-blocked: "&cNie możesz użyć tego przedmiotu podczas walki."
+  limit-reached: "&cOsiągnąłeś limit dla tego przedmiotu."
+  no-target: "&cNie znaleziono celu."
+  already-active: "&cTen efekt jest już aktywny."
+  anvil-blocked: "&cNie możesz użyć tego przedmiotu w kowadle."
+
+sounds:
+  consume: "minecraft:item.book.page_turn"
+  drink: "minecraft:entity.generic.drink"
+
+region-awareness:
+  enabled: true
+  fail-closed: false
+  respect-pvp: true
+  blocked-message: "&cNie możesz użyć tego przedmiotu tutaj."
+
+cooldowns:
+  persist: true
+  file: "cooldowns.yml"
+
+recipes:
+  enabled: true
+  items:
+    efficiency_6_book:
+      result: "hex:efficiency_6_book"
+      amount: 1
+      shape:
+        - "LLL"
+        - "EBE"
+        - "LLL"
+      ingredients:
+        L:
+          material: LEATHER
+          amount: 1
+        E:
+          material: ENCHANTED_BOOK
+          enchantment: efficiency
+          enchantment-level: 5
+          amount: 1
+        B:
+          material: PRISMARINE_SHARD
+          custom-item: "hex:ancient_scale"
+          amount: 1
+    darkness_powder:
+      result: "hex:darkness_powder"
+      amount: 1
+      shape:
+        - " G "
+        - "GGG"
+        - " G "
+      ingredients:
+        G:
+          material: GUNPOWDER
+          amount: 8
+    spider_grenade:
+      result: "hex:spider_grenade"
+      amount: 1
+      shape:
+        - " A "
+        - " F "
+        - " W "
+      ingredients:
+        A:
+          material: ARROW
+          amount: 16
+        F:
+          material: FIREWORK_ROCKET
+          amount: 16
+        W:
+          material: COBWEB
+          amount: 8
+    phoenix_heart:
+      result: "hex:phoenix_heart"
+      amount: 1
+      shape:
+        - "FFF"
+        - "FBF"
+        - "FFF"
+      ingredients:
+        F:
+          material: FEATHER
+          amount: 10
+        B:
+          material: BLAZE_POWDER
+          amount: 10
+    butcher_hook:
+      result: "hex:butcher_hook"
+      amount: 1
+      shape:
+        - "  S"
+        - "IRS"
+        - "  S"
+      ingredients:
+        S:
+          material: PRISMARINE_SHARD
+          custom-item: "hex:ancient_scale"
+          amount: 1
+        I:
+          material: IRON_INGOT
+          amount: 1
+        R:
+          material: FISHING_ROD
+          amount: 1
+    kinetic_charge:
+      result: "hex:kinetic_charge"
+      amount: 1
+      shape:
+        - "   "
+        - "FRF"
+        - "   "
+      ingredients:
+        F:
+          material: FEATHER
+          amount: 16
+        R:
+          material: RABBIT_FOOT
+          amount: 8
+
+mob-drops:
+  enabled: true
+  drops:
+    GUARDIAN:
+      - item: "hex:ancient_scale"
+        chance: 45.0
+        amount: 1
+    PUFFERFISH:
+      - item: "hex:ancient_scale"
+        chance: 20.0
+        amount: 1
+    DROWNED:
+      - item: "hex:ancient_scale"
+        chance: 12.0
+        amount: 1
+    CREEPER:
+      - item: "hex:darkness_powder"
+        chance: 1.0
+        amount: 1
+    SPIDER:
+      - item: "hex:spider_grenade"
+        chance: 1.0
+        amount: 1
+    CAVE_SPIDER:
+      - item: "hex:spider_grenade"
+        chance: 5.0
+        amount: 1
+
+items:
+  boss_ticket:
+    ID: "hex:boss_ticket"
+    model-data: 9001
+    material: PAPER
+    name: "&6Bilet na Bossa"
+    lore:
+      - "&7Wejdź na eventową arenę."
+    can-drop: false
+    can-use-in-anvil: false
+    adminpanel-stack: 1
+
+  red_heart:
+    ID: "hex:red_heart"
+    model-data: 9002
+    material: RED_DYE
+    name: "&fCzerwone Serce"
+    lore:
+      - "&7Użyj &6PPM&7, aby dostać"
+      - "&7trwałe dodatkowe serce &c(max 5)"
+    can-drop: true
+    can-use-in-anvil: false
+    adminpanel-stack: 1
+    actions:
+      - type: RED_HEART
+        max: 5
+      - type: SOUND
+        sound: "minecraft:entity.experience_orb.pickup"
+
+  golden_heart:
+    ID: "hex:golden_heart"
+    model-data: 9003
+    material: YELLOW_DYE
+    name: "&fZłote Serce"
+    lore:
+      - "&7Użyj &6PPM&7, aby dostać "
+      - "&7tymczasowe złote serce &c(max 10))"
+    can-drop: true
+    can-use-in-anvil: false
+    adminpanel-stack: 1
+    actions:
+      - type: GOLDEN_HEART
+        hearts: 1
+        max: 10
+        duration-seconds: 10
+        requires-out-of-combat: true
+      - type: SOUND
+        sound: "minecraft:block.anvil.land"
+
+  efficiency_6_book:
+    ID: "hex:efficiency_6_book"
+    model-data: 9004
+    material: ENCHANTED_BOOK
+    name: "&bEnchanted Book"
+    lore:
+      - "&7Efficiency VI"
+    can-drop: true
+    can-use-in-anvil: true
+    adminpanel-stack: 1
+
+  ancient_scale:
+    ID: "hex:ancient_scale"
+    model-data: 9005
+    material: PRISMARINE_SHARD
+    name: "&fŁuska"
+    lore:
+      - "&7Pradawna łuska"
+      - "&c(Do dalszego craftingu)"
+    can-drop: true
+    can-use-in-anvil: true
+    adminpanel-stack: 64
+
+  afk_key:
+    ID: "hex:afk_key"
+    model-data: 9006
+    material: TRIAL_KEY
+    name: "&eKlucz AFK"
+    lore:
+      - "&7Służy do otwarcia &eSkrzyni AFK&7."
+    can-drop: false
+    can-use-in-anvil: false
+    adminpanel-stack: 1
+
+  epic_key:
+    ID: "hex:epic_key"
+    model-data: 9007
+    material: TRIAL_KEY
+    name: "&5Epicki klucz"
+    lore:
+      - "&7Służy do otwarcia &5Epickiej Skrzyni&7."
+    can-drop: false
+    can-use-in-anvil: false
+    adminpanel-stack: 1
+
+  premium_key:
+    ID: "hex:premium_key"
+    model-data: 9008
+    material: TRIAL_KEY
+    name: "&cKlucz Premium"
+    lore:
+      - "&7Służy do otwarcia &cSkrzyni Premium&7."
+    can-drop: false
+    can-use-in-anvil: false
+    adminpanel-stack: 1
+
+  darkness_powder:
+    ID: "hex:darkness_powder"
+    model-data: 9009
+    material: GUNPOWDER
+    name: "&fProszek ciemności"
+    lore:
+      - "&7Wciśnij &6PPM&7, aby wywołać"
+      - "&7u pobliskich graczy ciemność &c(2 sek.)"
+    can-drop: true
+    can-use-in-anvil: false
+    glint: true
+    cooldown-seconds: 5
+    adminpanel-stack: 16
+    actions:
+      - type: DARKNESS_POWDER
+        radius: 5
+        duration-seconds: 2
+        sound: "minecraft:entity.vex.charge"
+        offensive: true
+
+  spider_grenade:
+    ID: "hex:spider_grenade"
+    model-data: 9010
+    material: STICK
+    name: "&fPajęczy Granat"
+    lore:
+      - "&7Wciśnij &6PPM&7, aby rzucić lepką pajęczynę."
+    can-drop: true
+    can-use-in-anvil: false
+    cooldown-seconds: 30
+    adminpanel-stack: 16
+    actions:
+      - type: SPIDER_GRENADE
+        velocity: 1.4
+        web-radius: 2
+        web-layers: 2
+        offensive: true
+
+  phoenix_heart:
+    ID: "hex:phoenix_heart"
+    model-data: 9011
+    material: BLAZE_POWDER
+    name: "&fSerce Feniksa"
+    lore:
+      - "&7Zapewnia regenerację poza walką"
+      - "&c(5 min.)"
+    can-drop: true
+    can-use-in-anvil: false
+    cooldown-seconds: 300
+    adminpanel-stack: 16
+    actions:
+      - type: PHOENIX_HEART
+        duration-seconds: 300
+        amplifier: 0
+        requires-out-of-combat: true
+      - type: SOUND
+        sound: "minecraft:item.firecharge.use"
+
+  butcher_hook:
+    ID: "hex:butcher_hook"
+    model-data: 9012
+    material: LEAD
+    name: "&fHak Rzemieślnika"
+    lore:
+      - "&7Wciśnij &6PPM&7, aby wystrzelić hak."
+      - "&7Trafiony gracz zostaje gwałtownie przyciągnięty."
+    can-drop: true
+    can-use-in-anvil: false
+    cooldown-seconds: 15
+    adminpanel-stack: 16
+    actions:
+      - type: BUTCHER_HOOK
+        velocity: 3.2
+        pull-strength: 2.7
+        slow-duration-seconds: 3
+        slow-amplifier: 3
+        offensive: true
+
+  mining_luck:
+    ID: "hex:mining_luck"
+    model-data: 9013
+    material: IRON_INGOT
+    name: "&fGórniczy Łut Szczęścia"
+    lore:
+      - "&7Użyj &6PPM&7, aby zwiększyć szansę &e(20%)"
+      - "&7na dodatkową rudę/surowiec &c(3 min.)"
+    can-drop: true
+    can-use-in-anvil: false
+    glint: true
+    cooldown-seconds: 180
+    adminpanel-stack: 16
+    actions:
+      - type: SOUND
+        sound: "minecraft:block.enchantment_table.use"
+      - type: SOUND
+        sound: "minecraft:block.amethyst_block.fall"
+        delay-ticks: 10
+      - type: MINING_LUCK
+        duration-seconds: 180
+
+  hunter_skull:
+    ID: "hex:hunter_skull"
+    model-data: 9014
+    material: STICK
+    name: "&fCzaszka Łowcy"
+    lore:
+      - "&7Artefakt wskazujący drogę"
+      - "&7do najbliższego wroga"
+    can-drop: true
+    can-use-in-anvil: false
+    cooldown-seconds: 300
+    adminpanel-stack: 16
+    actions:
+      - type: HUNTER_SKULL
+        duration-seconds: 10
+        max-distance: 512
+        sound: "minecraft:entity.wither.spawn"
+
+  kinetic_charge:
+    ID: "hex:kinetic_charge"
+    model-data: 9015
+    material: RABBIT_FOOT
+    name: "&fŁadunek Kinetyczny"
+    lore:
+      - "&7Zwiększa prędkość ruchu &c(5 sekund)"
+      - "&7i wyrzuca Cię do przodu"
+    can-drop: true
+    can-use-in-anvil: false
+    glint: true
+    cooldown-seconds: 120
+    adminpanel-stack: 16
+    actions:
+      - type: SOUND
+        sound: "minecraft:entity.player.attack.knockback"
+      - type: SOUND
+        sound: "minecraft:entity.wind_charge.wind_burst"
+        delay-ticks: 10
+      - type: KINETIC_CHARGE
+        velocity: 3.4
+        horizontal-velocity: 3.4
+        base-upward-velocity: 0.35
+        upward-look-scale: 0.35
+        max-upward-velocity: 0.75
+        speed-duration-seconds: 5
+
+  invisibility_cookie:
+    ID: "hex:invisibility_cookie"
+    model-data: 9016
+    material: COOKIE
+    name: "&fCiastko niewidzialności"
+    lore:
+      - "&7Na 10 sekund zyskujesz niewidzialność"
+    can-drop: true
+    can-use-in-anvil: false
+    glint: true
+    cooldown-seconds: 60
+    adminpanel-stack: 16
+    actions:
+      - type: INVISIBILITY_COOKIE
+        duration-seconds: 10
+        requires-out-of-combat: true
+      - type: SOUND
+        sound: "minecraft:entity.generic.eat"
+
+  coin_1:
+    ID: "hex:coin_1"
+    model-data: 9017
+    material: PAPER
+    name: "&dBonus &f- 1 &eHex&f-&eCoin"
+    lore:
+      - "&7Użyj &6PPM&7, aby dodać Hex-Coin"
+    can-drop: false
+    can-use-in-anvil: false
+    adminpanel-stack: 1
+    actions:
+      - type: COMMAND
+        executor: CONSOLE
+        commands:
+          - "eco give %player% 1"
+      - type: SOUND
+        sound: "minecraft:item.book.page_turn"
+      - type: SOUND
+        sound: "minecraft:entity.player.levelup"
+        delay-ticks: 20
+
+  coin_3:
+    ID: "hex:coin_3"
+    model-data: 9018
+    material: PAPER
+    name: "&dBonus &f- 3 &eHex&f-&eCoins"
+    lore:
+      - "&7Użyj &6PPM&7, aby dodać Hex-Coins"
+    can-drop: false
+    can-use-in-anvil: false
+    adminpanel-stack: 1
+    actions:
+      - type: COMMAND
+        executor: CONSOLE
+        commands:
+          - "eco give %player% 3"
+      - type: SOUND
+        sound: "minecraft:item.book.page_turn"
+      - type: SOUND
+        sound: "minecraft:entity.player.levelup"
+        delay-ticks: 20
+
+  coin_6:
+    ID: "hex:coin_6"
+    model-data: 9019
+    material: PAPER
+    name: "&dBonus &f- 6 &eHex&f-&eCoins"
+    lore:
+      - "&7Użyj &6PPM&7, aby dodać Hex-Coins"
+    can-drop: false
+    can-use-in-anvil: false
+    adminpanel-stack: 1
+    actions:
+      - type: COMMAND
+        executor: CONSOLE
+        commands:
+          - "eco give %player% 6"
+      - type: SOUND
+        sound: "minecraft:item.book.page_turn"
+      - type: SOUND
+        sound: "minecraft:entity.player.levelup"
+        delay-ticks: 20
+
+  sit:
+    ID: "hex:sit"
+    model-data: 9020
+    material: STICK
+    name: "&fSit"
+    lore: []
+    can-drop: true
+    can-use-in-anvil: false
+    adminpanel-stack: 16
+
+  spin:
+    ID: "hex:spin"
+    model-data: 9021
+    material: STICK
+    name: "&fSpin"
+    lore: []
+    can-drop: true
+    can-use-in-anvil: false
+    adminpanel-stack: 16

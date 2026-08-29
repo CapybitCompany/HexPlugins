@@ -32,9 +32,15 @@ public record SpecialIngredient(Material material, int amount, int customModelDa
         }
         if (material == Material.AIR && materials.isEmpty()) return item == null || item.getType().isAir();
         if (item == null || !matchesMaterial(item.getType()) || item.getAmount() < amount) return false;
+        ItemMeta meta = item.getItemMeta();
         if (customModelData > 0) {
-            ItemMeta meta = item.getItemMeta();
             if (meta == null || !meta.hasCustomModelData() || meta.getCustomModelData() != customModelData) return false;
+        } else {
+            // A material-only ingredient means a genuinely vanilla carrier. Without this guard,
+            // e.g. compressed iron accepts every custom item based on IRON_INGOT (tin/steel/etc.).
+            // Renamed vanilla items are still valid; only custom identity (CMD/PDC special item) is rejected.
+            if (meta != null && meta.hasCustomModelData()) return false;
+            if (registry.readSpecialItemId(item).isPresent()) return false;
         }
         return true;
     }

@@ -1,0 +1,4 @@
+rootProject.name = 'HexEventBossFight'
+include ':hexevents-api'
+project(':hexevents-api').projectDir = file('../HexEvents/hexevents-api')
+

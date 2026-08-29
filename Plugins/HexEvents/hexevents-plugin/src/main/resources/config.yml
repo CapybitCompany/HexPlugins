@@ -1,0 +1,17 @@
+engine:
+  display-timezone: "Europe/Warsaw"
+  calendar-days-ahead: 30
+  scheduler-period-ticks: 20
+  calendar-maintenance-minutes: 360
+  hide-unavailable-events: false
+  debug: false
+
+ui:
+  # Customowe glify rang zgodne z etykietami z produkcyjnego configu.
+  # Kolejność priorytetu: MEDIA > ELITA > SVIP > VIP > zwykły gracz.
+  rank-labels:
+    media: ""
+    elita: ""
+    svip: ""
+    vip: ""
+    default: ""

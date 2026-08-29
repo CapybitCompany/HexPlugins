@@ -15,7 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 public final class HexGUIPlugin extends JavaPlugin {
-    private static final int CURRENT_CONFIG_VERSION = 6;
+    private static final int CURRENT_CONFIG_VERSION = 10;
     private volatile HubConfig hubConfig;
     private HubMenu hubMenu;
 
@@ -42,7 +42,7 @@ public final class HexGUIPlugin extends JavaPlugin {
         }
 
         getServer().getPluginManager().registerEvents(hubMenu, this);
-        getLogger().info("HexGUI 1.2.2 aktywny. Hub graczy: /hex");
+        getLogger().info("HexGUI 1.2.4 aktywny. Hub graczy: /hex");
     }
 
     public boolean reloadHubConfig() {
@@ -105,6 +105,27 @@ public final class HexGUIPlugin extends JavaPlugin {
                         defaults.getString("rank-menu.entries.elita.name", "&b&lELITA"));
                 getConfig().set("rank-menu.entries.media.name",
                         defaults.getString("rank-menu.entries.media.name", "&d&lMEDIA"));
+            }
+            if (version < 7) {
+                // v7 podłącza kafelek Eventy do centralnego HexEvents.
+                // Nadpisujemy tylko ten jeden kafelek, nie cały układ administratora.
+                replaceSection(defaults, "entries.events");
+            }
+            if (version < 8) {
+                // v8 przyjmuje produkcyjny, 6-rzędowy układ HEX CENTRUM jako wzorzec estetyki.
+                replaceSection(defaults, "menu");
+                replaceSection(defaults, "entries");
+            }
+            if (version < 9) {
+                // v9 aktywuje Eventy w produkcyjnym hubie i koryguje komendę Auction House.
+                replaceSection(defaults, "entries.events");
+                getConfig().set("entries.auction-house.command",
+                        defaults.getString("entries.auction-house.command", "auctionhouse"));
+            }
+            if (version < 10) {
+                // v10 dodaje w kafelku Eventów informację o najbliższym evencie i jego starcie.
+                // Podmieniamy tylko kafelek Eventy, aby zachować pozostałe ustawienia administratora.
+                replaceSection(defaults, "entries.events");
             }
             getConfig().set("config-version", CURRENT_CONFIG_VERSION);
             saveConfig();

@@ -3,6 +3,8 @@ package hex.towns.gui;
 import hex.core.api.HexApi;
 import hex.core.api.ui.UiTokens;
 import hex.towns.config.TownsConfig;
+import hex.towns.api.TownPermission;
+import hex.towns.bank.TownBankRepository;
 import hex.towns.map.TownMapService;
 import hex.towns.guide.TownGuideService;
 import hex.towns.model.Town;
@@ -23,15 +25,18 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.plugin.Plugin;
 
+import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -40,6 +45,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class NativeTownMenu implements Listener, CommandExecutor, TabCompleter {
     private static final ItemStack EMPTY = null;
@@ -50,6 +56,10 @@ public final class NativeTownMenu implements Listener, CommandExecutor, TabCompl
     private static final int[] MINION_SLOTS = {10,11,12,13,14,15,16,19,20,21,22,23,24,25,28,29,30,31,32,33,34};
     private static final int[] MEMBER_SLOTS = {10,11,12,13,14,19,20,21,22,23};
     private static final int[] REQUEST_SLOTS = {28,29,30,31,32,33,34};
+    private static final int[] BANK_DEPOSIT_SLOTS = {10,11,12,13,14,15};
+    private static final int[] BANK_WITHDRAW_SLOTS = {19,20,21,22,23,24};
+    private static final long[] BANK_AMOUNTS = {100L,500L,1_000L,2_500L,5_000L,10_000L};
+    private static final int[] BANK_MEMBER_SLOTS = {28,29,30,31,32,33,34,37,38,39};
 
     private final Plugin plugin;
     private final HexApi api;
@@ -60,6 +70,10 @@ public final class NativeTownMenu implements Listener, CommandExecutor, TabCompl
     private final TownMapService mapService;
     private final TownCoopDecisionMenu coopDecisionMenu;
     private final TownGuideService guideService;
+    /** Runtime-only admin preview state. This never touches membership or any progression/statistics table. */
+    private final Map<UUID, DeveloperViewState> developerViews = new ConcurrentHashMap<>();
+    /** One synthetic member per administrator. Dummies are runtime-only and never enter town membership/statistics. */
+    private final Map<UUID, DeveloperDummyState> developerDummies = new ConcurrentHashMap<>();
 
     public NativeTownMenu(Plugin plugin, HexApi api, TownsService service, VisualCheckService visualCheckService, TownsConfig config,
                           TownRenameAnvilListener renameGui, TownMapService mapService, TownCoopDecisionMenu coopDecisionMenu,
@@ -73,6 +87,108 @@ public final class NativeTownMenu implements Listener, CommandExecutor, TabCompl
         this.mapService = mapService;
         this.coopDecisionMenu = coopDecisionMenu;
         this.guideService = guideService;
+    }
+
+    public enum DeveloperViewMode { GUEST, MEMBER, OWNER }
+
+    public record DeveloperViewState(DeveloperViewMode mode, UUID townId, UUID dummyId) {
+        public DeveloperViewState(DeveloperViewMode mode, UUID townId) { this(mode, townId, null); }
+        public boolean dummy() { return dummyId != null; }
+    }
+
+    public static final class DeveloperDummyState {
+        private final UUID id;
+        private final UUID townId;
+        private final String name;
+        private final EnumMap<TownPermission, Boolean> permissions = new EnumMap<>(TownPermission.class);
+
+        private DeveloperDummyState(UUID id, UUID townId, String name) {
+            this.id = id;
+            this.townId = townId;
+            this.name = name;
+            for (TownPermission permission : TownPermission.values()) {
+                boolean allowed = switch (permission) {
+                    case CONTAINERS, MINION_PICKUP, MACHINE_BREAK, BANK_WITHDRAW -> false;
+                    default -> true;
+                };
+                permissions.put(permission, allowed);
+            }
+        }
+
+        public UUID id() { return id; }
+        public UUID townId() { return townId; }
+        public String name() { return name; }
+        public Map<TownPermission, Boolean> permissions() { return Map.copyOf(permissions); }
+        public boolean can(TownPermission permission) { return permissions.getOrDefault(permission, false); }
+        private void set(TownPermission permission, boolean allowed) { permissions.put(permission, allowed); }
+    }
+
+    public void setDeveloperView(Player player, DeveloperViewMode mode, Town town) {
+        if (player == null || mode == null || town == null || !player.hasPermission("hextowns.admin")) return;
+        developerViews.put(player.getUniqueId(), new DeveloperViewState(mode, town.id()));
+    }
+
+    public DeveloperDummyState addDeveloperDummy(Player admin, Town town) {
+        if (admin == null || town == null || !admin.hasPermission("hextowns.admin")) return null;
+        UUID id = UUID.nameUUIDFromBytes(("hextowns:dev-dummy:" + admin.getUniqueId() + ":" + town.id()).getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        DeveloperDummyState state = new DeveloperDummyState(id, town.id(), "DEV Dummy " + admin.getName());
+        developerDummies.put(admin.getUniqueId(), state);
+        return state;
+    }
+
+    public boolean removeDeveloperDummy(Player admin) {
+        if (admin == null || !admin.hasPermission("hextowns.admin")) return false;
+        DeveloperDummyState removed = developerDummies.remove(admin.getUniqueId());
+        DeveloperViewState view = developerViews.get(admin.getUniqueId());
+        if (view != null && view.dummy()) developerViews.remove(admin.getUniqueId());
+        return removed != null;
+    }
+
+    public Optional<DeveloperDummyState> developerDummy(Player admin) {
+        if (admin == null || !admin.hasPermission("hextowns.admin")) return Optional.empty();
+        DeveloperDummyState state = developerDummies.get(admin.getUniqueId());
+        if (state == null || service.findTown(state.townId()).isEmpty()) {
+            if (state != null) developerDummies.remove(admin.getUniqueId());
+            return Optional.empty();
+        }
+        return Optional.of(state);
+    }
+
+    public boolean useDeveloperDummy(Player admin) {
+        DeveloperDummyState dummy = developerDummy(admin).orElse(null);
+        if (dummy == null) return false;
+        developerViews.put(admin.getUniqueId(), new DeveloperViewState(DeveloperViewMode.MEMBER, dummy.townId(), dummy.id()));
+        return true;
+    }
+
+    public boolean toggleDeveloperDummyPermission(Player admin, TownPermission permission) {
+        DeveloperDummyState dummy = developerDummy(admin).orElse(null);
+        if (dummy == null || permission == null) return false;
+        dummy.set(permission, !dummy.can(permission));
+        return true;
+    }
+
+    public void clearDeveloperView(Player player) {
+        if (player != null) developerViews.remove(player.getUniqueId());
+    }
+
+    public Optional<DeveloperViewState> developerView(Player player) {
+        if (player == null || !player.hasPermission("hextowns.admin")) return Optional.empty();
+        DeveloperViewState state = developerViews.get(player.getUniqueId());
+        if (state == null || service.findTown(state.townId()).isEmpty()) {
+            if (state != null) developerViews.remove(player.getUniqueId());
+            return Optional.empty();
+        }
+        return Optional.of(state);
+    }
+
+    public boolean isDeveloperPreview(Player player) {
+        return developerView(player).isPresent();
+    }
+
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+        developerViews.remove(event.getPlayer().getUniqueId());
     }
 
     public void reloadConfig(TownsConfig config) {
@@ -104,6 +220,7 @@ public final class NativeTownMenu implements Listener, CommandExecutor, TabCompl
             case "towncollectionsanimals" -> openCollections(player, NativeTownMenuHolder.Page.COLLECTIONS_ANIMALS);
             case "towncollectionsmobs" -> openCollections(player, NativeTownMenuHolder.Page.COLLECTIONS_MOBS);
             case "townminions" -> openMinions(player);
+            case "townbank" -> openBank(player);
             case "towndanger" -> openDanger(player);
             default -> openMain(player);
         }
@@ -121,16 +238,17 @@ public final class NativeTownMenu implements Listener, CommandExecutor, TabCompl
             openManage(player);
             return;
         }
+        Town previewTarget = developerTargetTown(player);
         Inventory inv = inventory(player, NativeTownMenuHolder.Page.MAIN, 54, "§8Miasta §7- centrum");
         fill(inv);
-        boolean owner = false;
-        boolean member = false;
+        boolean devGuest = isDeveloperGuestView(player);
+        boolean owner = false; // MAIN is only rendered when currentTown(...) == null.
 
         inv.setItem(4, playerHead(player.getUniqueId(), "§6Profil miasta", List.of(
                 "§7Gracz: §f" + player.getName(),
-                "§7Rola: §f" + (town == null ? "Brak miasta" : owner ? "Właściciel" : "Członek"),
-                "§7Miasto: §e" + (town == null ? "-" : town.name()),
-                town == null ? "§8Stań na terenie miasta, aby poprosić o dołączenie." : "§8Zarządzaj swoim miastem z jednego miejsca."
+                "§7Rola: §f" + (devGuest ? "Gość §8(DEV)" : "Brak miasta"),
+                "§7Miasto: §e" + (devGuest && previewTarget != null ? previewTarget.name() : "-"),
+                devGuest ? "§dPodgląd developerski — bez zmiany członkostwa/statystyk." : "§8Stań na terenie miasta, aby poprosić o dołączenie."
         )));
 
         if (town == null) {
@@ -195,25 +313,29 @@ public final class NativeTownMenu implements Listener, CommandExecutor, TabCompl
     }
 
     private void openManageResolved(Player player, Town town, int maxMembers) {
-        boolean owner = service.isOwner(player.getUniqueId(), town.id());
+        boolean owner = isOwnerForView(player, town);
         Inventory inv = inventory(player, NativeTownMenuHolder.Page.MANAGE, 54, "§8Miasto §7- zarządzanie");
         fill(inv);
         inv.setItem(4, item(Material.BELL, "§6" + town.name(), List.of(
                 "§7Właściciel: §f" + playerName(town.ownerId()),
-                "§7Twoja rola: §f" + (owner ? "Właściciel" : "Członek"),
+                "§7Twoja rola: §f" + roleForView(player, town),
                 "§7Członkowie: §6" + service.membersOf(town).size() + "§7/§6" + maxMembers,
                 "§7Chunki: §6" + service.chunksOf(town).size() + "§7/§6" + service.maxChunks(town),
-                "§7Punkty Miasta: §6" + town.growthPoints()
+                "§7Punkty Miasta: §6" + town.growthPoints(),
+                developerStatusLine(player)
         )));
         inv.setItem(20, item(Material.GRASS_BLOCK, "§aTeren i claimy", List.of("§7Claimy, mapa i granice.", "", "§eKliknij.")));
         inv.setItem(21, item(Material.WRITABLE_BOOK, "§dGracze w mieście", List.of("§7Członkowie i prośby.", "", "§eKliknij.")));
+        boolean devPreview = isDeveloperPreview(player);
         inv.setItem(22, item(Material.NAME_TAG, "§eZmień nazwę miasta", List.of(
-                owner ? "§7Otwiera natywne kowadło zmiany nazwy." : "§cTylko właściciel może zmieniać nazwę.",
+                devPreview ? "§8Tryb DEV: zmiana nazwy pozostaje zablokowana."
+                        : owner ? "§7Otwiera natywne kowadło zmiany nazwy." : "§cTylko właściciel może zmieniać nazwę.",
                 "",
-                owner ? "§eKliknij." : "§8Brak dostępu."
+                devPreview ? "§8Brak akcji w trybie DEV." : owner ? "§eKliknij." : "§8Brak dostępu."
         )));
         inv.setItem(23, item(Material.BOOK, "§aKolekcje", List.of("§7Podgląd poziomów kolekcji.", "", "§eKliknij.")));
         inv.setItem(24, item(Material.PLAYER_HEAD, "§bMiniony", minionSummaryLore(town)));
+        inv.setItem(31, manageBankIcon(town, null));
 
         Object minionsApi = service("hex.minions.api.MinionsApi");
         int usedMachines = minionsApi == null ? 0 : intResult(minionsApi, "countEnergyMachines", new Class<?>[]{UUID.class}, town.id());
@@ -240,15 +362,19 @@ public final class NativeTownMenu implements Listener, CommandExecutor, TabCompl
                 "",
                 "§eKliknij, aby otworzyć wiki minionów."
         )));
-        inv.setItem(53, item(owner ? Material.TNT : Material.RED_BED, owner ? "§cZniszczenie miasta" : "§cOpuść miasto", List.of(
-                owner ? "§7Akcje właściciela miasta." : "§7Akcje członka miasta.",
-                owner ? "§cZniszczenie miasta resetuje dane progresji miasta." : "§cOdejście z miasta resetuje twoje dane SMP.",
+        inv.setItem(53, item(devPreview ? Material.GRAY_DYE : owner ? Material.TNT : Material.RED_BED,
+                devPreview ? "§8Operacje destrukcyjne (DEV)" : owner ? "§cZniszczenie miasta" : "§cOpuść miasto", List.of(
+                devPreview ? "§8Tryb DEV nie pozwala niszczyć miasta ani opuszczać go w imieniu gracza."
+                        : owner ? "§7Akcje właściciela miasta." : "§7Akcje członka miasta.",
+                devPreview ? "§8Możesz bezpiecznie diagnozować GUI i uprawnienia."
+                        : owner ? "§cZniszczenie miasta resetuje dane progresji miasta." : "§cOdejście z miasta resetuje twoje dane SMP.",
                 "",
-                "§eKliknij, aby otworzyć."
+                devPreview ? "§8Brak akcji." : "§eKliknij, aby otworzyć."
         )));
         inv.setItem(45, item(Material.ARROW, "§ePowrót", List.of()));
         inv.setItem(49, item(Material.BARRIER, "§cZamknij", List.of()));
         player.openInventory(inv);
+        refreshManageBankIcon(player, town, inv);
     }
 
     public void openClaims(Player player) {
@@ -285,7 +411,7 @@ public final class NativeTownMenu implements Listener, CommandExecutor, TabCompl
 
     public void openCoop(Player player) {
         Town town = currentTown(player);
-        Optional<Town> target = service.townAt(player.getLocation());
+        Optional<Town> target = contextualTown(player);
         if (town == null) {
             // The COOP menu must never be blocked by LuckPerms/storage. maxMembers(...)
             // is cache/base based and starts any expensive refresh only in the background.
@@ -331,11 +457,12 @@ public final class NativeTownMenu implements Listener, CommandExecutor, TabCompl
         Inventory inv = inventory(player, NativeTownMenuHolder.Page.COOP, 54, "§8Miasto §7- gracze");
         fill(inv);
         if (town == null) {
-            Optional<Town> target = service.townAt(player.getLocation());
+            Optional<Town> target = contextualTown(player);
             boolean canRequest = target.isPresent()
-                    && !target.get().ownerId().equals(player.getUniqueId())
-                    && !service.isMember(player.getUniqueId(), target.get().id())
-                    && service.membersOf(target.get()).size() < service.maxMembers(target.get());
+                    && service.membersOf(target.get()).size() < service.maxMembers(target.get())
+                    && (isDeveloperGuestView(player)
+                        || (!target.get().ownerId().equals(player.getUniqueId())
+                            && !service.isMember(player.getUniqueId(), target.get().id())));
             inv.setItem(4, item(Material.WRITABLE_BOOK, "§dGracze w mieście", List.of(
                     "§7Nie należysz jeszcze do miasta.",
                     "§7Aktualny teren: §f" + target.map(Town::name).orElse("Dzicz"),
@@ -354,12 +481,15 @@ public final class NativeTownMenu implements Listener, CommandExecutor, TabCompl
             player.openInventory(inv);
             return;
         }
-        boolean owner = service.isOwner(player.getUniqueId(), town.id());
+        boolean owner = isOwnerForView(player, town);
+        boolean devOwner = isDeveloperPreview(player) && owner;
         inv.setItem(4, item(Material.WRITABLE_BOOK, "§dGracze w mieście", List.of(
                 "§7Miasto: §f" + town.name(),
                 "§7Członkowie: §6" + service.membersOf(town).size() + "§7/§6" + maxMembers,
-                owner ? "§7Kliknij członka, aby otworzyć zarządzanie." : "§7Jesteś członkiem tego miasta.",
-                owner ? "§7Kliknij prośbę, aby ją przyjąć/odrzucić." : "§8Prośby widzi właściciel."
+                devOwner ? "§dDEV właściciel: kliknij członka, aby naprawić jego uprawnienia."
+                        : owner ? "§7Kliknij członka, aby otworzyć zarządzanie." : "§7Jesteś członkiem tego miasta.",
+                devOwner ? "§8Prośby COOP są w trybie DEV tylko do odczytu."
+                        : owner ? "§7Kliknij prośbę, aby ją przyjąć/odrzucić." : "§8Prośby widzi właściciel."
         )));
         List<TownsService.MemberInfo> members = service.memberInfos(town);
         for (int i = 0; i < MEMBER_SLOTS.length; i++) {
@@ -381,6 +511,17 @@ public final class NativeTownMenu implements Listener, CommandExecutor, TabCompl
                         "§7Dodatkowe sloty odblokowują rangi członków miasta."
                 )));
             }
+        }
+        DeveloperDummyState dummy = developerDummy(player).filter(value -> value.townId().equals(town.id())).orElse(null);
+        if (dummy != null) {
+            inv.setItem(42, playerHead(dummy.id(), "§d" + dummy.name(), List.of(
+                    "§dDummy developerski",
+                    "§7Nie jest liczony jako członek miasta",
+                    "§7i nie wpływa na kolekcje, ceny ani statystyki.",
+                    "",
+                    owner ? "§eLPM: przełącz się na dummy" : "§eKliknij: przełącz się na dummy",
+                    owner ? "§ePPM: ustaw uprawnienia dummy" : "§8Uprawnienia dummy ustawisz w widoku właściciela."
+            )));
         }
         if (owner) {
             List<TownsService.CoopRequestInfo> requests = service.pendingCoopRequests(town, REQUEST_SLOTS.length);
@@ -451,14 +592,14 @@ public final class NativeTownMenu implements Listener, CommandExecutor, TabCompl
         Inventory inv = inventory(player, NativeTownMenuHolder.Page.MINIONS, 54, "§8Miniony miasta");
         fill(inv);
         Object minionsApi = service("hex.minions.api.MinionsApi");
-        Object menuData = minionsApi == null ? null : invoke(minionsApi, "menuData", new Class<?>[]{Player.class}, player);
+        Object menuData = isDeveloperPreview(player) ? null : (minionsApi == null ? null : invoke(minionsApi, "menuData", new Class<?>[]{Player.class}, player));
         int count = intResult(menuData, "minionCount");
         int limit = intResult(menuData, "minionLimit");
         List<?> minions = listResult(menuData, "minions");
         if (menuData == null) {
-            count = 0;
             limit = intResult(minionsApi, "maxMinions", new Class<?>[]{UUID.class}, town.id());
             minions = minionsApi == null ? List.of() : listResult(minionsApi, "minionsOfTown", new Class<?>[]{UUID.class}, town.id());
+            count = minions.size();
         }
         List<String> headerLore = new ArrayList<>();
         headerLore.add("§7Miasto: §f" + town.name());
@@ -489,10 +630,173 @@ public final class NativeTownMenu implements Listener, CommandExecutor, TabCompl
         player.openInventory(inv);
     }
 
+    public void openBank(Player player) {
+        Town town = requireTown(player);
+        if (town == null) return;
+        UUID viewerId = player.getUniqueId();
+        CompletableFuture<TownsService.BankSnapshot> snapshotFuture = isDeveloperPreview(player)
+                ? service.bankSnapshotForTown(town.id())
+                : service.bankSnapshot(viewerId);
+        snapshotFuture.thenAccept(snapshot -> Bukkit.getScheduler().runTask(plugin, () -> {
+            if (!player.isOnline()) return;
+            Town current = currentTown(player);
+            if (current == null || !snapshot.available() || snapshot.townId() == null || !snapshot.townId().equals(current.id())) {
+                player.closeInventory();
+                player.sendMessage("§c" + (snapshot.error() == null || snapshot.error().isBlank() ? "Bank Miasta jest niedostępny." : snapshot.error()));
+                return;
+            }
+            openBankResolved(player, current, snapshot);
+        })).exceptionally(error -> {
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                if (player.isOnline()) player.sendMessage("§cNie udało się otworzyć Banku Miasta.");
+            });
+            plugin.getLogger().warning("Town bank menu load failed for " + viewerId + ": " + error.getMessage());
+            return null;
+        });
+    }
+
+    private void openBankResolved(Player player, Town town, TownsService.BankSnapshot snapshot) {
+        Inventory inv = inventory(player, NativeTownMenuHolder.Page.BANK, 54, "§8Miasto §7- bank");
+        fill(inv);
+        boolean canWithdraw = isDeveloperPreview(player) ? canBankWithdrawForView(player, town) : snapshot.canWithdraw();
+        inv.setItem(4, item(Material.GOLD_BLOCK, "§6Bank Miasta", List.of(
+                "§7Miasto: §f" + town.name(),
+                "§7Podatek od wpłat: §f3%",
+                "",
+                "§7Saldo miasta: §6" + formatMoney(snapshot.balance()) + "$"
+        )));
+
+        for (int i = 0; i < BANK_AMOUNTS.length; i++) {
+            long amount = BANK_AMOUNTS[i];
+            BigDecimal gross = BigDecimal.valueOf(amount);
+            BigDecimal tax = gross.multiply(new BigDecimal("0.03"));
+            BigDecimal net = gross.subtract(tax);
+            boolean canDeposit = !isDeveloperPreview(player) && snapshot.viewerBalance().compareTo(gross) >= 0;
+            Material depositMaterial = canDeposit ? Material.LIME_CONCRETE : Material.GRAY_CONCRETE;
+            String depositName = (canDeposit ? "§a" : "§8") + "Wpłać " + compactMoney(amount) + "$";
+            List<String> depositLore = new ArrayList<>();
+            depositLore.add("§7Z konta zostanie pobrane: §f" + compactMoney(amount) + "$");
+            depositLore.add("§7Podatek 3%: §c" + formatMoney(tax) + "$");
+            depositLore.add("§7Do banku trafi: §a" + formatMoney(net) + "$");
+            depositLore.add("");
+            if (isDeveloperPreview(player)) depositLore.add("§8Tryb DEV: transakcje są wyłączone.");
+            else if (canDeposit) depositLore.add("§eKliknij, aby wpłacić.");
+            else depositLore.add("§cNie masz wystarczającej ilości pieniędzy.");
+            inv.setItem(BANK_DEPOSIT_SLOTS[i], item(depositMaterial, depositName, depositLore));
+
+            boolean bankHasAmount = snapshot.balance().compareTo(gross) >= 0;
+            boolean canUseWithdraw = canWithdraw && bankHasAmount && !isDeveloperPreview(player);
+            Material withdrawMaterial = canUseWithdraw ? Material.ORANGE_CONCRETE : Material.GRAY_CONCRETE;
+            String withdrawName = (canUseWithdraw ? "§6" : "§8") + "Wypłać " + compactMoney(amount) + "$";
+            List<String> withdrawLore = new ArrayList<>();
+            if (!canWithdraw) {
+                withdrawLore.add("§cNie masz uprawnienia do wypłat z Banku Miasta.");
+                withdrawLore.add("§7Właściciel miasta musi nadać Ci uprawnienie");
+                withdrawLore.add("§fWypłaty z Banku Miasta §7w ustawieniach członka.");
+            } else if (!bankHasAmount) {
+                withdrawLore.add("§cW Banku Miasta nie ma wystarczającej ilości pieniędzy.");
+            } else if (isDeveloperPreview(player)) {
+                withdrawLore.add("§8Tryb DEV: transakcje są wyłączone.");
+            } else {
+                withdrawLore.add("§7Środki trafią na twoje konto.");
+            }
+            withdrawLore.add("§7Saldo banku: §f" + formatMoney(snapshot.balance()) + "$");
+            if (canUseWithdraw) {
+                withdrawLore.add("");
+                withdrawLore.add("§eKliknij, aby wypłacić.");
+            }
+            inv.setItem(BANK_WITHDRAW_SLOTS[i], item(withdrawMaterial, withdrawName, withdrawLore));
+        }
+
+        List<TownsService.MemberInfo> members = service.memberInfos(town);
+        for (int i = 0; i < Math.min(members.size(), BANK_MEMBER_SLOTS.length); i++) {
+            TownsService.MemberInfo member = members.get(i);
+            TownBankRepository.MemberAccount account = snapshot.accounts().getOrDefault(member.playerId(), TownBankRepository.MemberAccount.empty(member.playerId()));
+            BigDecimal balance = account.netBalance();
+            String balanceLine = balance.signum() < 0 ? "§7Saldo: §c" + formatMoney(balance) + "$" : "§7Saldo: §a" + formatMoney(balance) + "$";
+            inv.setItem(BANK_MEMBER_SLOTS[i], playerHead(member.playerId(), "§f" + member.name(), List.of(
+                    "§7Wpłacono: §a" + formatMoney(account.creditedNet()) + "$",
+                    "§7Wypłacono: §6" + formatMoney(account.withdrawn()) + "$",
+                    balanceLine
+            )));
+        }
+
+        inv.setItem(45, item(Material.ARROW, "§ePowrót", List.of("§7Wróć do zarządzania miastem.")));
+        inv.setItem(49, item(Material.BARRIER, "§cZamknij", List.of()));
+        player.openInventory(inv);
+    }
+
+    public void openDeveloperDummyPermissions(Player admin) {
+        DeveloperDummyState dummy = developerDummy(admin).orElse(null);
+        if (dummy == null) {
+            admin.sendMessage("§cNie masz aktywnego dummy członka. Użyj /townadmin dummy add <miasto>.");
+            return;
+        }
+        Town town = service.findTown(dummy.townId()).orElse(null);
+        if (town == null) {
+            admin.sendMessage("§cMiasto przypisane do dummy już nie istnieje.");
+            return;
+        }
+        Inventory inv = inventory(admin, NativeTownMenuHolder.Page.DUMMY_PERMISSIONS, 45, "§8DEV Dummy §7- uprawnienia");
+        fill(inv);
+        inv.setItem(4, playerHead(dummy.id(), "§d" + dummy.name(), List.of(
+                "§7Miasto: §f" + town.name(),
+                "§7To syntetyczny członek developerski.",
+                "§8Nie jest zapisywany w bazie, nie zwiększa liczby",
+                "§8członków i nie wpływa na kolekcje ani ceny."
+        )));
+        int[] slots = {10, 11, 12, 13, 14, 15, 16, 22};
+        TownPermission[] permissions = TownPermission.values();
+        for (int i = 0; i < permissions.length && i < slots.length; i++) {
+            TownPermission permission = permissions[i];
+            boolean allowed = dummy.can(permission);
+            inv.setItem(slots[i], item(allowed ? Material.LIME_DYE : Material.GRAY_DYE,
+                    (allowed ? "§a" : "§c") + permissionLabel(permission),
+                    List.of("§7Status: " + (allowed ? "§aDozwolone" : "§cZablokowane"), "§eKliknij, aby przełączyć dla dummy.")));
+        }
+        inv.setItem(31, item(Material.ENDER_EYE, "§dPrzełącz się na dummy", List.of(
+                "§7Otwiera miasto jako ten syntetyczny członek.",
+                "§8Nie tworzy prawdziwego członkostwa.",
+                "", "§eKliknij."
+        )));
+        inv.setItem(36, item(Material.ARROW, "§ePowrót", List.of("§7Wróć do menu graczy.")));
+        inv.setItem(40, item(Material.BARRIER, "§cZamknij", List.of()));
+        admin.openInventory(inv);
+    }
+
+    private void handleDummyPermissionsClick(Player player, int slot) {
+        if (slot == 40) { player.closeInventory(); return; }
+        if (slot == 36) { openCoop(player); return; }
+        if (slot == 31) {
+            if (useDeveloperDummy(player)) openManage(player);
+            return;
+        }
+        int[] slots = {10, 11, 12, 13, 14, 15, 16, 22};
+        TownPermission[] permissions = TownPermission.values();
+        for (int i = 0; i < permissions.length && i < slots.length; i++) {
+            if (slot != slots[i]) continue;
+            if (toggleDeveloperDummyPermission(player, permissions[i])) openDeveloperDummyPermissions(player);
+            return;
+        }
+    }
+
+    private String permissionLabel(TownPermission permission) {
+        return switch (permission) {
+            case BUILD -> "Budowanie";
+            case BREAK -> "Niszczenie bloków";
+            case CONTAINERS -> "Skrzynie i magazyny";
+            case MINION_USE -> "Obsługa minionów";
+            case MINION_PICKUP -> "Podnoszenie minionów";
+            case MACHINE_USE -> "Obsługa maszyn";
+            case MACHINE_BREAK -> "Niszczenie maszyn";
+            case BANK_WITHDRAW -> "Wypłaty z Banku Miasta";
+        };
+    }
+
     public void openDanger(Player player) {
         Town town = requireTown(player);
         if (town == null) return;
-        boolean owner = service.isOwner(player.getUniqueId(), town.id());
+        boolean owner = isOwnerForView(player, town);
         Inventory inv = inventory(player, NativeTownMenuHolder.Page.DANGER, 45, "§4Zniszczenie miasta");
         fill(inv, Material.BLACK_STAINED_GLASS_PANE);
         inv.setItem(4, item(Material.REDSTONE_TORCH, "§cUwaga", List.of(
@@ -541,7 +845,9 @@ public final class NativeTownMenu implements Listener, CommandExecutor, TabCompl
             case COOP -> handleCoopClick(player, slot, event.getClick());
             case COLLECTIONS_RESOURCES, COLLECTIONS_FARMING, COLLECTIONS_ANIMALS, COLLECTIONS_MOBS -> handleCollectionsClick(player, holder.page(), slot);
             case MINIONS -> handleMinionsClick(player, slot, event.getClick());
+            case BANK -> handleBankClick(player, slot);
             case GUIDE, GUIDE_GROWTH, GUIDE_PLAYERS -> guideService.handleClick(player, holder.page(), slot);
+            case DUMMY_PERMISSIONS -> handleDummyPermissionsClick(player, slot);
             case DANGER -> handleDangerClick(player, slot);
         }
     }
@@ -550,7 +856,12 @@ public final class NativeTownMenu implements Listener, CommandExecutor, TabCompl
         Town town = currentTown(player);
         if (slot == 49) { player.closeInventory(); return; }
         if (slot == 20) { if (town != null) openManage(player); return; }
-        if (slot == 22) { if (town == null) run(player, "town coop"); else openClaims(player); return; }
+        if (slot == 22) {
+            if (town == null) {
+                if (isDeveloperPreview(player)) openCoop(player); else run(player, "town coop");
+            } else openClaims(player);
+            return;
+        }
         if (slot == 24) { openCoop(player); return; }
         if (slot == 30) { if (town != null) openCollections(player, NativeTownMenuHolder.Page.COLLECTIONS_RESOURCES); return; }
         if (slot == 32) { if (town != null) openMinions(player); return; }
@@ -565,6 +876,10 @@ public final class NativeTownMenu implements Listener, CommandExecutor, TabCompl
         if (slot == 20) { openClaims(player); return; }
         if (slot == 21) { openCoop(player); return; }
         if (slot == 22) {
+            if (isDeveloperPreview(player)) {
+                player.sendMessage("§dPodgląd DEV jest tylko do odczytu — zmiana nazwy została zablokowana.");
+                return;
+            }
             Town town = currentTown(player);
             if (town != null && service.isOwner(player.getUniqueId(), town.id())) {
                 player.closeInventory();
@@ -576,6 +891,7 @@ public final class NativeTownMenu implements Listener, CommandExecutor, TabCompl
         }
         if (slot == 23) { openCollections(player, NativeTownMenuHolder.Page.COLLECTIONS_RESOURCES); return; }
         if (slot == 24) { openMinions(player); return; }
+        if (slot == 31) { openBank(player); return; }
         if (slot == 39) { run(player, "minion wiki electronics"); return; }
         if (slot == 40) { guideService.open(player); return; }
         if (slot == 41) { run(player, "minion wiki"); return; }
@@ -597,10 +913,22 @@ public final class NativeTownMenu implements Listener, CommandExecutor, TabCompl
         if (slot == 45) { openManageOrMain(player); return; }
         if (slot == 40) { guideService.openPlayers(player); return; }
         if (town == null) {
-            if (slot == 31) run(player, "town coop");
+            if (slot == 31) {
+                if (isDeveloperPreview(player)) player.sendMessage("§dPodgląd DEV nie wysyła próśb COOP.");
+                else run(player, "town coop");
+            }
             return;
         }
-        boolean owner = service.isOwner(player.getUniqueId(), town.id());
+        DeveloperDummyState dummy = developerDummy(player).filter(value -> value.townId().equals(town.id())).orElse(null);
+        if (slot == 42 && dummy != null) {
+            if (click.isRightClick() && isOwnerForView(player, town)) {
+                openDeveloperDummyPermissions(player);
+            } else if (useDeveloperDummy(player)) {
+                openManage(player);
+            }
+            return;
+        }
+        boolean owner = isOwnerForView(player, town);
         if (owner) {
             List<TownsService.MemberInfo> members = service.memberInfos(town);
             for (int i = 0; i < Math.min(members.size(), MEMBER_SLOTS.length); i++) {
@@ -608,7 +936,11 @@ public final class NativeTownMenu implements Listener, CommandExecutor, TabCompl
                     TownsService.MemberInfo member = members.get(i);
                     if (member.role() != TownRole.OWNER) {
                         player.closeInventory();
-                        Bukkit.getScheduler().runTask(plugin, () -> coopDecisionMenu.openMemberKick(player, member.playerId(), member.name()));
+                        if (isDeveloperPreview(player) && developerView(player).map(state -> state.mode() == DeveloperViewMode.OWNER).orElse(false)) {
+                            Bukkit.getScheduler().runTask(plugin, () -> coopDecisionMenu.openMemberKickAsAdmin(player, town, member.playerId(), member.name()));
+                        } else {
+                            Bukkit.getScheduler().runTask(plugin, () -> coopDecisionMenu.openMemberKick(player, member.playerId(), member.name()));
+                        }
                     }
                     return;
                 }
@@ -616,6 +948,10 @@ public final class NativeTownMenu implements Listener, CommandExecutor, TabCompl
             List<TownsService.CoopRequestInfo> requests = service.pendingCoopRequests(town, REQUEST_SLOTS.length);
             for (int i = 0; i < Math.min(requests.size(), REQUEST_SLOTS.length); i++) {
                 if (slot == REQUEST_SLOTS[i]) {
+                    if (isDeveloperPreview(player)) {
+                        player.sendMessage("§dTryb DEV właściciela nie przyjmuje ani nie odrzuca próśb COOP.");
+                        return;
+                    }
                     TownsService.CoopRequestInfo request = requests.get(i);
                     player.closeInventory();
                     Bukkit.getScheduler().runTask(plugin, () -> coopDecisionMenu.openRequestDecision(player, request.playerId(), request.name()));
@@ -636,6 +972,10 @@ public final class NativeTownMenu implements Listener, CommandExecutor, TabCompl
     private void handleMinionsClick(Player player, int slot, ClickType click) {
         if (slot == 45) { openManage(player); return; }
         if (slot == 47) { run(player, "minion wiki"); return; }
+        if (isDeveloperPreview(player)) {
+            if (indexOf(MINION_SLOTS, slot) >= 0) player.sendMessage("§dPodgląd DEV miasta jest tylko do odczytu — akcja na minionie została zablokowana.");
+            return;
+        }
         int index = indexOf(MINION_SLOTS, slot);
         if (index < 0) return;
         Object data = minionMenuDataByIndex(player, index + 1);
@@ -685,12 +1025,51 @@ public final class NativeTownMenu implements Listener, CommandExecutor, TabCompl
         }));
     }
 
+    private void handleBankClick(Player player, int slot) {
+        if (slot == 49) { player.closeInventory(); return; }
+        if (slot == 45) { openManageOrMain(player); return; }
+        if (isDeveloperPreview(player)) {
+            if (indexOf(BANK_DEPOSIT_SLOTS, slot) >= 0 || indexOf(BANK_WITHDRAW_SLOTS, slot) >= 0)
+                player.sendMessage("§dPodgląd DEV Banku Miasta jest tylko do odczytu — transakcja została zablokowana.");
+            return;
+        }
+        for (int i = 0; i < BANK_AMOUNTS.length; i++) {
+            if (slot == BANK_DEPOSIT_SLOTS[i]) {
+                executeBankOperation(player, service.bankDeposit(player, BANK_AMOUNTS[i]));
+                return;
+            }
+            if (slot == BANK_WITHDRAW_SLOTS[i]) {
+                executeBankOperation(player, service.bankWithdraw(player, BANK_AMOUNTS[i]));
+                return;
+            }
+        }
+    }
+
+    private void executeBankOperation(Player player, CompletableFuture<TownsService.BankOperationResult> future) {
+        UUID playerId = player.getUniqueId();
+        future.thenAccept(result -> Bukkit.getScheduler().runTask(plugin, () -> {
+            if (!player.isOnline()) return;
+            player.sendMessage(result.message());
+            if (result.success() && service.townIdOf(playerId).isPresent()) openBank(player);
+        })).exceptionally(error -> {
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                if (player.isOnline()) player.sendMessage("§cOperacja Banku Miasta nie powiodła się.");
+            });
+            plugin.getLogger().warning("Town bank operation failed for " + playerId + ": " + error.getMessage());
+            return null;
+        });
+    }
+
     private void handleDangerClick(Player player, int slot) {
         if (slot == 40) { player.closeInventory(); return; }
         if (slot == 36) { openManage(player); return; }
+        if (isDeveloperPreview(player)) {
+            if (slot == 22) player.sendMessage("§dPodgląd DEV jest tylko do odczytu — opuszczenie/zniszczenie miasta zostało zablokowane.");
+            return;
+        }
         Town town = currentTown(player);
         if (town == null) return;
-        boolean owner = service.isOwner(player.getUniqueId(), town.id());
+        boolean owner = isOwnerForView(player, town);
         if (owner && slot == 22) { run(player, "town destroy"); return; }
         if (!owner && slot == 22) { run(player, "town endcoop"); }
     }
@@ -809,7 +1188,7 @@ public final class NativeTownMenu implements Listener, CommandExecutor, TabCompl
         int percent = intResult(data, "storagePercent");
         String head = stringResult(data, "headMaterial");
         Material material = material(head, Material.PLAYER_HEAD);
-        ItemStack icon = minionIcon(minionsApi, player, index, id);
+        ItemStack icon = isDeveloperPreview(player) ? null : minionIcon(minionsApi, player, index, id);
         if (icon == null || icon.getType().isAir()) icon = new ItemStack(material);
         return named(icon, "§b#" + index + " §f" + name, List.of(
                 "§7Tier: §6" + tier + "§7/§6" + maxTier,
@@ -924,8 +1303,111 @@ public final class NativeTownMenu implements Listener, CommandExecutor, TabCompl
         return lore;
     }
 
+    private ItemStack manageBankIcon(Town town, BigDecimal balance) {
+        List<String> lore = new ArrayList<>();
+        lore.add("§7Wspólne środki członków miasta.");
+        lore.add("§7Wpłaty są objęte podatkiem §f3%§7.");
+        lore.add("");
+        lore.add(balance == null ? "§7Saldo miasta: §8ładowanie..." : "§7Saldo miasta: §6" + formatMoney(balance) + "$");
+        lore.add("");
+        lore.add("§eKliknij, aby otworzyć.");
+        return item(Material.GOLD_INGOT, "§6Bank Miasta", lore);
+    }
+
+    private void refreshManageBankIcon(Player player, Town town, Inventory inventory) {
+        service.bankSnapshotForTown(town.id()).thenAccept(snapshot -> Bukkit.getScheduler().runTask(plugin, () -> {
+            if (!player.isOnline() || !snapshot.available()) return;
+            if (player.getOpenInventory().getTopInventory() != inventory) return;
+            Town current = currentTown(player);
+            if (current == null || !current.id().equals(town.id())) return;
+            inventory.setItem(31, manageBankIcon(town, snapshot.balance()));
+        })).exceptionally(error -> null);
+    }
+
+    private String formatMoney(BigDecimal value) {
+        if (value == null) return "0";
+        BigDecimal normalized = value.setScale(2, java.math.RoundingMode.HALF_UP).stripTrailingZeros();
+        return normalized.scale() < 0 ? normalized.setScale(0).toPlainString() : normalized.toPlainString();
+    }
+
+    private String compactMoney(long amount) {
+        if (amount == 1_000L) return "1k";
+        if (amount == 2_500L) return "2.5k";
+        if (amount == 5_000L) return "5k";
+        if (amount == 10_000L) return "10k";
+        return Long.toString(amount);
+    }
+
+    private Town actualTown(Player player) {
+        return player == null ? null : service.townIdOf(player.getUniqueId()).flatMap(service::findTown).orElse(null);
+    }
+
+    private Town developerTargetTown(Player player) {
+        return developerView(player).flatMap(state -> service.findTown(state.townId())).orElse(null);
+    }
+
+    private boolean isDeveloperGuestView(Player player) {
+        return developerView(player).map(state -> state.mode() == DeveloperViewMode.GUEST).orElse(false);
+    }
+
     private Town currentTown(Player player) {
-        return service.townIdOf(player.getUniqueId()).flatMap(service::findTown).orElse(null);
+        Optional<DeveloperViewState> state = developerView(player);
+        if (state.isPresent()) {
+            if (state.get().mode() == DeveloperViewMode.GUEST) return null;
+            return service.findTown(state.get().townId()).orElse(null);
+        }
+        return actualTown(player);
+    }
+
+    private Optional<Town> contextualTown(Player player) {
+        if (isDeveloperPreview(player)) return Optional.ofNullable(developerTargetTown(player));
+        return service.townAt(player.getLocation());
+    }
+
+    private boolean isOwnerForView(Player player, Town town) {
+        if (player == null || town == null) return false;
+        Optional<DeveloperViewState> state = developerView(player);
+        if (state.isPresent()) return state.get().mode() == DeveloperViewMode.OWNER;
+        return service.isOwner(player.getUniqueId(), town.id());
+    }
+
+    private boolean isDeveloperDummyView(Player player) {
+        return developerView(player).map(DeveloperViewState::dummy).orElse(false);
+    }
+
+    private boolean canBankWithdrawForView(Player player, Town town) {
+        if (player == null || town == null) return false;
+        Optional<DeveloperViewState> state = developerView(player);
+        if (state.isPresent()) {
+            if (state.get().mode() == DeveloperViewMode.OWNER) return true;
+            if (state.get().dummy()) {
+                DeveloperDummyState dummy = developerDummy(player).orElse(null);
+                return dummy != null && dummy.townId().equals(town.id()) && dummy.can(TownPermission.BANK_WITHDRAW);
+            }
+            return false;
+        }
+        return service.can(player.getUniqueId(), town.id(), TownPermission.BANK_WITHDRAW);
+    }
+
+    private String roleForView(Player player, Town town) {
+        Optional<DeveloperViewState> state = developerView(player);
+        if (state.isPresent()) {
+            if (state.get().mode() == DeveloperViewMode.OWNER) return "Właściciel §d(DEV)";
+            if (state.get().dummy()) return "Członek Dummy §d(DEV)";
+            if (state.get().mode() == DeveloperViewMode.MEMBER) return "Członek §d(DEV)";
+            return "Gość §d(DEV)";
+        }
+        return service.isOwner(player.getUniqueId(), town.id()) ? "Właściciel" : "Członek";
+    }
+
+    private String developerStatusLine(Player player) {
+        Optional<DeveloperViewState> state = developerView(player);
+        if (state.isEmpty()) return "";
+        if (state.get().mode() == DeveloperViewMode.OWNER) {
+            return "§dTryb DEV właściciela — członkostwo/statystyki bez zmian; operacje ekonomiczne i destrukcyjne są chronione.";
+        }
+        if (state.get().dummy()) return "§dTryb DEV Dummy — syntetyczny członek, nie jest liczony do limitów ani progresji.";
+        return "§dPodgląd DEV — nie zmienia członkostwa, kolekcji, cen ani statystyk.";
     }
 
     private Town requireTown(Player player) {

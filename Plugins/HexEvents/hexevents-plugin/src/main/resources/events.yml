@@ -1,0 +1,143 @@
+events:
+  end_opening:
+    enabled: true
+    name: "&5&lEnd"
+    description: "Cykliczne otwarcie świeżego świata End."
+    icon: END_PORTAL_FRAME
+    module: "hex:end"
+    module-settings: {}
+
+    schedule:
+      timezone: "Europe/Warsaw"
+      # Harmonogram cykliczny:
+      weekly:
+        - day: TUESDAY
+          time: "18:00"
+        - day: FRIDAY
+          time: "19:00"
+        - day: SUNDAY
+          time: "17:00"
+      # Opcjonalne pojedyncze terminy można łączyć z weekly:
+      # one-time:
+      #   - "2026-09-15T19:00:00"
+
+    duration: "120m"
+    prepare-before: "5m"
+
+    # Globalny BossBar odliczający do publicznego startu wydarzenia.
+    # Sekcja jest opcjonalna — brak sekcji oznacza enabled=true i show-before=30m.
+    # Placeholdery title: {event}, {event_id}, {time}, {minutes}, {seconds}, {start_time}, {start_date}
+    bossbar:
+      enabled: true
+      show-before: "30m"
+      title: "&5&l{event} &7startuje za &f{time}"
+      color: PURPLE
+      style: SOLID
+
+    registration:
+      mode: OPTIONAL
+      # Marker cyklu życia; sam zapis gracza jest dozwolony od chwili opublikowania instancji w kalendarzu.
+      opens-before: "24h"
+      cancel-until: START
+
+    lobby:
+      enabled: false
+      duration: "0m"
+
+    capacity:
+      min-players: 0
+      max-players: 0
+      on-too-few: START_ANYWAY
+
+    join:
+      auto-join-registered: true
+      late-join: true
+      late-join-for: "120m"
+      late-join-scope: ELIGIBLE_PLAYERS
+      manual-entry: true
+
+    requirements: []
+    costs: []
+    reward-descriptions: []
+    exclusive-groups:
+      - "world:world_the_end"
+
+  # Example only. Enable after configuring the same boss-id and spawn location in STORMBOSSY.
+  boss_infernal_titan:
+    enabled: false
+    name: "&c&lInfernalny Tytan"
+    description: "Przykładowy event bossa sterowany przez HexEventBossFight."
+    icon: WITHER_SKELETON_SKULL
+    module: "hex:boss"
+    module-settings:
+      provider: "stormbossy"
+      boss-id: "infernal_titan"
+      spawn-location: 1
+
+    schedule:
+      timezone: "Europe/Warsaw"
+      weekly:
+        - day: SATURDAY
+          time: "20:00"
+
+    duration: "25m"
+    prepare-before: "5m"
+    bossbar:
+      enabled: true
+      show-before: "30m"
+      title: "&c&l{event} &7startuje za &f{time}"
+      color: RED
+      style: SOLID
+    registration:
+      mode: REQUIRED
+      # Marker cyklu życia; sam zapis gracza jest dozwolony od chwili opublikowania instancji w kalendarzu.
+      opens-before: "48h"
+      cancel-until: LOBBY_START
+    lobby:
+      enabled: true
+      duration: "5m"
+    capacity:
+      min-players: 5
+      max-players: 100
+      on-too-few: CANCEL_AND_REFUND
+    join:
+      auto-join-registered: true
+      late-join: true
+      late-join-for: "8m"
+      late-join-scope: REGISTERED_ONLY
+      manual-entry: true
+    requirements: []
+    costs: []
+    rewards:
+      - id: top_10_percent
+        target: PLAYER
+        selector:
+          type: TOP_PERCENT
+          metric: damage
+          percent: 10
+          minimum-winners: 1
+        grants:
+          - type: custom_item
+            item-id: "hex:infernal_titan_lootbox"
+            amount: 1
+      - id: remaining
+        target: PLAYER
+        selector:
+          type: REMAINING_ELIGIBLE
+          metric: damage
+          exclude: [top_10_percent]
+        grants:
+          - type: money
+            amount:
+              type: METRIC_SCALE
+              metric: damage_share_percent
+              base: 25
+              per-unit: 8
+              min: 25
+              max: 500
+              round: DOWN
+    reward-descriptions:
+      - "TOP 10% obrażeń: Infernal Titan Lootbox"
+      - "Pozostali uczestnicy: pieniądze zależne od udziału w obrażeniach"
+    exclusive-groups:
+      - "boss:stormbossy"

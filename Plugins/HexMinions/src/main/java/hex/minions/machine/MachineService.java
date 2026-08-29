@@ -602,6 +602,12 @@ public final class MachineService {
                 if (!recipe.matchesFuel(runtime.fuel(), minions.specialItems())) continue;
                 ItemStack output = output(recipe);
                 ItemStack current = runtime.output();
+                ItemStack normalizedCurrent = normalizeLegacyVanillaMachineOutput(current);
+                if (normalizedCurrent != current) {
+                    runtime.output(normalizedCurrent);
+                    current = normalizedCurrent;
+                    markDirty(runtime);
+                }
                 if (current != null && !current.getType().isAir() && !current.isSimilar(output)) continue;
                 int currentAmount = current == null ? 0 : current.getAmount();
                 if (currentAmount + output.getAmount() > Math.min(output.getMaxStackSize(), machine.defaultOutputStackSize())) continue;
@@ -616,9 +622,12 @@ public final class MachineService {
             return minions.specialItems().createItem(recipe.outputSpecialItem(), recipe.outputAmount());
         }
         ItemStack item = new ItemStack(recipe.outputMaterial() == Material.AIR ? Material.PAPER : recipe.outputMaterial(), recipe.outputAmount());
+        // Material-only machine outputs must stay truly vanilla. Giving IRON_INGOT/GOLD_INGOT/etc.
+        // a custom display name makes them a different stack from ordinary smelted resources.
+        if (recipe.outputCustomModelData() <= 0) return item;
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            if (recipe.outputCustomModelData() > 0) meta.setCustomModelData(recipe.outputCustomModelData());
+            meta.setCustomModelData(recipe.outputCustomModelData());
             ResourceDefinition resource = resourceByMaterial(recipe.outputMaterial(), recipe.outputCustomModelData());
             if (resource != null) {
                 meta.displayName(MiniMessage.miniMessage().deserialize(resource.displayName()));
@@ -640,6 +649,55 @@ public final class MachineService {
         return null;
     }
 
+    private ItemStack normalizeLegacyVanillaMachineOutput(ItemStack item) {
+        if (item == null || item.getType().isAir()) return item;
+        if (minions.specialItems().readSpecialItemId(item).isPresent()) return item;
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null || meta.hasCustomModelData() || !meta.hasDisplayName()) return item;
+
+        boolean plainMachineOutput = registry.machines().values().stream()
+                .flatMap(machine -> machine.recipes().stream())
+                .anyMatch(recipe -> (recipe.outputSpecialItem() == null || recipe.outputSpecialItem().isBlank())
+                        && recipe.outputCustomModelData() <= 0
+                        && recipe.outputMaterial() == item.getType());
+        if (!plainMachineOutput) return item;
+        ResourceDefinition legacyResource = resourceByMaterial(item.getType(), 0);
+        if (legacyResource == null) return item;
+        Component expectedLegacyName = MiniMessage.miniMessage().deserialize(legacyResource.displayName());
+        if (!expectedLegacyName.equals(meta.displayName())) return item;
+
+        ItemStack normalized = item.clone();
+        ItemMeta clean = normalized.getItemMeta();
+        if (clean != null) {
+            clean.displayName(null);
+            clean.setEnchantmentGlintOverride(null);
+            normalized.setItemMeta(clean);
+        }
+        return normalized;
+    }
+
+    /** Removes only the exact legacy display names that older machine builds put on vanilla outputs. */
+    public int normalizeLegacyMachineOutputs(org.bukkit.entity.Player player) {
+        if (player == null) return 0;
+        int changed = normalizeLegacyMachineOutputs(player.getInventory());
+        changed += normalizeLegacyMachineOutputs(player.getEnderChest());
+        return changed;
+    }
+
+    private int normalizeLegacyMachineOutputs(Inventory inventory) {
+        if (inventory == null) return 0;
+        int changed = 0;
+        for (int slot = 0; slot < inventory.getSize(); slot++) {
+            ItemStack before = inventory.getItem(slot);
+            ItemStack after = normalizeLegacyVanillaMachineOutput(before);
+            if (after != before) {
+                inventory.setItem(slot, after);
+                changed++;
+            }
+        }
+        return changed;
+    }
+
     public boolean collectOutput(MachineRuntime runtime, org.bukkit.entity.Player player) {
         return collectOutput(runtime, 0, player);
     }
@@ -647,6 +705,7 @@ public final class MachineService {
     public boolean collectOutput(MachineRuntime runtime, int outputIndex, org.bukkit.entity.Player player) {
         ItemStack output = runtime.outputAt(outputIndex);
         if (output == null || output.getType().isAir()) return false;
+        output = normalizeLegacyVanillaMachineOutput(output);
         runtime.outputAt(outputIndex, null);
         player.getInventory().addItem(output).values().forEach(left -> player.getWorld().dropItemNaturally(player.getLocation(), left));
         markDirty(runtime);

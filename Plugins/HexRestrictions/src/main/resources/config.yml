@@ -5,7 +5,8 @@ restrictions:
 
   # Bukkit Material names. Examples: ELYTRA, TOTEM_OF_UNDYING, END_CRYSTAL.
   # minecraft:elytra is also accepted.
-  forbidden-items: []
+  forbidden-items:
+    - PHANTOM_MEMBRANE
 
   # Namespaced enchantment keys. Short vanilla names such as MENDING are accepted too.
   forbidden-enchantments:

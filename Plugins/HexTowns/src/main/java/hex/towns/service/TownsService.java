@@ -6,6 +6,9 @@ import hex.core.api.messaging.HexMessageBus;
 import hex.core.api.messaging.HexMessageData;
 import hex.core.api.region.RegionKey;
 import hex.core.api.ui.UiTokens;
+import hex.economy.api.EconomyResult;
+import hex.economy.api.HexEconomyApi;
+import hex.towns.bank.TownBankRepository;
 import hex.towns.api.Page;
 import hex.towns.api.TownBoundItems;
 import hex.towns.api.TownPermission;
@@ -28,10 +31,14 @@ import hex.towns.util.ChunkKeys;
 import hex.towns.util.UuidBytes;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Chunk;
+import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
+import org.bukkit.block.Chest;
 import org.bukkit.block.Container;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.minecart.StorageMinecart;
@@ -42,10 +49,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.time.Instant;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -58,11 +68,16 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public final class TownsService implements Listener {
+    private static final Set<Long> BANK_AMOUNTS = Set.of(100L, 500L, 1_000L, 2_500L, 5_000L, 10_000L);
+    private static final BigDecimal BANK_TAX_RATE = new BigDecimal("0.03");
     private final Plugin plugin;
     private final HexApi api;
     private final TownRepository repository;
+    private final TownBankRepository bankRepository;
+    private final HexEconomyApi economy;
     private final TownDataRegistry dataRegistry;
     private volatile TownsConfig config;
     private final HexMessageBus messageBus;
@@ -88,11 +103,15 @@ public final class TownsService implements Listener {
     private final TownChunkLimitService chunkLimitService;
     private final TownBoundItemService townBoundItemService;
     private final TownPermissionService permissionService;
+    private final NamespacedKey coopReturnChestTownKey;
+    private volatile Function<UUID, Optional<Location>> heartLocationResolver = ignored -> Optional.empty();
 
-    public TownsService(Plugin plugin, HexApi api, TownRepository repository, TownDataRegistry dataRegistry, TownsConfig config) {
+    public TownsService(Plugin plugin, HexApi api, TownRepository repository, TownBankRepository bankRepository, HexEconomyApi economy, TownDataRegistry dataRegistry, TownsConfig config) {
         this.plugin = plugin;
         this.api = api;
         this.repository = repository;
+        this.bankRepository = bankRepository;
+        this.economy = economy;
         this.dataRegistry = dataRegistry;
         this.config = config;
         this.messageBus = api.service(HexMessageBus.class).orElse(null);
@@ -100,6 +119,7 @@ public final class TownsService implements Listener {
         this.chunkLimitService = new TownChunkLimitService(plugin, config);
         this.townBoundItemService = new TownBoundItemService(plugin, this::isActiveTownUuid);
         this.permissionService = new TownPermissionService(repository, this::isOwner, this::isMember, this::internalIdForTown);
+        this.coopReturnChestTownKey = new NamespacedKey(plugin, "coop_return_town_uuid");
     }
 
     public void load(TownRepository.InitialState state) {
@@ -140,6 +160,11 @@ public final class TownsService implements Listener {
         this.memberLimitService.reloadConfig(config);
         this.chunkLimitService.reloadConfig(config);
         startGrowthSync();
+    }
+
+    /** Supplies the currently rendered/persisted heart position without coupling core town logic to the heart package. */
+    public void setHeartLocationResolver(Function<UUID, Optional<Location>> resolver) {
+        this.heartLocationResolver = resolver == null ? ignored -> Optional.empty() : resolver;
     }
 
     public void startGrowthSync() {
@@ -527,9 +552,10 @@ public final class TownsService implements Listener {
                 if (targetMembership.role() == TownRole.OWNER || targetId.equals(town.ownerId())) {
                     return OperationResult.fail("towns.kick.owner");
                 }
+                DebtSettlement debtSettlement = settleDepartingBankDebt(town, targetId, safePlayerName(targetId, targetName));
                 repository.purgeDepartedMemberData(town, targetId);
                 repository.enqueuePendingPlayerReset(targetId, town.id(), "COOP_KICK");
-                auditTown(town, ownerId, "TOWN_COOP_KICK", "member=" + targetId);
+                auditTown(town, ownerId, "TOWN_COOP_KICK", "member=" + targetId + ",bankDebtRepaid=" + debtSettlement.repaid() + ",bankDebtRemaining=" + debtSettlement.remainingDebt());
                 playerIndex.remove(targetId);
                 permissionService.remove(targetId);
                 membersByTown.getOrDefault(town.internalId(), Set.of()).remove(targetId);
@@ -545,6 +571,7 @@ public final class TownsService implements Listener {
 
     public CompletableFuture<OperationResult> endCoop(Player player) {
         UUID playerId = player.getUniqueId();
+        String playerName = player.getName();
         return api.db().async(() -> {
             synchronized (mutationLock) {
                 Membership membership = playerIndex.get(playerId);
@@ -556,9 +583,10 @@ public final class TownsService implements Listener {
                     return OperationResult.fail("towns.error.no-town");
                 }
                 if (town != null) {
+                    DebtSettlement debtSettlement = settleDepartingBankDebt(town, playerId, playerName);
                     repository.purgeDepartedMemberData(town, playerId);
                     repository.enqueuePendingPlayerReset(playerId, town.id(), "ENDCOOP");
-                    auditTown(town, playerId, "TOWN_COOP_LEAVE", "");
+                    auditTown(town, playerId, "TOWN_COOP_LEAVE", "bankDebtRepaid=" + debtSettlement.repaid() + ",bankDebtRemaining=" + debtSettlement.remainingDebt());
                 } else {
                     repository.enqueuePendingPlayerReset(playerId, null, "ENDCOOP");
                     repository.removeMember(playerId);
@@ -723,6 +751,17 @@ public final class TownsService implements Listener {
                 .toList();
     }
 
+    /** Snapshot of active towns for admin UI/tab completion. Read-only and cache-backed. */
+    public List<Town> activeTowns(int limit) {
+        int capped = Math.max(1, Math.min(200, limit));
+        return townsByInternalId.values().stream()
+                .filter(town -> town.status() == TownStatus.ACTIVE)
+                .sorted(java.util.Comparator.comparing(Town::name, String.CASE_INSENSITIVE_ORDER)
+                        .thenComparingLong(Town::internalId))
+                .limit(capped)
+                .toList();
+    }
+
     public Optional<Town> townAt(Location loc) {
         if (loc == null || loc.getWorld() == null) {
             return Optional.empty();
@@ -862,6 +901,203 @@ public final class TownsService implements Listener {
                     "member=" + memberId + ",permission=" + permission + ",allowed=" + allowed));
             return changed;
         });
+    }
+
+    public CompletableFuture<Boolean> setPermissionAsAdmin(UUID adminId, UUID townId, UUID memberId, TownPermission permission, boolean allowed) {
+        if (!hasAdminBypass(adminId)) return CompletableFuture.completedFuture(false);
+        return api.db().async(() -> {
+            boolean changed = permissionService.setAsAdmin(townId, memberId, permission, allowed);
+            if (changed) findTown(townId).ifPresent(town -> auditTown(town, adminId, "TOWN_PERMISSION_ADMIN_CHANGE",
+                    "member=" + memberId + ",permission=" + permission + ",allowed=" + allowed));
+            return changed;
+        });
+    }
+
+    public CompletableFuture<BankSnapshot> bankSnapshot(UUID viewerId) {
+        if (viewerId == null) return CompletableFuture.completedFuture(BankSnapshot.unavailable("Nie należysz do miasta."));
+        return api.db().async(() -> {
+            synchronized (mutationLock) {
+                Membership membership = playerIndex.get(viewerId);
+                if (membership == null) return BankSnapshot.unavailable("Nie należysz do miasta.");
+                Town town = townsByInternalId.get(membership.townId());
+                if (town == null || town.status() != TownStatus.ACTIVE) return BankSnapshot.unavailable("Miasto nie jest aktywne.");
+                if (bankRepository == null) return BankSnapshot.unavailable("Bank Miasta jest niedostępny.");
+                BigDecimal balance = bankRepository.balance(town.internalId());
+                Map<UUID, TownBankRepository.MemberAccount> accounts = bankRepository.accounts(town.internalId());
+                boolean canWithdraw = permissionService.can(viewerId, town.id(), TownPermission.BANK_WITHDRAW);
+                BigDecimal viewerBalance = BigDecimal.ZERO.setScale(2);
+                if (economy != null) {
+                    try { viewerBalance = money(economy.getBalance(viewerId)); }
+                    catch (Throwable ignored) { viewerBalance = BigDecimal.ZERO.setScale(2); }
+                }
+                return new BankSnapshot(true, town.id(), money(balance), accounts, canWithdraw, viewerBalance, "");
+            }
+        });
+    }
+
+    /** Read-only bank snapshot for an admin developer preview. Does not require or create membership. */
+    public CompletableFuture<BankSnapshot> bankSnapshotForTown(UUID townId) {
+        if (townId == null) return CompletableFuture.completedFuture(BankSnapshot.unavailable("Nie wybrano miasta."));
+        return api.db().async(() -> {
+            synchronized (mutationLock) {
+                Town town = findTown(townId).orElse(null);
+                if (town == null || town.status() != TownStatus.ACTIVE) return BankSnapshot.unavailable("Miasto nie jest aktywne.");
+                if (bankRepository == null) return BankSnapshot.unavailable("Bank Miasta jest niedostępny.");
+                BigDecimal balance = bankRepository.balance(town.internalId());
+                Map<UUID, TownBankRepository.MemberAccount> accounts = bankRepository.accounts(town.internalId());
+                return new BankSnapshot(true, town.id(), money(balance), accounts, false, BigDecimal.ZERO.setScale(2), "");
+            }
+        });
+    }
+
+    public CompletableFuture<BankOperationResult> bankDeposit(Player player, long amount) {
+        if (player == null) return CompletableFuture.completedFuture(BankOperationResult.fail("§cNie można wykonać wpłaty."));
+        UUID playerId = player.getUniqueId();
+        String playerName = player.getName();
+        return api.db().async(() -> {
+            synchronized (mutationLock) {
+                if (!BANK_AMOUNTS.contains(amount)) return BankOperationResult.fail("§cNieprawidłowa kwota wpłaty.");
+                Membership membership = playerIndex.get(playerId);
+                Town town = membership == null ? null : townsByInternalId.get(membership.townId());
+                if (town == null || town.status() != TownStatus.ACTIVE) return BankOperationResult.fail("§cNie należysz do aktywnego miasta.");
+                if (bankRepository == null || economy == null) return BankOperationResult.fail("§cBank Miasta jest chwilowo niedostępny.");
+
+                BigDecimal gross = money(BigDecimal.valueOf(amount));
+                BigDecimal tax = money(gross.multiply(BANK_TAX_RATE));
+                BigDecimal net = money(gross.subtract(tax));
+                EconomyResult withdrawal;
+                try {
+                    withdrawal = economy.withdraw(playerId, playerName, gross, "TOWN_BANK_DEPOSIT:" + town.id());
+                } catch (Throwable error) {
+                    plugin.getLogger().warning("Town bank deposit economy failure player=" + playerId + ": " + rootMessage(error));
+                    return BankOperationResult.fail("§cNie udało się pobrać środków z twojego konta.");
+                }
+                if (withdrawal == null || !withdrawal.success()) {
+                    return BankOperationResult.fail("§cNie masz wystarczającej ilości pieniędzy na tę wpłatę.");
+                }
+
+                try {
+                    bankRepository.recordDeposit(town.internalId(), playerId, gross, tax, net);
+                    auditTown(town, playerId, "TOWN_BANK_DEPOSIT", "gross=" + gross + ",tax=" + tax + ",net=" + net);
+                } catch (Throwable error) {
+                    compensateEconomyDeposit(playerId, playerName, gross, "TOWN_BANK_DEPOSIT_ROLLBACK:" + town.id());
+                    plugin.getLogger().severe("Town bank deposit DB failure after economy withdrawal player=" + playerId + ": " + rootMessage(error));
+                    return BankOperationResult.fail("§cWpłata nie została zapisana. Pobrana kwota została zwrócona.");
+                }
+                return BankOperationResult.ok("§aWpłacono §f" + plainMoney(gross) + "$§a. Podatek 3%: §f" + plainMoney(tax) + "$§a, bank otrzymał §f" + plainMoney(net) + "$§a.");
+            }
+        });
+    }
+
+    public CompletableFuture<BankOperationResult> bankWithdraw(Player player, long amount) {
+        if (player == null) return CompletableFuture.completedFuture(BankOperationResult.fail("§cNie można wykonać wypłaty."));
+        UUID playerId = player.getUniqueId();
+        String playerName = player.getName();
+        return api.db().async(() -> {
+            synchronized (mutationLock) {
+                if (!BANK_AMOUNTS.contains(amount)) return BankOperationResult.fail("§cNieprawidłowa kwota wypłaty.");
+                Membership membership = playerIndex.get(playerId);
+                Town town = membership == null ? null : townsByInternalId.get(membership.townId());
+                if (town == null || town.status() != TownStatus.ACTIVE) return BankOperationResult.fail("§cNie należysz do aktywnego miasta.");
+                if (!permissionService.can(playerId, town.id(), TownPermission.BANK_WITHDRAW)) {
+                    return BankOperationResult.fail("§cNie możesz wypłacać z Banku Miasta. §7Właściciel miasta musi nadać Ci uprawnienie §fWypłaty z Banku Miasta§7 w ustawieniach członka.");
+                }
+                if (bankRepository == null || economy == null) return BankOperationResult.fail("§cBank Miasta jest chwilowo niedostępny.");
+
+                BigDecimal value = money(BigDecimal.valueOf(amount));
+                boolean reserved;
+                try {
+                    reserved = bankRepository.recordWithdrawal(town.internalId(), playerId, value);
+                } catch (Throwable error) {
+                    plugin.getLogger().warning("Town bank withdrawal DB failure player=" + playerId + ": " + rootMessage(error));
+                    return BankOperationResult.fail("§cNie udało się zapisać wypłaty.");
+                }
+                if (!reserved) return BankOperationResult.fail("§cW Banku Miasta nie ma wystarczającej ilości pieniędzy.");
+
+                EconomyResult deposit;
+                try {
+                    deposit = economy.deposit(playerId, playerName, value, "TOWN_BANK_WITHDRAW:" + town.id());
+                } catch (Throwable error) {
+                    deposit = null;
+                    plugin.getLogger().warning("Town bank withdrawal economy failure player=" + playerId + ": " + rootMessage(error));
+                }
+                if (deposit == null || !deposit.success()) {
+                    try {
+                        bankRepository.rollbackWithdrawal(town.internalId(), playerId, value);
+                    } catch (Throwable rollbackError) {
+                        plugin.getLogger().severe("CRITICAL: town bank withdrawal rollback failed town=" + town.id() + " player=" + playerId + ": " + rootMessage(rollbackError));
+                    }
+                    return BankOperationResult.fail("§cNie udało się przekazać wypłaty. Rezerwacja w banku została cofnięta.");
+                }
+
+                auditTown(town, playerId, "TOWN_BANK_WITHDRAW", "amount=" + value);
+                return BankOperationResult.ok("§aWypłacono z Banku Miasta §f" + plainMoney(value) + "$§a.");
+            }
+        });
+    }
+
+    private DebtSettlement settleDepartingBankDebt(Town town, UUID playerId, String playerName) {
+        if (town == null || playerId == null || bankRepository == null) return DebtSettlement.none();
+        TownBankRepository.MemberAccount account = bankRepository.account(town.internalId(), playerId)
+                .orElse(TownBankRepository.MemberAccount.empty(playerId));
+        BigDecimal net = money(account.netBalance());
+        if (net.signum() >= 0) return DebtSettlement.none();
+        BigDecimal debt = money(net.negate());
+        if (economy == null) {
+            throw new IllegalStateException("Bank Miasta nie może rozliczyć długu: HexEconomy jest niedostępne.");
+        }
+
+        BigDecimal available;
+        try {
+            available = money(economy.getBalance(playerId));
+        } catch (Throwable error) {
+            throw new IllegalStateException("Nie udało się odczytać salda gracza do rozliczenia Banku Miasta: " + rootMessage(error), error);
+        }
+        if (available.signum() <= 0) return new DebtSettlement(BigDecimal.ZERO, debt);
+        BigDecimal repayment = money(available.min(debt));
+        if (repayment.signum() <= 0) return new DebtSettlement(BigDecimal.ZERO, debt);
+
+        EconomyResult withdrawal;
+        try {
+            withdrawal = economy.withdraw(playerId, playerName == null ? safePlayerName(playerId, null) : playerName,
+                    repayment, "TOWN_BANK_DEBT_REPAYMENT:" + town.id());
+        } catch (Throwable error) {
+            throw new IllegalStateException("Nie udało się pobrać spłaty długu Banku Miasta: " + rootMessage(error), error);
+        }
+        if (withdrawal == null || !withdrawal.success()) {
+            throw new IllegalStateException("Nie udało się pobrać dostępnej kwoty na spłatę długu Banku Miasta.");
+        }
+
+        try {
+            bankRepository.recordDebtRepayment(town.internalId(), playerId, repayment);
+        } catch (Throwable error) {
+            compensateEconomyDeposit(playerId, playerName, repayment, "TOWN_BANK_DEBT_ROLLBACK:" + town.id());
+            throw new IllegalStateException("Nie udało się zapisać spłaty długu Banku Miasta: " + rootMessage(error), error);
+        }
+        BigDecimal remaining = money(debt.subtract(repayment).max(BigDecimal.ZERO));
+        auditTown(town, playerId, "TOWN_BANK_DEBT_REPAYMENT", "repaid=" + repayment + ",remaining=" + remaining);
+        return new DebtSettlement(repayment, remaining);
+    }
+
+    private void compensateEconomyDeposit(UUID playerId, String playerName, BigDecimal amount, String reason) {
+        if (economy == null || playerId == null || amount == null || amount.signum() <= 0) return;
+        try {
+            EconomyResult refund = economy.deposit(playerId, playerName == null ? safePlayerName(playerId, null) : playerName, amount, reason);
+            if (refund == null || !refund.success()) {
+                plugin.getLogger().severe("CRITICAL: economy compensation failed player=" + playerId + " amount=" + amount + " reason=" + reason);
+            }
+        } catch (Throwable refundError) {
+            plugin.getLogger().severe("CRITICAL: economy compensation threw player=" + playerId + " amount=" + amount + ": " + rootMessage(refundError));
+        }
+    }
+
+    private static BigDecimal money(BigDecimal value) {
+        return (value == null ? BigDecimal.ZERO : value).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private static String plainMoney(BigDecimal value) {
+        BigDecimal normalized = money(value).stripTrailingZeros();
+        return normalized.scale() < 0 ? normalized.setScale(0).toPlainString() : normalized.toPlainString();
     }
 
     private boolean isActiveTownUuid(UUID townUuid) {
@@ -1321,7 +1557,14 @@ public final class TownsService implements Listener {
         try {
             online.closeInventory();
             PlayerResetMode mode = resetModeForReason(pending.reason());
-            if (mode == PlayerResetMode.FULL) {
+            if (isCoopDepartureReason(pending.reason()) && pending.townUuid() != null) {
+                TransferResult transfer = transferTownBoundItemsToHeartChests(online, pending.townUuid());
+                if (!transfer.success()) throw new IllegalStateException(transfer.error());
+                if (transfer.itemCount() > 0) {
+                    audit(pending.townUuid(), playerId, "TOWN_BOUND_RETURNED", "player-reset count=" + transfer.itemCount() + ",chests=" + transfer.chestCount());
+                    online.sendMessage("§ePrzedmioty należące do poprzedniego miasta zostały odłożone do skrzyń przy Sercu Miasta.");
+                }
+            } else if (mode == PlayerResetMode.FULL) {
                 online.getInventory().clear();
                 online.getEnderChest().clear();
                 online.setLevel(0);
@@ -1330,6 +1573,11 @@ public final class TownsService implements Listener {
             } else if (mode == PlayerResetMode.TOWN_BOUND_ONLY && pending.townUuid() != null) {
                 int removed = townBoundItemService.purgeTownBound(online.getInventory(), pending.townUuid());
                 removed += townBoundItemService.purgeTownBound(online.getEnderChest(), pending.townUuid());
+                ItemStack cursor = online.getItemOnCursor();
+                if (townBoundItemService.originTown(cursor).filter(pending.townUuid()::equals).isPresent()) {
+                    removed += Math.max(1, cursor.getAmount());
+                    online.setItemOnCursor(null);
+                }
                 if (removed > 0) audit(pending.townUuid(), playerId, "TOWN_BOUND_PURGED", "player-reset count=" + removed);
             }
             online.saveData();
@@ -1338,6 +1586,136 @@ public final class TownsService implements Listener {
             api.db().asyncRun(() -> repository.failPendingPlayerReset(playerId, rootMessage(failure)));
             plugin.getLogger().warning("Persistent player reset failed for " + playerId + ": " + rootMessage(failure));
         }
+    }
+
+    private boolean isCoopDepartureReason(String reason) {
+        if (reason == null) return false;
+        String normalized = reason.trim().toUpperCase(java.util.Locale.ROOT);
+        return normalized.contains("KICK") || normalized.contains("ENDCOOP") || normalized.contains("LEAVE") || normalized.contains("RESIGN");
+    }
+
+    /**
+     * Moves every item carrying origin_town_uuid for the departed town out of the player's
+     * inventory/Ender Chest/cursor into newly created, plugin-marked chests beside the heart.
+     * No player item is removed until all required empty chests have been placed successfully.
+     */
+    private TransferResult transferTownBoundItemsToHeartChests(Player player, UUID townUuid) {
+        if (player == null || townUuid == null) return TransferResult.ok(0, 0);
+        List<BoundItemSource> sources = new ArrayList<>();
+        collectBoundItemSources(player.getInventory(), townUuid, sources);
+        collectBoundItemSources(player.getEnderChest(), townUuid, sources);
+        ItemStack cursor = player.getItemOnCursor();
+        if (townBoundItemService.originTown(cursor).filter(townUuid::equals).isPresent()) {
+            sources.add(BoundItemSource.cursor(cursor.clone()));
+        }
+        if (sources.isEmpty()) return TransferResult.ok(0, 0);
+
+        Location heart = heartLocationResolver.apply(townUuid).orElse(null);
+        if (heart == null || heart.getWorld() == null) {
+            return TransferResult.fail("Nie można odnaleźć Serca Miasta dla zwrotu przedmiotów COOP.");
+        }
+        World world = heart.getWorld();
+        world.getChunkAt(heart.getBlockX() >> 4, heart.getBlockZ() >> 4).load(true);
+        int chestY = Math.max(world.getMinHeight() + 1, Math.min(world.getMaxHeight() - 2, heart.getBlockY() - 1));
+        int neededChests = (sources.size() + 26) / 27;
+        List<Block> candidates = findReturnChestCandidates(heart, chestY, neededChests);
+        if (candidates.size() < neededChests) {
+            return TransferResult.fail("Brak miejsca na skrzynie zwrotne przy Sercu Miasta (potrzeba " + neededChests + ").");
+        }
+
+        List<Chest> placed = new ArrayList<>(neededChests);
+        try {
+            for (Block block : candidates) {
+                block.setType(Material.CHEST, false);
+                if (!(block.getState() instanceof Chest chest)) throw new IllegalStateException("Nie udało się utworzyć skrzyni zwrotnej.");
+                chest.getPersistentDataContainer().set(coopReturnChestTownKey, PersistentDataType.STRING, townUuid.toString());
+                chest.setCustomName("Zwrot COOP");
+                chest.update(true, false);
+                placed.add((Chest) block.getState());
+            }
+
+            int sourceIndex = 0;
+            for (Chest chest : placed) {
+                Inventory inventory = chest.getInventory();
+                for (int slot = 0; slot < inventory.getSize() && sourceIndex < sources.size(); slot++) {
+                    inventory.setItem(slot, sources.get(sourceIndex++).item().clone());
+                }
+            }
+            if (sourceIndex != sources.size()) throw new IllegalStateException("Skrzynie zwrotne nie pomieściły wszystkich przedmiotów.");
+
+            int itemCount = 0;
+            for (BoundItemSource source : sources) {
+                itemCount += Math.max(1, source.item().getAmount());
+                source.clear(player);
+            }
+            return TransferResult.ok(itemCount, placed.size());
+        } catch (Throwable failure) {
+            // The player inventory is still untouched if placement/fill failed before source.clear().
+            for (Chest chest : placed) {
+                try {
+                    chest.getInventory().clear();
+                    chest.getBlock().setType(Material.AIR, false);
+                } catch (Throwable ignored) { }
+            }
+            return TransferResult.fail(rootMessage(failure));
+        }
+    }
+
+    private void collectBoundItemSources(Inventory inventory, UUID townUuid, List<BoundItemSource> out) {
+        if (inventory == null) return;
+        for (int slot = 0; slot < inventory.getSize(); slot++) {
+            ItemStack item = inventory.getItem(slot);
+            if (townBoundItemService.originTown(item).filter(townUuid::equals).isPresent()) {
+                out.add(BoundItemSource.inventory(inventory, slot, item.clone()));
+            }
+        }
+    }
+
+    private List<Block> findReturnChestCandidates(Location heart, int y, int needed) {
+        List<Block> result = new ArrayList<>(needed);
+        World world = heart.getWorld();
+        if (world == null) return result;
+        int centerX = heart.getBlockX();
+        int centerZ = heart.getBlockZ();
+        int chunkX = centerX >> 4;
+        int chunkZ = centerZ >> 4;
+        for (int radius = 2; radius <= 6 && result.size() < needed; radius++) {
+            for (int dx = -radius; dx <= radius && result.size() < needed; dx++) {
+                for (int dz = -radius; dz <= radius && result.size() < needed; dz++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dz)) != radius) continue;
+                    int x = centerX + dx;
+                    int z = centerZ + dz;
+                    if ((x >> 4) != chunkX || (z >> 4) != chunkZ) continue;
+                    Block block = world.getBlockAt(x, y, z);
+                    if (!block.getType().isAir()) continue;
+                    if (hasAdjacentChest(block)) continue;
+                    result.add(block);
+                }
+            }
+        }
+        return result;
+    }
+
+    private boolean hasAdjacentChest(Block block) {
+        for (org.bukkit.block.BlockFace face : List.of(org.bukkit.block.BlockFace.NORTH, org.bukkit.block.BlockFace.SOUTH, org.bukkit.block.BlockFace.EAST, org.bukkit.block.BlockFace.WEST)) {
+            Material type = block.getRelative(face).getType();
+            if (type == Material.CHEST || type == Material.TRAPPED_CHEST) return true;
+        }
+        return false;
+    }
+
+    private record BoundItemSource(Inventory inventory, int slot, boolean cursor, ItemStack item) {
+        static BoundItemSource inventory(Inventory inventory, int slot, ItemStack item) { return new BoundItemSource(inventory, slot, false, item); }
+        static BoundItemSource cursor(ItemStack item) { return new BoundItemSource(null, -1, true, item); }
+        void clear(Player player) {
+            if (cursor) player.setItemOnCursor(null);
+            else if (inventory != null && slot >= 0) inventory.setItem(slot, null);
+        }
+    }
+
+    private record TransferResult(boolean success, int itemCount, int chestCount, String error) {
+        static TransferResult ok(int itemCount, int chestCount) { return new TransferResult(true, itemCount, chestCount, ""); }
+        static TransferResult fail(String error) { return new TransferResult(false, 0, 0, error == null ? "unknown" : error); }
     }
 
     private PlayerResetMode resetModeForReason(String reason) {
@@ -1452,6 +1830,7 @@ public final class TownsService implements Listener {
                 Long internalId = internalIdByTownUuid.get(townUuid);
                 Town town = internalId == null ? null : townsByInternalId.get(internalId);
                 if (town == null) return;
+                if (bankRepository != null) bankRepository.deleteTown(town.internalId());
                 repository.destroyTownCore(town);
                 removeTownAccessIndexes(town);
                 removeTownCaches(town);
@@ -1677,6 +2056,7 @@ public final class TownsService implements Listener {
         return api.db().asyncRun(() -> {
             try {
                 repository.markCleanupState(job.town().id(), "CORE_PURGE_PENDING", null);
+                if (bankRepository != null) bankRepository.deleteTown(job.town().internalId());
                 repository.destroyTownCore(job.town());
                 repository.markCleanupPart(job.town().id(), "CORE_DB", true, null);
                 repository.markCleanupState(job.town().id(), "CORE_DELETED", null);
@@ -1784,4 +2164,26 @@ public final class TownsService implements Listener {
             return new MetaKey("towns", key);
         }
     }
+
+    public record BankSnapshot(boolean available,
+                               UUID townId,
+                               BigDecimal balance,
+                               Map<UUID, TownBankRepository.MemberAccount> accounts,
+                               boolean canWithdraw,
+                               BigDecimal viewerBalance,
+                               String error) {
+        public static BankSnapshot unavailable(String error) {
+            return new BankSnapshot(false, null, BigDecimal.ZERO.setScale(2), Map.of(), false, BigDecimal.ZERO.setScale(2), error == null ? "" : error);
+        }
+    }
+
+    public record BankOperationResult(boolean success, String message) {
+        public static BankOperationResult ok(String message) { return new BankOperationResult(true, message); }
+        public static BankOperationResult fail(String message) { return new BankOperationResult(false, message); }
+    }
+
+    private record DebtSettlement(BigDecimal repaid, BigDecimal remainingDebt) {
+        static DebtSettlement none() { return new DebtSettlement(BigDecimal.ZERO.setScale(2), BigDecimal.ZERO.setScale(2)); }
+    }
+
 }

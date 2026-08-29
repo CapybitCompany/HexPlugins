@@ -1,0 +1,17 @@
+plugins { id 'java' }
+group = 'hex'
+version = '1.0.0'
+def hexEventsApiProjectPath = findProject(':hexevents-api') != null ? ':hexevents-api' : ':plugins:HexEvents:hexevents-api'
+repositories {
+    mavenCentral()
+    maven { url = 'https://repo.papermc.io/repository/maven-public/' }
+}
+dependencies {
+    compileOnly project(hexEventsApiProjectPath)
+    testImplementation project(hexEventsApiProjectPath)
+    compileOnly 'io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT'
+}
+java { toolchain { languageVersion = JavaLanguageVersion.of(21) } }
+tasks.jar { archiveBaseName = 'HexEventBossFight' }
+
+

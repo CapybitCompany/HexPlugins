@@ -1,5 +1,5 @@
 name: HexMinions
-version: 1.0.5
+version: 1.0.11
 main: hex.minions.HexMinionsPlugin
 api-version: "1.21"
 
@@ -13,7 +13,7 @@ softdepend:
 
 commands:
   minion:
-    usage: "/minion [help|list|wiki]"
+    usage: "/minion [help|list|wiki|dev]"
     description: Miniony miast Hex SMP
     permission: hexminions.use
 

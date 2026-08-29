@@ -1,5 +1,5 @@
 name: HexGUI
-version: 1.2.3
+version: 1.2.4
 main: hex.gui.HexGUIPlugin
 api-version: "1.21"
 authors: [HexTeam]
@@ -14,6 +14,7 @@ softdepend:
   - HexCollections
   - HexQuests
   - PlaceholderAPI
+  - HexEvents
 
 commands:
   hex:

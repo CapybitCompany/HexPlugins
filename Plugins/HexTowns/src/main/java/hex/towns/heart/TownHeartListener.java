@@ -70,6 +70,7 @@ public final class TownHeartListener implements Listener {
     private final TownHeartService heartService;
     private final NativeTownMenu nativeTownMenu;
     private final NamespacedKey heartVisualTownKey;
+    private final NamespacedKey nameAnvilTechnicalKey;
     private final Map<UUID, PendingHeartPlacement> pending = new ConcurrentHashMap<>();
     private final Set<UUID> activeNameAnvils = ConcurrentHashMap.newKeySet();
 
@@ -82,6 +83,7 @@ public final class TownHeartListener implements Listener {
         this.heartService = heartService;
         this.nativeTownMenu = nativeTownMenu;
         this.heartVisualTownKey = new NamespacedKey(plugin, "town_heart_visual_town");
+        this.nameAnvilTechnicalKey = new NamespacedKey(plugin, "heart_name_technical");
     }
 
     public void reloadConfig(TownsConfig config) {
@@ -279,6 +281,8 @@ public final class TownHeartListener implements Listener {
             }
             pending.put(player.getUniqueId(), placement.withName(normalized));
             activeNameAnvils.remove(player.getUniqueId());
+            clearNameAnvil(view);
+            scheduleNameAnvilPurge(player);
             openConfirmMenu(player, normalized);
             return;
         }
@@ -317,13 +321,15 @@ public final class TownHeartListener implements Listener {
         if (!(event.getView() instanceof AnvilView view)) return;
         view.setRepairCost(0);
         String raw = anvilRenameText(event.getInventory(), view);
-        event.setResult(named(Material.NAME_TAG, raw == null || raw.isBlank() ? "Nazwa miasta" : raw, List.of("§7Kliknij, aby wrócić do menu potwierdzenia.")));
+        event.setResult(nameAnvilItem(raw == null || raw.isBlank() ? "Nazwa miasta" : raw, "§7Kliknij, aby wrócić do menu potwierdzenia."));
     }
 
     @EventHandler
     public void onClose(InventoryCloseEvent event) {
-        if (event.getView() instanceof AnvilView) {
-            activeNameAnvils.remove(event.getPlayer().getUniqueId());
+        if (event.getPlayer() instanceof Player player && event.getView() instanceof AnvilView view
+                && activeNameAnvils.remove(player.getUniqueId())) {
+            clearNameAnvil(view);
+            scheduleNameAnvilPurge(player);
         }
     }
 
@@ -331,6 +337,7 @@ public final class TownHeartListener implements Listener {
     public void onQuit(PlayerQuitEvent event) {
         pending.remove(event.getPlayer().getUniqueId());
         activeNameAnvils.remove(event.getPlayer().getUniqueId());
+        purgeNameAnvilItems(event.getPlayer());
     }
 
     public void giveHeart(Player target, int amount) {
@@ -402,7 +409,7 @@ public final class TownHeartListener implements Listener {
                 plugin.getLogger().warning("Nie udało się otworzyć natywnego kowadła nazwy miasta dla " + player.getName());
                 return;
             }
-            view.getTopInventory().setItem(ANVIL_INPUT_SLOT, named(Material.NAME_TAG, currentName, List.of("§7Wpisz nazwę miasta.")));
+            view.getTopInventory().setItem(ANVIL_INPUT_SLOT, nameAnvilItem(currentName, "§7Wpisz nazwę miasta."));
             view.setRepairCost(0);
         });
     }
@@ -617,6 +624,44 @@ public final class TownHeartListener implements Listener {
         } catch (Throwable ignored) {
             return null;
         }
+    }
+
+    private ItemStack nameAnvilItem(String name, String lore) {
+        ItemStack item = named(Material.NAME_TAG, name, List.of(lore));
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            meta.getPersistentDataContainer().set(nameAnvilTechnicalKey, PersistentDataType.BYTE, (byte) 1);
+            item.setItemMeta(meta);
+        }
+        return item;
+    }
+
+    private void clearNameAnvil(AnvilView view) {
+        if (view == null) return;
+        Inventory top = view.getTopInventory();
+        for (int slot : new int[]{0, 1, 2}) {
+            if (isNameAnvilTechnical(top.getItem(slot))) top.setItem(slot, null);
+        }
+    }
+
+    private void scheduleNameAnvilPurge(Player player) {
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            if (player.isOnline()) purgeNameAnvilItems(player);
+        });
+    }
+
+    private void purgeNameAnvilItems(Player player) {
+        if (player == null) return;
+        for (int slot = 0; slot < player.getInventory().getSize(); slot++) {
+            if (isNameAnvilTechnical(player.getInventory().getItem(slot))) player.getInventory().setItem(slot, null);
+        }
+        if (isNameAnvilTechnical(player.getItemOnCursor())) player.setItemOnCursor(null);
+    }
+
+    private boolean isNameAnvilTechnical(ItemStack item) {
+        if (item == null || item.getType().isAir() || !item.hasItemMeta()) return false;
+        Byte marker = item.getItemMeta().getPersistentDataContainer().get(nameAnvilTechnicalKey, PersistentDataType.BYTE);
+        return marker != null && marker == (byte) 1;
     }
 
     private String anvilRenameText(Inventory inventory, InventoryView view) {

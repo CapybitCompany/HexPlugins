@@ -4,6 +4,8 @@ import hex.core.api.HexApi;
 import hex.endevent.command.EndEventCommand;
 import hex.endevent.config.EndEventConfig;
 import hex.endevent.listener.EndAccessListener;
+import hex.endevent.listener.HexEventsAvailabilityListener;
+import hex.endevent.integration.HexEventsEndIntegration;
 import hex.endevent.placeholder.EndEventPlaceholderExpansion;
 import hex.endevent.service.EndEventService;
 import org.bukkit.Bukkit;
@@ -19,6 +21,7 @@ public final class HexEndEventPlugin extends JavaPlugin {
     private HexApi hex;
     private EndEventService service;
     private EndEventPlaceholderExpansion placeholderExpansion;
+    private HexEventsEndIntegration eventsIntegration;
 
     @Override
     public void onEnable() {
@@ -48,8 +51,11 @@ public final class HexEndEventPlugin extends JavaPlugin {
 
         this.service = new EndEventService(this, hex, config);
         this.service.start();
+        attachHexEventsIntegration();
+        if (eventsIntegration == null) getLogger().warning("HexEvents unavailable; End pozostaje fail-closed.");
         if (startupConfigError != null) this.service.forceErrorClosed("Niepoprawny config: " + startupConfigError);
         getServer().getPluginManager().registerEvents(new EndAccessListener(this, service), this);
+        getServer().getPluginManager().registerEvents(new HexEventsAvailabilityListener(this), this);
 
         EndEventCommand command = new EndEventCommand(this, hex, service);
         PluginCommand pluginCommand = getCommand("endevent");
@@ -59,7 +65,7 @@ public final class HexEndEventPlugin extends JavaPlugin {
         }
 
         registerPlaceholderExpansion();
-        getLogger().info("HexEndEvent enabled; master switch event.enabled=" + config.enabled());
+        getLogger().info("HexEndEvent enabled; schedule jest zarządzany wyłącznie przez HexEvents; module.enabled=" + config.enabled());
     }
 
     @Override
@@ -68,8 +74,42 @@ public final class HexEndEventPlugin extends JavaPlugin {
             placeholderExpansion.unregister();
             placeholderExpansion = null;
         }
+        if (eventsIntegration != null) { eventsIntegration.close(); eventsIntegration = null; }
         if (service != null) service.shutdown();
         getLogger().info("HexEndEvent disabled");
+    }
+
+    public void handleHexEventsDisabled() {
+        getLogger().severe("HexEvents został wyłączony podczas pracy serwera. Wymuszam fail-closed Endu.");
+        HexEventsEndIntegration integration = this.eventsIntegration;
+        this.eventsIntegration = null;
+        if (integration != null) {
+            try { integration.close(); }
+            catch (Throwable throwable) {
+                getLogger().warning("Błąd odpinania integracji HexEvents: " + throwable.getMessage());
+                service.failClosedBecauseCentralManagerUnavailable("HexEvents disabled");
+            }
+        } else if (service != null) {
+            service.failClosedBecauseCentralManagerUnavailable("HexEvents disabled");
+        }
+    }
+
+    public void handleHexEventsEnabled() {
+        if (eventsIntegration != null || service == null) return;
+        getLogger().info("HexEvents ponownie dostępny; próbuję odtworzyć integrację. End pozostaje zamknięty do czasu recovery HexEvents.");
+        attachHexEventsIntegration();
+    }
+
+    private void attachHexEventsIntegration() {
+        var events = Bukkit.getPluginManager().getPlugin("HexEvents");
+        if (events == null || !events.isEnabled() || eventsIntegration != null) return;
+        try {
+            this.eventsIntegration = HexEventsEndIntegration.attach(this, service);
+            if (eventsIntegration != null) getLogger().info("Podłączono HexEndEvent do HexEvents.");
+        } catch (Throwable throwable) {
+            getLogger().severe("Nie udało się podłączyć HexEvents: " + throwable.getMessage());
+            if (service != null) service.failClosedBecauseCentralManagerUnavailable("HexEvents attach failed");
+        }
     }
 
     public ReloadResult reloadEndEventConfig() {
@@ -114,7 +154,7 @@ public final class HexEndEventPlugin extends JavaPlugin {
                 Map.entry("status.open", "<green>End jest teraz otwarty!</green> <gray>Do zamknięcia pozostało:</gray> <white><remaining></white><gray>. Zamknięcie:</gray> <yellow><closes></yellow><gray>.</gray>"),
                 Map.entry("broadcast.open", "<gold><bold>End został otwarty!</bold></gold> <gray>Macie <white><duration></white> na eksplorację.</gray>"),
                 Map.entry("broadcast.closed", "<red><bold>End został zamknięty.</bold></red> <gray>Wszyscy gracze zostali przeniesieni do zwykłego świata.</gray>"),
-                Map.entry("bossbar.active", "<gold>End Event</gold> <dark_gray>•</dark_gray> <gray>Do zamknięcia:</gray> <white><remaining></white>"),
+                Map.entry("bossbar.active", "<light_purple><bold>End Event</bold></light_purple> <dark_gray>•</dark_gray> <gray>Zamknięcie:</gray> <white><closes></white> <dark_gray>•</dark_gray> <gray>za</gray> <white><remaining></white>"),
                 Map.entry("error.unavailable", "<red>End jest chwilowo niedostępny.</red> <gray>Spróbuj ponownie później.</gray>"),
                 Map.entry("error.no-permission", "<red>Brak uprawnień.</red>"),
                 Map.entry("admin.reload.success", "<green>Przeładowano HexEndEvent.</green>"),

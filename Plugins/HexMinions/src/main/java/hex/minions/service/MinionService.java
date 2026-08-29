@@ -103,6 +103,8 @@ public final class MinionService implements MinionMenuDataService {
     private final ConcurrentMap<String, Set<UUID>> minionsByChunk = new ConcurrentHashMap<>();
     private final ConcurrentMap<UUID, SelectedMinionContext> selectedContext = new ConcurrentHashMap<>();
     private final Set<MinionsListener> listeners = ConcurrentHashMap.newKeySet();
+    /** Runtime-only, per-admin developer mode. Never persisted and never changes town membership. */
+    private final Set<UUID> developerModePlayers = ConcurrentHashMap.newKeySet();
     private final PriorityBlockingQueue<ScheduledAction> actionQueue = new PriorityBlockingQueue<>();
     private final Set<UUID> queued = ConcurrentHashMap.newKeySet();
     private final Set<UUID> dirtyRuntimeMinions = ConcurrentHashMap.newKeySet();
@@ -931,7 +933,7 @@ public final class MinionService implements MinionMenuDataService {
         Optional<Town> locTown = towns.townAt(location);
         if (locTown.isEmpty()) return OperationResult.fail("minions.error.not-in-own-town");
         if (!towns.can(player.getUniqueId(), locTown.get().id(), TownPermission.MINION_USE)) return OperationResult.fail("minions.error.not-member");
-        if (!towns.canBuild(player, location) || isTownHeartChunk(locTown.get(), location)) return OperationResult.fail("minions.move.error.location-invalid");
+        if (!towns.canBuild(player, location) || towns.isHeartProtected(location)) return OperationResult.fail("minions.move.error.location-invalid");
         if (movingMinionId == null && countMinions(locTown.get().id()) >= maxMinions(locTown.get().id())) {
             return OperationResult.fail("minions.error.limit-reached", UiTokens.of("limit", String.valueOf(maxMinions(locTown.get().id()))));
         }
@@ -1447,13 +1449,6 @@ public final class MinionService implements MinionMenuDataService {
                 .orElse(0);
     }
 
-    private boolean isTownHeartChunk(Town town, Location location) {
-        if (town == null || location == null || location.getWorld() == null) return false;
-        return town.world().equals(location.getWorld().getName())
-                && town.heart().x() == (location.getBlockX() >> 4)
-                && town.heart().z() == (location.getBlockZ() >> 4);
-    }
-
     public void markPlacedStorageChest(Block block, ItemStack item) {
         storageChestIdFromItem(item).ifPresent(id -> itemFactory.markStorageChestBlock(block, id));
     }
@@ -1508,6 +1503,27 @@ public final class MinionService implements MinionMenuDataService {
         return item == null ? null : item.clone();
     }
 
+    public boolean developerMode(Player player) {
+        return player != null
+                && player.hasPermission("hexminions.admin")
+                && developerModePlayers.contains(player.getUniqueId());
+    }
+
+    public boolean setDeveloperMode(Player player, boolean enabled) {
+        if (player == null || !player.hasPermission("hexminions.admin")) return false;
+        if (enabled) developerModePlayers.add(player.getUniqueId());
+        else developerModePlayers.remove(player.getUniqueId());
+        return developerMode(player);
+    }
+
+    public boolean toggleDeveloperMode(Player player) {
+        if (player == null || !player.hasPermission("hexminions.admin")) return false;
+        UUID playerId = player.getUniqueId();
+        if (!developerModePlayers.remove(playerId)) developerModePlayers.add(playerId);
+        return developerMode(player);
+    }
+
+    /** Legacy config accessor retained for compatibility/diagnostics; runtime copying uses per-admin developerMode(Player). */
     public boolean wikiTestMode() {
         return config.wikiTestMode();
     }

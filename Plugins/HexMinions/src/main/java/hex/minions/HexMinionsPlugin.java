@@ -507,7 +507,7 @@ public final class HexMinionsPlugin extends JavaPlugin {
             hex.ui().registerDefaults("minions", Map.ofEntries(
                     Map.entry("help", "<gray>Użyj <yellow>/minion help</yellow>, aby zobaczyć dostępne komendy.</gray>"),
                     Map.entry("help.player", "<gold>HexMinions</gold><newline><yellow>/minion list</yellow> <gray>— lista minionów miasta</gray><newline><yellow>/minion wiki</yellow> <gray>— wiki minionów</gray><newline><yellow>/minion wiki electronics</yellow> <gray>— wiki elektroniki i maszyn</gray><newline><yellow>/minion help</yellow> <gray>— pomoc</gray>"),
-                    Map.entry("help.admin", "<dark_gray>Administracja:</dark_gray><newline><yellow>/minion give ...</yellow><newline><yellow>/minion reload</yellow><newline><yellow>/minion admin ...</yellow><newline><yellow>/minion pickup UUID</yellow><newline><yellow>/minion move UUID</yellow><newline><yellow>/minion select UUID</yellow><newline><yellow>/minion select-index INDEX</yellow><newline><yellow>/minion action ...</yellow><newline><yellow>/minion wiki TYP</yellow>"),
+                    Map.entry("help.admin", "<dark_gray>Administracja:</dark_gray><newline><yellow>/minion give ...</yellow><newline><yellow>/minion reload</yellow><newline><yellow>/minion admin ...</yellow><newline><yellow>/minion pickup UUID</yellow><newline><yellow>/minion move UUID</yellow><newline><yellow>/minion select UUID</yellow><newline><yellow>/minion select-index INDEX</yellow><newline><yellow>/minion action ...</yellow><newline><yellow>/minion wiki TYP</yellow><newline><yellow>/minion dev [on|off|toggle|status]</yellow>"),
                     Map.entry("error.player-only", "<red>Ta komenda jest tylko dla gracza.</red>"),
                     Map.entry("error.no-permission", "<red>Brak uprawnien.</red>"),
                     Map.entry("error.player-not-found", "<red>Nie znaleziono gracza <white><player></white>.</red>"),
@@ -541,7 +541,7 @@ public final class HexMinionsPlugin extends JavaPlugin {
                     Map.entry("special-crafting.error.no-match", "<red>Nie wykryto poprawnej receptury.</red>"),
                     Map.entry("special-crafting.error.no-space", "<red>W tym miejscu nie mozna postawic tego bloku.</red>"),
                     Map.entry("special-crafting.error.place-town", "<red>Ten blok mozesz postawic tylko na terenie swojego miasta.</red>"),
-                    Map.entry("special-crafting.error.near-heart", "<red>Maszyn nie mozna stawiac w chronionym chunku Serca Miasta.</red>"),
+                    Map.entry("special-crafting.error.near-heart", "<red>Maszyn nie mozna stawiac w chronionej strefie Serca Miasta.</red>"),
                     Map.entry("special-crafting.error.not-placeable", "<red>Tego specjalnego itemu nie mozna polozyc jako zwyklego bloku.</red>"),
                     Map.entry("move.success", "<green>Przeniesiono miniona <white><id></white>.</green>"),
                     Map.entry("move.error.disabled", "<red>Przenoszenie minionow jest wylaczone.</red>"),

@@ -56,6 +56,17 @@ main:
       - '&7Mają własne tiery i wymagają zasobów.'
       - '&7Koszt ulepszenia może zależeć od wymagań'
       - '&7odpowiedniego poziomu kolekcji.'
+  bank:
+    name: '&6Bank Miasta'
+    lore:
+      - '&7Bank jest dostępny dla członków miasta.'
+      - '&7Wpłaty: &6100, 500, 1k, 2.5k, 5k i 10k$&7.'
+      - '&7Każda wpłata ma &c3% podatku&7.'
+      - '&7Wypłaty wymagają uprawnienia miasta.'
+      - ''
+      - '&7Bank pokazuje saldo wpłat i wypłat każdego członka.'
+      - '&7Jeśli odchodzący gracz ma saldo ujemne, jego dostępne'
+      - '&7pieniądze spłacają dług do wysokości posiadanych środków.'
   claims:
     name: '&2Teren i claimy'
     lore:
@@ -99,3 +110,18 @@ players:
     - '&7opuszczenie miasta nie obniża tego celu.'
     - '&7Chroni to progresję przed manipulowaniem'
     - '&7liczbą graczy przed kolejnym poziomem.'
+  permissions-name: '&bUprawnienia członków'
+  permissions-lore:
+    - '&7Uprawnienia nadaje i odbiera &6właściciel miasta&7'
+    - '&7w menu: Gracze w mieście -> członek -> Uprawnienia.'
+    - ''
+    - '&eBudowanie &8- &7stawianie bloków; wymagane też przy stawianiu urządzeń.'
+    - '&eNiszczenie bloków &8- &7kopanie bloków miasta.'
+    - '&eSkrzynie i magazyny &8- &7otwieranie kontenerów.'
+    - '&eObsługa minionów &8- &7stawianie, używanie i odbieranie produkcji.'
+    - '&ePodnoszenie minionów &8- &7zabieranie miniona jako itemu.'
+    - '&eObsługa maszyn &8- &7stawianie i korzystanie z maszyn miasta.'
+    - '&eNiszczenie maszyn &8- &7demontaż maszyn.'
+    - '&eWypłaty z Banku &8- &7wypłacanie wspólnych środków miasta.'
+    - ''
+    - '&8Właściciel ma wszystkie uprawnienia automatycznie.'

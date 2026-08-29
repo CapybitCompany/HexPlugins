@@ -43,8 +43,11 @@ public final class TownPermissionService {
         if (ownerCheck.test(playerId, townId)) return true;
         if (!memberCheck.test(playerId, townId)) return false;
         EnumMap<TownPermission, Boolean> map = overrides.get(playerId);
-        // Missing rows mean legacy member => trusted for backwards compatibility.
-        return map == null ? true : map.getOrDefault(permission, true);
+        // Legacy members remain trusted for the historic permissions, but the newly introduced
+        // BANK_WITHDRAW capability is intentionally fail-closed. Otherwise every old COOP member
+        // would automatically gain access to the town treasury after an update.
+        if (map == null) return permission != TownPermission.BANK_WITHDRAW;
+        return map.getOrDefault(permission, permission != TownPermission.BANK_WITHDRAW);
     }
 
     public Map<TownPermission, Boolean> snapshot(UUID playerId, UUID townId) {
@@ -57,7 +60,7 @@ public final class TownPermissionService {
         EnumMap<TownPermission, Boolean> map = new EnumMap<>(TownPermission.class);
         for (TownPermission permission : TownPermission.values()) {
             boolean allowed = switch (permission) {
-                case CONTAINERS, MINION_PICKUP, MACHINE_BREAK -> false;
+                case CONTAINERS, MINION_PICKUP, MACHINE_BREAK, BANK_WITHDRAW -> false;
                 default -> true;
             };
             map.put(permission, allowed);
@@ -82,6 +85,16 @@ public final class TownPermissionService {
 
     public boolean set(UUID ownerId, UUID townId, UUID memberId, TownPermission permission, boolean allowed) {
         if (!ownerCheck.test(ownerId, townId) || !memberCheck.test(memberId, townId) || ownerCheck.test(memberId, townId)) return false;
+        Long internalId = internalTownId.apply(townId);
+        if (internalId == null || internalId <= 0) return false;
+        overrides.computeIfAbsent(memberId, ignored -> new EnumMap<>(TownPermission.class)).put(permission, allowed);
+        repository.setMemberPermission(internalId, memberId, permission, allowed);
+        return true;
+    }
+
+    /** Administrative repair path. Caller must verify admin authorization before invoking. */
+    public boolean setAsAdmin(UUID townId, UUID memberId, TownPermission permission, boolean allowed) {
+        if (townId == null || memberId == null || permission == null || !memberCheck.test(memberId, townId) || ownerCheck.test(memberId, townId)) return false;
         Long internalId = internalTownId.apply(townId);
         if (internalId == null || internalId <= 0) return false;
         overrides.computeIfAbsent(memberId, ignored -> new EnumMap<>(TownPermission.class)).put(permission, allowed);

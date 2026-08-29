@@ -37,6 +37,9 @@ public final class MinionWorldListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerJoin(PlayerJoinEvent event) {
+        // Migracja itemów wygenerowanych przez starszy bug: wyłącznie dokładne, pluginowe nazwy
+        // vanilla outputów są usuwane, dzięki czemu ponownie stackują się z normalnymi surowcami.
+        machines.normalizeLegacyMachineOutputs(event.getPlayer());
         // Jeżeli gracz dołącza do świata, w którym chunki z minionami/maszynami są już załadowane,
         // krótkie opóźnienie pozwala odświeżyć obserwowany chunk i rozliczyć zaległą produkcję.
         Bukkit.getScheduler().runTaskLater(plugin, () -> {

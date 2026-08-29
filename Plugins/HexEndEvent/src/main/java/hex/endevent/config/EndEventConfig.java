@@ -81,9 +81,11 @@ public record EndEventConfig(
         if (durationMinutes <= 0) errors.add("event.duration-minutes musi byc > 0");
         if (prepareMinutes < 0) errors.add("event.prepare-before-minutes musi byc >= 0");
 
-        List<ScheduleEntry> schedule = loadSchedule(config, errors);
+        // LEGACY ONLY: harmonogram publicznego End Eventu jest źródłem prawdy w HexEvents/events.yml.
+        // Odczytujemy starą sekcję wyłącznie dla kompatybilności ze starszymi configami/utility,
+        // ale jej brak ani nakładanie się wpisów nie może już zablokować HexEndEvent.
+        List<ScheduleEntry> schedule = loadLegacySchedule(config);
         Duration duration = Duration.ofMinutes(Math.max(1, durationMinutes));
-        validateScheduleOverlap(schedule, duration, errors);
 
         String bypass = trimOr(config.getString("access.bypass-permission"), "hexendevent.bypass");
         int cooldownSeconds = Math.max(0, config.getInt("access.blocked-message-cooldown-seconds", 3));
@@ -145,30 +147,25 @@ public record EndEventConfig(
         }
     }
 
-    private static List<ScheduleEntry> loadSchedule(FileConfiguration config, List<String> errors) {
+    private static List<ScheduleEntry> loadLegacySchedule(FileConfiguration config) {
         List<?> raw = config.getList("event.schedule", List.of());
         List<ScheduleEntry> result = new ArrayList<>();
         Set<String> duplicates = new HashSet<>();
         for (Object value : raw) {
-            if (!(value instanceof java.util.Map<?, ?> map)) {
-                errors.add("Kazdy wpis event.schedule musi zawierac day i time");
-                continue;
-            }
+            if (!(value instanceof java.util.Map<?, ?> map)) continue;
             String dayRaw = String.valueOf(map.get("day"));
             String timeRaw = String.valueOf(map.get("time"));
             try {
                 DayOfWeek day = DayOfWeek.valueOf(dayRaw.trim().toUpperCase(Locale.ROOT));
                 LocalTime time = LocalTime.parse(timeRaw.trim(), TIME);
                 String key = day + "@" + time;
-                if (!duplicates.add(key)) errors.add("Duplikat event.schedule: " + key);
-                else result.add(new ScheduleEntry(day, time));
-            } catch (IllegalArgumentException | DateTimeParseException ex) {
-                errors.add("Niepoprawny wpis event.schedule: day=" + dayRaw + ", time=" + timeRaw);
+                if (duplicates.add(key)) result.add(new ScheduleEntry(day, time));
+            } catch (IllegalArgumentException | DateTimeParseException ignored) {
+                // Ignorowane świadomie: lokalny schedule nie steruje już eventem.
             }
         }
-        if (result.isEmpty()) errors.add("event.schedule nie moze byc pusty");
         result.sort(Comparator.comparing(ScheduleEntry::day).thenComparing(ScheduleEntry::time));
-        return result;
+        return List.copyOf(result);
     }
 
     private static void validateScheduleOverlap(List<ScheduleEntry> schedule, Duration duration, List<String> errors) {

@@ -1943,11 +1943,11 @@ minion-types:
     - resource: spruce_resin
       amount-min: 1
       amount-max: 1
-      chance: 0.005
+      chance: 0.0002
       special-drop: true
       special-drop-scaling:
         from-tier: 5
-        per-tier-bonus: 0.003
+        per-tier-bonus: 0.00012
     tiers:
       1:
         action-time-seconds: 72
