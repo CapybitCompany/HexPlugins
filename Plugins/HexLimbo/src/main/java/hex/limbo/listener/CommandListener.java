@@ -5,7 +5,6 @@ import com.velocitypowered.api.event.command.CommandExecuteEvent;
 import com.velocitypowered.api.proxy.Player;
 import hex.limbo.auth.AuthService;
 import hex.limbo.config.RuntimeContext;
-import net.kyori.adventure.text.Component;
 
 import java.util.Locale;
 import java.util.Set;
@@ -13,6 +12,12 @@ import java.util.Set;
 /**
  * Blocks every command except the configured allowlist while a player is unauthenticated. Admin
  * bypass is honoured via the configured permission.
+ *
+ * <p>The gate is fail-closed: see
+ * {@link hex.limbo.auth.ConnectionRegistry#isAuthenticatedConnection(java.util.UUID, Object)}.
+ * Anything other than "this exact connection is registered and authenticated" is treated as
+ * unauthenticated, so a socket the registry no longer knows stays blocked instead of inheriting
+ * the privileges of the connection that replaced it.
  */
 public final class CommandListener {
 
@@ -32,7 +37,10 @@ public final class CommandListener {
         if (player.hasPermission(context.config().adminBypassPermission())) {
             return;
         }
-        if (authService.isAuthenticated(player.getUniqueId())) {
+        // Fail-closed and identity-scoped: only this exact connection being registered AND
+        // authenticated lets the command through. An unknown or superseded socket is blocked, and
+        // is never judged against the auth state of whoever holds the UUID now.
+        if (authService.connections().isAuthenticatedConnection(player.getUniqueId(), player)) {
             return;
         }
 
@@ -42,7 +50,7 @@ public final class CommandListener {
             return;
         }
         event.setResult(CommandExecuteEvent.CommandResult.denied());
-        player.sendMessage(Component.text(context.messages().raw("error.command-blocked")));
+        player.sendMessage(context.messages().component("error.command-blocked"));
     }
 
     public static String headOf(String fullCommand) {

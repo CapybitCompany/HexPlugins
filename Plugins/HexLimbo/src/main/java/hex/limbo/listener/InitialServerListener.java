@@ -6,7 +6,6 @@ import com.velocitypowered.api.proxy.Player;
 import hex.limbo.auth.AuthService;
 import hex.limbo.config.RuntimeContext;
 import hex.limbo.limbo.LimboRouter;
-import net.kyori.adventure.text.Component;
 
 /**
  * Picks the initial backend server. Unauthenticated players go to the internal void limbo so they
@@ -29,14 +28,14 @@ public final class InitialServerListener {
     @Subscribe
     public void onChooseInitialServer(PlayerChooseInitialServerEvent event) {
         Player player = event.getPlayer();
-        boolean authed = authService.isAuthenticated(player.getUniqueId())
+        boolean authed = authService.connections().isAuthenticatedConnection(player.getUniqueId(), player)
                 || player.hasPermission(context.config().adminBypassPermission());
         if (authed) {
             router.targetServer().ifPresent(event::setInitialServer);
             return;
         }
         if (!router.isLimboReady()) {
-            player.disconnect(Component.text(context.messages().raw("disconnect.limbo-unavailable")));
+            player.disconnect(context.messages().component("disconnect.limbo-unavailable"));
             return;
         }
         router.limboServer().ifPresent(event::setInitialServer);

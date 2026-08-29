@@ -3,12 +3,15 @@ package hex.limbo.command;
 import hex.limbo.account.InMemoryAccountRepository;
 import hex.limbo.auth.AuthService;
 import hex.limbo.auth.AuthState;
+import hex.limbo.auth.ConnectionHandle;
+import hex.limbo.auth.ConnectionRegistry;
 import hex.limbo.auth.PasswordHasher;
 import hex.limbo.config.MessagesConfig;
 import hex.limbo.config.PluginConfig;
 import hex.limbo.config.RuntimeContext;
 import hex.limbo.premium.PremiumResolver;
 import hex.limbo.security.RateLimiter;
+import hex.limbo.testsupport.FakeConnection;
 import hex.limbo.testsupport.TestConfigs;
 import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
@@ -49,14 +52,25 @@ class RegisterPremiumGateTest {
         );
     }
 
+    private final ConnectionRegistry connections = new ConnectionRegistry();
+
     private AuthService authService(RuntimeContext context) {
         return new AuthService(
                 new InMemoryAccountRepository(),
                 new PasswordHasher(4),
                 new RateLimiter(10, 60_000L),
                 context,
+                connections,
                 LoggerFactory.getLogger(RegisterPremiumGateTest.class)
         );
+    }
+
+    /** Opens a connection and attaches an unregistered state, like the login pipeline does. */
+    private ConnectionHandle track(AuthService service, String username) {
+        ConnectionHandle handle = FakeConnection.of(username).connect(connections);
+        service.trackConnection(handle, new AuthState(handle.uuid(), username, "ip-hash",
+                AuthState.Stage.UNREGISTERED, hex.limbo.account.AccountType.CRACKED));
+        return handle;
     }
 
     private boolean queryResolver(PluginConfig config, PremiumResolver resolver, String name) {
@@ -75,12 +89,10 @@ class RegisterPremiumGateTest {
             resolverCalls.incrementAndGet();
             return PremiumResolver.Result.premium(UUID.randomUUID(), name);
         };
-        UUID uuid = UUID.nameUUIDFromBytes("Notch".getBytes());
-        AuthState state = new AuthState(uuid, "Notch", "ip-hash", AuthState.Stage.UNREGISTERED, hex.limbo.account.AccountType.CRACKED);
-        service.trackConnection(state);
+        ConnectionHandle handle = track(service, "Notch");
 
         boolean nameIsPremium = queryResolver(context.config(), resolver, "Notch");
-        AuthService.RegisterOutcome outcome = service.attemptRegister(uuid, "verylongpw", "verylongpw", nameIsPremium);
+        AuthService.RegisterOutcome outcome = service.attemptRegister(handle, "verylongpw", "verylongpw", nameIsPremium);
 
         assertEquals(0, resolverCalls.get(), "Resolver must not be consulted in offline-only mode.");
         assertEquals(AuthService.RegisterOutcome.SUCCESS, outcome);
@@ -95,12 +107,10 @@ class RegisterPremiumGateTest {
             resolverCalls.incrementAndGet();
             return PremiumResolver.Result.premium(UUID.randomUUID(), name);
         };
-        UUID uuid = UUID.nameUUIDFromBytes("Notch2".getBytes());
-        AuthState state = new AuthState(uuid, "Notch2", "ip-hash", AuthState.Stage.UNREGISTERED, hex.limbo.account.AccountType.CRACKED);
-        service.trackConnection(state);
+        ConnectionHandle handle = track(service, "Notch2");
 
         boolean nameIsPremium = queryResolver(context.config(), resolver, "Notch2");
-        AuthService.RegisterOutcome outcome = service.attemptRegister(uuid, "verylongpw", "verylongpw", nameIsPremium);
+        AuthService.RegisterOutcome outcome = service.attemptRegister(handle, "verylongpw", "verylongpw", nameIsPremium);
 
         assertEquals(1, resolverCalls.get());
         assertEquals(AuthService.RegisterOutcome.PREMIUM_NAME_PROTECTED, outcome);

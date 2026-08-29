@@ -7,9 +7,10 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Caches {@link PremiumResolver} results with a TTL so we don't hammer the Mojang API. Only
- * definite answers ({@link Result.Status#PREMIUM} and {@link Result.Status#NOT_PREMIUM}) are
- * cached – {@link Result.Status#UNKNOWN} is intentionally not stored so the next caller will
- * re-attempt the upstream check (i.e. it never "sticks" during an outage).
+ * definite answers ({@link PremiumResolver.Status#PREMIUM} and
+ * {@link PremiumResolver.Status#NOT_PREMIUM}) are cached – {@link PremiumResolver.Status#UNKNOWN}
+ * is intentionally not stored so the next caller will re-attempt the upstream check (i.e. it never
+ * "sticks" during an outage).
  */
 public final class CachedPremiumResolver implements PremiumResolver {
 

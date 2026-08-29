@@ -24,7 +24,7 @@ import java.util.UUID;
  * <p>All operations no-op when the datasource is {@code null} (DB unavailable) so a misconfigured
  * proxy never NPEs through this service.
  */
-public final class SessionService {
+public final class SessionService implements AuthFlow.Sessions {
 
     private static final long MIN_DURATION_MILLIS = 60_000L;
 
@@ -48,6 +48,7 @@ public final class SessionService {
         return Math.max(MIN_DURATION_MILLIS, minutes * 60_000L);
     }
 
+    @Override
     public void createSession(long accountId, UUID uuid, String usernameLower, String ipHash) {
         if (!isEnabled()) {
             return;
@@ -72,6 +73,7 @@ public final class SessionService {
         }
     }
 
+    @Override
     public Optional<Long> findValidSessionExpiry(UUID uuid, String ipHash) {
         if (!isEnabled() || ipHash == null) {
             return Optional.empty();
@@ -138,6 +140,7 @@ public final class SessionService {
         }
     }
 
+    @Override
     public void invalidate(UUID uuid) {
         if (dataSource == null) {
             return;

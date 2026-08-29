@@ -5,14 +5,16 @@
     <option name="linkedExternalProjectsSettings">
       <GradleProjectSettings>
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="gradleHome" value="" />
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/Plugins/AreaEffects" />
             <option value="$PROJECT_DIR$/Plugins/DbExample" />
             <option value="$PROJECT_DIR$/Plugins/HexCore" />
+            <option value="$PROJECT_DIR$/Plugins/HexCustomMobs" />
             <option value="$PROJECT_DIR$/Plugins/HexElimination" />
+            <option value="$PROJECT_DIR$/Plugins/HexLimbo" />
+            <option value="$PROJECT_DIR$/Plugins/HexNPC" />
             <option value="$PROJECT_DIR$/Plugins/HexPortals" />
             <option value="$PROJECT_DIR$/Plugins/IcebergEvent" />
             <option value="$PROJECT_DIR$/Plugins/Minigames" />
@@ -21,6 +23,7 @@
             <option value="$PROJECT_DIR$/Plugins/WaterLevelFlood" />
             <option value="$PROJECT_DIR$/StatsApi" />
             <option value="$PROJECT_DIR$/plugins" />
+            <option value="$PROJECT_DIR$/plugins/HexVelocityFallback" />
           </set>
         </option>
       </GradleProjectSettings>

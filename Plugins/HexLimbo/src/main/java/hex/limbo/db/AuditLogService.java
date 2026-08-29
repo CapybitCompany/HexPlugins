@@ -13,7 +13,7 @@ import java.util.concurrent.Executor;
  * Inserts entries into {@code hex_limbo_audit_log} asynchronously so the proxy thread is never
  * blocked on writes. No-ops when no datasource is available.
  */
-public final class AuditLogService {
+public final class AuditLogService implements hex.limbo.auth.AuthFlow.AuditLog {
 
     private final DataSource dataSource;
     private final Executor executor;
@@ -29,6 +29,7 @@ public final class AuditLogService {
         return dataSource != null && executor != null;
     }
 
+    @Override
     public void record(String action, String usernameLower, UUID uuid, String ipHash, String detail) {
         if (!isEnabled()) {
             return;

@@ -13,7 +13,10 @@ import com.velocitypowered.api.scheduler.ScheduledTask;
 import hex.limbo.account.AccountRepository;
 import hex.limbo.account.InMemoryAccountRepository;
 import hex.limbo.account.SqlAccountRepository;
+import hex.limbo.auth.AuthFlow;
+import hex.limbo.auth.RouteCoordinator;
 import hex.limbo.auth.AuthService;
+import hex.limbo.auth.ConnectionRegistry;
 import hex.limbo.auth.PasswordHasher;
 import hex.limbo.auth.SessionService;
 import hex.limbo.command.ChangePasswordCommand;
@@ -46,6 +49,7 @@ import hex.limbo.premium.MojangPremiumResolver;
 import hex.limbo.premium.PremiumResolverHandle;
 import hex.limbo.prompt.PromptService;
 import hex.limbo.security.IpHasher;
+import hex.limbo.text.LegacyText;
 import hex.limbo.security.RateLimiter;
 import hex.limbo.uuid.FakeUuidService;
 import net.kyori.adventure.text.Component;
@@ -80,7 +84,10 @@ public final class HexLimboPlugin {
 
     private MySqlProvider mysqlProvider;
     private AccountRepository repository;
+    private ConnectionRegistry connectionRegistry;
     private AuthService authService;
+    private AuthFlow authFlow;
+    private RouteCoordinator routes;
     private SessionService sessionService;
     private PremiumResolverHandle premiumResolver;
     private LimboServer limboServer;
@@ -149,7 +156,10 @@ public final class HexLimboPlugin {
         IpHasher ipHasher = new IpHasher(config.security().ipHashPepper());
         RateLimiter rateLimiter = new RateLimiter(config.security().rateLimitPerMinute(), 60_000L);
 
-        authService = new AuthService(repository, passwordHasher, rateLimiter, runtimeContext, logger);
+        // One registry for the whole plugin: auth state, login timeouts and every prompt are
+        // scoped to the connections it hands out, so nothing is keyed on a bare UUID.
+        connectionRegistry = new ConnectionRegistry();
+        authService = new AuthService(repository, passwordHasher, rateLimiter, runtimeContext, connectionRegistry, logger);
         sessionService = new SessionService(
                 dbEnabled ? mysqlProvider.dataSource() : null,
                 runtimeContext,
@@ -174,13 +184,19 @@ public final class HexLimboPlugin {
         }
 
         router = new LimboRouter(proxy, runtimeContext, limboServer, logger);
-        promptService = new PromptService(runtimeContext, (intervalSeconds, task) -> {
+        promptService = new PromptService(runtimeContext, connectionRegistry, (intervalSeconds, task) -> {
             ScheduledTask scheduled = proxy.getScheduler().buildTask(this, task)
                     .delay(intervalSeconds, TimeUnit.SECONDS)
                     .repeat(intervalSeconds, TimeUnit.SECONDS)
                     .schedule();
             return scheduled::cancel;
         });
+        // The single place that owns the ordering of every authentication: listeners and commands
+        // translate events into calls here and apply what it returns.
+        authFlow = new AuthFlow(authService, repository, sessionService, auditLog, promptService,
+                premiumResolver, runtimeContext, logger);
+        routes = new RouteCoordinator(authService.connections(), router, routeScheduler(), logger);
+
         FakeUuidService fakeUuidService = new FakeUuidService();
 
         registerListeners(fakeUuidService, ipHasher);
@@ -280,12 +296,12 @@ public final class HexLimboPlugin {
     private void registerListeners(FakeUuidService fakeUuidService, IpHasher ipHasher) {
         PreLoginListener preLogin = new PreLoginListener(premiumResolver, runtimeContext, logger);
         GameProfileListener gameProfile = new GameProfileListener(repository, fakeUuidService, logger);
-        LoginListener loginListener = new LoginListener(proxy, this, authService, sessionService, repository, ipHasher, runtimeContext, auditLog, logger);
+        LoginListener loginListener = new LoginListener(proxy, this, authService, authFlow, ipHasher, runtimeContext, promptService, routes, logger);
         InitialServerListener initialServer = new InitialServerListener(authService, router, runtimeContext);
-        ServerConnectListener serverConnect = new ServerConnectListener(authService, router, runtimeContext, promptService);
+        ServerConnectListener serverConnect = new ServerConnectListener(authService, router, routes, runtimeContext, promptService);
         CommandListener commandListener = new CommandListener(authService, runtimeContext);
         ChatListener chatListener = new ChatListener(authService, runtimeContext);
-        DisconnectListener disconnectListener = new DisconnectListener(authService, loginListener, promptService);
+        DisconnectListener disconnectListener = new DisconnectListener(authService, promptService, routes);
 
         proxy.getEventManager().register(this, preLogin);
         proxy.getEventManager().register(this, gameProfile);
@@ -299,13 +315,26 @@ public final class HexLimboPlugin {
 
     private void registerCommands() {
         CommandManager cm = proxy.getCommandManager();
-        register(cm, "register", new RegisterCommand(authService, sessionService, router, runtimeContext, premiumResolver, auditLog, promptService, authExecutor, logger), "reg");
-        register(cm, "login", new LoginCommand(authService, sessionService, router, runtimeContext, auditLog, promptService, authExecutor, logger), "l");
-        register(cm, "logout", new LogoutCommand(authService, sessionService, router, runtimeContext, auditLog, promptService, authExecutor, logger));
-        register(cm, "changepassword", new ChangePasswordCommand(authService, sessionService, runtimeContext, auditLog, authExecutor, logger), "cpw");
-        register(cm, "premium", new PremiumCommand(authService, repository, runtimeContext, auditLog, authExecutor, logger));
+        register(cm, "register", new RegisterCommand(authService, authFlow, routes, runtimeContext, authExecutor, logger), "reg");
+        register(cm, "login", new LoginCommand(authService, authFlow, routes, runtimeContext, authExecutor, logger), "l");
+        register(cm, "logout", new LogoutCommand(authService, authFlow, routes, runtimeContext, authExecutor, logger));
+        register(cm, "changepassword", new ChangePasswordCommand(authService, authFlow, routes, runtimeContext, authExecutor, logger), "cpw");
+        register(cm, "premium", new PremiumCommand(authService, authFlow, routes, runtimeContext, authExecutor, logger));
         register(cm, "limbo", new LimboCommand(runtimeContext));
-        register(cm, "hexlimbo", new HexLimboAdminCommand(this, proxy, authService, repository, sessionService, passwordHasher, router, runtimeContext, premiumResolver, auditLog, limboServer, authExecutor, logger));
+        register(cm, "hexlimbo", new HexLimboAdminCommand(this, proxy, authService, authFlow, repository, sessionService, passwordHasher, routes, runtimeContext, premiumResolver, auditLog, limboServer, authExecutor, logger));
+    }
+
+    /**
+     * Bounded routing recovery runs on the proxy scheduler: delayed retries and the per-transfer
+     * watchdog, both cancellable, neither on a thread that matters.
+     */
+    private RouteCoordinator.Scheduler routeScheduler() {
+        return (delayMillis, task) -> {
+            ScheduledTask scheduled = proxy.getScheduler().buildTask(this, task)
+                    .delay(delayMillis, TimeUnit.MILLISECONDS)
+                    .schedule();
+            return scheduled::cancel;
+        };
     }
 
     private void register(CommandManager cm, String name, com.velocitypowered.api.command.Command command, String... aliases) {
@@ -334,9 +363,9 @@ public final class HexLimboPlugin {
     private void installFailFastKickListener() {
         Supplier<Component> reason;
         if (runtimeContext != null) {
-            reason = () -> Component.text(runtimeContext.messages().raw("disconnect.service-unavailable"));
+            reason = () -> runtimeContext.messages().component("disconnect.service-unavailable");
         } else {
-            reason = () -> Component.text("HexLimbo jest chwilowo niedostępne. Spróbuj ponownie później.");
+            reason = () -> LegacyText.parse("&cHexLimbo jest chwilowo niedostępne. &7Spróbuj ponownie później.");
         }
         proxy.getEventManager().register(this, new FailFastKickListener(reason));
     }

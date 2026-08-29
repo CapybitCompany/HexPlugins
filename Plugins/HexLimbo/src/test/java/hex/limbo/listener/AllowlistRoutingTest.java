@@ -4,11 +4,14 @@ import hex.limbo.account.AccountType;
 import hex.limbo.account.InMemoryAccountRepository;
 import hex.limbo.auth.AuthService;
 import hex.limbo.auth.AuthState;
+import hex.limbo.auth.ConnectionHandle;
+import hex.limbo.auth.ConnectionRegistry;
 import hex.limbo.auth.PasswordHasher;
 import hex.limbo.config.MessagesConfig;
 import hex.limbo.config.PluginConfig;
 import hex.limbo.config.RuntimeContext;
 import hex.limbo.security.RateLimiter;
+import hex.limbo.testsupport.FakeConnection;
 import hex.limbo.testsupport.TestConfigs;
 import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
@@ -16,7 +19,6 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -28,12 +30,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class AllowlistRoutingTest {
 
+    private final ConnectionRegistry connections = new ConnectionRegistry();
+
     private AuthService authService(RuntimeContext context) {
         return new AuthService(
                 new InMemoryAccountRepository(),
                 new PasswordHasher(4),
                 new RateLimiter(10, 60_000L),
                 context,
+                connections,
                 LoggerFactory.getLogger(AllowlistRoutingTest.class)
         );
     }
@@ -48,16 +53,21 @@ class AllowlistRoutingTest {
         assertFalse(allowed.contains(CommandListener.headOf("/server lobby")));
     }
 
+    /**
+     * The routing predicate the listeners really use: it is asked about the socket, never about the
+     * UUID. {@link ServerPreConnectGateTest} covers the cases where the two answers differ.
+     */
     @Test
     void unauthenticatedRoutesToLimboAuthenticatedToTarget() {
         RuntimeContext context = new RuntimeContext(TestConfigs.defaultConfig(), new MessagesConfig(Map.of()));
         AuthService service = authService(context);
-        UUID uuid = UUID.randomUUID();
-        AuthState state = new AuthState(uuid, "Alice", "iphash", AuthState.Stage.AWAITING_LOGIN, AccountType.CRACKED);
-        service.trackConnection(state);
-        assertFalse(service.isAuthenticated(uuid), "Before login, route → limbo");
+        FakeConnection player = FakeConnection.of("Alice");
+        ConnectionHandle handle = player.connect(connections);
+        AuthState state = new AuthState(handle.uuid(), "Alice", "iphash", AuthState.Stage.AWAITING_LOGIN, AccountType.CRACKED);
+        service.trackConnection(handle, state);
+        assertFalse(connections.isAuthenticatedConnection(player.uuid(), player), "Before login, route to limbo");
         state.setStage(AuthState.Stage.AUTHENTICATED_CRACKED);
-        assertTrue(service.isAuthenticated(uuid), "After login, route → target");
+        assertTrue(connections.isAuthenticatedConnection(player.uuid(), player), "After login, route to target");
     }
 
     @Test

@@ -6,6 +6,12 @@
 #   messages.yml, limbo.actionbar-* (visual only).
 # Restart-required: database.*, security.ip-hash-pepper, security.rate-limit-per-minute,
 # limbo.server-name / bind-host / bind-port / spawn.* (these define the internal backend).
+#
+# config-version is managed by HexLimbo. On startup an older file is migrated in place: missing
+# keys are added, values that still match a previous release's default are refreshed, and anything
+# you changed yourself is kept. A one-time backup (config.yml.v<old>.bak) is written first.
+# Do not edit this number by hand.
+config-version: 2
 
 servers:
   # The server players are sent to once authenticated.
@@ -31,6 +37,8 @@ limbo:
     pitch: 0.0
 
   # Visual-only: show an actionbar message reminding the player to /login or /register.
+  # NOTE: this string is written straight into a protocol packet by the internal backend, so it is
+  # plain text - "&" colour codes are NOT translated here and would be shown literally.
   # Default OFF in v1: the NBT TextComponent encoding for the action-bar packet is fragile
   # across 1.21.11 client builds. Re-enable once you've smoke-tested it against your client.
   actionbar-enabled: false
@@ -133,16 +141,30 @@ premium:
   fail-open-on-check-error: false
 
 prompts:
-  # Master switch for the unauthenticated login/register prompts (BossBar, title, chat) shown to
-  # players sitting in the limbo, plus the welcome shown after they authenticate. When false, the
-  # limbo stays silent (players still see command feedback from /login and /register).
+  # Master switch for everything HexLimbo puts on a player's screen: the unauthenticated
+  # login/register prompt (BossBar, title, chat) shown in the limbo, plus the greeting shown after
+  # the player has arrived on servers.target. When false, HexLimbo stays silent (players still see
+  # direct command feedback from /login and /register).
+  #
+  # WHEN EACH TITLE APPEARS
+  #   Limbo prompt (prompts.login.* / prompts.register.*): exactly once, the moment
+  #     ServerConnectedEvent confirms the player is really connected to the internal limbo backend.
+  #   Success greeting (prompts.success.* / prompts.session-success.* / prompts.premium-success.* /
+  #     prompts.premium-skip.*): NOT at the moment /login succeeds, but only once
+  #     ServerConnectedEvent confirms the player has actually arrived on servers.target. Which of
+  #     the four blocks is used depends on how the player authenticated (manual /login and
+  #     /register share prompts.success.*, a session auto-login uses prompts.session-success.*, a
+  #     Mojang premium handshake uses prompts.premium-success.*, and the admin-bypass permission
+  #     uses prompts.premium-skip.*). Each one fires at most once per successful authentication.
+  #
+  # All texts live in messages.yml and support "&" colour codes.
   enabled: true
-  # Show a persistent BossBar reading e.g. "Zaloguj się: /login <hasło>".
+  # Show a persistent BossBar reading e.g. "Hex » Zaloguj się: /login <hasło>".
   bossbar-enabled: true
-  # Show a one-shot center-screen title + subtitle when the player enters the limbo and again on
-  # successful authentication.
+  # Show the one-shot center-screen title + subtitle when the player enters the limbo, and the
+  # success title after they arrive on the target server (see success-title-enabled below).
   title-enabled: true
-  # Send the initial chat instruction and the periodic reminders below.
+  # Send the initial chat instruction, the periodic reminders below, and the success chat line.
   chat-enabled: true
   # How often (seconds) to re-send the chat reminder while the player is unauthenticated. The
   # BossBar and title are NOT re-spammed; only the chat line repeats. Set 0 to disable reminders
@@ -150,12 +172,23 @@ prompts:
   reminder-interval-seconds: 15
   # BossBar styling. color: PINK, BLUE, RED, GREEN, YELLOW, PURPLE, WHITE.
   # overlay: PROGRESS, NOTCHED_6, NOTCHED_10, NOTCHED_12, NOTCHED_20. Invalid values fall back to
-  # RED / PROGRESS. progress: 0.0-1.0 fill fraction.
-  bossbar-color: "RED"
+  # YELLOW / PROGRESS. progress: 0.0-1.0 fill fraction.
+  # YELLOW matches the "&e = attention" role in the Hex colour scheme; PURPLE is the other choice
+  # that stays visually consistent with it.
+  bossbar-color: "YELLOW"
   bossbar-overlay: "PROGRESS"
   bossbar-progress: 1.0
-  # Also show a title/subtitle on successful authentication and to premium players in the lobby.
+  # Show the success title/subtitle on arrival at the target server. When false only the success
+  # chat line is sent. Applies to all four authentication paths listed above.
   success-title-enabled: true
-  # Greet premium / admin-bypass players who skipped the limbo with a short "limbo skipped" message
-  # when they arrive in the target lobby.
-  premium-skip-enabled: true
+  # The two paths that skip the limbo entirely are gated independently, so you can welcome premium
+  # players while keeping staff joins silent (or the other way round).
+  #   premium-success-enabled     – Mojang premium logins, uses prompts.premium-success.*
+  #   admin-bypass-success-enabled – admin-bypass-permission holders, uses prompts.premium-skip.*
+  # Neither affects the /login, /register or session greetings.
+  #
+  # LEGACY: releases before config-version 2 had a single 'premium-skip-enabled' covering both.
+  # If that key is still present and the two keys below are absent, its value is used for both and
+  # the migration rewrites it into the pair (your on/off choice is preserved).
+  premium-success-enabled: true
+  admin-bypass-success-enabled: true

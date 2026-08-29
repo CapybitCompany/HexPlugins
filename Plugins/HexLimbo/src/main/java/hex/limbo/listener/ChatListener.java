@@ -5,10 +5,12 @@ import com.velocitypowered.api.event.player.PlayerChatEvent;
 import com.velocitypowered.api.proxy.Player;
 import hex.limbo.auth.AuthService;
 import hex.limbo.config.RuntimeContext;
-import net.kyori.adventure.text.Component;
 
 /**
  * Silences chat while the player is unauthenticated. Admin-bypass users skip the gate.
+ *
+ * <p>The gate is fail-closed: see
+ * {@link hex.limbo.auth.ConnectionRegistry#isAuthenticatedConnection(java.util.UUID, Object)}.
  *
  * <p>Velocity API limitation: {@code PlayerChatEvent} is deprecated since Velocity 3.3 in favour of
  * a packet-based signed-chat pipeline that Velocity does not surface a stable API for. Until
@@ -32,10 +34,12 @@ public final class ChatListener {
         if (player.hasPermission(context.config().adminBypassPermission())) {
             return;
         }
-        if (authService.isAuthenticated(player.getUniqueId())) {
+        // Fail-closed and identity-scoped: an unknown or superseded socket stays silenced and is
+        // never judged against the auth state of whoever holds the UUID now.
+        if (authService.connections().isAuthenticatedConnection(player.getUniqueId(), player)) {
             return;
         }
         event.setResult(PlayerChatEvent.ChatResult.denied());
-        player.sendMessage(Component.text(context.messages().raw("error.chat-blocked")));
+        player.sendMessage(context.messages().component("error.chat-blocked"));
     }
 }

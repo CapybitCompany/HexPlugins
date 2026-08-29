@@ -42,8 +42,36 @@ public final class TestConfigs {
         return new PluginConfig.Prompts(
                 true, true, true, true,
                 15L,
-                "RED", "PROGRESS", 1.0f,
-                true, true
+                "YELLOW", "PROGRESS", 1.0f,
+                true, true, true
+        );
+    }
+
+    /** Default prompts with the premium and admin-bypass greetings toggled independently. */
+    public static PluginConfig.Prompts promptsWithSkipGates(boolean premium, boolean adminBypass) {
+        PluginConfig.Prompts base = defaultPrompts();
+        return new PluginConfig.Prompts(
+                base.enabled(), base.bossbarEnabled(), base.titleEnabled(), base.chatEnabled(),
+                base.reminderIntervalSeconds(),
+                base.bossbarColor(), base.bossbarOverlay(), base.bossbarProgress(),
+                base.successTitleEnabled(), premium, adminBypass
+        );
+    }
+
+    /** Replaces only the prompts block of the default config. */
+    public static PluginConfig withPrompts(PluginConfig.Prompts prompts) {
+        PluginConfig base = defaultConfig();
+        return new PluginConfig(
+                base.targetServer(),
+                base.loginTimeoutSeconds(),
+                base.adminBypassPermission(),
+                base.allowedCommandsUnauthenticated().stream().toList(),
+                base.database(),
+                base.session(),
+                base.security(),
+                base.premium(),
+                base.limbo(),
+                prompts
         );
     }
 

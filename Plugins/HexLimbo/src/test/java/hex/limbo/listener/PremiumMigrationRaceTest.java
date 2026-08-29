@@ -6,10 +6,13 @@ import hex.limbo.account.AccountType;
 import hex.limbo.account.InMemoryAccountRepository;
 import hex.limbo.auth.AuthService;
 import hex.limbo.auth.AuthState;
+import hex.limbo.auth.ConnectionHandle;
+import hex.limbo.auth.ConnectionRegistry;
 import hex.limbo.auth.PasswordHasher;
 import hex.limbo.config.MessagesConfig;
 import hex.limbo.config.RuntimeContext;
 import hex.limbo.security.RateLimiter;
+import hex.limbo.testsupport.FakeConnection;
 import hex.limbo.testsupport.TestConfigs;
 import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
@@ -88,8 +91,11 @@ class PremiumMigrationRaceTest {
         } catch (RuntimeException ex) {
             return new PremiumLoginDecision(false, true, "exception:" + ex.getMessage());
         }
+        // Same shape as the listener: the connection was opened synchronously at LoginEvent, and
+        // the state is only attached once the migration is proven.
+        ConnectionHandle handle = new FakeConnection(realUuid, name).connect(connections);
         AuthState state = new AuthState(realUuid, name, ipHash, AuthState.Stage.AUTHENTICATED_PREMIUM, AccountType.PREMIUM);
-        authService.trackConnection(state);
+        authService.trackConnection(handle, state);
         return new PremiumLoginDecision(true, false, "migrated");
     }
 
@@ -107,6 +113,8 @@ class PremiumMigrationRaceTest {
         return repo.create(candidate);
     }
 
+    private final ConnectionRegistry connections = new ConnectionRegistry();
+
     private AuthService authService(AccountRepository repo) {
         RuntimeContext context = new RuntimeContext(TestConfigs.defaultConfig(), new MessagesConfig(Map.of()));
         return new AuthService(
@@ -114,6 +122,7 @@ class PremiumMigrationRaceTest {
                 new PasswordHasher(4),
                 new RateLimiter(10, 60_000L),
                 context,
+                connections,
                 LoggerFactory.getLogger(PremiumMigrationRaceTest.class)
         );
     }

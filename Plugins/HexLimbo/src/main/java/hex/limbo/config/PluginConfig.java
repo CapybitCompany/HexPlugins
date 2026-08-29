@@ -51,6 +51,13 @@ public final class PluginConfig {
     /**
      * Toggles and styling for the unauthenticated login/register prompts (BossBar, title, chat)
      * shown to players sitting in the limbo, and the welcome shown once they authenticate.
+     *
+     * <p>{@code enabled} is the master switch and {@code successTitleEnabled} the global title
+     * switch. On top of those, the two paths that skip the limbo entirely are gated separately:
+     * {@code premiumSuccessEnabled} for Mojang premium logins and {@code adminBypassSuccessEnabled}
+     * for admin-bypass holders. Files written before {@code config-version} 2 had a single
+     * {@code premium-skip-enabled} covering both; {@link ConfigLoader} still honours it as an alias
+     * and {@link ConfigMigrator} rewrites it into the pair.
      */
     public record Prompts(
             boolean enabled,
@@ -62,7 +69,8 @@ public final class PluginConfig {
             String bossbarOverlay,
             float bossbarProgress,
             boolean successTitleEnabled,
-            boolean premiumSkipEnabled
+            boolean premiumSuccessEnabled,
+            boolean adminBypassSuccessEnabled
     ) {}
 
     public record Limbo(

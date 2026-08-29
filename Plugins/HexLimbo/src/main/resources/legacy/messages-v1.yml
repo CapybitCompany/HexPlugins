@@ -1,0 +1,122 @@
+# Wiadomości czatu HexLimbo. {0}, {1}, ... są zastępowane argumentami pozycyjnymi.
+
+# Powody rozłączenia (używane jako komunikaty wyrzucenia z serwera).
+disconnect.invalid-name: "Nieprawidłowa nazwa użytkownika."
+disconnect.login-timeout: "Nie zalogowałeś się na czas."
+disconnect.cracked-name-collision: "Ta nazwa jest już zarejestrowana jako konto nie-premium. Poproś administrację o migrację konta."
+disconnect.premium-name-required: "Ta nazwa należy do konta premium Mojang. Połącz się ponownie z prawidłowym klientem premium."
+disconnect.account-state-error: "Twoje konto jest w niespójnym stanie. Skontaktuj się z administracją."
+disconnect.premium-check-unavailable: "Nie można teraz zweryfikować statusu premium w Mojang. Spróbuj ponownie za kilka minut."
+disconnect.service-unavailable: "HexLimbo jest chwilowo niedostępne. Spróbuj ponownie później."
+disconnect.limbo-unavailable: "Poczekalnia logowania jest chwilowo niedostępna. Spróbuj ponownie później."
+disconnect.forwarding-failed: "Nie udało się ukończyć procesu przekazywania Velocity. Skontaktuj się z administracją."
+
+# Powitanie w poczekalni (wysyłane po wejściu do limbo).
+limbo.prompt-register: "Witaj! Nie masz jeszcze konta. Zarejestruj się przez /register <hasło> <hasło>."
+limbo.prompt-login: "Witaj z powrotem! Zaloguj się przez /login <hasło>."
+
+# Podpowiedzi dla niezalogowanych graczy w poczekalni (BossBar, tytuł na środku ekranu, czat).
+# Ścieżka logowania (konto już istnieje):
+prompts.login.bossbar: "Zaloguj się: /login <hasło>"
+prompts.login.title: "Zaloguj się"
+prompts.login.subtitle: "Wpisz /login <hasło>, aby wejść na serwer."
+prompts.login.chat: "Musisz się zalogować. Użyj: /login <hasło>"
+# Ścieżka rejestracji (konto nie istnieje):
+prompts.register.bossbar: "Zarejestruj się: /register <hasło> <hasło>"
+prompts.register.title: "Zarejestruj konto"
+prompts.register.subtitle: "Wpisz /register <hasło> <hasło>, aby zacząć grę."
+prompts.register.chat: "Nie masz jeszcze konta. Użyj: /register <hasło> <hasło>"
+# Powitanie po udanym uwierzytelnieniu:
+prompts.success.chat: "Zalogowano pomyślnie. Miłej gry na HexagonMC!"
+prompts.success.title: "Zalogowano"
+prompts.success.subtitle: "Miłej gry na HexagonMC!"
+# Powitanie graczy premium / z uprawnieniem bypass, którzy pomijają poczekalnię:
+prompts.premium-skip.chat: "Wykryto konto premium. Poczekalnia pominięta."
+prompts.premium-skip.title: "Konto premium"
+prompts.premium-skip.subtitle: "Poczekalnia pominięta. Miłej gry!"
+
+# Błędy wyświetlane w linii.
+error.must-authenticate-first: "Najpierw użyj /login lub /register."
+error.command-blocked: "Musisz się zalogować, zanim użyjesz tej komendy."
+error.chat-blocked: "Musisz się zalogować, zanim napiszesz na czacie."
+error.rate-limited: "Wysyłasz zapytania zbyt szybko. Spróbuj ponownie za minutę."
+error.players-only: "Tej komendy mogą używać tylko gracze."
+error.internal: "Wystąpił błąd wewnętrzny. Spróbuj ponownie lub skontaktuj się z administracją."
+
+# /register
+register.usage: "Użycie: /register <hasło> <hasło>"
+register.success: "Rejestracja zakończona pomyślnie. Przenosimy Cię do sieci."
+register.password-mismatch: "Hasła nie są takie same."
+register.password-too-short: "Hasło musi mieć co najmniej {0} znaków."
+register.already-registered: "Jesteś już zarejestrowany. Użyj /login <hasło>."
+register.already-authenticated: "Jesteś już zalogowany."
+register.too-many-accounts: "Z Twojego adresu zarejestrowano zbyt wiele kont."
+register.premium-name-protected: "Ta nazwa należy do konta premium Mojang i nie może być używana przez klienta nie-premium."
+register.premium-check-unavailable: "Nie można teraz zweryfikować statusu premium w Mojang. Spróbuj ponownie za kilka minut."
+
+# /login
+login.usage: "Użycie: /login <hasło>"
+login.success: "Logowanie zakończone pomyślnie."
+login.wrong-password: "Nieprawidłowe hasło."
+login.account-locked: "Konto jest tymczasowo zablokowane z powodu zbyt wielu nieudanych prób."
+login.not-registered: "Nie jesteś zarejestrowany. Użyj /register <hasło> <hasło>."
+login.already-authenticated: "Jesteś już zalogowany."
+
+# /logout
+logout.success: "Wylogowano. Użyj /login <hasło>, aby wrócić."
+logout.premium-not-supported: "Konta premium są uwierzytelniane przez Mojang w każdej sesji; połącz się ponownie, aby odświeżyć uwierzytelnienie."
+
+# /changepassword
+changepassword.usage: "Użycie: /changepassword <stareHasło> <noweHasło>"
+changepassword.success: "Hasło zostało zmienione."
+changepassword.failed: "Nie udało się zmienić hasła. Sprawdź stare hasło i jego długość."
+
+# /premium
+premium.requested: "Zgłoszono prośbę o migrację do premium. Kup Minecrafta i połącz się ponownie, aby dokończyć."
+premium.already-requested: "Migracja została już zgłoszona."
+premium.already-premium: "Twoje konto jest już kontem premium."
+
+# /limbo pomoc
+limbo.hint: "Użyj /limbo help, aby zobaczyć komendy logowania."
+limbo.help-header: "Komendy HexLimbo:"
+limbo.help-register: "  /register <hasło> <hasło>"
+limbo.help-login: "  /login <hasło>"
+limbo.help-logout: "  /logout"
+limbo.help-changepassword: "  /changepassword <stareHasło> <noweHasło>"
+limbo.help-premium: "  /premium"
+
+# Wyjście komend administracyjnych.
+admin.usage: "Użycie: /hexlimbo <reload|info|resetpassword|forcelogout|unregister|sessions|migrate|debug|limbo>"
+admin.usage.info: "Użycie: /hexlimbo info <gracz>"
+admin.usage.resetpassword: "Użycie: /hexlimbo resetpassword <gracz> <noweHasło>"
+admin.usage.forcelogout: "Użycie: /hexlimbo forcelogout <gracz>"
+admin.usage.unregister: "Użycie: /hexlimbo unregister <gracz>"
+admin.usage.sessions: "Użycie: /hexlimbo sessions <gracz>"
+admin.usage.migrate: "Użycie: /hexlimbo migrate <gracz>"
+admin.usage.debug: "Użycie: /hexlimbo debug <gracz>"
+admin.reload.success: "Konfiguracja HexLimbo została przeładowana."
+admin.reload.failed: "Przeładowanie nie powiodło się: {0}"
+admin.account-not-found: "Brak konta o tej nazwie użytkownika."
+admin.player-not-online: "Tego gracza nie ma na serwerze."
+admin.resetpassword.success: "Hasło zresetowane, a sesje unieważnione."
+admin.forcelogout.kick-premium: "Administrator wymusił ponowne połączenie."
+admin.forcelogout.kicked-premium: "Rozłączono gracza premium {0}."
+admin.forcelogout.sent-limbo: "Przekierowano {0} do serwera poczekalni."
+admin.forcelogout.offline-sessions-invalidated: "Gracz był offline; sesje unieważnione."
+admin.unregister.success: "Konto usunięte."
+admin.unregister.kick: "Twoje konto zostało wyrejestrowane."
+admin.sessions.none: "Brak ważnych sesji."
+admin.sessions.count: "Ważne sesje: {0}"
+admin.sessions.expiry: "Ostatnia sesja wygasa w epoce ms {0}."
+admin.migrate.marked: "Konto oznaczone jako PENDING_MIGRATION."
+admin.debug.no-state: "Brak aktywnego stanu uwierzytelnienia dla tego gracza."
+# {0} = nazwa pola, {1} = wartość. Używane dla każdej linii /hexlimbo info <gracz>.
+admin.info.header: "Informacje HexLimbo o {0}"
+admin.info.field: "  {0}: {1}"
+# {0} = nazwa pola, {1} = wartość. Używane dla każdej linii /hexlimbo debug <gracz>.
+admin.debug.header: "Debug HexLimbo {0}"
+admin.debug.field: "  {0}: {1}"
+admin.limbo.usage: "Użycie: /hexlimbo limbo"
+admin.limbo.status: "Status poczekalni: {0}"
+admin.limbo.field: "  {0}: {1}"
+admin.limbo.no-error: "(brak)"

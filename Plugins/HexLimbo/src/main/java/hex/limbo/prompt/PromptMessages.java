@@ -11,6 +11,9 @@ import net.kyori.adventure.text.Component;
  * already computed: {@link AuthState.Stage#UNREGISTERED} means the account repository found no row
  * (so {@code /register} is the valid command), everything else that is unauthenticated means the
  * row exists and {@code /login} is valid.
+ *
+ * <p>All lookups go through {@link MessagesConfig#component(String, Object...)}, so the configured
+ * {@code &}-codes are rendered as real colours instead of being printed literally.
  */
 public final class PromptMessages {
 
@@ -27,18 +30,18 @@ public final class PromptMessages {
     }
 
     public static Component bossbar(MessagesConfig messages, AuthState.Stage stage) {
-        return Component.text(messages.raw(prefix(stage) + "bossbar"));
+        return messages.component(prefix(stage) + "bossbar");
     }
 
     public static Component title(MessagesConfig messages, AuthState.Stage stage) {
-        return Component.text(messages.raw(prefix(stage) + "title"));
+        return messages.component(prefix(stage) + "title");
     }
 
     public static Component subtitle(MessagesConfig messages, AuthState.Stage stage) {
-        return Component.text(messages.raw(prefix(stage) + "subtitle"));
+        return messages.component(prefix(stage) + "subtitle");
     }
 
     public static Component chat(MessagesConfig messages, AuthState.Stage stage) {
-        return Component.text(messages.raw(prefix(stage) + "chat"));
+        return messages.component(prefix(stage) + "chat");
     }
 }

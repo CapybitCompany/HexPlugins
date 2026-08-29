@@ -20,6 +20,11 @@ import java.util.Map;
 /**
  * Reads {@code config.yml} and {@code messages.yml} from the plugin data directory, writing defaults
  * from bundled resources when they are absent. Uses SnakeYAML and tolerates missing keys.
+ *
+ * <p>Before either file is parsed it is handed to {@link ConfigMigrator}, which upgrades a file
+ * written by an older release in place: new keys are added, values still matching the old defaults
+ * are refreshed, and deliberate customisations are kept. The migration is versioned and idempotent,
+ * so a file that is already current is read straight through.
  */
 public final class ConfigLoader {
 
@@ -28,10 +33,12 @@ public final class ConfigLoader {
 
     private final Path dataDirectory;
     private final Logger logger;
+    private final ConfigMigrator migrator;
 
     public ConfigLoader(Path dataDirectory, Logger logger) {
         this.dataDirectory = dataDirectory;
         this.logger = logger;
+        this.migrator = new ConfigMigrator(logger);
     }
 
     public PluginConfig loadConfig() throws IOException {
@@ -39,6 +46,8 @@ public final class ConfigLoader {
         Path file = dataDirectory.resolve(CONFIG_FILE);
         if (Files.notExists(file)) {
             writeDefaultResource(file, CONFIG_FILE);
+        } else {
+            migrator.migrateConfig(file);
         }
 
         Map<String, Object> root = readYaml(file);
@@ -96,17 +105,23 @@ public final class ConfigLoader {
                 bool(premiumSection, "fail-open-on-check-error", false)
         );
 
+        // Legacy alias: before config-version 2 a single 'premium-skip-enabled' gated both the
+        // premium and the admin-bypass greeting. A hand-written or un-migrated old file must keep
+        // behaving the same, so it seeds both flags whenever the newer keys are absent.
+        boolean legacySkipEnabled = bool(promptsSection, "premium-skip-enabled", true);
+
         PluginConfig.Prompts prompts = new PluginConfig.Prompts(
                 bool(promptsSection, "enabled", true),
                 bool(promptsSection, "bossbar-enabled", true),
                 bool(promptsSection, "title-enabled", true),
                 bool(promptsSection, "chat-enabled", true),
                 number(promptsSection, "reminder-interval-seconds", 15L).longValue(),
-                string(promptsSection, "bossbar-color", "RED"),
+                string(promptsSection, "bossbar-color", "YELLOW"),
                 string(promptsSection, "bossbar-overlay", "PROGRESS"),
                 number(promptsSection, "bossbar-progress", 1.0).floatValue(),
                 bool(promptsSection, "success-title-enabled", true),
-                bool(promptsSection, "premium-skip-enabled", true)
+                bool(promptsSection, "premium-success-enabled", legacySkipEnabled),
+                bool(promptsSection, "admin-bypass-success-enabled", legacySkipEnabled)
         );
 
         PluginConfig.Forwarding forwarding = new PluginConfig.Forwarding(
@@ -150,22 +165,74 @@ public final class ConfigLoader {
         );
     }
 
+    /**
+     * Loads {@code messages.yml}, laying the operator's file over the bundled defaults.
+     *
+     * <p>The overlay is what {@code config.yml} has always had through its per-key fallbacks, and
+     * messages need it for the same reason: a release that adds a key must not print the bare key
+     * name at an operator whose file predates it. A value the operator set always wins - the
+     * defaults only fill gaps - and a key they deleted comes back as its default rather than as the
+     * literal string {@code admin.forcelogout.overtaken}.
+     *
+     * <p>{@link ConfigMigrator} still rewrites the file so new keys and their comments become
+     * visible and editable; this is the runtime safety net underneath it, so a new message works
+     * from the first startup whether or not the file has been migrated yet.
+     */
     public MessagesConfig loadMessages() throws IOException {
         Files.createDirectories(dataDirectory);
         Path file = dataDirectory.resolve(MESSAGES_FILE);
         if (Files.notExists(file)) {
             writeDefaultResource(file, MESSAGES_FILE);
+        } else {
+            migrator.migrateMessages(file);
         }
-        Map<String, Object> raw = readYaml(file);
+        Map<String, String> flat = new LinkedHashMap<>(bundledMessages());
+        flat.putAll(messageEntries(readYaml(file)));
+        return new MessagesConfig(flat);
+    }
+
+    /** The messages shipped inside the jar, used to fill gaps in an older operator file. */
+    private Map<String, String> bundledMessages() {
+        try (InputStream in = getClass().getClassLoader().getResourceAsStream(MESSAGES_FILE)) {
+            if (in == null) {
+                logger.warn("Bundled '{}' is missing from the plugin jar; messages absent from the "
+                        + "operator file will render as their key.", MESSAGES_FILE);
+                return Map.of();
+            }
+            try (Reader reader = new java.io.InputStreamReader(in, StandardCharsets.UTF_8)) {
+                Object parsed = new Yaml().load(reader);
+                return parsed instanceof Map<?, ?> map ? messageEntries(toStringKeyed(map)) : Map.of();
+            }
+        } catch (IOException | RuntimeException ex) {
+            logger.warn("Could not read the bundled '{}': {}", MESSAGES_FILE, ex.getMessage());
+            return Map.of();
+        }
+    }
+
+    private Map<String, String> messageEntries(Map<String, Object> raw) {
         Map<String, String> flat = new LinkedHashMap<>();
         for (Map.Entry<String, Object> entry : raw.entrySet()) {
             Object value = entry.getValue();
             if (value == null) {
                 continue;
             }
+            // Bookkeeping, not a message: never let it be looked up and rendered to a player.
+            if (ConfigMigrator.MESSAGES_VERSION_KEY.equals(entry.getKey())) {
+                continue;
+            }
             flat.put(entry.getKey(), String.valueOf(value));
         }
-        return new MessagesConfig(flat);
+        return flat;
+    }
+
+    private static Map<String, Object> toStringKeyed(Map<?, ?> map) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        for (Map.Entry<?, ?> e : map.entrySet()) {
+            if (e.getKey() != null) {
+                result.put(String.valueOf(e.getKey()), e.getValue());
+            }
+        }
+        return result;
     }
 
     private Map<String, Object> readYaml(Path file) throws IOException {

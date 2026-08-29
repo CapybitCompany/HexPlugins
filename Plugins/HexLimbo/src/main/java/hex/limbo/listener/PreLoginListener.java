@@ -5,7 +5,6 @@ import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.PreLoginEvent;
 import hex.limbo.config.RuntimeContext;
 import hex.limbo.premium.PremiumResolver;
-import net.kyori.adventure.text.Component;
 import org.slf4j.Logger;
 
 /**
@@ -36,7 +35,7 @@ public final class PreLoginListener {
         String username = event.getUsername();
         if (username == null || username.isBlank()) {
             event.setResult(PreLoginEvent.PreLoginComponentResult.denied(
-                    Component.text(context.messages().raw("disconnect.invalid-name"))));
+                    context.messages().component("disconnect.invalid-name")));
             return null;
         }
 
@@ -56,7 +55,7 @@ public final class PreLoginListener {
                         event.setResult(PreLoginEvent.PreLoginComponentResult.forceOfflineMode());
                     } else {
                         event.setResult(PreLoginEvent.PreLoginComponentResult.denied(
-                                Component.text(context.messages().raw("disconnect.premium-check-unavailable"))));
+                                context.messages().component("disconnect.premium-check-unavailable")));
                     }
                 }
             }
