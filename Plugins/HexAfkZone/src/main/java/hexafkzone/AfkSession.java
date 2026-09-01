@@ -8,15 +8,21 @@ final class AfkSession {
     private final UUID playerId;
     private final String profileId;
     private final Instant enteredAt;
+    private final boolean previousSleepingIgnored;
     private Instant nextRewardAt;
     private Instant rewardMessageUntil;
     private String rewardMessage;
 
-    AfkSession(UUID playerId, String profileId, Instant enteredAt, Instant nextRewardAt) {
+    AfkSession(UUID playerId,
+               String profileId,
+               Instant enteredAt,
+               Instant nextRewardAt,
+               boolean previousSleepingIgnored) {
         this.playerId = playerId;
         this.profileId = profileId;
         this.enteredAt = enteredAt;
         this.nextRewardAt = nextRewardAt;
+        this.previousSleepingIgnored = previousSleepingIgnored;
     }
 
     UUID playerId() {
@@ -29,6 +35,10 @@ final class AfkSession {
 
     Instant enteredAt() {
         return enteredAt;
+    }
+
+    boolean previousSleepingIgnored() {
+        return previousSleepingIgnored;
     }
 
     Instant nextRewardAt() {

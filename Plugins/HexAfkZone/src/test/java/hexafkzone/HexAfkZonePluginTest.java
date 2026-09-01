@@ -68,10 +68,12 @@ class HexAfkZonePluginTest {
         Player player = server.addPlayer("AfkUser");
         plugin.service().setClock(Clock.fixed(Instant.parse("2026-07-22T10:00:00Z"), ZoneOffset.UTC));
 
+        assertFalse(player.isSleepingIgnored());
         player.teleport(location(2784, 75, 960));
         plugin.service().updatePlayer(player);
 
         assertTrue(plugin.service().isAfk(player));
+        assertTrue(player.isSleepingIgnored());
         AfkSession first = plugin.service().session(player.getUniqueId()).orElseThrow();
         assertEquals("default", first.profileId());
         assertEquals(Instant.parse("2026-07-22T10:10:00Z"), first.nextRewardAt());
@@ -80,14 +82,34 @@ class HexAfkZonePluginTest {
         plugin.service().updatePlayer(player);
 
         assertFalse(plugin.service().isAfk(player));
+        assertFalse(player.isSleepingIgnored());
 
         plugin.service().setClock(Clock.fixed(Instant.parse("2026-07-22T10:10:00Z"), ZoneOffset.UTC));
         player.teleport(location(2784, 75, 960));
         plugin.service().updatePlayer(player);
 
+        assertTrue(player.isSleepingIgnored());
         AfkSession second = plugin.service().session(player.getUniqueId()).orElseThrow();
         assertEquals(Instant.parse("2026-07-22T10:10:00Z"), second.enteredAt());
         assertEquals(Instant.parse("2026-07-22T10:20:00Z"), second.nextRewardAt());
+    }
+
+    @Test
+    void shouldRestoreExistingSleepingIgnoredStateWhenPlayerLeavesRegion() {
+        Player player = server.addPlayer("IgnoredUser");
+        player.setSleepingIgnored(true);
+
+        player.teleport(location(2784, 75, 960));
+        plugin.service().updatePlayer(player);
+
+        assertTrue(plugin.service().isAfk(player));
+        assertTrue(player.isSleepingIgnored());
+
+        player.teleport(location(2700, 75, 960));
+        plugin.service().updatePlayer(player);
+
+        assertFalse(plugin.service().isAfk(player));
+        assertTrue(player.isSleepingIgnored());
     }
 
     @Test

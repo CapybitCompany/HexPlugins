@@ -46,9 +46,7 @@ public final class AfkZoneService {
             task = null;
         }
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if (sessions.containsKey(player.getUniqueId())) {
-                clearAfkDisplays(player);
-            }
+            exit(player);
         }
         sessions.clear();
     }
@@ -71,8 +69,11 @@ public final class AfkZoneService {
     }
 
     public void remove(Player player) {
-        sessions.remove(player.getUniqueId());
-        clearAfkDisplays(player);
+        AfkSession removed = sessions.remove(player.getUniqueId());
+        if (removed != null) {
+            restoreSleepingIgnored(player, removed);
+            clearAfkDisplays(player);
+        }
     }
 
     public boolean isAfk(Player player) {
@@ -115,13 +116,15 @@ public final class AfkZoneService {
 
     private void enter(Player player) {
         if (sessions.containsKey(player.getUniqueId())) {
+            ignoreForSleep(player);
             return;
         }
         AfkZoneConfig.RankProfile profile = profileFor(player);
         Instant now = clock.instant();
         AfkSession session = new AfkSession(player.getUniqueId(), profile.id(), now,
-                now.plusSeconds(profile.rewardIntervalSeconds()));
+                now.plusSeconds(profile.rewardIntervalSeconds()), player.isSleepingIgnored());
         sessions.put(player.getUniqueId(), session);
+        ignoreForSleep(player);
         showZoneSubtitle(player, profile);
         sendTimerActionbar(player, session, profile);
     }
@@ -129,7 +132,20 @@ public final class AfkZoneService {
     private void exit(Player player) {
         AfkSession removed = sessions.remove(player.getUniqueId());
         if (removed != null) {
+            restoreSleepingIgnored(player, removed);
             clearAfkDisplays(player);
+        }
+    }
+
+    private void ignoreForSleep(Player player) {
+        if (!player.isSleepingIgnored()) {
+            player.setSleepingIgnored(true);
+        }
+    }
+
+    private void restoreSleepingIgnored(Player player, AfkSession session) {
+        if (player.isSleepingIgnored() != session.previousSleepingIgnored()) {
+            player.setSleepingIgnored(session.previousSleepingIgnored());
         }
     }
 
