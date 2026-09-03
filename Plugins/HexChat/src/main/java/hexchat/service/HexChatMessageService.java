@@ -95,6 +95,25 @@ public final class HexChatMessageService {
         );
     }
 
+    /**
+     * Natychmiastowe powiadomienie wyciszanego gracza, gdy jest online.
+     * Osobny tekst od {@code messages.private-muted}, który dostaje gracz przy próbie pisania.
+     * Nazwa gracza, czas i powód idą przez {@link Placeholder#unparsed}, więc treści od
+     * użytkowników nie mogą wstrzyknąć własnych tagów MiniMessage.
+     */
+    public void sendPlayerMuteNotification(CommandSender sender, String playerName, String timeText, String reason) {
+        sendPrefixed(
+                sender,
+                configSupplier.get().messages().playerMuteNotification(),
+                "messages.player-mute-notification",
+                TagResolver.resolver(
+                        Placeholder.unparsed("player", playerName),
+                        Placeholder.unparsed("time", timeText),
+                        Placeholder.unparsed("reason", reason)
+                )
+        );
+    }
+
     public void sendPlayerMuteSet(CommandSender sender, String playerName, String timeText, String reason) {
         sendPrefixed(
                 sender,

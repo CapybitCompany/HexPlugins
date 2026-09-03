@@ -32,6 +32,16 @@ class HexChatMessageServiceTest {
     }
 
     private static HexChatConfig.Messages messages(String prefix, String cooldownWait) {
+        return messages(prefix, cooldownWait, "pm", "pn", "na zawsze");
+    }
+
+    private static HexChatConfig.Messages messages(
+            String prefix,
+            String cooldownWait,
+            String privateMuted,
+            String playerMuteNotification,
+            String muteTimePermanent
+    ) {
         return new HexChatConfig.Messages(
                 prefix,
                 "<red>no-perm</red>",
@@ -40,7 +50,9 @@ class HexChatMessageServiceTest {
                 cooldownWait,
                 "<red>muted</red>",
                 "e", "d", "ae", "ad", "se", "sd",
-                "pm", "ms", "mr", "mn", "mt", "mi", "md"
+                privateMuted, playerMuteNotification,
+                "ms", "mr", "mn", "mt", "mi", "md",
+                muteTimePermanent
         );
     }
 
@@ -81,6 +93,99 @@ class HexChatMessageServiceTest {
         String text = plain(captor.getValue());
 
         assertTrue(text.contains("Poczekaj 3 sek."), "Treść i placeholder powinny zostać zachowane, było: " + text);
+    }
+
+    @Test
+    void muteNotificationUsesItsOwnConfigurableText() {
+        CapturingLogger log = new CapturingLogger();
+        HexChatConfig config = configWithMessages(messages(
+                "",
+                "x",
+                "PISANIE <time> <reason>",
+                "POWIADOMIENIE <player> <time> <reason>",
+                "na zawsze"
+        ));
+        HexChatMessageService service = new HexChatMessageService(() -> config, log.logger());
+        CommandSender sender = mock(CommandSender.class);
+
+        service.sendPlayerMuteNotification(sender, "Steve", "30m", "spam");
+
+        ArgumentCaptor<Component> captor = ArgumentCaptor.forClass(Component.class);
+        verify(sender).sendMessage(captor.capture());
+        String text = plain(captor.getValue());
+
+        assertTrue(text.contains("POWIADOMIENIE Steve 30m spam"), "Powinien być użyty tekst powiadomienia, było: " + text);
+        assertFalse(text.contains("PISANIE"), "Powiadomienie nie może używać tekstu private-muted");
+    }
+
+    @Test
+    void privateMutedUsesPrivateMutedText() {
+        CapturingLogger log = new CapturingLogger();
+        HexChatConfig config = configWithMessages(messages(
+                "",
+                "x",
+                "PISANIE <time> <reason>",
+                "POWIADOMIENIE <player> <time> <reason>",
+                "na zawsze"
+        ));
+        HexChatMessageService service = new HexChatMessageService(() -> config, log.logger());
+        CommandSender sender = mock(CommandSender.class);
+
+        service.sendPrivateMuted(sender, "na zawsze", "obraza");
+
+        ArgumentCaptor<Component> captor = ArgumentCaptor.forClass(Component.class);
+        verify(sender).sendMessage(captor.capture());
+        String text = plain(captor.getValue());
+
+        assertTrue(text.contains("PISANIE na zawsze obraza"), "Próba pisania używa messages.private-muted, było: " + text);
+        assertFalse(text.contains("POWIADOMIENIE"), "Próba pisania nie może używać tekstu powiadomienia");
+    }
+
+    @Test
+    void muteNotificationPlaceholdersDoNotParseUserInput() {
+        CapturingLogger log = new CapturingLogger();
+        HexChatConfig config = configWithMessages(messages(
+                "",
+                "x",
+                "pm",
+                "<green>Wyciszony <player>: <reason></green>",
+                "na zawsze"
+        ));
+        HexChatMessageService service = new HexChatMessageService(() -> config, log.logger());
+        CommandSender sender = mock(CommandSender.class);
+
+        service.sendPlayerMuteNotification(sender, "<red>Steve</red>", "na zawsze", "<rainbow>powód</rainbow>");
+
+        ArgumentCaptor<Component> captor = ArgumentCaptor.forClass(Component.class);
+        verify(sender).sendMessage(captor.capture());
+        String text = plain(captor.getValue());
+
+        // Placeholder.unparsed: tagi z danych użytkownika zostają dosłownym tekstem.
+        assertTrue(text.contains("<red>Steve</red>"), "Nazwa gracza nie może być parsowana jako MiniMessage, było: " + text);
+        assertTrue(text.contains("<rainbow>powód</rainbow>"), "Powód nie może być parsowany jako MiniMessage, było: " + text);
+    }
+
+    @Test
+    void reloadedConfigChangesMuteMessages() {
+        CapturingLogger log = new CapturingLogger();
+        java.util.concurrent.atomic.AtomicReference<HexChatConfig> configRef =
+                new java.util.concurrent.atomic.AtomicReference<>(configWithMessages(messages(
+                        "", "x", "pm", "PRZED <player>", "na zawsze"
+                )));
+        HexChatMessageService service = new HexChatMessageService(configRef::get, log.logger());
+        CommandSender sender = mock(CommandSender.class);
+
+        service.sendPlayerMuteNotification(sender, "Steve", "na zawsze", "powód");
+
+        // Reload konfiguracji -> kolejne wiadomości używają nowego tekstu.
+        configRef.set(configWithMessages(messages("", "x", "pm", "PO <player>", "na wieki")));
+        service.sendPlayerMuteNotification(sender, "Steve", "na wieki", "powód");
+
+        ArgumentCaptor<Component> captor = ArgumentCaptor.forClass(Component.class);
+        verify(sender, org.mockito.Mockito.times(2)).sendMessage(captor.capture());
+
+        assertTrue(plain(captor.getAllValues().get(0)).contains("PRZED Steve"));
+        assertTrue(plain(captor.getAllValues().get(1)).contains("PO Steve"));
     }
 
     @Test

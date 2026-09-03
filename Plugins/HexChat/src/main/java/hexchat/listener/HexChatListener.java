@@ -166,25 +166,35 @@ public final class HexChatListener implements Listener {
         contentFilterService.clearHistory(event.getPlayer().getUniqueId());
     }
 
+    // Gracz wyciszony przy próbie pisania dostaje 'messages.private-muted'
+    // (natychmiastowe powiadomienie przy nakładaniu mute'a ma osobny klucz w komendzie).
     private void sendPrivateMuteMessage(AsyncChatEvent event, Player player) {
+        HexChatConfig config = chatFormatService.currentConfig();
+        String permanentText = config.messages().muteTimePermanent();
         Optional<MuteEntry> mute = playerMuteService.activeMute(player.getUniqueId());
         String timeText;
         String reason;
         if (mute.isPresent()) {
             MuteEntry entry = mute.get();
-            timeText = entry.permanent()
-                    ? "na zawsze"
-                    : DurationUtil.formatRemaining(playerMuteService.remainingMillis(entry));
+            timeText = muteTimeText(entry.permanent(), playerMuteService.remainingMillis(entry), permanentText);
             reason = entry.reason().isBlank()
-                    ? chatFormatService.currentConfig().playerMute().defaultReason()
+                    ? config.playerMute().defaultReason()
                     : entry.reason();
         } else {
-            timeText = "na zawsze";
-            reason = chatFormatService.currentConfig().playerMute().defaultReason();
+            timeText = permanentText;
+            reason = config.playerMute().defaultReason();
         }
         final String finalTime = timeText;
         final String finalReason = reason;
         runMainThread(event, () -> messageService.sendPrivateMuted(player, finalTime, finalReason));
+    }
+
+    /**
+     * Tekst czasu wyciszenia: dla wyciszeń stałych skonfigurowany
+     * {@code messages.mute-time-permanent}, w przeciwnym razie pozostały czas.
+     */
+    static String muteTimeText(boolean permanent, long remainingMillis, String permanentText) {
+        return permanent ? permanentText : DurationUtil.formatRemaining(remainingMillis);
     }
 
     private void runMainThread(AsyncChatEvent event, Runnable task) {

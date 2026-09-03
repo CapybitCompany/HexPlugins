@@ -180,12 +180,16 @@ public final class HexChatCommand implements CommandExecutor, TabCompleter {
         PlayerDirectory.ResolvedPlayer target = resolved.get();
         MuteEntry entry = playerMuteService.mute(target.uuid(), target.name(), durationMillis, reason);
         String timeText = entry.permanent()
-                ? "na zawsze"
+                ? configSupplier.get().messages().muteTimePermanent()
                 : DurationUtil.formatRemaining(playerMuteService.remainingMillis(entry));
 
         String finalReason = reason;
         messages.sendPlayerMuteSet(sender, target.name(), timeText, finalReason);
-        playerDirectory.notifyIfOnline(target.uuid(), player -> messages.sendPrivateMuted(player, timeText, finalReason));
+        // Gracz online dostaje osobny, konfigurowalny tekst powiadomienia o nałożonym wyciszeniu.
+        playerDirectory.notifyIfOnline(
+                target.uuid(),
+                player -> messages.sendPlayerMuteNotification(player, target.name(), timeText, finalReason)
+        );
     }
 
     private void handleUnmute(CommandSender sender, String[] args) {
@@ -231,7 +235,7 @@ public final class HexChatCommand implements CommandExecutor, TabCompleter {
 
         MuteEntry entry = mute.get();
         String timeText = entry.permanent()
-                ? "na zawsze"
+                ? configSupplier.get().messages().muteTimePermanent()
                 : DurationUtil.formatRemaining(playerMuteService.remainingMillis(entry));
         String reason = entry.reason().isBlank()
                 ? configSupplier.get().playerMute().defaultReason()

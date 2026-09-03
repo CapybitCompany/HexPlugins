@@ -8,11 +8,14 @@ import hexchat.service.PlayerDirectory;
 import hexchat.service.PlayerMuteService;
 import hexchat.support.TestConfigs;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -33,8 +36,17 @@ class HexChatCommandTest {
         final HexChatMessageService messages = mock(HexChatMessageService.class);
         final PlayerMuteService muteService = mock(PlayerMuteService.class);
         final PlayerDirectory directory = mock(PlayerDirectory.class);
-        final HexChatConfig config = TestConfigs.config();
-        final HexChatCommand command = new HexChatCommand(plugin, messages, muteService, directory, () -> config);
+        final HexChatConfig config;
+        final HexChatCommand command;
+
+        Fixture() {
+            this(TestConfigs.config());
+        }
+
+        Fixture(HexChatConfig config) {
+            this.config = config;
+            this.command = new HexChatCommand(plugin, messages, muteService, directory, () -> this.config);
+        }
     }
 
     private static CommandSender admin() {
@@ -180,6 +192,71 @@ class HexChatCommandTest {
         verify(f.muteService).mute(uuid, "Steve", 0L, "Powód domyślny.");
         verify(f.messages).sendPlayerMuteSet(sender, "Steve", "na zawsze", "Powód domyślny.");
         verify(f.directory).notifyIfOnline(eq(uuid), any());
+    }
+
+    @Test
+    void mutePlayerNotifiesOnlineTargetWithNotificationMessage() {
+        Fixture f = new Fixture();
+        CommandSender sender = admin();
+        UUID uuid = UUID.randomUUID();
+        when(f.directory.resolve("Steve")).thenReturn(Optional.of(new PlayerDirectory.ResolvedPlayer(uuid, "Steve")));
+        MuteEntry entry = new MuteEntry(uuid, "Steve", 0L, "obraza", 1000L);
+        when(f.muteService.mute(eq(uuid), eq("Steve"), anyLong(), anyString())).thenReturn(entry);
+
+        f.command.onCommand(sender, null, "hexchat", new String[]{"mute", "Steve", "obraza"});
+
+        // Powiadomienie gracza online idzie przez osobny, konfigurowalny tekst.
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<Consumer<Player>> captor = ArgumentCaptor.forClass(Consumer.class);
+        verify(f.directory).notifyIfOnline(eq(uuid), captor.capture());
+
+        Player online = mock(Player.class);
+        captor.getValue().accept(online);
+
+        verify(f.messages).sendPlayerMuteNotification(online, "Steve", "na zawsze", "obraza");
+        verify(f.messages, never()).sendPrivateMuted(any(), anyString(), anyString());
+    }
+
+    @Test
+    void mutePlayerUsesConfiguredPermanentTimeText() {
+        HexChatConfig.Messages messages = TestConfigs.messages();
+        HexChatConfig config = TestConfigs.withMessages(new HexChatConfig.Messages(
+                messages.prefix(),
+                messages.noPermission(),
+                messages.reloaded(),
+                messages.usage(),
+                messages.cooldownWait(),
+                messages.chatMuted(),
+                messages.chatMuteEnabled(),
+                messages.chatMuteDisabled(),
+                messages.chatMuteAlreadyEnabled(),
+                messages.chatMuteAlreadyDisabled(),
+                messages.chatMuteStatusEnabled(),
+                messages.chatMuteStatusDisabled(),
+                messages.privateMuted(),
+                messages.playerMuteNotification(),
+                messages.playerMuteSet(),
+                messages.playerMuteRemoved(),
+                messages.playerMuteNotMuted(),
+                messages.playerMuteTargetNotFound(),
+                messages.playerMuteInfo(),
+                messages.playerMuteDurationInvalid(),
+                "na wieki wieków"
+        ));
+
+        Fixture f = new Fixture(config);
+        CommandSender sender = admin();
+        UUID uuid = UUID.randomUUID();
+        when(f.directory.resolve("Steve")).thenReturn(Optional.of(new PlayerDirectory.ResolvedPlayer(uuid, "Steve")));
+        MuteEntry entry = new MuteEntry(uuid, "Steve", 0L, "obraza", 1000L);
+        when(f.muteService.mute(eq(uuid), eq("Steve"), anyLong(), anyString())).thenReturn(entry);
+        when(f.muteService.activeMute(uuid)).thenReturn(Optional.of(entry));
+
+        f.command.onCommand(sender, null, "hexchat", new String[]{"mute", "Steve", "obraza"});
+        f.command.onCommand(sender, null, "hexchat", new String[]{"muteinfo", "Steve"});
+
+        verify(f.messages).sendPlayerMuteSet(sender, "Steve", "na wieki wieków", "obraza");
+        verify(f.messages).sendPlayerMuteInfo(sender, "Steve", "na wieki wieków", "obraza");
     }
 
     @Test

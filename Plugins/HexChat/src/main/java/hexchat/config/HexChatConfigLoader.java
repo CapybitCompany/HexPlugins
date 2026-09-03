@@ -87,6 +87,7 @@ public final class HexChatConfigLoader {
             "AdvancedChat"
     );
     private static final String DEFAULT_PRIVATE_MUTED = "<red>Jesteś wyciszony (<time>). Powód: <reason></red>";
+    private static final String DEFAULT_MUTE_TIME_PERMANENT = "na zawsze";
     private static final String DEFAULT_PLAYER_MUTE_SET = "<green>Wyciszono gracza <white><player></white> na <white><time></white>. Powód: <reason></green>";
     private static final String DEFAULT_PLAYER_MUTE_REMOVED = "<green>Zdjęto wyciszenie z gracza <white><player></white>.</green>";
     private static final String DEFAULT_PLAYER_MUTE_NOT_MUTED = "<yellow>Gracz <white><player></white> nie jest wyciszony.</yellow>";
@@ -181,11 +182,15 @@ public final class HexChatConfigLoader {
                 config.getStringList("content-filter.anti-advertising.extra-patterns")
         );
 
+        // Brakujące przełączniki blacklisty domyślnie włączone — starsze configi
+        // automatycznie zyskują utwardzone dopasowanie bez ręcznej migracji.
         HexChatConfig.Blacklist blacklist = new HexChatConfig.Blacklist(
                 config.getBoolean("content-filter.blacklist.enabled", true),
                 readFilterAction(config, "content-filter.blacklist.action", logger),
                 readNonBlank(config, "content-filter.blacklist.block-message", DEFAULT_BLACKLIST_BLOCK_MESSAGE, logger),
                 config.getBoolean("content-filter.blacklist.match-leetspeak", true),
+                config.getBoolean("content-filter.blacklist.ignore-separators", true),
+                config.getBoolean("content-filter.blacklist.match-word-endings", true),
                 config.getStringList("content-filter.blacklist.words")
         );
 
@@ -383,6 +388,18 @@ public final class HexChatConfigLoader {
                 logger
         );
         String privateMuted = readNonBlank(config, "messages.private-muted", DEFAULT_PRIVATE_MUTED, logger);
+        // Zgodność wsteczna: starsze configi nie mają 'messages.player-mute-notification',
+        // więc natychmiastowe powiadomienie gracza używa wtedy tekstu 'messages.private-muted'.
+        String playerMuteNotification = readOptionalNonBlank(
+                config,
+                "messages.player-mute-notification",
+                privateMuted
+        );
+        String muteTimePermanent = readOptionalNonBlank(
+                config,
+                "messages.mute-time-permanent",
+                DEFAULT_MUTE_TIME_PERMANENT
+        );
         String playerMuteSet = readNonBlank(config, "messages.player-mute-set", DEFAULT_PLAYER_MUTE_SET, logger);
         String playerMuteRemoved = readNonBlank(config, "messages.player-mute-removed", DEFAULT_PLAYER_MUTE_REMOVED, logger);
         String playerMuteNotMuted = readNonBlank(config, "messages.player-mute-not-muted", DEFAULT_PLAYER_MUTE_NOT_MUTED, logger);
@@ -414,12 +431,14 @@ public final class HexChatConfigLoader {
                 chatMuteStatusEnabled,
                 chatMuteStatusDisabled,
                 privateMuted,
+                playerMuteNotification,
                 playerMuteSet,
                 playerMuteRemoved,
                 playerMuteNotMuted,
                 playerMuteTargetNotFound,
                 playerMuteInfo,
-                playerMuteDurationInvalid
+                playerMuteDurationInvalid,
+                muteTimePermanent
         );
     }
 
@@ -559,6 +578,26 @@ public final class HexChatConfigLoader {
             }
         }
         return parsed;
+    }
+
+    /**
+     * Odczyt klucza opcjonalnego: brak wartości jest normalną sytuacją (starszy config),
+     * więc nie generujemy ostrzeżenia — po cichu używamy podanej wartości zastępczej.
+     * <p>
+     * {@code contains(path, true)} pomija defaults, które Bukkit dokłada z wbudowanego
+     * config.yml. Bez tego nowy klucz "istniałby" w każdej konfiguracji i zadeklarowana
+     * zgodność wsteczna (przejęcie wartości ze starszego klucza) nigdy by nie zadziałała.
+     * Konfiguracji użytkownika nie zapisujemy ani nie nadpisujemy.
+     */
+    private String readOptionalNonBlank(FileConfiguration config, String path, String fallback) {
+        if (!config.contains(path, true)) {
+            return fallback;
+        }
+        String value = config.getString(path);
+        if (value == null || value.isBlank()) {
+            return fallback;
+        }
+        return value.trim();
     }
 
     private String readNonBlank(FileConfiguration config, String path, String fallback, Logger logger) {

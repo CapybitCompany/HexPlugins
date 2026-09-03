@@ -6,27 +6,53 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class HexChatConfigLoaderTest {
 
-    private static HexChatConfig load(String yaml, CapturingLogger log) {
+    private static YamlConfiguration parse(String yaml) {
         YamlConfiguration configuration = new YamlConfiguration();
         try {
             configuration.loadFromString(yaml);
         } catch (InvalidConfigurationException ex) {
             throw new AssertionError("Niepoprawny YAML w teście", ex);
         }
+        return configuration;
+    }
 
+    private static HexChatConfig load(String yaml, CapturingLogger log) {
+        return load(parse(yaml), log);
+    }
+
+    private static HexChatConfig load(YamlConfiguration configuration, CapturingLogger log) {
         JavaPlugin plugin = mock(JavaPlugin.class);
         when(plugin.getConfig()).thenReturn(configuration);
         when(plugin.getLogger()).thenReturn(log.logger());
 
         return new HexChatConfigLoader(plugin).load();
+    }
+
+    /**
+     * Wbudowany config.yml pluginu — dokładnie to, co Bukkit podstawia jako wartości domyślne
+     * obok zapisanej konfiguracji użytkownika.
+     */
+    private static YamlConfiguration embeddedDefaults() {
+        try (InputStream stream = HexChatConfigLoaderTest.class.getResourceAsStream("/config.yml")) {
+            assertNotNull(stream, "Brak wbudowanego config.yml na classpath testów");
+            return YamlConfiguration.loadConfiguration(new InputStreamReader(stream, StandardCharsets.UTF_8));
+        } catch (IOException ex) {
+            throw new AssertionError("Nie udało się wczytać wbudowanego config.yml", ex);
+        }
     }
 
     @Test
@@ -222,6 +248,162 @@ class HexChatConfigLoaderTest {
         assertEquals(2, config.contentFilter().antiSpam().maxRepeatedMessages());
         assertEquals(100, config.contentFilter().antiSpam().maxCapsPercentage());
         assertEquals(1, config.contentFilter().antiSpam().minLengthForCapsCheck());
+    }
+
+    @Test
+    void blacklistHardeningOptionsDefaultToEnabled() {
+        CapturingLogger log = new CapturingLogger();
+        HexChatConfig config = load("chat:\n  enabled: true\n", log);
+
+        assertTrue(config.contentFilter().blacklist().matchLeetspeak());
+        assertTrue(config.contentFilter().blacklist().ignoreSeparators());
+        assertTrue(config.contentFilter().blacklist().matchWordEndings());
+    }
+
+    @Test
+    void embeddedConfigShipsBlacklistHardeningKeys() {
+        CapturingLogger log = new CapturingLogger();
+        YamlConfiguration embedded = embeddedDefaults();
+
+        // Klucze muszą być realnie zapisane we wbudowanym config.yml, a nie tylko opisane
+        // w komentarzu — inaczej administrator nie ma czego przestawić.
+        assertTrue(
+                embedded.contains("content-filter.blacklist.match-leetspeak", true),
+                "Wbudowany config.yml musi zawierać klucz match-leetspeak"
+        );
+        assertTrue(
+                embedded.contains("content-filter.blacklist.ignore-separators", true),
+                "Wbudowany config.yml musi zawierać klucz ignore-separators"
+        );
+        assertTrue(
+                embedded.contains("content-filter.blacklist.match-word-endings", true),
+                "Wbudowany config.yml musi zawierać klucz match-word-endings"
+        );
+
+        HexChatConfig config = load(embedded, log);
+        assertTrue(config.contentFilter().blacklist().matchLeetspeak());
+        assertTrue(config.contentFilter().blacklist().ignoreSeparators());
+        assertTrue(config.contentFilter().blacklist().matchWordEndings());
+    }
+
+    @Test
+    void blacklistHardeningOptionsCanBeDisabled() {
+        CapturingLogger log = new CapturingLogger();
+        String yaml = ""
+                + "content-filter:\n"
+                + "  blacklist:\n"
+                + "    match-leetspeak: false\n"
+                + "    ignore-separators: false\n"
+                + "    match-word-endings: false\n";
+        HexChatConfig config = load(yaml, log);
+
+        assertFalse(config.contentFilter().blacklist().matchLeetspeak());
+        assertFalse(config.contentFilter().blacklist().ignoreSeparators());
+        assertFalse(config.contentFilter().blacklist().matchWordEndings());
+    }
+
+    @Test
+    void missingMuteMessageKeysStayBackwardsCompatible() {
+        CapturingLogger log = new CapturingLogger();
+        // Starszy config: brak 'player-mute-notification' i 'mute-time-permanent'.
+        String yaml = ""
+                + "messages:\n"
+                + "  private-muted: \"<red>Stary tekst <time></red>\"\n";
+        HexChatConfig config = load(yaml, log);
+
+        assertEquals("<red>Stary tekst <time></red>", config.messages().privateMuted());
+        assertEquals("<red>Stary tekst <time></red>", config.messages().playerMuteNotification());
+        assertEquals("na zawsze", config.messages().muteTimePermanent());
+        assertFalse(
+                log.hasWarningContaining("player-mute-notification"),
+                "Brak nowego klucza w starszym configu nie jest błędem"
+        );
+        assertFalse(
+                log.hasWarningContaining("mute-time-permanent"),
+                "Brak nowego klucza w starszym configu nie jest błędem"
+        );
+    }
+
+    @Test
+    void newMuteKeysIgnoreBukkitDefaultsAndFallBackToUserPrivateMuted() {
+        CapturingLogger log = new CapturingLogger();
+        // Config użytkownika bez nowych kluczy...
+        YamlConfiguration user = parse("messages:\n  private-muted: \"<red>STARY <time></red>\"\n");
+        // ...plus wartości domyślne dostarczone przez Bukkit z wbudowanego config.yml.
+        user.setDefaults(parse(""
+                + "messages:\n"
+                + "  private-muted: \"<red>wbudowany private-muted</red>\"\n"
+                + "  player-mute-notification: \"<red>WBUDOWANE <player></red>\"\n"
+                + "  mute-time-permanent: \"WBUDOWANE ZAWSZE\"\n"));
+
+        HexChatConfig config = load(user, log);
+
+        assertEquals("<red>STARY <time></red>", config.messages().privateMuted());
+        assertEquals(
+                "<red>STARY <time></red>",
+                config.messages().playerMuteNotification(),
+                "Brakujący klucz musi przejąć wartość z private-muted, a nie wbudowany default"
+        );
+        assertEquals("na zawsze", config.messages().muteTimePermanent());
+    }
+
+    @Test
+    void newMuteKeysFallBackAlsoWithRealEmbeddedConfigAsDefaults() {
+        CapturingLogger log = new CapturingLogger();
+        YamlConfiguration defaults = embeddedDefaults();
+        assertTrue(
+                defaults.contains("messages.player-mute-notification"),
+                "Wbudowany config.yml powinien zawierać nowy klucz"
+        );
+
+        YamlConfiguration user = parse("messages:\n  private-muted: \"<red>STARY <time></red>\"\n");
+        user.setDefaults(defaults);
+
+        HexChatConfig config = load(user, log);
+
+        assertEquals("<red>STARY <time></red>", config.messages().playerMuteNotification());
+        assertEquals("na zawsze", config.messages().muteTimePermanent());
+    }
+
+    @Test
+    void explicitNewMuteKeysWinOverFallback() {
+        CapturingLogger log = new CapturingLogger();
+        YamlConfiguration user = parse(""
+                + "messages:\n"
+                + "  private-muted: \"<red>STARY <time></red>\"\n"
+                + "  player-mute-notification: \"<red>WŁASNE <player></red>\"\n"
+                + "  mute-time-permanent: \"na wieki wieków\"\n");
+        user.setDefaults(embeddedDefaults());
+
+        HexChatConfig config = load(user, log);
+
+        assertEquals("<red>WŁASNE <player></red>", config.messages().playerMuteNotification());
+        assertEquals("na wieki wieków", config.messages().muteTimePermanent());
+    }
+
+    @Test
+    void muteMessageKeysAreReadWhenPresent() {
+        CapturingLogger log = new CapturingLogger();
+        String yaml = ""
+                + "messages:\n"
+                + "  private-muted: \"<red>Piszesz <time></red>\"\n"
+                + "  player-mute-notification: \"<red>Wyciszony <player> <time> <reason></red>\"\n"
+                + "  mute-time-permanent: \"na wieki wieków\"\n";
+        HexChatConfig config = load(yaml, log);
+
+        assertEquals("<red>Piszesz <time></red>", config.messages().privateMuted());
+        assertEquals("<red>Wyciszony <player> <time> <reason></red>", config.messages().playerMuteNotification());
+        assertEquals("na wieki wieków", config.messages().muteTimePermanent());
+    }
+
+    @Test
+    void defaultMuteMessagesAreUsedWhenMessagesSectionMissing() {
+        CapturingLogger log = new CapturingLogger();
+        HexChatConfig config = load("chat:\n  enabled: true\n", log);
+
+        assertEquals("<red>Jesteś wyciszony (<time>). Powód: <reason></red>", config.messages().privateMuted());
+        assertEquals(config.messages().privateMuted(), config.messages().playerMuteNotification());
+        assertEquals("na zawsze", config.messages().muteTimePermanent());
     }
 
     @Test

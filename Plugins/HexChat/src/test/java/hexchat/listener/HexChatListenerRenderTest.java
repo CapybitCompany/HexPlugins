@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.mock;
@@ -63,5 +64,12 @@ class HexChatListenerRenderTest {
         ChatRenderer renderer = HexChatListener.buildRenderer(false, null, mock(ChatRenderer.class), IDENTITY_FORMAT);
 
         assertNull(renderer, "Bez cenzury i bez własnego formatu nie ustawiamy renderera");
+    }
+
+    @Test
+    void muteTimeTextUsesConfiguredPermanentLabel() {
+        // Tekst "na zawsze" nie jest już zaszyty w kodzie — pochodzi z messages.mute-time-permanent.
+        assertEquals("na wieki wieków", HexChatListener.muteTimeText(true, 0L, "na wieki wieków"));
+        assertEquals("30m", HexChatListener.muteTimeText(false, 1_800_000L, "na wieki wieków"));
     }
 }

@@ -39,7 +39,20 @@ content-filter:
     enabled: true
     action: "BLOCK"
     block-message: "<red>Twoja wiadomość zawiera niedozwolone słowa.</red>"
-    match-leetspeak: true       # wykrywaj podstawienia typu 4=a, 3=e, 0=o
+    # Podstawienia znaków: 4=a, 8=b, 3=e, 6/9=g, 1/!/|=i, 0=o, 5/$=s, 7/+=t, 2=z.
+    # Symbole (@ $ ! | +) są wieloznaczne: mogą być literą ("te$t", "$hit", "t e $ t")
+    # albo zwykłą interpunkcją ("test!"). Rozstrzyga to dopasowanie do konkretnego wpisu,
+    # więc interpunkcja na brzegu słowa nie wchodzi do maskowanego fragmentu.
+    match-leetspeak: true
+    # Separatory między literami nie ratują słowa: "t e s t", "t.e.s.t", "t---e---s---t",
+    # a także znaki formatujące i zero-width. Działa również razem z leetspeakiem.
+    ignore-separators: true
+    # Wpis blokuje również dłuższe słowo o tym samym początku, np. "brzydkie" -> "brzydkiego".
+    # Dotyczy tylko wpisów o długości co najmniej 4 znaków; krótsze wymagają pełnego słowa.
+    # Gdy trafienie jest rozstrzelone separatorami, do obejścia doliczane są też rozstrzelone
+    # pojedyncze litery końcówki ("b r z y d k i e g o"). Zwarta grupa liter po spacji
+    # to już nowe słowo i nie jest maskowana ("brzydkie go teraz").
+    match-word-endings: true
     words: []                   # wpisz tutaj zabronione słowa (małymi literami)
   anti-spam:
     enabled: true
@@ -139,7 +152,14 @@ messages:
   chat-mute-already-disabled: "<yellow>Czat globalny nie jest wyciszony.</yellow>"
   chat-mute-status-enabled: "<red>Status czatu: WYCISZONY.</red>"
   chat-mute-status-disabled: "<green>Status czatu: AKTYWNY.</green>"
+  # Tekst, który wyciszony gracz dostaje przy próbie napisania na czacie.
   private-muted: "<red>Jesteś wyciszony (<time>). Powód: <reason></red>"
+  # Natychmiastowe powiadomienie gracza online w chwili nałożenia wyciszenia.
+  # Dostępne placeholdery: <player>, <time>, <reason>.
+  # Gdy klucza brak (starszy config), używany jest tekst z 'private-muted'.
+  player-mute-notification: "<red>Zostałeś wyciszony przez administrację na <white><time></white>. Powód: <reason></red>"
+  # Tekst podstawiany pod <time> dla wyciszeń permanentnych.
+  mute-time-permanent: "na zawsze"
   player-mute-set: "<green>Wyciszono gracza <white><player></white> na <white><time></white>. Powód: <reason></green>"
   player-mute-removed: "<green>Zdjęto wyciszenie z gracza <white><player></white>.</green>"
   player-mute-not-muted: "<yellow>Gracz <white><player></white> nie jest wyciszony.</yellow>"

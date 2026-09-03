@@ -115,11 +115,23 @@ public record HexChatConfig(
         }
     }
 
+    /**
+     * Blacklista słów wraz z opcjami utwardzającymi ją przeciwko obejściom:
+     * <ul>
+     *   <li>{@code matchLeetspeak} — podstawienia znaków (4=a, 3=e, 0=o, @=a, $=s, !=i itd.),</li>
+     *   <li>{@code ignoreSeparators} — separatory między literami (spacje, kropki, myślniki,
+     *       znaki zero-width) nie ratują słowa,</li>
+     *   <li>{@code matchWordEndings} — wpis blokuje także dłuższe słowo o tym samym początku
+     *       (np. "brzydkie" blokuje "brzydkiego").</li>
+     * </ul>
+     */
     public record Blacklist(
             boolean enabled,
             FilterAction action,
             String blockMessage,
             boolean matchLeetspeak,
+            boolean ignoreSeparators,
+            boolean matchWordEndings,
             List<String> words
     ) {
         public Blacklist {
@@ -292,12 +304,14 @@ public record HexChatConfig(
             String chatMuteStatusEnabled,
             String chatMuteStatusDisabled,
             String privateMuted,
+            String playerMuteNotification,
             String playerMuteSet,
             String playerMuteRemoved,
             String playerMuteNotMuted,
             String playerMuteTargetNotFound,
             String playerMuteInfo,
-            String playerMuteDurationInvalid
+            String playerMuteDurationInvalid,
+            String muteTimePermanent
     ) {
         public Messages {
             prefix = Objects.requireNonNull(prefix, "prefix");
@@ -313,12 +327,17 @@ public record HexChatConfig(
             chatMuteStatusEnabled = Objects.requireNonNull(chatMuteStatusEnabled, "chatMuteStatusEnabled");
             chatMuteStatusDisabled = Objects.requireNonNull(chatMuteStatusDisabled, "chatMuteStatusDisabled");
             privateMuted = Objects.requireNonNull(privateMuted, "privateMuted");
+            playerMuteNotification = Objects.requireNonNull(playerMuteNotification, "playerMuteNotification");
             playerMuteSet = Objects.requireNonNull(playerMuteSet, "playerMuteSet");
             playerMuteRemoved = Objects.requireNonNull(playerMuteRemoved, "playerMuteRemoved");
             playerMuteNotMuted = Objects.requireNonNull(playerMuteNotMuted, "playerMuteNotMuted");
             playerMuteTargetNotFound = Objects.requireNonNull(playerMuteTargetNotFound, "playerMuteTargetNotFound");
             playerMuteInfo = Objects.requireNonNull(playerMuteInfo, "playerMuteInfo");
             playerMuteDurationInvalid = Objects.requireNonNull(playerMuteDurationInvalid, "playerMuteDurationInvalid");
+            muteTimePermanent = Objects.requireNonNull(muteTimePermanent, "muteTimePermanent");
+            if (muteTimePermanent.isBlank()) {
+                throw new IllegalArgumentException("muteTimePermanent cannot be blank");
+            }
         }
     }
 }

@@ -32,12 +32,14 @@ public final class TestConfigs {
                 "chat-mute-status-enabled",
                 "chat-mute-status-disabled",
                 "private-muted <time> <reason>",
+                "mute-notification <player> <time> <reason>",
                 "mute-set <player> <time> <reason>",
                 "mute-removed <player>",
                 "mute-not-muted <player>",
                 "mute-target-not-found <player>",
                 "mute-info <player> <time> <reason>",
-                "mute-duration-invalid <input>"
+                "mute-duration-invalid <input>",
+                "na zawsze"
         );
     }
 
@@ -78,7 +80,9 @@ public final class TestConfigs {
                 "hexchat.filter.bypass",
                 "***",
                 new HexChatConfig.AntiAdvertising(true, HexChatConfig.FilterAction.BLOCK, "<red>ad</red>", List.of(), List.of()),
-                new HexChatConfig.Blacklist(true, HexChatConfig.FilterAction.BLOCK, "<red>bl</red>", true, List.of()),
+                new HexChatConfig.Blacklist(
+                        true, HexChatConfig.FilterAction.BLOCK, "<red>bl</red>", true, true, true, List.of()
+                ),
                 new HexChatConfig.AntiSpam(true, "<red>spam</red>", 3, 70, 8)
         );
     }
@@ -118,6 +122,13 @@ public final class TestConfigs {
                 List.of("<gold>linia 1</gold>", "<yellow>linia 2</yellow>"),
                 true,
                 "<red>unavailable</red>"
+        );
+    }
+
+    public static HexChatConfig withMessages(HexChatConfig.Messages messages) {
+        return new HexChatConfig(
+                chat(), cooldown(), contentFilter(), playerMute(),
+                autoMessages(), commandFilter(), tabCompleteFilter(), help(), messages
         );
     }
 
