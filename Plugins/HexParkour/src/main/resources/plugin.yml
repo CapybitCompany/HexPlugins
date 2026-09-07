@@ -1,0 +1,27 @@
+name: HexParkour
+version: '1.0.0'
+main: hex.parkour.HexParkourPlugin
+api-version: '1.21.11'
+description: HexEvents parkour event module with crash-safe player state snapshots.
+authors: [HexDevTeam]
+depend:
+  - HexEvents
+softdepend:
+  - HexEconomy
+  - PlaceholderAPI
+libraries:
+  - org.xerial:sqlite-jdbc:3.46.1.0
+
+commands:
+  hexparkour:
+    description: Manage HexParkour
+    usage: /hexparkour <reload|tp>
+    permission: hexparkour.admin
+
+permissions:
+  hexparkour.admin:
+    description: Allows managing HexParkour
+    default: op
+  hexparkour.build:
+    description: Allows bypassing Parkour build protections in the Parkour world
+    default: op

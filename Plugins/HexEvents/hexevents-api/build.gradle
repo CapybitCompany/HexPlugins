@@ -1,0 +1,5 @@
+plugins { id 'java-library' }
+group = 'hex'
+version = '1.0.0'
+java { toolchain { languageVersion = JavaLanguageVersion.of(21) } }
+tasks.jar { archiveBaseName = 'HexEvents-API' }
