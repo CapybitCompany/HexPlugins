@@ -1,0 +1,81 @@
+themes:
+  internet:
+    display-name: "Internet"
+    icon: "REPEATER"
+    enabled: true
+    weight: 1
+  meme:
+    display-name: "Mem"
+    icon: "PAPER"
+    enabled: true
+    weight: 1
+  famous_person:
+    display-name: "Sławna osoba"
+    icon: "PLAYER_HEAD"
+    enabled: true
+    weight: 1
+  minecraft:
+    display-name: "Minecraft"
+    icon: "GRASS_BLOCK"
+    enabled: true
+    weight: 1
+  animal:
+    display-name: "Zwierzę"
+    icon: "BONE"
+    enabled: true
+    weight: 1
+  castle:
+    display-name: "Zamek"
+    icon: "STONE_BRICKS"
+    enabled: true
+    weight: 1
+  food_truck:
+    display-name: "Food Truck"
+    icon: "MINECART"
+    enabled: true
+    weight: 1
+  movie:
+    display-name: "Film"
+    icon: "PAINTING"
+    enabled: true
+    weight: 1
+  game:
+    display-name: "Gra"
+    icon: "DIAMOND_SWORD"
+    enabled: true
+    weight: 1
+  food:
+    display-name: "Jedzenie"
+    icon: "CAKE"
+    enabled: true
+    weight: 1
+  robot:
+    display-name: "Robot"
+    icon: "IRON_BLOCK"
+    enabled: true
+    weight: 1
+  asia:
+    display-name: "Azja"
+    icon: "BAMBOO"
+    enabled: true
+    weight: 1
+  africa:
+    display-name: "Afryka"
+    icon: "SAND"
+    enabled: true
+    weight: 1
+  europe:
+    display-name: "Europa"
+    icon: "SPRUCE_SAPLING"
+    enabled: true
+    weight: 1
+  island:
+    display-name: "Wyspa"
+    icon: "SANDSTONE"
+    enabled: true
+    weight: 1
+  horror:
+    display-name: "Horror"
+    icon: "SKELETON_SKULL"
+    enabled: true
+    weight: 1

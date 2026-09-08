@@ -1,0 +1,31 @@
+name: HexBuildBattle
+version: '1.0.0'
+main: hexbuildbattle.HexBuildBattlePlugin
+api-version: '1.21.11'
+description: Dedicated Build Battle server controller.
+authors: [HexDevTeam]
+softdepend: [PlaceholderAPI, WorldEdit, FastAsyncWorldEdit]
+libraries:
+  - org.xerial:sqlite-jdbc:3.46.1.0
+
+commands:
+  lobby:
+    description: Transfer the player to the configured Velocity lobby server.
+    usage: /lobby
+    permission: hexbuildbattle.lobby
+  hexbuildbattle:
+    description: HexBuildBattle admin command.
+    usage: /hexbuildbattle <status|reload|forcestart|forcetest|stop|reset|skipbuild>
+    aliases: [hbb]
+    permission: hexbuildbattle.admin
+
+permissions:
+  hexbuildbattle.lobby:
+    description: Allows using /lobby.
+    default: true
+  hexbuildbattle.admin:
+    description: Allows using HexBuildBattle admin commands.
+    default: op
+  hexbuildbattle.report.notify:
+    description: Receives Build Battle build report notifications.
+    default: op

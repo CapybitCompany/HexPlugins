@@ -1,0 +1,364 @@
+players:
+  min: 4
+  max: 30
+
+timings:
+  countdown-seconds: 30
+  theme-voting-seconds: 10
+  selected-theme-title-seconds: 3
+  building-seconds: 300
+  building-reminder-seconds: [120, 60, 30]
+  pre-judging-seconds: 2
+  judging-seconds-per-arena: 12
+  results-seconds: 10
+
+map:
+  world: "world"
+  lobby-spawn:
+    x: 777.5
+    y: -55.0
+    z: 979.5
+    yaw: 0.48
+    pitch: 10.35
+  arena-geometry:
+    count: 30
+    columns: 6
+    rows: 5
+    column-offset-x: 117
+    row-offset-z: 117
+    template-schematic: "bb_arena_template_good"
+    module:
+      min-x: 501
+      max-x: 616
+      min-y: -34
+      max-y: 56
+      min-z: 595
+      max-z: 710
+    build-region:
+      min-x: 543
+      max-x: 573
+      min-y: -23
+      max-y: 16
+      min-z: 638
+      max-z: 668
+    floor:
+      y: -24
+      min-x: 543
+      max-x: 573
+      min-z: 638
+      max-z: 668
+      default-material: "BLACK_WOOL"
+    owner-spawn:
+      x: 558.5
+      y: -23.0
+      z: 653.5
+      yaw: 90.0
+      pitch: 0.0
+    judging-center:
+      x: 558.5
+      y: -8.0
+      z: 653.5
+      yaw: 90.0
+      pitch: 0.0
+
+reset:
+  prefer-fawe: true
+  max-blocks-per-main-thread-tick: 1500
+
+network:
+  lobby-server: "lobby"
+
+database:
+  type: "sqlite"
+  file: "statistics.db"
+
+safety:
+  judge-disconnected-builds: false
+  fire-spread: false
+  pvp: false
+  damage: false
+  hunger: false
+  item-drop: false
+  item-pickup: false
+  portal-usage: false
+  explosions: false
+
+floor-blacklist:
+  - "AIR"
+  - "CAVE_AIR"
+  - "VOID_AIR"
+  - "TNT"
+  - "COMMAND_BLOCK"
+  - "CHAIN_COMMAND_BLOCK"
+  - "REPEATING_COMMAND_BLOCK"
+  - "STRUCTURE_BLOCK"
+  - "JIGSAW"
+  - "END_PORTAL"
+  - "NETHER_PORTAL"
+  - "END_GATEWAY"
+  - "BEDROCK"
+
+blocked-materials:
+  - "TNT"
+  - "END_CRYSTAL"
+  - "DRAGON_EGG"
+  - "COMMAND_BLOCK"
+  - "CHAIN_COMMAND_BLOCK"
+  - "REPEATING_COMMAND_BLOCK"
+  - "STRUCTURE_BLOCK"
+  - "JIGSAW"
+  - "ELYTRA"
+  - "WRITABLE_BOOK"
+  - "WRITTEN_BOOK"
+  - "BOW"
+  - "CROSSBOW"
+  - "ENDER_PEARL"
+  - "EGG"
+  - "SNOWBALL"
+
+blocked-interactions:
+  - "OAK_DOOR"
+  - "SPRUCE_DOOR"
+  - "BIRCH_DOOR"
+  - "JUNGLE_DOOR"
+  - "ACACIA_DOOR"
+  - "DARK_OAK_DOOR"
+  - "MANGROVE_DOOR"
+  - "CHERRY_DOOR"
+  - "BAMBOO_DOOR"
+  - "CRIMSON_DOOR"
+  - "WARPED_DOOR"
+  - "IRON_DOOR"
+  - "OAK_FENCE_GATE"
+  - "SPRUCE_FENCE_GATE"
+  - "BIRCH_FENCE_GATE"
+  - "JUNGLE_FENCE_GATE"
+  - "ACACIA_FENCE_GATE"
+  - "DARK_OAK_FENCE_GATE"
+  - "MANGROVE_FENCE_GATE"
+  - "CHERRY_FENCE_GATE"
+  - "BAMBOO_FENCE_GATE"
+  - "CRIMSON_FENCE_GATE"
+  - "WARPED_FENCE_GATE"
+  - "OAK_TRAPDOOR"
+  - "SPRUCE_TRAPDOOR"
+  - "BIRCH_TRAPDOOR"
+  - "JUNGLE_TRAPDOOR"
+  - "ACACIA_TRAPDOOR"
+  - "DARK_OAK_TRAPDOOR"
+  - "MANGROVE_TRAPDOOR"
+  - "CHERRY_TRAPDOOR"
+  - "BAMBOO_TRAPDOOR"
+  - "CRIMSON_TRAPDOOR"
+  - "WARPED_TRAPDOOR"
+  - "IRON_TRAPDOOR"
+  - "CHEST"
+  - "TRAPPED_CHEST"
+  - "ENDER_CHEST"
+  - "BARREL"
+  - "FURNACE"
+  - "BLAST_FURNACE"
+  - "SMOKER"
+  - "ANVIL"
+  - "CHIPPED_ANVIL"
+  - "DAMAGED_ANVIL"
+  - "ENCHANTING_TABLE"
+  - "HOPPER"
+  - "DROPPER"
+  - "DISPENSER"
+  - "BREWING_STAND"
+  - "CRAFTER"
+  - "CRAFTING_TABLE"
+  - "CARTOGRAPHY_TABLE"
+  - "SMITHING_TABLE"
+  - "FLETCHING_TABLE"
+  - "GRINDSTONE"
+  - "LOOM"
+  - "STONECUTTER"
+  - "BEACON"
+  - "BELL"
+  - "CHISELED_BOOKSHELF"
+  - "COMPOSTER"
+  - "DECORATED_POT"
+  - "JUKEBOX"
+  - "LECTERN"
+  - "NOTE_BLOCK"
+  - "RESPAWN_ANCHOR"
+  - "CAMPFIRE"
+  - "SOUL_CAMPFIRE"
+  - "CAULDRON"
+  - "WATER_CAULDRON"
+  - "LAVA_CAULDRON"
+  - "POWDER_SNOW_CAULDRON"
+  - "REPEATER"
+  - "COMPARATOR"
+  - "DAYLIGHT_DETECTOR"
+  - "CAKE"
+  - "BEEHIVE"
+  - "BEE_NEST"
+  - "SHULKER_BOX"
+
+placeholders:
+  no-theme: "&7Brak"
+  voting-theme: "&eGlosowanie..."
+  top-empty-name: "-"
+  top-empty-points: "0"
+
+tasks:
+  lobby-actionbar-interval-ticks: 20
+  player-maintenance-interval-ticks: 20
+
+sounds:
+  countdown:
+    30:
+      sound: "BLOCK_NOTE_BLOCK_HAT"
+      volume: 0.55
+      pitch: 1.0
+    25:
+      sound: "BLOCK_NOTE_BLOCK_HAT"
+      volume: 0.55
+      pitch: 1.0
+    20:
+      sound: "BLOCK_NOTE_BLOCK_HAT"
+      volume: 0.55
+      pitch: 1.0
+    15:
+      sound: "BLOCK_NOTE_BLOCK_HAT"
+      volume: 0.55
+      pitch: 1.0
+    10:
+      sound: "BLOCK_NOTE_BLOCK_HAT"
+      volume: 0.55
+      pitch: 1.0
+    9:
+      sound: "BLOCK_NOTE_BLOCK_HAT"
+      volume: 0.85
+      pitch: 1.1
+    8:
+      sound: "BLOCK_NOTE_BLOCK_HAT"
+      volume: 0.85
+      pitch: 1.1
+    7:
+      sound: "BLOCK_NOTE_BLOCK_HAT"
+      volume: 0.85
+      pitch: 1.1
+    6:
+      sound: "BLOCK_NOTE_BLOCK_HAT"
+      volume: 0.85
+      pitch: 1.1
+    5:
+      sound: "BLOCK_NOTE_BLOCK_HAT"
+      volume: 0.85
+      pitch: 1.1
+    4:
+      sound: "BLOCK_NOTE_BLOCK_HAT"
+      volume: 0.85
+      pitch: 1.1
+    3:
+      sound: "BLOCK_NOTE_BLOCK_HAT"
+      volume: 0.9
+      pitch: 1.35
+    2:
+      sound: "BLOCK_NOTE_BLOCK_HAT"
+      volume: 0.95
+      pitch: 1.55
+    1:
+      sound: "BLOCK_NOTE_BLOCK_HAT"
+      volume: 1.0
+      pitch: 1.8
+    start:
+      sound: "ENTITY_PLAYER_LEVELUP"
+      volume: 1.0
+      pitch: 1.0
+  building-final-countdown:
+    10:
+      sound: "BLOCK_NOTE_BLOCK_HAT"
+      volume: 0.85
+      pitch: 1.0
+    9:
+      sound: "BLOCK_NOTE_BLOCK_HAT"
+      volume: 0.85
+      pitch: 1.1
+    8:
+      sound: "BLOCK_NOTE_BLOCK_HAT"
+      volume: 0.85
+      pitch: 1.1
+    7:
+      sound: "BLOCK_NOTE_BLOCK_HAT"
+      volume: 0.85
+      pitch: 1.1
+    6:
+      sound: "BLOCK_NOTE_BLOCK_HAT"
+      volume: 0.85
+      pitch: 1.1
+    5:
+      sound: "BLOCK_NOTE_BLOCK_HAT"
+      volume: 0.9
+      pitch: 1.15
+    4:
+      sound: "BLOCK_NOTE_BLOCK_HAT"
+      volume: 0.9
+      pitch: 1.25
+    3:
+      sound: "BLOCK_NOTE_BLOCK_HAT"
+      volume: 0.95
+      pitch: 1.35
+    2:
+      sound: "BLOCK_NOTE_BLOCK_HAT"
+      volume: 0.95
+      pitch: 1.55
+    1:
+      sound: "BLOCK_NOTE_BLOCK_HAT"
+      volume: 1.0
+      pitch: 1.8
+  floor:
+    changed:
+      sound: "ENTITY_EXPERIENCE_ORB_PICKUP"
+      volume: 0.8
+      pitch: 1.15
+    invalid:
+      sound: "ENTITY_VILLAGER_NO"
+      volume: 0.7
+      pitch: 0.8
+
+visual-effects:
+  snow:
+    enabled: true
+    particle: "SNOWFLAKE"
+    particle-count: 18
+    radius: 7.0
+    height: 5.0
+    y-offset: 2.5
+    speed: 0.01
+
+ranking-point-rewards:
+  1: 100
+  2: 80
+  3: 65
+  4: 52
+  5: 42
+  6: 34
+  7: 28
+  8: 23
+  9: 19
+  10: 16
+  11: 13
+  12: 11
+  13: 9
+  14: 8
+  15: 7
+  16: 6
+  17: 5
+  18: 4
+  19: 3
+  20: 2
+  21: 1
+  22: 1
+  23: 1
+  24: 1
+  25: 1
+  26: 1
+  27: 1
+  28: 1
+  29: 1
+  30: 1

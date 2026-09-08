@@ -1,0 +1,66 @@
+ratings:
+  1:
+    material: "BLACK_GLAZED_TERRACOTTA"
+    display-name: "&4Gówno"
+    points: 0
+    sound: "ENTITY_VILLAGER_NO"
+    volume: 1.0
+    pitch: 0.8
+    particle: "SMOKE"
+  2:
+    material: "RED_GLAZED_TERRACOTTA"
+    display-name: "&cKiepsko"
+    points: 1
+    sound: "ENTITY_CAT_HISS"
+    volume: 0.9
+    pitch: 0.9
+    particle: "SMOKE"
+  3:
+    material: "YELLOW_GLAZED_TERRACOTTA"
+    display-name: "&eMoże być"
+    points: 3
+    sound: "BLOCK_NOTE_BLOCK_PLING"
+    volume: 0.9
+    pitch: 1.0
+    particle: "NOTE"
+  4:
+    material: "LIME_GLAZED_TERRACOTTA"
+    display-name: "&aFajne, jest git"
+    points: 5
+    sound: "ENTITY_EXPERIENCE_ORB_PICKUP"
+    volume: 1.0
+    pitch: 1.05
+    particle: "HAPPY_VILLAGER"
+  5:
+    material: "LIGHT_BLUE_GLAZED_TERRACOTTA"
+    display-name: "&bZajebiste!"
+    points: 7
+    sound: "ENTITY_PLAYER_LEVELUP"
+    volume: 1.0
+    pitch: 1.0
+    particle: "FIREWORK"
+  6:
+    material: "AMETHYST_CLUSTER"
+    display-name: "&dGOAAAAAAT!"
+    points: 10
+    sounds:
+      - sound: "UI_TOAST_CHALLENGE_COMPLETE"
+        volume: 1.0
+        pitch: 1.0
+      - sound: "ENTITY_FIREWORK_ROCKET_BLAST"
+        volume: 0.8
+        pitch: 1.15
+    particle: "END_ROD"
+
+goat-effect:
+  duration-seconds: 6
+  interval-ticks: 2
+  particle: "END_ROD"
+  particle-count: 45
+  sounds:
+    - sound: "UI_TOAST_CHALLENGE_COMPLETE"
+      volume: 1.0
+      pitch: 1.0
+    - sound: "ENTITY_FIREWORK_ROCKET_BLAST"
+      volume: 0.8
+      pitch: 1.15

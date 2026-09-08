@@ -13,6 +13,7 @@ include 'plugins:AreaEffects'
 include 'plugins:HexElimination'
 include 'plugins:HexCustomMobs'
 include 'plugins:HexNPC'
+include 'plugins:HexBuildBattle'
 include 'plugins:HexEvents:hexevents-api'
 include 'plugins:HexParkour'
 include 'statsapi'
@@ -30,6 +31,7 @@ project(':plugins:AreaEffects').projectDir = file('Plugins/AreaEffects')
 project(':plugins:HexElimination').projectDir = file('Plugins/HexElimination')
 project(':plugins:HexCustomMobs').projectDir = file('Plugins/HexCustomMobs')
 project(':plugins:HexNPC').projectDir = file('Plugins/HexNPC')
+project(':plugins:HexBuildBattle').projectDir = file('Plugins/HexBuildBattle')
 project(':plugins:HexEvents').projectDir = file('Plugins/HexEvents')
 project(':plugins:HexEvents:hexevents-api').projectDir = file('Plugins/HexEvents/hexevents-api')
 project(':plugins:HexParkour').projectDir = file('Plugins/HexParkour')
