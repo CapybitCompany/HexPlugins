@@ -1,43 +1,46 @@
 prefix: "&8[&6BuildBattle&8] "
 
 join:
-  queued: "&eDolaczyles do kolejki Build Battle. &7(&f<queue>&7/&f<max>&7)"
-  waiting-next-actionbar: "&8Oczekiwanie na zakonczenie rundy..."
-  queue-full: "&cKolejka jest pelna."
+  queued: "&eDołączyłeś do kolejki Build Battle. &7(&f<queue>&7/&f<max>&7)"
+  waiting-next-actionbar: "&8Oczekiwanie na zakończenie rundy..."
+  queue-full: "&cKolejka jest pełna."
 
 waiting:
   actionbar: "&eGracze: &f<queue>&7/&f<max>"
 
 countdown:
-  started: "&aOdliczanie rozpoczete. Start za &f<seconds>&a s."
-  cancelled: "&cOdliczanie anulowane. Za malo graczy."
-  subtitle: "&eStart za &f<seconds>&e s"
+  started: "&aOdliczanie rozpoczęte. Start za &f<seconds>&a s."
+  started-subtitle: "&eOdliczanie rozpoczęte"
+  actionbar: "&eGracze: &f<queue>&7/&f<max> &7(minimum <min>) &e| &f<seconds>"
+  cancelled: "&cOdliczanie anulowane. Za mało graczy."
+  number-subtitle: "&e<seconds>"
+  subtitle: "&e<seconds>"
 
 theme:
-  voting-title: "&6Glosowanie"
+  voting-title: "&6Głosowanie"
   voting-subtitle: "&eWybierz temat budowli"
-  selected-title: "&6Temat"
-  selected-subtitle: "&f<theme>"
+  selected-title: "&fWylosowany temat:"
+  selected-subtitle: "&2<theme>"
 
 building:
-  actionbar: "&ePozostaly czas: &f<time>"
+  actionbar: "&ePozostały czas: &f<time>"
   reminder-title: ""
-  reminder-subtitle: "&eZostalo &f<time>&e."
-  started: "&aBudowanie rozpoczete. Temat: &f<theme>"
-  ended: "&eCzas budowania zakonczony."
-  settings-compass-name: "&6Ustawienia dzialki"
+  reminder-subtitle: "&eZostało &f<time>&e."
+  started: "&aBudowanie rozpoczęte. Temat: &f<theme>"
+  ended: "&eCzas budowania zakończony."
+  settings-compass-name: "&6Ustawienia działki"
   settings-compass-lore:
-    - "&7Kliknij PPM, aby zmienic podloge,"
-    - "&7czas i pogode swojej areny."
-  floor-changed: "&aZmieniono podloge na &f<material>&a."
-  floor-invalid: "&cNie mozna ustawic tego materialu jako podlogi: &f<material>&c."
-  weather-changed: "&aZmieniono pogode na &f<weather>&a."
+    - "&7Kliknij PPM, aby zmienić podłogę,"
+    - "&7czas i pogodę swojej areny."
+  floor-changed: "&aZmieniono podłogę na &f<material>&a."
+  floor-invalid: "&cNie można ustawić tego materiału jako podłogi: &f<material>&c."
+  weather-changed: "&aZmieniono pogodę na &f<weather>&a."
   weather-name:
-    CLEAR: "SLONCE"
+    CLEAR: "SŁOŃCE"
     RAIN: "DESZCZ"
   time-changed: "&aZmieniono czas na &f<time>&a."
   time-name:
-    DAY: "DZIEN"
+    DAY: "DZIEŃ"
     NIGHT: "NOC"
 
 pre-judging:
@@ -45,17 +48,21 @@ pre-judging:
 
 judging:
   actionbar: "&7Autor budowli: &f<name>"
-  started: "&eOcenianie rozpoczete."
-  vote-cast: "&aOddano ocene: &f<rating>"
-  cannot-self-vote: "&cNie mozesz oceniac wlasnej budowli."
+  started: "&eOcenianie rozpoczęte."
+  vote-cast: "&aOddano ocenę: &f<rating>"
+  cannot-self-vote: "&cNie możesz oceniać własnej budowli."
   no-builds: "&cBrak budowli do ocenienia."
-  report-created: "&aZgloszono budowle. Raport: &f<id>"
-  report-duplicate: "&eJuz zglosiles te budowle."
-  report-failed: "&cNie udalo sie zapisac raportu. Powiadom administracje."
-  report-staff-notify: "&cZgloszono budowle gracza &f<reported>&c. Raport: &f<id>"
+  report-created: "&aZgłosiłeś tę budowlę."
+  report-duplicate: "&eJuż zgłosiłeś tę budowlę."
+  report-failed: "&cNie udało się zapisać raportu. Powiadom administrację."
+
+round:
+  player-left-subtitle: "&c<player> wyszedł. Gra przerwana."
+  cancelled-not-enough-players: "&cGra przerwana. Na arenie zostało &f<players>&c/&f<min>&c graczy."
 
 results:
   title: "&6&lBUILD BATTLE"
+  winner-actionbar: "&aZwycięzca: &f<winner>&a!"
   line-first: "&e1. &f<name> &8- &d<score> pkt"
   line-second: "&72. &f<name> &8- &d<score> pkt"
   line-third: "&63. &f<name> &8- &d<score> pkt"
@@ -63,7 +70,7 @@ results:
   separator: "&8&m------------------------------"
   own-place: "&eTwoje miejsce: &f<place>"
   ranking-points: "&7Zdobyto: &a+<points> pkt rankingu"
-  no-place: "&7Nie sklasyfikowano Cie w tej rundzie."
+  no-place: "&7Nie sklasyfikowano Cię w tej rundzie."
 
 reset:
   started: "&7Resetowanie aren..."
@@ -71,26 +78,26 @@ reset:
 
 lobby:
   only-player: "&cTa komenda jest tylko dla gracza."
-  no-permission: "&cNie masz uprawnien."
+  no-permission: "&cNie masz uprawnień."
   transfer: "&7Przenoszenie na lobby..."
-  transfer-failed: "&cNie udalo sie wyslac wiadomosci proxy."
+  transfer-failed: "&cNie udało się wysłać wiadomości proxy."
 
 command:
-  usage: "&eUzycie: /hexbuildbattle <status|reload|forcestart|forcetest|stop|reset|skipbuild>"
-  no-permission: "&cNie masz uprawnien."
-  blocked: "&cPodczas gry mozesz uzyc tylko &f/lobby&c."
-  reload-success: "&aKonfiguracja HexBuildBattle zostala przeladowana."
-  unknown: "&cNieznana podkomenda. &7Uzyj: /hexbuildbattle <status|reload|forcestart|forcetest|stop|reset|skipbuild>"
-  forcestart-started: "&aGra zostala wystartowana recznie."
-  forcestart-not-enough: "&cNie mozna wystartowac. W kolejce jest &f<queue>&c/&f<min>&c graczy."
-  forcestart-invalid-state: "&cForce start dziala tylko w WAITING lub COUNTDOWN."
+  usage: "&eUżycie: /hexbuildbattle <status|reload|forcestart|forcetest|stop|reset|skipbuild>"
+  no-permission: "&cNie masz uprawnień."
+  blocked: "&cPodczas gry możesz użyć tylko &f/lobby&c."
+  reload-success: "&aKonfiguracja HexBuildBattle została przeładowana."
+  unknown: "&cNieznana podkomenda. &7Użyj: /hexbuildbattle <status|reload|forcestart|forcetest|stop|reset|skipbuild>"
+  forcestart-started: "&aGra została wystartowana ręcznie."
+  forcestart-not-enough: "&cNie można wystartować. W kolejce jest &f<queue>&c/&f<min>&c graczy."
+  forcestart-invalid-state: "&cForce start działa tylko w WAITING lub COUNTDOWN."
   forcetest-started: "&eTestowy start gry z &f<queue>&e graczami. Minimum w configu: &f<min>&e."
-  forcetest-empty: "&cNie mozna wykonac testowego startu bez graczy w kolejce."
-  forcetest-invalid-state: "&cTestowy start dziala tylko w WAITING lub COUNTDOWN."
-  stop-started: "&cRunda zostala zatrzymana."
+  forcetest-empty: "&cNie można wykonać testowego startu bez graczy w kolejce."
+  forcetest-invalid-state: "&cTestowy start działa tylko w WAITING lub COUNTDOWN."
+  stop-started: "&cRunda została zatrzymana."
   reset-started: "&eUruchomiono reset aren."
-  skipbuild-success: "&aPominieto pozostaly czas budowania."
-  skipbuild-invalid-state: "&cTa komenda dziala tylko podczas BUILDING."
+  skipbuild-success: "&aPominięto pozostały czas budowania."
+  skipbuild-invalid-state: "&cTa komenda działa tylko podczas BUILDING."
   status:
     - "&6HexBuildBattle status"
     - "&7Faza: &f<phase>"
@@ -103,8 +110,8 @@ command:
 placeholder:
   status:
     waiting: "&eOczekiwanie na graczy"
-    active: "&aGra rozpoczeta"
-    waiting-next: "&cAreny sa zajete"
+    active: "&aGra rozpoczęta"
+    waiting-next: "&cAreny są zajęte"
   phase:
     WAITING: "WAITING"
     COUNTDOWN: "COUNTDOWN"

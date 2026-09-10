@@ -200,7 +200,7 @@ blocked-interactions:
 
 placeholders:
   no-theme: "&7Brak"
-  voting-theme: "&eGlosowanie..."
+  voting-theme: "&eGłosowanie..."
   top-empty-name: "-"
   top-empty-points: "0"
 

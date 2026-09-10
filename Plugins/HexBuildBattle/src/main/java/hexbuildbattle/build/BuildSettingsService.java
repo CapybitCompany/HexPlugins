@@ -87,11 +87,11 @@ public final class BuildSettingsService {
         Inventory inventory = Bukkit.createInventory(
                 holder,
                 inventorySize("settings.size", 27),
-                ItemBuilder.component(configService.gui().getString("settings.title", "&6Ustawienia dzialki"))
+                ItemBuilder.component(configService.gui().getString("settings.title", "&0&lUstawienia działki"))
         );
         holder.attach(inventory);
         inventory.setItem(configService.gui().getInt("settings.floor.slot", 11),
-                guiItem("settings.floor.material", Material.BLACK_WOOL, "settings.floor.display-name", "&aPodloga"));
+                guiItem("settings.floor.material", Material.BLACK_WOOL, "settings.floor.display-name", "&aPodłoga"));
         inventory.setItem(configService.gui().getInt("settings.weather.slot", 13),
                 guiItem("settings.weather.material", Material.WATER_BUCKET, "settings.weather.display-name", "&bPogoda"));
         inventory.setItem(configService.gui().getInt("settings.time.slot", 15),
@@ -250,13 +250,13 @@ public final class BuildSettingsService {
         Inventory inventory = Bukkit.createInventory(
                 holder,
                 inventorySize("floor.size", 54),
-                ItemBuilder.component(configService.gui().getString("floor.title", "&6Podloga"))
+                ItemBuilder.component(configService.gui().getString("floor.title", "&0&lPodłoga"))
         );
         holder.attach(inventory);
         int inputSlot = configService.gui().getInt("floor.input.slot", 13);
         if (inputSlot >= 0 && inputSlot < inventory.getSize()) {
             inventory.setItem(inputSlot, guiItem("floor.input.material", Material.BLACK_WOOL,
-                    "floor.input.display-name", "&aWskaz blok podlogi"));
+                    "floor.input.display-name", "&aWskaż blok podłogi"));
         }
         player.openInventory(inventory);
     }
@@ -266,11 +266,11 @@ public final class BuildSettingsService {
         Inventory inventory = Bukkit.createInventory(
                 holder,
                 27,
-                ItemBuilder.component(configService.gui().getString("weather.title", "&6Pogoda"))
+                ItemBuilder.component(configService.gui().getString("weather.title", "&0&lPogoda"))
         );
         holder.attach(inventory);
         inventory.setItem(11, guiItem("weather.clear.material", Material.SUNFLOWER,
-                "weather.clear.display-name", "&eSlonecznie"));
+                "weather.clear.display-name", "&eSłonecznie"));
         inventory.setItem(15, guiItem("weather.rain.material", Material.WATER_BUCKET,
                 "weather.rain.display-name", "&9Deszcz"));
         player.openInventory(inventory);
@@ -281,11 +281,11 @@ public final class BuildSettingsService {
         Inventory inventory = Bukkit.createInventory(
                 holder,
                 27,
-                ItemBuilder.component(configService.gui().getString("time.title", "&6Czas"))
+                ItemBuilder.component(configService.gui().getString("time.title", "&0&lCzas"))
         );
         holder.attach(inventory);
         inventory.setItem(11, guiItem("time.day.material", Material.CLOCK,
-                "time.day.display-name", "&eDzien"));
+                "time.day.display-name", "&eDzień"));
         inventory.setItem(15, guiItem("time.night.material", Material.BLACK_DYE,
                 "time.night.display-name", "&9Noc"));
         player.openInventory(inventory);
@@ -304,7 +304,7 @@ public final class BuildSettingsService {
     private ItemStack compassItem() {
         ItemStack item = ItemBuilder.named(
                 Material.COMPASS,
-                messages.raw("building.settings-compass-name", "&6Ustawienia dzialki"),
+                messages.raw("building.settings-compass-name", "&6Ustawienia działki"),
                 messages.rawList("building.settings-compass-lore")
         );
         ItemMeta meta = item.getItemMeta();

@@ -7,7 +7,6 @@ import hexbuildbattle.item.ItemBuilder;
 import hexbuildbattle.item.PluginItemKeys;
 import org.bukkit.Material;
 import org.bukkit.Particle;
-import org.bukkit.Sound;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -135,8 +134,8 @@ public final class RatingService {
     }
 
     public void playReportSound(Player player) {
-        Sound sound = Material.BARRIER.createBlockData().getSoundGroup().getPlaceSound();
-        player.playSound(player.getLocation(), sound, 1.0F, 0.8F);
+        ConfigParsers.sound("minecraft:entity.zombie.attack_wooden_door", logger, "report.sound")
+                .ifPresent(sound -> player.playSound(player.getLocation(), sound, 1.0F, 0.8F));
     }
 
     private List<SoundSetting> loadSounds(ConfigurationSection ratingSection, String key) {
@@ -186,8 +185,8 @@ public final class RatingService {
     private ItemStack reportItem() {
         ItemStack item = ItemBuilder.named(
                 Material.BARRIER,
-                "&cZglos budowle",
-                List.of("&7Kliknij, aby zapisac raport", "&7i schematic tej budowli.")
+                "&cZgłoś budowlę",
+                List.of("&7Kliknij, aby zapisać raport", "&7i schematic tej budowli.")
         );
         ItemMeta meta = item.getItemMeta();
         meta.getPersistentDataContainer().set(itemKeys.itemType(), PersistentDataType.STRING, REPORT_TYPE);

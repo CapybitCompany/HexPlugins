@@ -25,6 +25,7 @@ public final class GameSession {
     private final Map<UUID, RoundBuildScore> scores = new LinkedHashMap<>();
     private Theme selectedTheme;
     private int phaseRemainingSeconds;
+    private int minimumActiveParticipantsToContinue = 2;
     private UUID currentJudgedOwner;
 
     public GameState state() {
@@ -84,6 +85,14 @@ public final class GameSession {
 
     public int participantCount() {
         return activeParticipants.size();
+    }
+
+    public int minimumActiveParticipantsToContinue() {
+        return minimumActiveParticipantsToContinue;
+    }
+
+    public void minimumActiveParticipantsToContinue(int minimumActiveParticipantsToContinue) {
+        this.minimumActiveParticipantsToContinue = Math.max(1, minimumActiveParticipantsToContinue);
     }
 
     public Set<UUID> participants() {
@@ -150,5 +159,6 @@ public final class GameSession {
         selectedTheme = null;
         currentJudgedOwner = null;
         phaseRemainingSeconds = 0;
+        minimumActiveParticipantsToContinue = 2;
     }
 }

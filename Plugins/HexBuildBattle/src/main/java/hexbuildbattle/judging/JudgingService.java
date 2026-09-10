@@ -176,18 +176,17 @@ public final class JudgingService {
             sendReportMessage(
                     reporter,
                     "judging.report-failed",
-                    "&cNie udalo sie zapisac raportu. Powiadom administracje.",
+                    "&cNie udało się zapisać raportu. Powiadom administrację.",
                     Map.of()
             );
             return;
         }
 
-        ratingService.playReportSound(reporter);
         if (result.status() == ReportStatus.DUPLICATE) {
             sendReportMessage(
                     reporter,
                     "judging.report-duplicate",
-                    "&eJuz zglosiles te budowle.",
+                    "&eJuż zgłosiłeś tę budowlę.",
                     Map.of("id", result.id())
             );
             return;
@@ -200,13 +199,13 @@ public final class JudgingService {
                 "file", result.metadataFile().getPath(),
                 "schematic", result.schematicFile().getPath()
         );
+        ratingService.playReportSound(reporter);
         sendReportMessage(
                 reporter,
                 "judging.report-created",
-                "&aZgloszono budowle. Raport: &f<id>",
+                "&aZgłosiłeś tę budowlę.",
                 placeholders
         );
-        notifyStaff(ownerId, placeholders);
     }
 
     private boolean isClickAction(Action action) {
@@ -214,20 +213,6 @@ public final class JudgingService {
                 || action == Action.RIGHT_CLICK_BLOCK
                 || action == Action.LEFT_CLICK_AIR
                 || action == Action.LEFT_CLICK_BLOCK;
-    }
-
-    private void notifyStaff(UUID ownerId, Map<String, String> placeholders) {
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            if (player.getUniqueId().equals(ownerId) || !player.hasPermission("hexbuildbattle.report.notify")) {
-                continue;
-            }
-            sendReportMessage(
-                    player,
-                    "judging.report-staff-notify",
-                    "&cZgloszono budowle gracza &f<reported>&c. Raport: &f<id>",
-                    placeholders
-            );
-        }
     }
 
     private void sendReportMessage(Player player, String path, String fallback, Map<String, String> placeholders) {

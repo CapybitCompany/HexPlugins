@@ -23,6 +23,7 @@ import hexbuildbattle.theme.Theme;
 import hexbuildbattle.theme.ThemeManager;
 import hexbuildbattle.theme.ThemeVotingService;
 import hexbuildbattle.rating.RatingService;
+import hexbuildbattle.util.Text;
 import hexbuildbattle.util.TimeFormatter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
@@ -44,7 +45,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 public final class GameManager {
@@ -57,9 +57,7 @@ public final class GameManager {
     private static final String SNOW_EFFECT_TASK = "snow-effect";
     private static final String PRE_JUDGING_DELAY_TASK = "pre-judging-delay";
     private static final String RESULTS_TASK = "results";
-    private static final Set<Integer> COUNTDOWN_SUBTITLE_SECONDS = Set.of(
-            30, 25, 20, 15, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1
-    );
+    private static final int MIN_ACTIVE_PLAYERS_TO_CONTINUE = 2;
     private static final int BUILDING_FINAL_COUNTDOWN_SECONDS = 10;
 
     private final JavaPlugin plugin;
@@ -82,6 +80,7 @@ public final class GameManager {
     private final ScoreService scoreService;
     private final ResultsService resultsService;
     private final StatisticsService statisticsService;
+    private String resultsWinnerName = "";
 
     public GameManager(
             JavaPlugin plugin,
@@ -156,6 +155,10 @@ public final class GameManager {
         if (state.acceptsQueueForCurrentRound()) {
             enqueueForCurrentRound(player);
             evaluateCountdown();
+            if (state == GameState.COUNTDOWN && session.state() == GameState.COUNTDOWN) {
+                showCountdownStartedSubtitle(player, session.countdownRemainingSeconds());
+                sendCountdownActionBar(player, session.countdownRemainingSeconds());
+            }
             return;
         }
 
@@ -171,11 +174,15 @@ public final class GameManager {
             boolean keepBuild = configService.config().safety().judgeDisconnectedBuilds()
                     && session.state().ordinal() >= GameState.BUILDING.ordinal();
             session.removeActiveParticipant(playerId, keepBuild);
+            if (session.state() == GameState.THEME_VOTING) {
+                themeVotingService.removeVoter(playerId);
+            }
+            if (abortActiveRoundIfTooFewPlayers(player.getName())) {
+                playerStateService.remove(playerId);
+                return;
+            }
             if (session.state() == GameState.JUDGING) {
                 judgingService.handleParticipantRemoved(playerId);
-            }
-            if (session.activeParticipants().isEmpty()) {
-                resetAfterEmptyRound();
             }
         }
 
@@ -191,11 +198,19 @@ public final class GameManager {
         queueManager.remove(playerId);
         if (session.isParticipant(playerId) && session.state().isActiveRound()) {
             session.removeActiveParticipant(playerId, false);
+            if (session.state() == GameState.THEME_VOTING) {
+                themeVotingService.removeVoter(playerId);
+            }
+            if (abortActiveRoundIfTooFewPlayers(player.getName())) {
+                playerStateService.mark(playerId, PlayerStatus.LOBBY);
+                messages.sendWithPrefix(player, "lobby.transfer", Map.of());
+                if (!proxyTransferService.sendToLobby(player)) {
+                    messages.sendWithPrefix(player, "lobby.transfer-failed", Map.of());
+                }
+                return;
+            }
             if (session.state() == GameState.JUDGING) {
                 judgingService.handleParticipantRemoved(playerId);
-            }
-            if (session.activeParticipants().isEmpty()) {
-                resetAfterEmptyRound();
             }
         }
         playerStateService.mark(playerId, PlayerStatus.LOBBY);
@@ -263,8 +278,11 @@ public final class GameManager {
             return;
         }
         int queued = queueManager.onlineSize();
-        if (queued < 1) {
-            messages.sendWithPrefix(sender, "command.forcetest-empty", Map.of());
+        if (queued < MIN_ACTIVE_PLAYERS_TO_CONTINUE) {
+            messages.sendWithPrefix(sender, "command.forcestart-not-enough", Map.of(
+                    "queue", Integer.toString(queued),
+                    "min", Integer.toString(MIN_ACTIVE_PLAYERS_TO_CONTINUE)
+            ));
             return;
         }
         messages.sendWithPrefix(sender, "command.forcetest-started", Map.of(
@@ -394,10 +412,10 @@ public final class GameManager {
         }
         UUID playerId = player.getUniqueId();
         if (playerStateService.isWaitingNext(playerId)) {
-            return messages.raw("placeholder.status.waiting-next", "&cAreny sa zajete");
+            return messages.raw("placeholder.status.waiting-next", "&cAreny są zajęte");
         }
         if (session.isActiveParticipant(playerId)) {
-            return messages.raw("placeholder.status.active", "&aGra rozpoczeta");
+            return messages.raw("placeholder.status.active", "&aGra rozpoczęta");
         }
         return messages.raw("placeholder.status.waiting", "&eOczekiwanie na graczy");
     }
@@ -416,7 +434,7 @@ public final class GameManager {
 
     public String themePlaceholder() {
         if (session.selectedTheme() != null) {
-            return session.selectedTheme().displayName();
+            return "&2" + session.selectedTheme().displayName();
         }
         if (session.state() == GameState.THEME_VOTING) {
             return configService.config().placeholders().votingTheme();
@@ -477,7 +495,7 @@ public final class GameManager {
         session.countdownRemainingSeconds(seconds);
 
         for (Player player : queueManager.onlinePlayers()) {
-            messages.sendWithPrefix(player, "countdown.started", Map.of("seconds", Integer.toString(seconds)));
+            showCountdownStartedSubtitle(player, seconds);
         }
 
         taskRegistry.runRepeating(COUNTDOWN_TASK, this::tickCountdown, 0L, 20L);
@@ -500,8 +518,9 @@ public final class GameManager {
             return;
         }
 
-        if (COUNTDOWN_SUBTITLE_SECONDS.contains(remaining)) {
-            showCountdownSubtitle(remaining);
+        showCountdownActionBars(remaining);
+        if (remaining <= 5) {
+            showCountdownNumberSubtitle(remaining);
         }
         playCountdownTick(remaining);
 
@@ -547,6 +566,7 @@ public final class GameManager {
             names.put(participant, player == null ? "Unknown" : player.getName());
         }
         session.startRound(participants, arenaManager.assignArenas(participants), names);
+        session.minimumActiveParticipantsToContinue(MIN_ACTIVE_PLAYERS_TO_CONTINUE);
         buildSettingsService.resetFloors(session.usedArenas());
         queueManager.clear();
         for (UUID participant : participants) {
@@ -618,8 +638,7 @@ public final class GameManager {
             taskRegistry.cancel(BUILDING_TASK);
             return;
         }
-        if (session.activeParticipants().isEmpty()) {
-            resetAfterEmptyRound();
+        if (abortActiveRoundIfTooFewPlayers(null)) {
             return;
         }
 
@@ -683,13 +702,20 @@ public final class GameManager {
         }
         stateController.transition(session, GameState.RESULTS);
         List<RoundPlacement> placements = scoreService.rank(scores);
+        resultsWinnerName = placements.get(0).ownerName();
         statisticsService.applyRoundPlacements(placements);
         resultsService.show(placements, onlineActivePlayers(), this::assignedArena);
+        showResultsWinnerActionBar();
         session.phaseRemainingSeconds(configService.config().timings().resultsSeconds());
         taskRegistry.runRepeating(RESULTS_TASK, this::tickResults, 20L, 20L);
     }
 
     private void tickResults() {
+        if (session.state() != GameState.RESULTS) {
+            taskRegistry.cancel(RESULTS_TASK);
+            return;
+        }
+        showResultsWinnerActionBar();
         int remaining = session.phaseRemainingSeconds() - 1;
         session.phaseRemainingSeconds(remaining);
         if (remaining <= 0) {
@@ -723,8 +749,40 @@ public final class GameManager {
         });
     }
 
-    private void resetAfterEmptyRound() {
+    private boolean abortActiveRoundIfTooFewPlayers(String departedPlayerName) {
+        if (!requiresMinimumActivePlayers(session.state())) {
+            return false;
+        }
+        if (session.activeParticipants().size() >= session.minimumActiveParticipantsToContinue()) {
+            return false;
+        }
+        showPlayerLeftSubtitle(departedPlayerName);
+        resultsWinnerName = "";
         startReset(session.usedArenas(), true);
+        return true;
+    }
+
+    private void showPlayerLeftSubtitle(String departedPlayerName) {
+        String playerName = departedPlayerName == null || departedPlayerName.isBlank() ? "Gracz" : departedPlayerName;
+        Component subtitle = Text.component(Text.replace(
+                messages.raw("round.player-left-subtitle", "&c<player> wyszedł. Gra przerwana."),
+                Map.of("player", playerName)
+        ));
+        Title title = Title.title(
+                Component.empty(),
+                subtitle,
+                Title.Times.times(Duration.ZERO, Duration.ofSeconds(3), Duration.ofMillis(250))
+        );
+        for (Player player : onlineActivePlayers()) {
+            player.showTitle(title);
+        }
+    }
+
+    private boolean requiresMinimumActivePlayers(GameState state) {
+        return switch (state) {
+            case THEME_VOTING, BUILDING, PRE_JUDGING, JUDGING -> true;
+            default -> false;
+        };
     }
 
     private void cancelPhaseServices() {
@@ -737,6 +795,7 @@ public final class GameManager {
         themeVotingService.cancel();
         judgingService.cancel();
         effects.cleanupGoatEffects();
+        resultsWinnerName = "";
     }
 
     private void restartLobbyActionBarTask() {
@@ -770,7 +829,9 @@ public final class GameManager {
         GameState state = session.state();
         for (Player player : Bukkit.getOnlinePlayers()) {
             UUID playerId = player.getUniqueId();
-            if (state.acceptsQueueForCurrentRound() && queueManager.contains(playerId)) {
+            if (state == GameState.COUNTDOWN && queueManager.contains(playerId)) {
+                sendCountdownActionBar(player, session.countdownRemainingSeconds());
+            } else if (state == GameState.WAITING && queueManager.contains(playerId)) {
                 messages.sendActionBar(player, "waiting.actionbar", Map.of(
                         "queue", Integer.toString(queueManager.onlineSize()),
                         "max", Integer.toString(configService.config().maxPlayers())
@@ -781,15 +842,63 @@ public final class GameManager {
         }
     }
 
-    private void showCountdownSubtitle(int seconds) {
-        Component subtitle = messages.component("countdown.subtitle", Map.of("seconds", Integer.toString(seconds)));
+    private void showCountdownStartedSubtitle(Player player, int countdownSeconds) {
+        Title title = Title.title(
+                Component.empty(),
+                Text.component(messages.raw("countdown.started-subtitle", "&eOdliczanie rozpoczęte")),
+                Title.Times.times(
+                        Duration.ZERO,
+                        Duration.ofSeconds(Math.max(1, countdownSeconds - 5L)),
+                        Duration.ZERO
+                )
+        );
+        player.showTitle(title);
+    }
+
+    private void showCountdownNumberSubtitle(int seconds) {
+        Component subtitle = Text.component(Text.replace(
+                messages.raw("countdown.number-subtitle", "&e<seconds>"),
+                Map.of("seconds", Integer.toString(seconds))
+        ));
         Title title = Title.title(
                 Component.empty(),
                 subtitle,
-                Title.Times.times(Duration.ZERO, Duration.ofMillis(900L), Duration.ofMillis(150L))
+                Title.Times.times(Duration.ZERO, Duration.ofMillis(1150L), Duration.ZERO)
         );
         for (Player player : queueManager.onlinePlayers()) {
             player.showTitle(title);
+        }
+    }
+
+    private void showCountdownActionBars(int seconds) {
+        for (Player player : queueManager.onlinePlayers()) {
+            sendCountdownActionBar(player, seconds);
+        }
+    }
+
+    private void sendCountdownActionBar(Player player, int seconds) {
+        Map<String, String> placeholders = Map.of(
+                "queue", Integer.toString(queueManager.onlineSize()),
+                "max", Integer.toString(configService.config().maxPlayers()),
+                "min", Integer.toString(configService.config().minPlayers()),
+                "seconds", Integer.toString(Math.max(0, seconds))
+        );
+        player.sendActionBar(Text.component(Text.replace(
+                messages.raw("countdown.actionbar", "&eGracze: &f<queue>&7/&f<max> &7(minimum <min>) &e| &f<seconds>"),
+                placeholders
+        )));
+    }
+
+    private void showResultsWinnerActionBar() {
+        if (resultsWinnerName.isBlank()) {
+            return;
+        }
+        Map<String, String> placeholders = Map.of("winner", resultsWinnerName);
+        for (Player player : onlineActivePlayers()) {
+            player.sendActionBar(Text.component(Text.replace(
+                    messages.raw("results.winner-actionbar", "&aZwycięzca: &f<winner>&a!"),
+                    placeholders
+            )));
         }
     }
 

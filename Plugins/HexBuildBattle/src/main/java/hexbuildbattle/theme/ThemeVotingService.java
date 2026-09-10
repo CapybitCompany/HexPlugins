@@ -1,10 +1,12 @@
 package hexbuildbattle.theme;
 
+import hexbuildbattle.config.ConfigParsers;
 import hexbuildbattle.config.ConfigService;
 import hexbuildbattle.game.GameTaskRegistry;
 import hexbuildbattle.item.ItemBuilder;
-import net.kyori.adventure.text.Component;
+import hexbuildbattle.util.Text;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
@@ -27,6 +29,9 @@ import java.util.stream.Collectors;
 public final class ThemeVotingService {
 
     private static final String VOTING_TASK = "theme-voting";
+    private static final int DEFAULT_VOTING_SIZE = 36;
+    private static final Material DEFAULT_VOTE_PENDING_MATERIAL = Material.RED_STAINED_GLASS_PANE;
+    private static final Material DEFAULT_VOTE_CAST_MATERIAL = Material.LIME_STAINED_GLASS_PANE;
 
     private final JavaPlugin plugin;
     private final ConfigService configService;
@@ -78,6 +83,17 @@ public final class ThemeVotingService {
 
     public int remainingSeconds() {
         return remainingSeconds;
+    }
+
+    public void removeVoter(UUID playerId) {
+        if (!allowedVoters.contains(playerId)) {
+            return;
+        }
+        votes.remove(playerId);
+        allowedVoters = allowedVoters.stream()
+                .filter(allowed -> !allowed.equals(playerId))
+                .collect(Collectors.toUnmodifiableSet());
+        refreshOpenInventories();
     }
 
     public boolean handleClick(Player player, InventoryClickEvent event) {
@@ -146,7 +162,7 @@ public final class ThemeVotingService {
 
     private Theme chooseWinner() {
         if (options.isEmpty()) {
-            return new Theme("missing_themes", "Brak tematow", org.bukkit.Material.BARRIER, 1);
+            return new Theme("missing_themes", "Brak tematów", org.bukkit.Material.BARRIER, 1);
         }
         Map<String, Integer> counts = voteCounts();
         int best = options.stream().mapToInt(theme -> counts.getOrDefault(theme.id(), 0)).max().orElse(0);
@@ -157,30 +173,54 @@ public final class ThemeVotingService {
     }
 
     private Inventory createInventory() {
-        int size = Math.max(9, Math.min(54, configService.gui().getInt("voting.size", 27)));
+        int size = Math.max(9, Math.min(54, configService.gui().getInt("voting.size", DEFAULT_VOTING_SIZE)));
         if (size % 9 != 0) {
-            size = 27;
+            size = DEFAULT_VOTING_SIZE;
         }
         ThemeVotingHolder holder = new ThemeVotingHolder();
         Inventory inventory = Bukkit.createInventory(
                 holder,
                 size,
-                ItemBuilder.component(configService.gui().getString("voting.title", "&6Wybierz temat"))
+                ItemBuilder.component(configService.gui().getString("voting.title", "&0&lWybierz temat"))
         );
         holder.attach(inventory);
         List<Integer> slots = votingSlots();
         Map<String, Integer> counts = voteCounts();
         for (int i = 0; i < options.size() && i < slots.size(); i++) {
             Theme theme = options.get(i);
+            int themeSlot = slots.get(i);
             ItemStack item = ItemBuilder.named(theme.icon(), "&e" + theme.displayName());
             ItemMeta meta = item.getItemMeta();
             if (configService.gui().getBoolean("voting.show-vote-count", true)) {
-                meta.lore(List.of(Component.text("Glosy: " + counts.getOrDefault(theme.id(), 0))));
+                meta.lore(List.of(Text.component("&7Głosy: &f" + counts.getOrDefault(theme.id(), 0))));
             }
             item.setItemMeta(meta);
-            inventory.setItem(slots.get(i), item);
+            inventory.setItem(themeSlot, item);
+            renderVoteBar(inventory, themeSlot, counts.getOrDefault(theme.id(), 0));
         }
         return inventory;
+    }
+
+    private void renderVoteBar(Inventory inventory, int themeSlot, int votes) {
+        List<Integer> barSlots = voteBarSlots(themeSlot, inventory.getSize());
+        for (int i = 0; i < barSlots.size(); i++) {
+            boolean cast = i < votes;
+            inventory.setItem(barSlots.get(i), voteBarItem(cast));
+        }
+    }
+
+    private ItemStack voteBarItem(boolean cast) {
+        String materialPath = cast ? "voting.vote-bars.cast-material" : "voting.vote-bars.pending-material";
+        String namePath = cast ? "voting.vote-bars.cast-name" : "voting.vote-bars.pending-name";
+        Material fallbackMaterial = cast ? DEFAULT_VOTE_CAST_MATERIAL : DEFAULT_VOTE_PENDING_MATERIAL;
+        String fallbackName = cast ? "&aOddany głos" : "&cBrak głosu";
+        Material material = ConfigParsers.material(
+                configService.gui().getString(materialPath),
+                fallbackMaterial,
+                plugin.getLogger(),
+                "gui.yml:" + materialPath
+        );
+        return ItemBuilder.named(material, configService.gui().getString(namePath, fallbackName));
     }
 
     private void refreshOpenInventories() {
@@ -204,7 +244,18 @@ public final class ThemeVotingService {
         if (!configured.isEmpty()) {
             return configured;
         }
-        return new ArrayList<>(List.of(10, 12, 14, 16));
+        return new ArrayList<>(List.of(0, 9, 18, 27));
+    }
+
+    private List<Integer> voteBarSlots(int themeSlot, int inventorySize) {
+        int rowStart = (themeSlot / 9) * 9;
+        int rowEnd = Math.min(rowStart + 8, inventorySize - 1);
+        int firstBarSlot = Math.min(rowEnd + 1, themeSlot + Math.max(1, configService.gui().getInt("voting.vote-bars.start-offset", 1)));
+        List<Integer> slots = new ArrayList<>();
+        for (int slot = firstBarSlot; slot <= rowEnd; slot++) {
+            slots.add(slot);
+        }
+        return slots;
     }
 
     private int votingOptionCount() {

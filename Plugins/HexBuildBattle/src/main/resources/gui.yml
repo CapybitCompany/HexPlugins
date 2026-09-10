@@ -1,17 +1,23 @@
 voting:
-  title: "&6Wybierz temat"
-  size: 27
+  title: "&0&lWybierz temat"
+  size: 36
   option-count: 4
-  slots: [10, 12, 14, 16]
+  slots: [0, 9, 18, 27]
   show-vote-count: true
+  vote-bars:
+    start-offset: 1
+    pending-material: "RED_STAINED_GLASS_PANE"
+    cast-material: "LIME_STAINED_GLASS_PANE"
+    pending-name: "&cBrak głosu"
+    cast-name: "&aOddany głos"
 
 settings:
-  title: "&6Ustawienia dzialki"
+  title: "&0&lUstawienia działki"
   size: 27
   floor:
     slot: 11
     material: "BLACK_WOOL"
-    display-name: "&aZmiana podlogi"
+    display-name: "&aZmiana podłogi"
   weather:
     slot: 13
     material: "WATER_BUCKET"
@@ -22,27 +28,27 @@ settings:
     display-name: "&eCzas"
 
 floor:
-  title: "&6Zmiana podlogi"
+  title: "&0&lZmiana podłogi"
   size: 27
   input:
     slot: 13
     material: "BLACK_WOOL"
-    display-name: "&aPrzeciagnij tutaj blok"
+    display-name: "&aPrzeciągnij tutaj blok"
 
 weather:
-  title: "&6Pogoda"
+  title: "&0&lPogoda"
   clear:
     material: "SUNFLOWER"
-    display-name: "&eSlonecznie"
+    display-name: "&eSłonecznie"
   rain:
     material: "WATER_BUCKET"
     display-name: "&9Deszcz"
 
 time:
-  title: "&6Czas"
+  title: "&0&lCzas"
   day:
     material: "CLOCK"
-    display-name: "&eDzien"
+    display-name: "&eDzień"
   night:
     material: "BLACK_DYE"
     display-name: "&9Noc"

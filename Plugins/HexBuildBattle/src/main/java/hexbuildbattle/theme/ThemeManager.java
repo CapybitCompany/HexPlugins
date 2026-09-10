@@ -48,7 +48,7 @@ public final class ThemeManager {
 
     public List<Theme> randomOptions(int count) {
         if (activeThemes.isEmpty()) {
-            return List.of(new Theme("missing_themes", "Brak tematow", Material.BARRIER, 1));
+            return List.of(new Theme("missing_themes", "Brak tematów", Material.BARRIER, 1));
         }
 
         List<Theme> pool = new ArrayList<>(activeThemes);

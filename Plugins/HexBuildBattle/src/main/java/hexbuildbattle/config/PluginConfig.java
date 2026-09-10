@@ -85,7 +85,7 @@ public record PluginConfig(
         );
         PlaceholderSettings placeholders = new PlaceholderSettings(
                 stringValue(config, "placeholders.no-theme", "&7Brak"),
-                stringValue(config, "placeholders.voting-theme", "&eGlosowanie..."),
+                stringValue(config, "placeholders.voting-theme", "&eGłosowanie..."),
                 stringValue(config, "placeholders.top-empty-name", "-"),
                 stringValue(config, "placeholders.top-empty-points", "0")
         );

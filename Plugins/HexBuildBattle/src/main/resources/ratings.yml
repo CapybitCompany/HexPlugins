@@ -44,23 +44,19 @@ ratings:
     display-name: "&dGOAAAAAAT!"
     points: 10
     sounds:
-      - sound: "UI_TOAST_CHALLENGE_COMPLETE"
-        volume: 1.0
-        pitch: 1.0
+      - sound: "ENTITY_GOAT_AMBIENT"
+        volume: 0.85
+        pitch: 1.05
+      - sound: "BLOCK_NOTE_BLOCK_PLING"
+        volume: 0.75
+        pitch: 1.55
       - sound: "ENTITY_FIREWORK_ROCKET_BLAST"
-        volume: 0.8
-        pitch: 1.15
+        volume: 0.55
+        pitch: 1.25
     particle: "END_ROD"
 
 goat-effect:
-  duration-seconds: 6
+  duration-seconds: 4
   interval-ticks: 2
   particle: "END_ROD"
   particle-count: 45
-  sounds:
-    - sound: "UI_TOAST_CHALLENGE_COMPLETE"
-      volume: 1.0
-      pitch: 1.0
-    - sound: "ENTITY_FIREWORK_ROCKET_BLAST"
-      volume: 0.8
-      pitch: 1.15

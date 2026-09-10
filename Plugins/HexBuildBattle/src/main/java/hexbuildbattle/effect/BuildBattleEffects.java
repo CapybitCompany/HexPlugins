@@ -4,7 +4,6 @@ import hexbuildbattle.arena.Arena;
 import hexbuildbattle.config.ConfigParsers;
 import hexbuildbattle.config.ConfigService;
 import hexbuildbattle.config.PluginConfig;
-import hexbuildbattle.config.SoundSetting;
 import hexbuildbattle.game.GameTaskRegistry;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
@@ -46,20 +45,6 @@ public final class BuildBattleEffects {
                 plugin.getLogger(),
                 "ratings.yml:goat-effect.particle"
         );
-        List<SoundSetting> sounds = ConfigParsers.soundSettingList(
-                configService.ratings(),
-                "goat-effect.sounds",
-                plugin.getLogger(),
-                0.9D,
-                1.1D
-        );
-
-        for (Player viewer : viewers) {
-            for (SoundSetting sound : sounds) {
-                sound.play(viewer);
-            }
-        }
-
         String taskKey = "goat-effect-" + (++goatEffectCounter);
         goatTasks.add(taskKey);
         final int[] ticksLived = {0};
