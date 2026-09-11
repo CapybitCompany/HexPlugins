@@ -1,0 +1,23 @@
+name: HexMinigames
+version: '1.0.0'
+main: hex.minigames.HexMinigamesPlugin
+api-version: '1.21.11'
+description: HexEvents minigames series core module.
+authors: [HexDevTeam]
+depend:
+  - HexEvents
+softdepend:
+  - HexCore
+libraries:
+  - org.xerial:sqlite-jdbc:3.46.1.0
+
+commands:
+  hexminigames:
+    description: Manage HexMinigames
+    usage: /hexminigames <reload|status|forcestart|stop|test|testjoin|testleave|forcegame|nextround|endround|debug>
+    permission: hexminigames.admin
+
+permissions:
+  hexminigames.admin:
+    description: Allows managing HexMinigames
+    default: op

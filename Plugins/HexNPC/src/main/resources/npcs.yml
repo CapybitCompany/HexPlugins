@@ -61,4 +61,41 @@
 # Backwards-compat: a flat list under "actions:" is treated as on-click only.
 # New NPCs are written in the map form above.
 
-npcs: {}
+npcs:
+  event_guy:
+    skin:
+      name: event_guy
+      value: ewogICJ0aW1lc3RhbXAiIDogMTYyMTMyMjA0MzQxMiwKICAicHJvZmlsZUlkIiA6ICI0NWY3YTJlNjE3ODE0YjJjODAwODM5MmRmN2IzNWY0ZiIsCiAgInByb2ZpbGVOYW1lIiA6ICJfSnVzdERvSXQiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvY2M4ZDJhNWFmOTc1YzUzY2YwODFiNTMxNTY2MTQ4YmFlMzY2MTQxMzE0YjM1YWE1NzI2ZTk3Y2M5N2VmMTE4YiIKICAgIH0KICB9Cn0=
+      signature: wErwOqkCTlBxYLtIHLEcMg5GWvuwOWCUXQEsL7YNSNiYyAd62ciYBWItBD+E3zemyoelePxt53KDua9MLtthNad/aBvFAYR1qNre06Izqwud1Ay2Lw5IHbowTTcUMfyWP7ZQ3c5Bck1c5yl40hTwWlcztcChzT0O/CfkKZsWHCzOouNWSphh5mtagndkGEz8ybaOz+mN5t1GWtU+X9xrkl4x1vI5kWVwEgXI4nQ2GFJ1eX6ZIVB5/D/agn3mglZgUvt5hoVhFhoSjXGYlcmRn4M2oz/AdgzkX+Yg7VbdOSyjvOxTB0ZNscCzJgSlKmaZFsYPcEGj6hXEtWLfLJ1suC2e6CluuDUDE1VlOG5iWCNZLsFVuwrWwPs5PDWTUrmgEiQXVSpaOpgeNXheEdQDIhTS78oAdr4rJlbZrANgacM4+6VXPue+S4E3meu5GMjgPZOaIjdgWoKeHTMYtK+fDsosBFh2qKGDZCDqW9sg17C9wB1w68Rmo9u7LHBMNdfBN3sr6PjeafnI3GvhEPFnEDr4QcS1009l8gU2Ovz4LjXC8+Ob5Tq/e/jXUfHGHI0DmLIPUWS+/zYQz670fEWTdHbtD5CSO/lMNpTAi500PX7y7mf9FQtWcGq6fQoYR5i3dT8O+acBUYoNsAfE4G0ehYZw4BDQL/dLJgy7JtKYqRw=
+      mineskin-uuid: a67bbbec436d4d2e97e109bdb6a0ccc7
+    location:
+      world: world
+      x: 2780.4229533632897
+      y: 74.0
+      z: 917.4829381566071
+      yaw: 83.226776
+      pitch: 0.15010768
+    interaction:
+      click: true
+      proximity:
+        enabled: false
+        radius: 0.0
+        cooldown-ticks: 0
+    dialogue:
+      cooldown-ticks: 0
+      lines: []
+    actions:
+      on-click:
+        - type: event-guy-menu
+          shop: event_tickets
+          event-command: event
+          title: "&5Eventy"
+      on-proximity: []
+    appearance:
+      display-name: "&5-> &fBilety &5| &fInformacja &5<-"
+      glow: false
+      pose: standing
+    look-at:
+      enabled: true
+      interval-ticks: 5
+      reset-when-empty: true

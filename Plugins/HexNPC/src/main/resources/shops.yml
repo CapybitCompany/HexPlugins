@@ -119,6 +119,29 @@ shops:
         # Demonstracja funkcji: dzienny limit 64 diamentów na gracza.
         max-buy-amount: 64
 
+  event_tickets:
+    title: "&5Bilety na event"
+    size: 27
+    placement: MANUAL
+    layout:
+      filler:
+        material: BLACK_STAINED_GLASS_PANE
+        name: " "
+    items:
+      event_ticket:
+        material: PAPER
+        amount: 1
+        slot: 13
+        display-name: "&5Bilet na event"
+        lore:
+          - "&7Bilet wymagany do udzialu w evencie."
+          - "&8Cena mozliwa do zmiany w shops.yml."
+        buy-price: "100.00"
+        sell-price: "0.00"
+        buy-enabled: true
+        sell-enabled: false
+        sell-match: EXACT_ITEM
+
 # ==========================================================
 # PRZYKŁADY (NIEAKTYWNE) — aby użyć, USUŃ znak # z początku linii
 # i przenieś wpisy pod klucz "shops:" powyżej.

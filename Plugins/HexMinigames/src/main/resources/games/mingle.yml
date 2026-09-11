@@ -1,0 +1,10 @@
+id: mingle
+display-name: 'Mingle'
+enabled: false
+min-players: 8
+max-players: 0
+weight: 1
+region: {}
+participant-spawns: []
+spectator-spawn: {}
+settings: {}

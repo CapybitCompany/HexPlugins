@@ -1,0 +1,10 @@
+id: jump_rope
+display-name: 'Skakanka'
+enabled: false
+min-players: 1
+max-players: 0
+weight: 1
+region: {}
+participant-spawns: []
+spectator-spawn: {}
+settings: {}

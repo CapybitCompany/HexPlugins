@@ -1,0 +1,17 @@
+package hex.minigames.runtime;
+
+public enum SeriesState {
+    WAITING,
+    PRE_GAME_WAITING,
+    PRE_GAME_DRAW,
+    PRE_GAME_COUNTDOWN,
+    SELECTING_GAMES,
+    PREPARING_ROUND,
+    ROUND_COUNTDOWN,
+    ROUND_RUNNING,
+    ROUND_RESULTS,
+    INTERMISSION,
+    SERIES_RESULTS,
+    FINISHED,
+    CANCELLED
+}

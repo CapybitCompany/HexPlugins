@@ -56,16 +56,22 @@ class ShopPluginIntegrationTest {
         assertNotNull(plugin.shopRegistry());
         assertTrue(plugin.shopRegistry().find("starter").isPresent(),
                 "domyślny sklep starter z shops.yml musi się załadować");
+        assertTrue(plugin.shopRegistry().find("event_tickets").isPresent(),
+                "domyślny sklep event_tickets z shops.yml musi się załadować");
     }
 
     @Test
-    void shippedShopsFileHasExactlyStarterWithDemoLimit() {
+    void shippedShopsFileHasStarterAndEventTickets() {
         var registry = plugin.shopRegistry();
-        assertEquals(1, registry.size(), "dostarczony plik ma dokładnie jeden aktywny sklep");
+        assertEquals(2, registry.size(), "dostarczony plik ma dokładnie dwa aktywne sklepy");
         var starter = registry.find("starter").orElseThrow();
         assertTrue(starter.item("cobblestone").isPresent(), "starter zawiera cobblestone");
         var diamond = starter.item("diamond").orElseThrow();
         assertEquals(64, diamond.maxBuyAmount(), "diament demonstruje dzienny limit 64");
+        var tickets = registry.find("event_tickets").orElseThrow();
+        var ticket = tickets.item("event_ticket").orElseThrow();
+        assertTrue(ticket.hasBuyPrice(), "bilet musi mieć aktywną cenę kupna");
+        assertFalse(ticket.hasSellPrice(), "bilet nie powinien mieć sprzedaży");
         // Zakomentowane przykłady nie mogą być aktywnie ładowane.
         assertTrue(registry.find("kopalnia").isEmpty(), "przykład 'kopalnia' nie może być aktywny");
         assertTrue(registry.find("własny_sklep").isEmpty(), "przykład layout-override nie może być aktywny");

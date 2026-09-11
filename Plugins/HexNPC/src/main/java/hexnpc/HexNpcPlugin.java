@@ -8,6 +8,10 @@ import hexnpc.action.PlayerCommandHandler;
 import hexnpc.command.HexNpcCommand;
 import hexnpc.config.HexNpcConfig;
 import hexnpc.config.HexNpcConfigLoader;
+import hexnpc.event.EventGuyMenuActionHandler;
+import hexnpc.event.EventGuyMenuHolder;
+import hexnpc.event.EventGuyMenuListener;
+import hexnpc.event.EventGuyMenuService;
 import hexnpc.integration.HexCoreBridge;
 import hexnpc.listener.NpcItemUseListener;
 import hexnpc.listener.PlayerLifecycleListener;
@@ -75,6 +79,8 @@ public class HexNpcPlugin extends JavaPlugin {
     private ShopRegistry shopRegistry;
     private ShopService shopService;
     private ShopInventoryListener shopInventoryListener;
+    private EventGuyMenuService eventGuyMenuService;
+    private EventGuyMenuListener eventGuyMenuListener;
     private DailyBuyLimitService buyLimitService;
     private SignInputService signInputService;
     private ShopAuditLog shopAuditLog;
@@ -103,6 +109,8 @@ public class HexNpcPlugin extends JavaPlugin {
         actionRegistry.register(clickableMessageHandler);
         actionRegistry.register(new ConsoleCommandHandler());
         actionRegistry.register(new PlayerCommandHandler());
+        this.eventGuyMenuService = new EventGuyMenuService(this::shopService);
+        actionRegistry.register(new EventGuyMenuActionHandler(eventGuyMenuService));
         actionRegistry.register(new ShopActionHandler(this::shopService));
         getServer().getServicesManager().register(
                 NpcActionRegistry.class, actionRegistry, this, ServicePriority.Normal);
@@ -154,6 +162,8 @@ public class HexNpcPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new NpcItemUseListener(itemUseSuppressor), this);
         this.shopInventoryListener = new ShopInventoryListener(shopService);
         getServer().getPluginManager().registerEvents(shopInventoryListener, this);
+        this.eventGuyMenuListener = new EventGuyMenuListener(eventGuyMenuService);
+        getServer().getPluginManager().registerEvents(eventGuyMenuListener, this);
         getServer().getPluginManager().registerEvents(signInputService, this);
         registerPacketClickListenerOnce();
         registerSignPacketListenerOnce();
@@ -190,6 +200,11 @@ public class HexNpcPlugin extends JavaPlugin {
             HandlerList.unregisterAll(shopInventoryListener);
             shopInventoryListener = null;
         }
+        if (eventGuyMenuListener != null) {
+            HandlerList.unregisterAll(eventGuyMenuListener);
+            eventGuyMenuListener = null;
+        }
+        eventGuyMenuService = null;
         if (packetClickListener != null) {
             PacketEventsBootstrap.unregisterListener(packetClickListener);
             packetClickListener = null;
@@ -466,12 +481,12 @@ public class HexNpcPlugin extends JavaPlugin {
         }
     }
 
-    /** Zamyka wszystkie otwarte GUI sklepów HexNPC (reload/disable). */
+    /** Zamyka wszystkie otwarte GUI HexNPC (reload/disable). */
     private void closeOpenShopGuis() {
         try {
             for (Player online : getServer().getOnlinePlayers()) {
                 InventoryHolder holder = online.getOpenInventory().getTopInventory().getHolder();
-                if (holder instanceof ShopGuiHolder) {
+                if (holder instanceof ShopGuiHolder || holder instanceof EventGuyMenuHolder) {
                     online.closeInventory();
                 }
             }

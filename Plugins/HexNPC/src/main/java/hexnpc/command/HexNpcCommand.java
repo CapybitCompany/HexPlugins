@@ -897,7 +897,7 @@ public final class HexNpcCommand implements CommandExecutor, TabCompleter {
             }
         }
         if (args.length == 5 && sub.equals("action") && args[2].equalsIgnoreCase("add")) {
-            return filterPrefix(List.of("message", "console-command", "player-command", "npc-shop"), args[4]);
+            return filterPrefix(List.of("message", "console-command", "player-command", "npc-shop", "event-guy-menu"), args[4]);
         }
         return List.of();
     }

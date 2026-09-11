@@ -1,6 +1,7 @@
 package hexnpc;
 
 import hexnpc.model.NpcDefinition;
+import hexnpc.model.NpcAction;
 import hexnpc.model.NpcId;
 import hexnpc.model.NpcLocation;
 import hexnpc.service.NpcService;
@@ -56,7 +57,19 @@ class HexNpcPluginSmokeTest {
         assertTrue(registry.resolve("message").isPresent());
         assertTrue(registry.resolve("console-command").isPresent());
         assertTrue(registry.resolve("player-command").isPresent());
+        assertTrue(registry.resolve("event-guy-menu").isPresent());
         assertFalse(registry.resolve("nonexistent").isPresent());
+    }
+
+    @Test
+    void defaultNpcFileLoadsEventGuyMenuAction() {
+        NpcDefinition eventGuy = plugin.npcService().find(new NpcId("event_guy")).orElseThrow();
+        assertEquals("world", eventGuy.location().world());
+        assertEquals(1, eventGuy.actions().onClick().size());
+        NpcAction action = eventGuy.actions().onClick().get(0);
+        assertEquals("event-guy-menu", action.type());
+        assertEquals("event_tickets", action.asString("shop", ""));
+        assertEquals("event", action.asString("event-command", ""));
     }
 
     @Test
@@ -64,24 +77,25 @@ class HexNpcPluginSmokeTest {
         NpcService svc = plugin.npcService();
         NpcId id = new NpcId("test-npc");
         NpcLocation loc = new NpcLocation("world", 0.5, 65.0, 0.5, 0.0f, 0.0f);
+        int initialSize = svc.list().size();
 
         NpcDefinition created = svc.create(id, loc);
         assertEquals(id, created.id());
-        assertEquals(1, svc.list().size());
+        assertEquals(initialSize + 1, svc.list().size());
 
         Optional<NpcDefinition> looked = svc.find(id);
         assertTrue(looked.isPresent());
         assertEquals("world", looked.get().location().world());
 
         assertTrue(svc.remove(id));
-        assertEquals(0, svc.list().size());
+        assertEquals(initialSize, svc.list().size());
     }
 
     @Test
     void shouldRunHexnpcCommandWithoutErrors() {
         Player op = server.addPlayer("OpUser");
         op.setOp(true);
-        // list with no NPCs
+        // list with shipped NPCs
         op.performCommand("hexnpc list");
         // create then list
         op.performCommand("hexnpc create greeter");

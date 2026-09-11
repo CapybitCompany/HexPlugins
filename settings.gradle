@@ -16,6 +16,7 @@ include 'plugins:HexNPC'
 include 'plugins:HexBuildBattle'
 include 'plugins:HexEvents:hexevents-api'
 include 'plugins:HexParkour'
+include 'plugins:HexMinigames'
 include 'statsapi'
 
 // Physical folder is 'Plugins/...' (capital P), keep logical Gradle path consistent.
@@ -35,4 +36,5 @@ project(':plugins:HexBuildBattle').projectDir = file('Plugins/HexBuildBattle')
 project(':plugins:HexEvents').projectDir = file('Plugins/HexEvents')
 project(':plugins:HexEvents:hexevents-api').projectDir = file('Plugins/HexEvents/hexevents-api')
 project(':plugins:HexParkour').projectDir = file('Plugins/HexParkour')
+project(':plugins:HexMinigames').projectDir = file('Plugins/HexMinigames')
 project(':statsapi').projectDir = file('StatsApi')

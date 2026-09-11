@@ -1,0 +1,297 @@
+id: super_memory
+display-name: '&6SUPER-PAMIĘĆ'
+enabled: true
+min-players: 1
+max-players: 14
+weight: 1
+round-time-seconds: 90
+
+region:
+  pos1: { x: 323, y: -33, z: 186 }
+  pos2: { x: 518, y: 87, z: 2 }
+
+participant-spawns:
+  - { x: 402.0, y: 40.0, z: 117.0, yaw: 0.0, pitch: 0.0 }
+spectator-spawn: { x: 402.0, y: 40.0, z: 117.0, yaw: 0.0, pitch: 0.0 }
+
+settings:
+  materials:
+    idle: WHITE_CONCRETE
+    correct: LIME_CONCRETE
+    wrong: RED_CONCRETE
+  wrong-reset-delay-ticks: 12
+
+  tutorial:
+    duration-seconds: 15
+    title: '&6&lZASADY NA CZACIE'
+    subtitle: '&e{seconds}'
+    title-stay-ticks: 25
+    tick-sound:
+      enabled: true
+      sound: UI_BUTTON_CLICK
+      volume: 0.8
+      pitch: 1.4
+    chat-lines:
+      - '&8&m----------------------------------------'
+      - '&6&lSUPER-PAMIĘĆ'
+      - '&7Odgadnij poprawną kolejność &f8 bloków&7.'
+      - '&7Poprawny wybór zmieni blok na &aZIELONY&7.'
+      - '&7Błędny wybór zmieni blok na &cCZERWONY'
+      - '&7i wyzeruje cały Twój aktualny postęp.'
+      - '&7'
+      - '&7Sekwencja po błędzie &fnie zmienia się&7.'
+      - '&7Masz &e{duration} sekund&7.'
+      - '&7Liczy się czas ukończenia.'
+      - '&8&m----------------------------------------'
+
+  bossbar:
+    title: '&6SUPER-PAMIĘĆ'
+    color: YELLOW
+    style: SOLID
+
+  actionbar:
+    active: '&fPostęp: &e{progress}/8 &8| &fCzas: &e{remaining}'
+    finished: '&aUkończono! &8| &fTwój czas: &e{completion_time}'
+
+  completion:
+    title: '&a&lUKOŃCZONO!'
+    subtitle: '&fTwój czas: &e{time}'
+    stay-ticks: 50
+
+  sounds:
+    correct:
+      enabled: true
+      sound: ENTITY_EXPERIENCE_ORB_PICKUP
+      volume: 0.8
+      pitch: 1.6
+    wrong:
+      enabled: true
+      sound: ENTITY_VILLAGER_NO
+      volume: 1.0
+      pitch: 0.9
+    completion:
+      level-up:
+        enabled: true
+        sound: ENTITY_PLAYER_LEVELUP
+        volume: 0.9
+        pitch: 1.0
+      chime:
+        enabled: true
+        sound: BLOCK_AMETHYST_BLOCK_CHIME
+        volume: 0.9
+        pitch: 1.2
+      celebrate:
+        enabled: true
+        sound: ENTITY_VILLAGER_CELEBRATE
+        volume: 0.9
+        pitch: 1.2
+
+  scoring:
+    placements: [4, 3, 2, 1, 1, 1, 1, 0]
+
+  results:
+    header-lines:
+      - '&8&m----------------------------------------'
+      - '&6&lSUPER-PAMIĘĆ &8» &fWyniki'
+      - '&7'
+    placement-line: '&6{place}. &f{player} &8- &e{time} &8(&a+{points} pkt&8)'
+    dnf-line: '&8DNF: &7{players}'
+    footer-line: '&8&m----------------------------------------'
+
+  stations:
+    - id: 1
+      region:
+        pos1: { x: 397, y: 39, z: 119 }
+        pos2: { x: 408, y: 42, z: 109 }
+      spawn: { x: 402.0, y: 40.0, z: 117.0, yaw: 0.0, pitch: 0.0 }
+      click-blocks:
+        - { x: 399, y: 39, z: 117 }
+        - { x: 399, y: 39, z: 115 }
+        - { x: 400, y: 39, z: 113 }
+        - { x: 401, y: 39, z: 111 }
+        - { x: 404, y: 39, z: 111 }
+        - { x: 405, y: 39, z: 113 }
+        - { x: 406, y: 39, z: 115 }
+        - { x: 406, y: 39, z: 117 }
+    - id: 2
+      region:
+        pos1: { x: 412, y: 39, z: 119 }
+        pos2: { x: 423, y: 42, z: 109 }
+      spawn: { x: 417.0, y: 40.0, z: 117.0, yaw: 0.0, pitch: 0.0 }
+      click-blocks:
+        - { x: 414, y: 39, z: 117 }
+        - { x: 414, y: 39, z: 115 }
+        - { x: 415, y: 39, z: 113 }
+        - { x: 416, y: 39, z: 111 }
+        - { x: 419, y: 39, z: 111 }
+        - { x: 420, y: 39, z: 113 }
+        - { x: 421, y: 39, z: 115 }
+        - { x: 421, y: 39, z: 117 }
+    - id: 3
+      region:
+        pos1: { x: 428, y: 41, z: 112 }
+        pos2: { x: 438, y: 38, z: 123 }
+      spawn: { x: 436.0, y: 39.0, z: 118.0, yaw: 0.0, pitch: 0.0 }
+      click-blocks:
+        - { x: 436, y: 38, z: 121 }
+        - { x: 434, y: 38, z: 121 }
+        - { x: 432, y: 38, z: 120 }
+        - { x: 430, y: 38, z: 119 }
+        - { x: 430, y: 38, z: 116 }
+        - { x: 432, y: 38, z: 115 }
+        - { x: 434, y: 38, z: 114 }
+        - { x: 436, y: 38, z: 114 }
+    - id: 4
+      region:
+        pos1: { x: 420, y: 38, z: 141 }
+        pos2: { x: 431, y: 41, z: 131 }
+      spawn: { x: 425.0, y: 39.0, z: 139.0, yaw: 0.0, pitch: 0.0 }
+      click-blocks:
+        - { x: 422, y: 38, z: 139 }
+        - { x: 422, y: 38, z: 137 }
+        - { x: 423, y: 38, z: 135 }
+        - { x: 424, y: 38, z: 133 }
+        - { x: 427, y: 38, z: 133 }
+        - { x: 428, y: 38, z: 135 }
+        - { x: 429, y: 38, z: 137 }
+        - { x: 429, y: 38, z: 139 }
+    - id: 5
+      region:
+        pos1: { x: 445, y: 38, z: 106 }
+        pos2: { x: 435, y: 41, z: 95 }
+      spawn: { x: 443.0, y: 39.0, z: 101.0, yaw: 0.0, pitch: 0.0 }
+      click-blocks:
+        - { x: 443, y: 38, z: 104 }
+        - { x: 441, y: 38, z: 104 }
+        - { x: 439, y: 38, z: 103 }
+        - { x: 437, y: 38, z: 102 }
+        - { x: 437, y: 38, z: 99 }
+        - { x: 439, y: 38, z: 98 }
+        - { x: 441, y: 38, z: 97 }
+        - { x: 443, y: 38, z: 97 }
+    - id: 6
+      region:
+        pos1: { x: 431, y: 39, z: 105 }
+        pos2: { x: 421, y: 42, z: 94 }
+      spawn: { x: 429.0, y: 40.0, z: 100.0, yaw: 0.0, pitch: 0.0 }
+      click-blocks:
+        - { x: 429, y: 39, z: 103 }
+        - { x: 427, y: 39, z: 103 }
+        - { x: 425, y: 39, z: 102 }
+        - { x: 423, y: 39, z: 101 }
+        - { x: 423, y: 39, z: 98 }
+        - { x: 425, y: 39, z: 97 }
+        - { x: 427, y: 39, z: 96 }
+        - { x: 429, y: 39, z: 96 }
+    - id: 7
+      region:
+        pos1: { x: 444, y: 38, z: 81 }
+        pos2: { x: 434, y: 41, z: 70 }
+      spawn: { x: 442.0, y: 39.0, z: 76.0, yaw: 0.0, pitch: 0.0 }
+      click-blocks:
+        - { x: 442, y: 38, z: 79 }
+        - { x: 440, y: 38, z: 79 }
+        - { x: 438, y: 38, z: 78 }
+        - { x: 436, y: 38, z: 77 }
+        - { x: 436, y: 38, z: 74 }
+        - { x: 438, y: 38, z: 73 }
+        - { x: 440, y: 38, z: 72 }
+        - { x: 442, y: 38, z: 72 }
+    - id: 8
+      region:
+        pos1: { x: 430, y: 38, z: 87 }
+        pos2: { x: 420, y: 41, z: 76 }
+      spawn: { x: 428.0, y: 39.0, z: 82.0, yaw: 0.0, pitch: 0.0 }
+      click-blocks:
+        - { x: 428, y: 38, z: 85 }
+        - { x: 426, y: 38, z: 85 }
+        - { x: 424, y: 38, z: 84 }
+        - { x: 422, y: 38, z: 83 }
+        - { x: 422, y: 38, z: 80 }
+        - { x: 424, y: 38, z: 79 }
+        - { x: 426, y: 38, z: 78 }
+        - { x: 428, y: 38, z: 78 }
+    - id: 9
+      region:
+        pos1: { x: 425, y: 38, z: 69 }
+        pos2: { x: 415, y: 41, z: 58 }
+      spawn: { x: 423.0, y: 39.0, z: 64.0, yaw: 0.0, pitch: 0.0 }
+      click-blocks:
+        - { x: 423, y: 38, z: 67 }
+        - { x: 421, y: 38, z: 67 }
+        - { x: 419, y: 38, z: 66 }
+        - { x: 417, y: 38, z: 65 }
+        - { x: 417, y: 38, z: 62 }
+        - { x: 419, y: 38, z: 61 }
+        - { x: 421, y: 38, z: 60 }
+        - { x: 423, y: 38, z: 60 }
+    - id: 10
+      region:
+        pos1: { x: 425, y: 37, z: 54 }
+        pos2: { x: 415, y: 40, z: 43 }
+      spawn: { x: 423.0, y: 38.0, z: 49.0, yaw: 0.0, pitch: 0.0 }
+      click-blocks:
+        - { x: 423, y: 37, z: 52 }
+        - { x: 421, y: 37, z: 52 }
+        - { x: 419, y: 37, z: 51 }
+        - { x: 417, y: 37, z: 50 }
+        - { x: 417, y: 37, z: 47 }
+        - { x: 419, y: 37, z: 46 }
+        - { x: 421, y: 37, z: 45 }
+        - { x: 423, y: 37, z: 45 }
+    - id: 11
+      region:
+        pos1: { x: 394, y: 37, z: 37 }
+        pos2: { x: 404, y: 40, z: 48 }
+      spawn: { x: 396.0, y: 38.0, z: 42.0, yaw: 0.0, pitch: 0.0 }
+      click-blocks:
+        - { x: 396, y: 37, z: 39 }
+        - { x: 398, y: 37, z: 39 }
+        - { x: 400, y: 37, z: 40 }
+        - { x: 402, y: 37, z: 41 }
+        - { x: 402, y: 37, z: 44 }
+        - { x: 400, y: 37, z: 45 }
+        - { x: 398, y: 37, z: 46 }
+        - { x: 396, y: 37, z: 46 }
+    - id: 12
+      region:
+        pos1: { x: 395, y: 38, z: 55 }
+        pos2: { x: 405, y: 41, z: 66 }
+      spawn: { x: 397.0, y: 39.0, z: 60.0, yaw: 0.0, pitch: 0.0 }
+      click-blocks:
+        - { x: 397, y: 38, z: 57 }
+        - { x: 399, y: 38, z: 57 }
+        - { x: 401, y: 38, z: 58 }
+        - { x: 403, y: 38, z: 59 }
+        - { x: 403, y: 38, z: 62 }
+        - { x: 401, y: 38, z: 63 }
+        - { x: 399, y: 38, z: 64 }
+        - { x: 397, y: 38, z: 64 }
+    - id: 13
+      region:
+        pos1: { x: 387, y: 39, z: 69 }
+        pos2: { x: 397, y: 42, z: 80 }
+      spawn: { x: 389.0, y: 40.0, z: 74.0, yaw: 0.0, pitch: 0.0 }
+      click-blocks:
+        - { x: 389, y: 39, z: 71 }
+        - { x: 391, y: 39, z: 71 }
+        - { x: 393, y: 39, z: 72 }
+        - { x: 395, y: 39, z: 73 }
+        - { x: 395, y: 39, z: 76 }
+        - { x: 393, y: 39, z: 77 }
+        - { x: 391, y: 39, z: 78 }
+        - { x: 389, y: 39, z: 78 }
+    - id: 14
+      region:
+        pos1: { x: 388, y: 39, z: 84 }
+        pos2: { x: 398, y: 42, z: 95 }
+      spawn: { x: 390.0, y: 40.0, z: 89.0, yaw: 0.0, pitch: 0.0 }
+      click-blocks:
+        - { x: 390, y: 39, z: 86 }
+        - { x: 392, y: 39, z: 86 }
+        - { x: 394, y: 39, z: 87 }
+        - { x: 396, y: 39, z: 88 }
+        - { x: 396, y: 39, z: 91 }
+        - { x: 394, y: 39, z: 92 }
+        - { x: 392, y: 39, z: 93 }
+        - { x: 390, y: 39, z: 93 }

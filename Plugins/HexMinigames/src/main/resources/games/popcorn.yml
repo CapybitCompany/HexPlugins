@@ -1,0 +1,10 @@
+id: popcorn
+display-name: 'Popcorn'
+enabled: false
+min-players: 1
+max-players: 0
+weight: 1
+region: {}
+participant-spawns: []
+spectator-spawn: {}
+settings: {}

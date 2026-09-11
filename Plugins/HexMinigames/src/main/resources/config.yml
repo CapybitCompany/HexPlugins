@@ -1,0 +1,68 @@
+world: Hex_Minigames
+games-per-series: 5
+
+global:
+  max-players: 14
+  round-end-sound:
+    enabled: true
+    sound: ITEM_GOAT_HORN_SOUND_0
+    volume: 1.0
+    pitch: 1.0
+
+countdowns:
+  round: 5
+
+durations:
+  default-round-seconds: 180
+  round-results-seconds: 10
+  intermission-seconds: 8
+  series-results-seconds: 12
+
+storage:
+  type: auto
+  sqlite-file: minigames.db
+
+inventory:
+  restore-on-join: true
+
+ghost:
+  allow-flight: true
+  game-mode: ADVENTURE
+
+pregame:
+  enabled: true
+  region:
+    pos1:
+      x: 543
+      y: -33
+      z: 56
+    pos2:
+      x: 619
+      y: -3
+      z: 116
+  spawn:
+    x: 569.0
+    y: -29.0
+    z: 86.0
+    yaw: -90.0
+    pitch: 0.0
+  minimum-players: 5
+  draw-duration-seconds: 10
+  countdown-seconds: 10
+
+development:
+  minimum-players: 2
+
+series:
+  minimum-continuation-players: 2
+
+debug:
+  enabled: true
+  log-state-transitions: true
+  debug-game-duration-seconds: 10
+  spawn:
+    x: 0.5
+    y: 100.0
+    z: 0.5
+    yaw: 0.0
+    pitch: 0.0
