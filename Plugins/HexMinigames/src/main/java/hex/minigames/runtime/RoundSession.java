@@ -18,6 +18,8 @@ public final class RoundSession {
     private final Map<UUID, RoundPlayerState> playerStates = new LinkedHashMap<>();
     private final int maxTicks;
     private long elapsedTicks;
+    private int startDelayRemaining;
+    private final Set<UUID> announcedOutcomes = new LinkedHashSet<>();
     private boolean started;
     private boolean finishRequested;
     private RoundEndReason requestedReason = RoundEndReason.MINIGAME_REQUEST;
@@ -30,6 +32,7 @@ public final class RoundSession {
         this.minigame = minigame;
         this.participants = new LinkedHashSet<>(participants);
         this.maxTicks = Math.max(1, maxTicks);
+        this.startDelayRemaining = Math.max(0, minigame.startDelayTicks());
         for (UUID participant : participants) {
             playerStates.put(participant, RoundPlayerState.ACTIVE);
         }
@@ -88,6 +91,12 @@ public final class RoundSession {
     public long elapsedTicks() {
         return elapsedTicks;
     }
+
+    public int startDelayRemaining() { return startDelayRemaining; }
+
+    public void tickStartDelay() { startDelayRemaining = Math.max(0, startDelayRemaining - 1); }
+
+    public boolean markOutcomeAnnounced(UUID playerId) { return announcedOutcomes.add(playerId); }
 
     public boolean timeLimitReached() {
         return elapsedTicks >= maxTicks;

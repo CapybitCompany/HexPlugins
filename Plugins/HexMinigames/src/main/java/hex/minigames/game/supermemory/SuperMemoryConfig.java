@@ -76,17 +76,17 @@ public record SuperMemoryConfig(
         Material wrong = material(settings, "materials.wrong", Material.RED_CONCRETE, source, targetErrors);
         int wrongResetDelay = positiveInt(settings, "wrong-reset-delay-ticks", 12, source, targetErrors);
 
-        int tutorialDuration = positiveInt(settings, "tutorial.duration-seconds", 15, source, targetErrors);
-        String tutorialTitle = string(settings, "tutorial.title", "&6&lZASADY NA CZACIE");
-        String tutorialSubtitle = string(settings, "tutorial.subtitle", "&e{seconds}");
+        int tutorialDuration = positiveInt(settings, "tutorial.duration-seconds", 20, source, targetErrors);
+        String tutorialTitle = string(settings, "tutorial.title", "&6ZASADY");
+        String tutorialSubtitle = string(settings, "tutorial.subtitle", "&f{seconds}");
         int tutorialStay = intValue(child(settings, "tutorial.title-stay-ticks"), 25);
         if (tutorialStay <= 20) targetErrors.add(source + ": settings.tutorial.title-stay-ticks must be > 20");
         ConfiguredSound tutorialTickSound = sound(settings, "tutorial.tick-sound", true, "UI_BUTTON_CLICK", 0.8f, 1.4f, source, targetErrors);
         List<String> chatLines = stringList(child(settings, "tutorial.chat-lines"), defaultTutorialChatLines());
 
         BossBarSettings bossBar = new BossBarSettings(
-                string(settings, "bossbar.title", "&6SUPER-PAMIEC"),
-                barColor(settings, "bossbar.color", BarColor.YELLOW, source, targetErrors),
+                string(settings, "bossbar.title", "&d&lSUPER-PAMIEC"),
+                barColor(settings, "bossbar.color", BarColor.WHITE, source, targetErrors),
                 barStyle(settings, "bossbar.style", BarStyle.SOLID, source, targetErrors)
         );
 
@@ -120,7 +120,7 @@ public record SuperMemoryConfig(
                         "&7"
                 )),
                 string(settings, "results.placement-line", "&6{place}. &f{player} &8- &e{time} &8(&a+{points} pkt&8)"),
-                string(settings, "results.dnf-line", "&8DNF: &7{players}"),
+                string(settings, "results.dnf-line", "&8Niezaliczono: &7{players}"),
                 string(settings, "results.footer-line", "&8&m----------------------------------------")
         );
 
@@ -381,17 +381,10 @@ public record SuperMemoryConfig(
 
     private static List<String> defaultTutorialChatLines() {
         return List.of(
-                "&8&m----------------------------------------",
-                "&6&lSUPER-PAMIEC",
-                "&7Odgadnij poprawna kolejnosc &f8 blokow&7.",
-                "&7Poprawny wybor zmieni blok na &aZIELONY&7.",
-                "&7Bledny wybor zmieni blok na &cCZERWONY",
-                "&7i wyzeruje caly Twoj aktualny postep.",
-                "&7",
-                "&7Sekwencja po bledzie &fnie zmienia sie&7.",
-                "&7Masz &e90 sekund&7.",
-                "&7Liczy sie czas ukonczenia.",
-                "&8&m----------------------------------------"
+                "&d&lSUPER-PAMIEC",
+                "&fOdtworz poprawna kolejnosc &e8 blokow&f.",
+                "&fBlad resetuje Twoj aktualny postep.",
+                "&fUkoncz sekwencje przed koncem czasu."
         );
     }
 

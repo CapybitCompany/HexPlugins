@@ -170,7 +170,7 @@ public final class PlayerSnapshotRepository {
         var targetWorld = Bukkit.getWorld(state.worldName());
         if (targetWorld == null) return false;
         Location target = new Location(targetWorld, state.x(), state.y(), state.z(), state.yaw(), state.pitch());
-        player.teleport(target);
+        if (!player.teleport(target)) return false;
         player.getInventory().clear();
         player.getInventory().setStorageContents(state.inventoryContents());
         player.getInventory().setArmorContents(state.armorContents());

@@ -31,6 +31,8 @@ public final class HexCoreMinigamesScoreRepository implements MinigamesScoreRepo
                   PRIMARY KEY (session_id, player_uuid)
                 )
                 """.formatted(commitsTable()));
+        db.update("CREATE TABLE IF NOT EXISTS " + db.t("minigames_player_names")
+                + " (player_uuid VARCHAR(36) PRIMARY KEY, player_name VARCHAR(64) NOT NULL)");
         available = true;
     }
 
@@ -75,6 +77,27 @@ public final class HexCoreMinigamesScoreRepository implements MinigamesScoreRepo
                 rs -> rs.getInt("points"),
                 playerId.toString()
         ).orElse(0);
+    }
+
+    @Override public java.util.List<LeaderboardEntry> allScores() {
+        ensureAvailable();
+        return db.query("SELECT s.player_uuid, s.points, n.player_name FROM " + scoresTable()
+                + " s LEFT JOIN " + db.t("minigames_player_names") + " n ON s.player_uuid = n.player_uuid",
+                rs -> new LeaderboardEntry(UUID.fromString(rs.getString("player_uuid")), rs.getString("player_name"), rs.getInt("points")));
+    }
+    @Override public void saveName(UUID id, String name) {
+        db.tx(tx -> {
+            String table = db.t("minigames_player_names");
+            if (tx.queryOne("SELECT player_uuid FROM " + table + " WHERE player_uuid = ?", rs -> rs.getString(1), id.toString()).isPresent())
+                tx.update("UPDATE " + table + " SET player_name = ? WHERE player_uuid = ?", name, id.toString());
+            else tx.update("INSERT INTO " + table + " (player_uuid, player_name) VALUES (?, ?)", id.toString(), name);
+            return null;
+        });
+    }
+    @Override public void resetScores() {
+        ensureAvailable();
+        // Keep the commit ledger so an already committed series cannot be awarded twice after reset.
+        db.update("DELETE FROM " + scoresTable());
     }
 
     private void addScore(Db tx, UUID playerId, int points) {

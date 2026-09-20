@@ -1,10 +1,51 @@
 id: jump_rope
-display-name: 'Skakanka'
-enabled: false
+display-name: '&dSKAKANKA'
+enabled: true
 min-players: 1
-max-players: 0
+max-players: 14
 weight: 1
-region: {}
-participant-spawns: []
-spectator-spawn: {}
-settings: {}
+round-time-seconds: 90
+region:
+  pos1: { x: 414, y: -33, z: -94 }
+  pos2: { x: 486, y: 33, z: -45 }
+participant-spawns:
+  - { x: 450, y: 12, z: -52, yaw: 180, pitch: 0 }
+spectator-spawn: { x: 450, y: 20, z: -67, yaw: 180, pitch: 30 }
+settings:
+  start-boundary:
+    pos1: { x: 448, y: 13, z: -56 }
+    pos2: { x: 452, y: 13, z: -56 }
+  finish-region:
+    pos1: { x: 454, y: 14, z: -83 }
+    pos2: { x: 446, y: 12, z: -83 }
+  fall-y: -23
+  respawn-delay-seconds: 10
+  scoring:
+    finish-points: 2
+  rope:
+    # U-shaped black glass from the screenshots; rotation axis runs along Z.
+    x: 450
+    pivot-y: 17
+    bottom-y: 12
+    near-z: -57
+    far-z: -82
+    rotation-ticks: 60
+    knockback: 0.9
+    hit-cooldown-ticks: 10
+  bossbar:
+    title: '&d&lSKAKANKA'
+    color: WHITE
+    style: SOLID
+  tutorial:
+    duration-seconds: 20
+    title: '&6ZASADY'
+    subtitle: '&f{seconds}'
+    title-stay-ticks: 25
+    sound-from-seconds: 5
+    countdown-sound: { enabled: true, sound: UI_BUTTON_CLICK, volume: 0.8, pitch: 1.4 }
+    chat-lines:
+      - '&d&lSKAKANKA'
+      - '&fPrzeskakuj nad obracającą się skakanką i dotrzyj do mety.'
+      - '&fMasz &e{duration} sekund&f. PvP jest wyłączone.'
+      - '&fUpadek oznacza powrót na start i &e10 sekund &fopóźnienia.'
+      - '&fPrzekroczenie mety daje &a+2 punkty&f. Pozostali: &c0&f.'

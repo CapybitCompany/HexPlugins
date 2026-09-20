@@ -1,10 +1,67 @@
 id: red_light_green_light
-display-name: 'Czerwone-Zielone'
-enabled: false
+display-name: '&dCZERWONE-ZIELONE'
+enabled: true
 min-players: 1
-max-players: 0
+max-players: 14
 weight: 1
-region: {}
-participant-spawns: []
-spectator-spawn: {}
-settings: {}
+round-time-seconds: 75
+
+region:
+  pos1: { x: 146, y: -33, z: -175 }
+  pos2: { x: 202, y: 37, z: -281 }
+
+participant-spawns:
+  - { x: 173.0, y: -30.0, z: -274.0, yaw: 0.0, pitch: 0.0 }
+spectator-spawn: { x: 173.0, y: -30.0, z: -274.0, yaw: 0.0, pitch: 0.0 }
+
+settings:
+  bossbar:
+    title: '&d&lCZERWONE-ZIELONE'
+    color: WHITE
+    style: SOLID
+  tutorial:
+    duration-seconds: 20
+    title: '&6ZASADY'
+    subtitle: '&f{seconds}'
+    title-stay-ticks: 25
+    sound-from-seconds: 5
+    countdown-sound:
+      enabled: true
+      sound: UI_BUTTON_CLICK
+      volume: 0.8
+      pitch: 1.4
+    chat-lines:
+      - '&d&lCZERWONE-ZIELONE'
+      - '&aZIELONE &f- biegnij w stronę mety.'
+      - '&cCZERWONE &f- zatrzymaj się całkowicie.'
+      - '&fNa czerwonym nie ruszaj się ani nie obracaj kamerą.'
+      - '&fDotrzyj do mety przed końcem czasu.'
+  start-line:
+    pos1: { x: 199, y: -31, z: -271 }
+    pos2: { x: 149, y: -12, z: -271 }
+  finish-region:
+    pos1: { x: 149, y: -31, z: -189 }
+    pos2: { x: 199, y: -20, z: -189 }
+  lights:
+    light-duration-min-ticks: 30
+    light-duration-max-ticks: 70
+    # 20 ticks = 1 second; grace after switching to red.
+    red-grace-ticks: 15
+  movement:
+    position-epsilon: 0.015
+    rotation-epsilon: 0.5
+  inventory:
+    green-material: LIME_CONCRETE
+    red-material: RED_CONCRETE
+  sounds:
+    green: { enabled: true, sound: BLOCK_NOTE_BLOCK_PLING, volume: 1.0, pitch: 1.5 }
+    red: { enabled: true, sound: BLOCK_NOTE_BLOCK_BASS, volume: 1.0, pitch: 0.6 }
+  actionbar:
+    active: '&fCzas: &e{remaining}'
+    finished: '&fCzas: &e{remaining} &8| &aTwój czas: &f{time}'
+  messages:
+    violation: ''
+  scoring:
+    first: 3
+    second-to-fourth: 2
+    fifth-to-seventh: 1

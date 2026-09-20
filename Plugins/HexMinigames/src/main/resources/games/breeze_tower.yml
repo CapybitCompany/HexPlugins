@@ -1,10 +1,45 @@
 id: breeze_tower
-display-name: 'Wieza Breeze'
-enabled: false
+display-name: "&dWIEŻA BREEZE'A"
+enabled: true
 min-players: 1
-max-players: 0
+max-players: 14
 weight: 1
-region: {}
-participant-spawns: []
-spectator-spawn: {}
-settings: {}
+round-time-seconds: 60
+region:
+  pos1: { x: 117, y: -33, z: -151 }
+  pos2: { x: -32, y: 47, z: -7 }
+participant-spawns:
+  - { x: 78, y: 9, z: -76, yaw: 90, pitch: 0 }
+spectator-spawn: { x: 38, y: 8, z: -76, yaw: 0, pitch: 30 }
+settings:
+  gameplay-spawn: { x: 39, y: -2, z: -77, yaw: 135, pitch: 0 }
+  elimination-y: -13
+  breezes:
+    - { x: 29, y: 2, z: -59 }
+    - { x: 29, y: 1, z: -94 }
+    - { x: 51, y: 2, z: -94 }
+    - { x: 51, y: 3, z: -60 }
+  shots:
+    # A shot every 0.3 seconds; occasional simultaneous shots from two NPCs.
+    interval-ticks: 6
+    knockback-multiplier: 2.6
+    minimum-upward-velocity: 1.15
+    first-delay-ticks: 20
+    speed: 1.35
+    lifetime-ticks: 100
+  bossbar:
+    title: "&d&lWIEŻA BREEZE'A"
+    color: WHITE
+    style: SOLID
+  tutorial:
+    duration-seconds: 20
+    title: '&6ZASADY'
+    subtitle: '&f{seconds}'
+    title-stay-ticks: 25
+    sound-from-seconds: 5
+    countdown-sound: { enabled: true, sound: UI_BUTTON_CLICK, volume: 0.8, pitch: 1.4 }
+    chat-lines:
+      - "&d&lWIEŻA BREEZE'A"
+      - '&fUnikaj podmuchów wystrzeliwanych przez Breezy!'
+      - '&fNie spadnij z wieży. PvP jest wyłączone.'
+      - '&fPrzetrwaj &e20 / 40 / 60 sekund &f= &a1 / 2 / 3 punkty&f.'

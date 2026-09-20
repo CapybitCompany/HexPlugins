@@ -48,11 +48,26 @@ public final class RoundContext {
         sessions.setRoundPlayerState(round, playerId, state);
     }
 
+    public void blockChat(UUID playerId) {
+        sessions.blockChat(playerId);
+    }
+
+    public void unblockChat(UUID playerId) {
+        sessions.unblockChat(playerId);
+    }
+
     public void requestFinish(RoundEndReason reason) {
         sessions.requestRoundFinish(round, reason);
     }
 
     public long elapsedTicks() {
         return round.elapsedTicks();
+    }
+
+    public int startDelayRemaining() { return round.startDelayRemaining(); }
+
+    /** Moves a player after the current movement/damage event has finished processing. */
+    public void respawn(Player player, org.bukkit.Location target, Runnable afterArrival) {
+        sessions.respawnRoundPlayer(round, player, target, afterArrival);
     }
 }

@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.OptionalInt;
 import java.util.Random;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -52,7 +53,7 @@ public final class SuperMemoryMinigame implements Minigame {
     private RoundResult cachedResult;
     private final Map<UUID, BukkitTask> resetTasks = new HashMap<>();
     private final Map<UUID, BossBar> bossBars = new HashMap<>();
-    private final TemporaryMuteRegistry mutedPlayers = new TemporaryMuteRegistry();
+    private final Set<UUID> chatBlocked = new HashSet<>();
 
     public SuperMemoryMinigame(Plugin plugin) {
         this.plugin = plugin;
@@ -89,7 +90,8 @@ public final class SuperMemoryMinigame implements Minigame {
             addBossBar(player);
             teleport(player, station.spawn());
             sendTutorialChat(player);
-            mute(player);
+            context.blockChat(player.getUniqueId());
+            chatBlocked.add(player.getUniqueId());
             sendTutorialTitle(player, config.tutorialDurationSeconds());
         }
     }
@@ -109,7 +111,7 @@ public final class SuperMemoryMinigame implements Minigame {
         for (Player player : context.onlineParticipants()) {
             if (runtime.station(player.getUniqueId()) == null) continue;
             sendTutorialTitle(player, seconds);
-            if (seconds >= 1 && seconds <= 3) play(player, config.tutorialTickSound());
+            if (seconds >= 1 && seconds <= 5) play(player, config.tutorialTickSound());
         }
         return true;
     }
@@ -117,7 +119,7 @@ public final class SuperMemoryMinigame implements Minigame {
     @Override
     public void start(RoundContext context) {
         if (runtime == null) return;
-        unmuteAll();
+        unblockAll(context);
         runtime.start(System.nanoTime());
         for (Player player : context.onlineParticipants()) {
             player.sendTitle("", "", 0, 1, 0);
@@ -141,7 +143,7 @@ public final class SuperMemoryMinigame implements Minigame {
     @Override
     public void handlePlayerQuit(RoundContext context, UUID playerId) {
         cancelReset(playerId);
-        unmute(playerId);
+        unblock(context, playerId);
         removeBossBar(playerId);
         if (runtime != null) runtime.remove(playerId);
         if (runtime != null && runtime.allResolved()) {
@@ -155,7 +157,6 @@ public final class SuperMemoryMinigame implements Minigame {
         if (runtime == null) return RoundResult.empty();
         runtime.markTimeouts();
         cachedResult = runtime.result();
-        sendResults(context, cachedResult);
         return cachedResult;
     }
 
@@ -168,7 +169,7 @@ public final class SuperMemoryMinigame implements Minigame {
         for (UUID playerId : List.copyOf(resetTasks.keySet())) {
             cancelReset(playerId);
         }
-        unmuteAll();
+        unblockAll(context);
         for (UUID playerId : List.copyOf(bossBars.keySet())) {
             removeBossBar(playerId);
         }
@@ -188,10 +189,8 @@ public final class SuperMemoryMinigame implements Minigame {
         Player player = event.getPlayer();
         SuperMemoryConfig.StationConfig station = runtime.station(player.getUniqueId());
         if (station == null) return EventDecision.DENY;
-        Location to = event.getTo();
-        if (to != null && station.region().contains(to)) return EventDecision.PASS;
-        teleport(player, station.spawn());
-        return EventDecision.DENY;
+        hex.minigames.game.common.StartBoundary.pushInside(event, station.region());
+        return EventDecision.PASS;
     }
 
     @Override
@@ -223,9 +222,6 @@ public final class SuperMemoryMinigame implements Minigame {
             }
             case FINISHED -> {
                 context.state(playerId, RoundPlayerState.FINISHED);
-                play(player, config.correctSound());
-                playCompletion(player);
-                sendCompletionTitle(player);
                 sendActionbar(player);
                 if (runtime.allResolved()) context.requestFinish(RoundEndReason.ALL_ELIMINATED);
             }
@@ -406,21 +402,14 @@ public final class SuperMemoryMinigame implements Minigame {
         if (location != null) player.teleport(location);
     }
 
-    private void mute(Player player) {
-        if (mutedPlayers.contains(player.getUniqueId())) return;
-        boolean dispatched = Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hexchat mute " + player.getName());
-        if (dispatched) mutedPlayers.markMuted(player.getUniqueId(), player.getName());
-    }
-
-    private void unmuteAll() {
-        for (UUID playerId : mutedPlayers.playerIds()) {
-            unmute(playerId);
+    private void unblockAll(RoundContext context) {
+        for (UUID playerId : Set.copyOf(chatBlocked)) {
+            unblock(context, playerId);
         }
     }
 
-    private void unmute(UUID playerId) {
-        String playerName = mutedPlayers.remove(playerId);
-        if (playerName == null || playerName.isBlank()) return;
-        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "hexchat unmute " + playerName);
+    private void unblock(RoundContext context, UUID playerId) {
+        if (!chatBlocked.remove(playerId)) return;
+        context.unblockChat(playerId);
     }
 }

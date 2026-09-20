@@ -1,10 +1,40 @@
 id: elytra
-display-name: 'Elytra'
-enabled: false
+display-name: '&dELYTRA'
+enabled: true
 min-players: 1
-max-players: 0
+max-players: 14
 weight: 1
-region: {}
-participant-spawns: []
-spectator-spawn: {}
-settings: {}
+round-time-seconds: 90
+region:
+  pos1: { x: 282, y: -33, z: 48 }
+  pos2: { x: 22, y: 72, z: 180 }
+participant-spawns:
+  - { x: 276, y: -21, z: 55, yaw: 0, pitch: 0 }
+spectator-spawn: { x: 276, y: -21, z: 55, yaw: 0, pitch: 0 }
+settings:
+  # Required: exact PINK_CONCRETE coordinates of all rings.
+  # Any flight order is allowed; the legacy key name is retained for compatibility.
+  ring-order:
+    - { x: 252, y: 57, z: 76 }
+    - { x: 268, y: 24, z: 108 }
+    - { x: 253, y: -26, z: 138 }
+    - { x: 245, y: 7, z: 172 }
+    - { x: 210, y: -15, z: 87 }
+    - { x: 182, y: 6, z: 103 }
+    - { x: 163, y: 47, z: 81 }
+    - { x: 160, y: -21, z: 93 }
+    - { x: 173, y: -16, z: 115 }
+    - { x: 178, y: -2, z: 129 }
+    - { x: 158, y: 17, z: 175 }
+    - { x: 138, y: 39, z: 156 }
+    - { x: 136, y: -15, z: 73 }
+    - { x: 107, y: -14, z: 109 }
+    - { x: 104, y: -17, z: 161 }
+    - { x: 76, y: -18, z: 133 }
+    - { x: 58, y: 8, z: 138 }
+    - { x: 31, y: -3, z: 143 }
+    - { x: 53, y: 39, z: 65 }
+    - { x: 75, y: 37, z: 67 }
+    - { x: 91, y: -13, z: 63 }
+  tutorial:
+    duration-seconds: 20

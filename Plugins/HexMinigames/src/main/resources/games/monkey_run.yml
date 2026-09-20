@@ -1,10 +1,17 @@
 id: monkey_run
-display-name: 'Malpi Gaj / Sumo'
-enabled: false
+display-name: '&dSUMO'
+enabled: true
 min-players: 1
-max-players: 0
+max-players: 14
 weight: 1
-region: {}
-participant-spawns: []
-spectator-spawn: {}
-settings: {}
+round-time-seconds: 90
+region:
+  pos1: { x: 356, y: -33, z: 265 }
+  pos2: { x: 547, y: 143, z: 429 }
+participant-spawns:
+  - { x: 448, y: 49, z: 324, yaw: 0, pitch: 0 }
+  - { x: 434, y: 47, z: 374, yaw: 180, pitch: 0 }
+spectator-spawn: { x: 438, y: 56, z: 349, yaw: 0, pitch: 20 }
+settings:
+  tutorial:
+    duration-seconds: 20

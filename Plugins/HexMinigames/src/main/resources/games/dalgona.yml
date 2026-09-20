@@ -1,10 +1,180 @@
 id: dalgona
-display-name: 'Dalgona / Wycinanka'
-enabled: false
+display-name: '&dDALGONA'
+enabled: true
 min-players: 1
-max-players: 0
+max-players: 14
 weight: 1
-region: {}
-participant-spawns: []
-spectator-spawn: {}
-settings: {}
+round-time-seconds: 80
+
+region:
+  pos1: { x: 520, y: -33, z: -193 }
+  pos2: { x: 400, y: 7, z: -313 }
+
+participant-spawns:
+  - { x: 435.0, y: -31.0, z: -229.0, yaw: 180.0, pitch: 0.0 }
+spectator-spawn: { x: 466.0, y: -25.0, z: -250.0, yaw: 180.0, pitch: 0.0 }
+
+settings:
+  bossbar:
+    title: '&d&lDALGONA'
+    color: WHITE
+    style: SOLID
+  tutorial:
+    duration-seconds: 20
+    title: '&6ZASADY'
+    subtitle: '&f{seconds}'
+    title-stay-ticks: 25
+    sound-from-seconds: 5
+    countdown-sound: { enabled: true, sound: UI_BUTTON_CLICK, volume: 0.8, pitch: 1.4 }
+    chat-lines:
+      - '&d&lDALGONA'
+      - '&fNa tablicy zobaczysz czerwony wzór.'
+      - '&fUsuń dokładnie odpowiadające mu bloki piasku.'
+      - '&cZły blok = eliminacja.'
+      - '&fUkończenie wzoru daje &a+1 punkt&f.'
+  materials:
+    arena: SAND
+    board: RED_CONCRETE
+  sounds:
+    complete: { enabled: true, sound: ENTITY_PLAYER_LEVELUP, volume: 0.9, pitch: 1.0 }
+  completion:
+    title: ''
+    subtitle: '&aZaliczono &f- &a+1 punkt'
+  messages:
+    eliminated: '&c{player} został wyeliminowany!'
+  scoring:
+    complete-points: 1
+  wrong-block:
+    upward-velocity: 1.1
+  gameplay:
+    game-mode: SURVIVAL
+  stations:
+    - id: 1
+      arena: { pos1: { x: 430, y: -32, z: -224 }, pos2: { x: 440, y: -32, z: -234 } }
+      board: { pos1: { x: 430, y: -31, z: -236 }, pos2: { x: 440, y: -22, z: -236 } }
+      spawn: { x: 435.0, y: -31.0, z: -229.0, yaw: 180.0, pitch: 0.0 }
+    - id: 2
+      arena: { pos1: { x: 446, y: -32, z: -234 }, pos2: { x: 456, y: -32, z: -224 } }
+      board: { pos1: { x: 446, y: -31, z: -236 }, pos2: { x: 456, y: -22, z: -236 } }
+      spawn: { x: 451.0, y: -31.0, z: -229.0, yaw: 180.0, pitch: 0.0 }
+    - id: 3
+      arena: { pos1: { x: 461, y: -32, z: -224 }, pos2: { x: 471, y: -32, z: -234 } }
+      board: { pos1: { x: 461, y: -31, z: -236 }, pos2: { x: 471, y: -22, z: -236 } }
+      spawn: { x: 466.0, y: -31.0, z: -229.0, yaw: 180.0, pitch: 0.0 }
+    - id: 4
+      arena: { pos1: { x: 477, y: -32, z: -224 }, pos2: { x: 487, y: -32, z: -234 } }
+      board: { pos1: { x: 477, y: -31, z: -236 }, pos2: { x: 487, y: -22, z: -236 } }
+      spawn: { x: 482.0, y: -31.0, z: -229.0, yaw: 180.0, pitch: 0.0 }
+    - id: 5
+      arena: { pos1: { x: 430, y: -32, z: -240 }, pos2: { x: 440, y: -32, z: -250 } }
+      board: { pos1: { x: 430, y: -31, z: -252 }, pos2: { x: 440, y: -22, z: -252 } }
+      spawn: { x: 435.0, y: -31.0, z: -245.0, yaw: 180.0, pitch: 0.0 }
+    - id: 6
+      arena: { pos1: { x: 446, y: -32, z: -240 }, pos2: { x: 456, y: -32, z: -250 } }
+      board: { pos1: { x: 446, y: -31, z: -252 }, pos2: { x: 456, y: -22, z: -252 } }
+      spawn: { x: 451.0, y: -31.0, z: -245.0, yaw: 180.0, pitch: 0.0 }
+    - id: 7
+      arena: { pos1: { x: 461, y: -32, z: -240 }, pos2: { x: 471, y: -32, z: -250 } }
+      board: { pos1: { x: 461, y: -31, z: -252 }, pos2: { x: 471, y: -22, z: -252 } }
+      spawn: { x: 466.0, y: -31.0, z: -245.0, yaw: 180.0, pitch: 0.0 }
+    - id: 8
+      arena: { pos1: { x: 477, y: -32, z: -240 }, pos2: { x: 487, y: -32, z: -250 } }
+      board: { pos1: { x: 477, y: -31, z: -252 }, pos2: { x: 487, y: -22, z: -252 } }
+      spawn: { x: 482.0, y: -31.0, z: -245.0, yaw: 180.0, pitch: 0.0 }
+    - id: 9
+      arena: { pos1: { x: 430, y: -32, z: -256 }, pos2: { x: 440, y: -32, z: -266 } }
+      board: { pos1: { x: 430, y: -31, z: -268 }, pos2: { x: 440, y: -22, z: -268 } }
+      spawn: { x: 435.0, y: -31.0, z: -261.0, yaw: 180.0, pitch: 0.0 }
+    - id: 10
+      arena: { pos1: { x: 446, y: -32, z: -256 }, pos2: { x: 456, y: -32, z: -266 } }
+      board: { pos1: { x: 446, y: -31, z: -268 }, pos2: { x: 456, y: -22, z: -268 } }
+      spawn: { x: 451.0, y: -31.0, z: -261.0, yaw: 180.0, pitch: 0.0 }
+    - id: 11
+      arena: { pos1: { x: 461, y: -32, z: -256 }, pos2: { x: 471, y: -32, z: -266 } }
+      board: { pos1: { x: 461, y: -31, z: -268 }, pos2: { x: 471, y: -22, z: -268 } }
+      spawn: { x: 466.0, y: -31.0, z: -261.0, yaw: 180.0, pitch: 0.0 }
+    - id: 12
+      arena: { pos1: { x: 477, y: -32, z: -256 }, pos2: { x: 487, y: -32, z: -266 } }
+      board: { pos1: { x: 477, y: -31, z: -268 }, pos2: { x: 487, y: -22, z: -268 } }
+      spawn: { x: 482.0, y: -31.0, z: -261.0, yaw: 180.0, pitch: 0.0 }
+    - id: 13
+      arena: { pos1: { x: 446, y: -32, z: -272 }, pos2: { x: 456, y: -32, z: -282 } }
+      board: { pos1: { x: 446, y: -31, z: -284 }, pos2: { x: 456, y: -22, z: -284 } }
+      spawn: { x: 451.0, y: -31.0, z: -277.0, yaw: 180.0, pitch: 0.0 }
+    - id: 14
+      arena: { pos1: { x: 461, y: -32, z: -272 }, pos2: { x: 471, y: -32, z: -282 } }
+      board: { pos1: { x: 461, y: -31, z: -284 }, pos2: { x: 471, y: -22, z: -284 } }
+      spawn: { x: 466.0, y: -31.0, z: -277.0, yaw: 180.0, pitch: 0.0 }
+  patterns:
+    - id: triangle
+      grid:
+        - '...........'
+        - '...........'
+        - '.....#.....'
+        - '....###....'
+        - '...#####...'
+        - '...........'
+        - '...........'
+        - '...........'
+        - '...........'
+        - '...........'
+    - id: square
+      grid:
+        - '...........'
+        - '...........'
+        - '...#####...'
+        - '...#####...'
+        - '...#####...'
+        - '...#####...'
+        - '...#####...'
+        - '...........'
+        - '...........'
+        - '...........'
+    - id: diamond
+      grid:
+        - '...........'
+        - '...........'
+        - '.....#.....'
+        - '....###....'
+        - '...#####...'
+        - '....###....'
+        - '.....#.....'
+        - '...........'
+        - '...........'
+        - '...........'
+    - id: circle
+      grid:
+        - '...........'
+        - '...........'
+        - '....###....'
+        - '...#####...'
+        - '...#####...'
+        - '...#####...'
+        - '....###....'
+        - '...........'
+        - '...........'
+        - '...........'
+    - id: heart
+      grid:
+        - '...........'
+        - '...........'
+        - '....#.#....'
+        - '...#####...'
+        - '...#####...'
+        - '....###....'
+        - '.....#.....'
+        - '...........'
+        - '...........'
+        - '...........'
+    - id: star
+      grid:
+        - '...........'
+        - '...........'
+        - '.....#.....'
+        - '.....#.....'
+        - '...#####...'
+        - '....###....'
+        - '....#.#....'
+        - '...........'
+        - '...........'
+        - '...........'

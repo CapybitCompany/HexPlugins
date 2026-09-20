@@ -5,6 +5,8 @@ import hex.minigames.game.supermemory.SuperMemoryConfig;
 import hex.minigames.model.BlockPosition;
 import hex.minigames.model.CuboidRegion;
 import hex.minigames.model.LocationSpec;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
@@ -42,9 +44,34 @@ public final class MinigamesConfigLoader {
     public void saveDefaults() {
         plugin.saveDefaultConfig();
         saveResource("messages.yml");
+        migrateSeriesDefaults();
         for (String gameFile : GAME_FILES) {
             saveResource("games/" + gameFile);
+            BalanceConfigMigration.apply(plugin, gameFile);
         }
+    }
+
+    /** Add new message keys and migrate the previous waiting-room threshold once. */
+    private void migrateSeriesDefaults() {
+        File main = new File(plugin.getDataFolder(), "config.yml");
+        File messages = new File(plugin.getDataFolder(), "messages.yml");
+        var yaml = YamlConfiguration.loadConfiguration(main);
+        if (yaml.getInt("series-ui-revision", 0) >= 1) return;
+        try (var input = plugin.getResource("messages.yml")) {
+            if (input == null) throw new java.io.IOException("Missing messages.yml resource");
+            var defaults = YamlConfiguration.loadConfiguration(new java.io.InputStreamReader(input, java.nio.charset.StandardCharsets.UTF_8));
+            var existing = YamlConfiguration.loadConfiguration(messages);
+            for (String key : defaults.getKeys(true)) if (!existing.contains(key)) existing.set(key, defaults.get(key));
+            for (File file : List.of(main, messages)) {
+                var backup = file.toPath().resolveSibling(file.getName() + ".before-series-ui-1.bak");
+                if (file.isFile() && !java.nio.file.Files.exists(backup)) java.nio.file.Files.copy(file.toPath(), backup);
+            }
+            if (!yaml.contains("pregame.minimum-players") || yaml.getInt("pregame.minimum-players") == 5)
+                yaml.set("pregame.minimum-players", 4);
+            yaml.set("series-ui-revision", 1);
+            existing.save(messages);
+            yaml.save(main);
+        } catch (java.io.IOException error) { throw new IllegalStateException("Cannot migrate series settings", error); }
     }
 
     public LoadedMinigamesConfig load() {
@@ -63,7 +90,9 @@ public final class MinigamesConfigLoader {
             YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
             MinigameDefinition definition = loadGame(fileName, yaml, global, errors);
             if ("super_memory".equalsIgnoreCase(definition.id())) {
-                SuperMemoryConfig.fromDefinition(definition, errors);
+                List<String> gameErrors = new ArrayList<>();
+                SuperMemoryConfig.fromDefinition(definition, gameErrors);
+                for (String error : gameErrors) plugin.getLogger().warning(error);
             }
             games.put(definition.id(), definition);
         }
@@ -142,9 +171,19 @@ public final class MinigamesConfigLoader {
         boolean enabled = yaml.getBoolean("pregame.enabled", true);
         Optional<CuboidRegion> region = region(worldName, yaml.getConfigurationSection("pregame.region"), "config.yml: pregame.region", enabled, errors);
         LocationSpec spawn = location(yaml.getConfigurationSection("pregame.spawn"));
-        int minimumPlayers = yaml.getInt("pregame.minimum-players", yaml.getInt("pregame.min-players", 5));
+        int minimumPlayers = yaml.getInt("pregame.minimum-players", yaml.getInt("pregame.min-players", 4));
         int drawDuration = yaml.getInt("pregame.draw-duration-seconds", 10);
         int countdown = yaml.getInt("pregame.countdown-seconds", 10);
+        String bossBarTitle = yaml.getString("pregame.bossbar.title", "&d&lPOCZEKALNIA");
+        BarColor bossBarColor = barColor(yaml.getString("pregame.bossbar.color", "WHITE"), BarColor.WHITE, "config.yml: pregame.bossbar.color", errors);
+        BarStyle bossBarStyle = barStyle(yaml.getString("pregame.bossbar.style", "SOLID"), BarStyle.SOLID, "config.yml: pregame.bossbar.style", errors);
+        ConfiguredSound countdownSound = sound(
+                yaml.getConfigurationSection("pregame.countdown-sound"),
+                true,
+                "UI_BUTTON_CLICK",
+                0.8f,
+                1.4f
+        );
 
         if (enabled && region.isEmpty()) errors.add("config.yml: pregame.region.pos1 and pos2 must contain x/y/z");
         if (enabled && !spawn.configured()) errors.add("config.yml: pregame.spawn must contain x/y/z");
@@ -152,7 +191,9 @@ public final class MinigamesConfigLoader {
         if (drawDuration < 0) errors.add("config.yml: pregame.draw-duration-seconds must be >= 0");
         if (countdown < 0) errors.add("config.yml: pregame.countdown-seconds must be >= 0");
 
-        return new PregameConfig(enabled, region.orElse(null), spawn, minimumPlayers, drawDuration, countdown);
+        if (!countdownSound.validSound()) errors.add("config.yml: pregame.countdown-sound.sound is not a valid Bukkit Sound: " + countdownSound.sound());
+
+        return new PregameConfig(enabled, region.orElse(null), spawn, minimumPlayers, drawDuration, countdown, bossBarTitle, bossBarColor, bossBarStyle, countdownSound);
     }
 
     private SeriesConfig loadSeries(YamlConfiguration yaml, List<String> errors) {
@@ -179,6 +220,10 @@ public final class MinigamesConfigLoader {
         int maxPlayers = yaml.getInt("max-players", 0);
         int weight = yaml.getInt("weight", 1);
         int roundTime = yaml.getInt("round-time-seconds", global.defaultRoundSeconds());
+        if ("hot_head".equals(id) && roundTime == 120) roundTime = 60;
+        if ("popcorn".equals(id) && (roundTime == 90 || roundTime == 60)) roundTime = 45;
+        if ("dalgona".equals(id) && roundTime == 60) roundTime = 80;
+        if ("glass_bridge".equals(id) && roundTime == 150) roundTime = 130;
         Optional<CuboidRegion> region = region(global.worldName(), yaml.getConfigurationSection("region"), path, enabled, errors);
         List<LocationSpec> spawns = locationList(yaml.getMapList("participant-spawns"));
         Optional<LocationSpec> spectator = optionalLocation(yaml.getConfigurationSection("spectator-spawn"));
@@ -189,10 +234,6 @@ public final class MinigamesConfigLoader {
         if (maxPlayers < 0) errors.add(path + ": max-players must be >= 0");
         if (weight <= 0) errors.add(path + ": weight must be > 0");
         if (roundTime <= 0) errors.add(path + ": round-time-seconds must be > 0");
-        if (enabled && region.isEmpty()) errors.add(path + ": enabled game requires region.pos1 and region.pos2");
-        if (enabled && spawns.isEmpty()) errors.add(path + ": enabled game requires participant-spawns");
-        if (enabled && spectator.isEmpty()) errors.add(path + ": enabled game requires spectator-spawn");
-
         return new MinigameDefinition(
                 id,
                 displayName,
@@ -265,6 +306,24 @@ public final class MinigamesConfigLoader {
                 (float) number(raw.get("pitch"), 0.0),
                 true
         );
+    }
+
+    private BarColor barColor(String value, BarColor fallback, String path, List<String> errors) {
+        try {
+            return BarColor.valueOf(value == null ? fallback.name() : value);
+        } catch (IllegalArgumentException error) {
+            errors.add(path + " is not a valid BossBar color: " + value);
+            return fallback;
+        }
+    }
+
+    private BarStyle barStyle(String value, BarStyle fallback, String path, List<String> errors) {
+        try {
+            return BarStyle.valueOf(value == null ? fallback.name() : value);
+        } catch (IllegalArgumentException error) {
+            errors.add(path + " is not a valid BossBar style: " + value);
+            return fallback;
+        }
     }
 
     private ConfiguredSound sound(ConfigurationSection section, boolean defaultEnabled, String defaultSound, float defaultVolume, float defaultPitch) {

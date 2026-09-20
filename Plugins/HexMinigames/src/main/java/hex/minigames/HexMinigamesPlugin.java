@@ -9,6 +9,16 @@ import hex.minigames.event.MinigamesEventModule;
 import hex.minigames.game.DebugMinigame;
 import hex.minigames.game.MinigameFactory;
 import hex.minigames.game.MinigameRegistry;
+import hex.minigames.game.dalgona.DalgonaConfig;
+import hex.minigames.game.dalgona.DalgonaMinigame;
+import hex.minigames.game.glassbridge.GlassBridgeConfig;
+import hex.minigames.game.glassbridge.GlassBridgeMinigame;
+import hex.minigames.game.hothead.HotHeadConfig;
+import hex.minigames.game.hothead.HotHeadMinigame;
+import hex.minigames.game.popcorn.PopcornConfig;
+import hex.minigames.game.popcorn.PopcornMinigame;
+import hex.minigames.game.redlight.RedLightGreenLightConfig;
+import hex.minigames.game.redlight.RedLightGreenLightMinigame;
 import hex.minigames.game.supermemory.SuperMemoryConfig;
 import hex.minigames.game.supermemory.SuperMemoryMinigame;
 import hex.minigames.listener.MinigamesEventRouter;
@@ -35,6 +45,8 @@ public final class HexMinigamesPlugin extends JavaPlugin implements Listener {
     private ScoreService scores;
     private MinigamesSessionService sessions;
     private ModuleRegistration moduleRegistration;
+    private hex.minigames.score.MinigamesPlaceholderExpansion placeholders;
+    private hex.minigames.runtime.SeriesCelebration celebration;
 
     @Override
     public void onEnable() {
@@ -75,6 +87,129 @@ public final class HexMinigamesPlugin extends JavaPlugin implements Listener {
                 return new SuperMemoryMinigame(HexMinigamesPlugin.this);
             }
         });
+        registry.register(new MinigameFactory() {
+            @Override
+            public String id() {
+                return RedLightGreenLightConfig.ID;
+            }
+
+            @Override
+            public boolean internal() {
+                return false;
+            }
+
+            @Override
+            public hex.minigames.game.Minigame create() {
+                return new RedLightGreenLightMinigame(HexMinigamesPlugin.this);
+            }
+        });
+        registry.register(new MinigameFactory() {
+            @Override
+            public String id() {
+                return HotHeadConfig.ID;
+            }
+
+            @Override
+            public boolean internal() {
+                return false;
+            }
+
+            @Override
+            public hex.minigames.game.Minigame create() {
+                return new HotHeadMinigame(HexMinigamesPlugin.this);
+            }
+        });
+        registry.register(new MinigameFactory() {
+            @Override
+            public String id() {
+                return DalgonaConfig.ID;
+            }
+
+            @Override
+            public boolean internal() {
+                return false;
+            }
+
+            @Override
+            public hex.minigames.game.Minigame create() {
+                return new DalgonaMinigame(HexMinigamesPlugin.this);
+            }
+        });
+        registry.register(new MinigameFactory() {
+            @Override
+            public String id() {
+                return GlassBridgeConfig.ID;
+            }
+
+            @Override
+            public boolean internal() {
+                return false;
+            }
+
+            @Override
+            public hex.minigames.game.Minigame create() {
+                return new GlassBridgeMinigame(HexMinigamesPlugin.this);
+            }
+        });
+        registry.register(new MinigameFactory() {
+            @Override
+            public String id() {
+                return PopcornConfig.ID;
+            }
+
+            @Override
+            public boolean internal() {
+                return false;
+            }
+
+            @Override
+            public hex.minigames.game.Minigame create() {
+                return new PopcornMinigame(HexMinigamesPlugin.this);
+            }
+        });
+        registry.register(new MinigameFactory() {
+            @Override
+            public String id() { return hex.minigames.game.breezetower.BreezeTowerConfig.ID; }
+
+            @Override
+            public boolean internal() { return false; }
+
+            @Override
+            public hex.minigames.game.Minigame create() {
+                return new hex.minigames.game.breezetower.BreezeTowerMinigame(HexMinigamesPlugin.this);
+            }
+        });
+        registry.register(new MinigameFactory() {
+            @Override public String id() { return hex.minigames.game.tag.TagConfig.ID; }
+            @Override public boolean internal() { return false; }
+            @Override public hex.minigames.game.Minigame create() {
+                return new hex.minigames.game.tag.TagMinigame(HexMinigamesPlugin.this);
+            }
+        });
+        registry.register(new MinigameFactory() {
+            @Override public String id() { return hex.minigames.game.jumprope.JumpRopeConfig.ID; }
+            @Override public boolean internal() { return false; }
+            @Override public hex.minigames.game.Minigame create() {
+                return new hex.minigames.game.jumprope.JumpRopeMinigame(HexMinigamesPlugin.this);
+            }
+        });
+        registry.register(new MinigameFactory() {
+            @Override public String id() { return "disco_floor"; }
+            @Override public boolean internal() { return false; }
+            @Override public hex.minigames.game.Minigame create() {
+                return new hex.minigames.game.discofloor.DiscoFloorMinigame(HexMinigamesPlugin.this);
+            }
+        });
+        registry.register(new MinigameFactory() {
+            @Override public String id() { return "monkey_run"; }
+            @Override public boolean internal() { return false; }
+            @Override public hex.minigames.game.Minigame create() { return new hex.minigames.game.sumo.SumoMinigame(HexMinigamesPlugin.this); }
+        });
+        registry.register(new MinigameFactory() {
+            @Override public String id() { return "elytra"; }
+            @Override public boolean internal() { return false; }
+            @Override public hex.minigames.game.Minigame create() { return new hex.minigames.game.elytra.ElytraMinigame(HexMinigamesPlugin.this); }
+        });
         registry.rebuild(config.gameDefinitions());
 
         snapshots = new PlayerSnapshotRepository(this);
@@ -86,6 +221,8 @@ public final class HexMinigamesPlugin extends JavaPlugin implements Listener {
         sessions = new MinigamesSessionService(this, snapshots, scores, registry);
         sessions.configure(config);
         ensureConfiguredWorldLoaded();
+        try { hex.minigames.game.elytra.ElytraMarkerJournal.recover(this); }
+        catch (IllegalStateException error) { getLogger().log(java.util.logging.Level.SEVERE, "Elytra marker recovery is pending", error); }
         logModuleAvailability("after configured world check");
 
         HexEventsBridge bridge = HexEventsBridge.create(this);
@@ -104,6 +241,13 @@ public final class HexMinigamesPlugin extends JavaPlugin implements Listener {
         getCommand("hexminigames").setExecutor(command);
         getCommand("hexminigames").setTabCompleter(command);
 
+        celebration = new hex.minigames.runtime.SeriesCelebration(this);
+        getServer().getPluginManager().registerEvents(celebration, this);
+        sessions.celebration(celebration);
+        if (getServer().getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            placeholders = new hex.minigames.score.MinigamesPlaceholderExpansion(this, scores);
+            placeholders.register();
+        }
         sessions.startTicking();
         for (Player player : Bukkit.getOnlinePlayers()) {
             sessions.handlePendingJoin(player);
@@ -121,12 +265,16 @@ public final class HexMinigamesPlugin extends JavaPlugin implements Listener {
             sessions.shutdown();
             sessions = null;
         }
+        if (placeholders != null) { placeholders.unregister(); placeholders = null; }
+        if (celebration != null) { celebration.close(); celebration = null; }
+        if (scores != null) scores.close();
         scores = null;
         snapshots = null;
         registry = null;
     }
 
     public void reloadMinigames() {
+        if (sessions != null) sessions.restoreElytraBeforeReload();
         MinigamesConfigLoader loader = new MinigamesConfigLoader(this);
         loader.saveDefaults();
         LoadedMinigamesConfig loaded = loader.load();

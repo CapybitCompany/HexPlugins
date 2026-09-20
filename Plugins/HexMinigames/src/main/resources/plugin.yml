@@ -8,13 +8,14 @@ depend:
   - HexEvents
 softdepend:
   - HexCore
+  - PlaceholderAPI
 libraries:
   - org.xerial:sqlite-jdbc:3.46.1.0
 
 commands:
   hexminigames:
     description: Manage HexMinigames
-    usage: /hexminigames <reload|status|forcestart|stop|test|testjoin|testleave|forcegame|nextround|endround|debug>
+    usage: /hexminigames <reload|status|stop|test|testareny|resetpunkty>
     permission: hexminigames.admin
 
 permissions:

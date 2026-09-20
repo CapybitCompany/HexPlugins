@@ -49,6 +49,9 @@ public final class SuperMemoryRuntime {
         if (state.lastClickTick == tick) return ClickResult.ignored();
         state.lastClickTick = tick;
         if (!state.station.clickBlocks().contains(clicked)) return ClickResult.ignored();
+        for (int i = 0; i < state.progress; i++) {
+            if (state.sequence.get(i).equals(clicked)) return ClickResult.ignored();
+        }
 
         BlockPosition expected = state.sequence.get(state.progress);
         if (!expected.equals(clicked)) {

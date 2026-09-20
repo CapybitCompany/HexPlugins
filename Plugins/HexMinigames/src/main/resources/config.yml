@@ -46,9 +46,18 @@ pregame:
     z: 86.0
     yaw: -90.0
     pitch: 0.0
-  minimum-players: 5
+  minimum-players: 4
   draw-duration-seconds: 10
   countdown-seconds: 10
+  bossbar:
+    title: '&d&lPOCZEKALNIA'
+    color: WHITE
+    style: SOLID
+  countdown-sound:
+    enabled: true
+    sound: UI_BUTTON_CLICK
+    volume: 0.8
+    pitch: 1.4
 
 development:
   minimum-players: 2

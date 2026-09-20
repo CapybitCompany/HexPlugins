@@ -8,4 +8,7 @@ public interface MinigamesScoreRepository {
     String backendName();
     boolean commitSeriesPoints(UUID sessionId, UUID playerId, int points);
     int globalPoints(UUID playerId);
+    java.util.List<LeaderboardEntry> allScores();
+    void saveName(UUID playerId, String name);
+    void resetScores();
 }

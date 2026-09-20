@@ -1,12 +1,13 @@
 package hex.minigames.listener;
 
 import hex.minigames.runtime.MinigamesSessionService;
-import org.bukkit.Location;
+import io.papermc.paper.event.player.AsyncChatEvent;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -23,12 +24,24 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.player.PlayerToggleSneakEvent;
 
 public final class MinigamesEventRouter implements Listener {
     private final MinigamesSessionService sessions;
 
     public MinigamesEventRouter(MinigamesSessionService sessions) {
         this.sessions = sessions;
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onJump(com.destroystokyo.paper.event.player.PlayerJumpEvent event) { sessions.routeJump(event); }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onKnockback(io.papermc.paper.event.entity.EntityKnockbackEvent event) { sessions.routeKnockback(event); }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onCommand(org.bukkit.event.player.PlayerCommandPreprocessEvent event) {
+        sessions.handleCommand(event);
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -48,13 +61,17 @@ public final class MinigamesEventRouter implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onMove(PlayerMoveEvent event) {
-        if (!changedBlock(event.getFrom(), event.getTo())) return;
         sessions.handleMove(event);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onTeleport(PlayerTeleportEvent event) {
         sessions.handleTeleport(event);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onChat(AsyncChatEvent event) {
+        sessions.handleChat(event);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -68,24 +85,38 @@ public final class MinigamesEventRouter implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onBlockDamage(BlockDamageEvent event) {
+        sessions.routeBlockDamage(event);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockPlace(BlockPlaceEvent event) {
         sessions.routeBlockPlace(event);
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onDamage(EntityDamageEvent event) {
+        if (event instanceof EntityDamageByEntityEvent) return;
         if (event.getEntity() instanceof Player player) {
             sessions.routeDamage(player, event);
         }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onEntityExplode(org.bukkit.event.entity.EntityExplodeEvent event) {
+        sessions.routeEntityExplode(event);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onDamageByEntity(EntityDamageByEntityEvent event) {
-        if (event.getDamager() instanceof Player damager && sessions.activeSessionContains(damager.getUniqueId())) {
-            event.setCancelled(true);
-        }
         if (event.getEntity() instanceof Player victim) {
-            sessions.routeDamage(victim, event);
+            if (sessions.routeDamage(victim, event)) return;
+        }
+        Player attacker = event.getDamager() instanceof Player direct ? direct
+                : event.getDamager() instanceof org.bukkit.entity.Projectile projectile
+                && projectile.getShooter() instanceof Player shooter ? shooter : null;
+        if (attacker != null && sessions.activeSessionContains(attacker.getUniqueId())) {
+            event.setCancelled(true);
         }
     }
 
@@ -123,10 +154,20 @@ public final class MinigamesEventRouter implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
+    public void onToggleSneak(PlayerToggleSneakEvent event) {
+        sessions.routeToggleSneak(event);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onFood(FoodLevelChangeEvent event) {
         if (event.getEntity() instanceof Player player && sessions.activeSessionContains(player.getUniqueId())) {
             event.setCancelled(true);
         }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onRegainHealth(org.bukkit.event.entity.EntityRegainHealthEvent event) {
+        if (event.getEntity() instanceof Player player) sessions.routeRegainHealth(player, event);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -138,11 +179,4 @@ public final class MinigamesEventRouter implements Listener {
         event.setDroppedExp(0);
     }
 
-    private boolean changedBlock(Location from, Location to) {
-        if (to == null || from == null) return true;
-        if (from.getWorld() != to.getWorld()) return true;
-        return from.getBlockX() != to.getBlockX()
-                || from.getBlockY() != to.getBlockY()
-                || from.getBlockZ() != to.getBlockZ();
-    }
 }

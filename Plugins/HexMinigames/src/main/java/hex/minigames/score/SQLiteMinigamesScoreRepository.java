@@ -43,6 +43,9 @@ public final class SQLiteMinigamesScoreRepository implements MinigamesScoreRepos
                         )
                         """);
             }
+            try (Connection connection = connect(); Statement statement = connection.createStatement()) {
+                statement.executeUpdate("CREATE TABLE IF NOT EXISTS minigames_player_names (player_uuid TEXT PRIMARY KEY, player_name TEXT NOT NULL)");
+            }
             available = true;
         } catch (Throwable error) {
             available = false;
@@ -105,6 +108,29 @@ public final class SQLiteMinigamesScoreRepository implements MinigamesScoreRepos
         } catch (Exception error) {
             throw new IllegalStateException("Could not read minigames points", error);
         }
+    }
+
+    @Override public synchronized java.util.List<LeaderboardEntry> allScores() {
+        ensureAvailable();
+        try (Connection connection = connect(); Statement statement = connection.createStatement();
+             ResultSet rs = statement.executeQuery("SELECT s.player_uuid, s.points, n.player_name FROM minigames_scores s LEFT JOIN minigames_player_names n ON s.player_uuid = n.player_uuid")) {
+            var result = new java.util.ArrayList<LeaderboardEntry>();
+            while (rs.next()) result.add(new LeaderboardEntry(UUID.fromString(rs.getString("player_uuid")), rs.getString("player_name"), rs.getInt("points")));
+            return java.util.List.copyOf(result);
+        } catch (Exception error) { throw new IllegalStateException("Could not load leaderboard", error); }
+    }
+    @Override public synchronized void saveName(UUID id, String name) {
+        ensureAvailable();
+        try (Connection connection = connect(); PreparedStatement statement = connection.prepareStatement(
+                "INSERT INTO minigames_player_names (player_uuid, player_name) VALUES (?, ?) ON CONFLICT(player_uuid) DO UPDATE SET player_name = excluded.player_name")) {
+            statement.setString(1, id.toString()); statement.setString(2, name); statement.executeUpdate();
+        } catch (Exception error) { throw new IllegalStateException("Could not save player name", error); }
+    }
+    @Override public synchronized void resetScores() {
+        ensureAvailable();
+        try (Connection connection = connect(); Statement statement = connection.createStatement()) {
+            statement.executeUpdate("DELETE FROM minigames_scores");
+        } catch (Exception error) { throw new IllegalStateException("Could not reset leaderboard", error); }
     }
 
     private void addScore(Connection connection, UUID playerId, int points) throws Exception {

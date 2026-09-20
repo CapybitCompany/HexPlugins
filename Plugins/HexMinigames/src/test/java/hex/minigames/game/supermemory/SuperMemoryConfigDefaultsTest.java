@@ -36,6 +36,23 @@ final class SuperMemoryConfigDefaultsTest {
         }
     }
 
+    @Test
+    void allStationRegionsAreExtendedOneBlockDownForSlabs() {
+        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(resource("games/super_memory.yml"));
+        MinigameDefinition definition = definition(yaml);
+        List<String> errors = new ArrayList<>();
+
+        SuperMemoryConfig config = SuperMemoryConfig.fromDefinition(definition, errors);
+
+        assertTrue(errors.isEmpty(), String.join("\n", errors));
+        assertEquals(List.of(38, 38, 37, 37, 37, 38, 37, 37, 37, 36, 36, 37, 38, 38),
+                config.stations().stream().map(station -> station.region().minY()).toList());
+        for (SuperMemoryConfig.StationConfig station : config.stations()) {
+            BlockPosition click = station.clickBlocks().get(0);
+            assertTrue(station.region().contains(new BlockPosition(click.x(), station.region().minY(), click.z())));
+        }
+    }
+
     private MinigameDefinition definition(YamlConfiguration yaml) {
         return new MinigameDefinition(
                 yaml.getString("id"),

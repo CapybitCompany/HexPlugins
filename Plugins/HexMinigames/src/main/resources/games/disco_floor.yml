@@ -1,10 +1,21 @@
 id: disco_floor
-display-name: 'Disco Floor'
-enabled: false
+display-name: '&dDISCO FLOOR'
+enabled: true
 min-players: 1
-max-players: 0
+max-players: 14
 weight: 1
-region: {}
-participant-spawns: []
-spectator-spawn: {}
-settings: {}
+round-time-seconds: 77
+region:
+  pos1: { x: 549, y: -37, z: -30 }
+  pos2: { x: 590, y: -4, z: 11 }
+participant-spawns:
+  - { x: 570, y: -31, z: -10, yaw: 0, pitch: 0 }
+spectator-spawn: { x: 577, y: -26, z: -3, yaw: 0, pitch: 20 }
+settings:
+  tutorial:
+    duration-seconds: 20
+    title: '&6ZASADY'
+    subtitle: '&f{seconds}'
+    title-stay-ticks: 25
+    sound-from-seconds: 5
+    countdown-sound: { enabled: true, sound: UI_BUTTON_CLICK, volume: 0.8, pitch: 1.4 }

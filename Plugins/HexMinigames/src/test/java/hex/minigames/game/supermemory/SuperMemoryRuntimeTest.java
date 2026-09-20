@@ -67,6 +67,22 @@ final class SuperMemoryRuntimeTest {
     }
 
     @Test
+    void clickingCompletedPrefixBlockIsIgnoredAndDoesNotResetProgress() {
+        UUID player = UUID.randomUUID();
+        FakeBoard board = new FakeBoard();
+        SuperMemoryRuntime runtime = runtime(List.of(player), board);
+        runtime.start(0L);
+        BlockPosition first = runtime.sequence(player).get(0);
+
+        runtime.click(player, first, 1L, 1_000_000L, board);
+        SuperMemoryRuntime.ClickResult repeated = runtime.click(player, first, 2L, 2_000_000L, board);
+
+        assertEquals(SuperMemoryRuntime.ClickOutcome.IGNORED, repeated.outcome());
+        assertEquals(1, runtime.progress(player));
+        assertEquals(Material.LIME_CONCRETE, board.material(first));
+    }
+
+    @Test
     void wrongClickResetsProgressWithoutChangingSequenceAndDelayedResetReturnsWhite() {
         UUID player = UUID.randomUUID();
         FakeBoard board = new FakeBoard();

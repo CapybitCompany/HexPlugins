@@ -1,10 +1,53 @@
 id: popcorn
-display-name: 'Popcorn'
-enabled: false
+display-name: '&dPOPCORN'
+enabled: true
 min-players: 1
-max-players: 0
+max-players: 14
 weight: 1
-region: {}
-participant-spawns: []
-spectator-spawn: {}
-settings: {}
+round-time-seconds: 45
+
+region:
+  pos1: { x: 550, y: -33, z: -72 }
+  pos2: { x: 643, y: 27, z: -183 }
+
+participant-spawns:
+  - { x: 595.0, y: -25.0, z: -128.0, yaw: 0.0, pitch: 0.0 }
+spectator-spawn: { x: 595.0, y: -20.0, z: -128.0, yaw: 0.0, pitch: 0.0 }
+
+settings:
+  bossbar:
+    title: '&d&lPOPCORN'
+    color: WHITE
+    style: SOLID
+  tutorial:
+    duration-seconds: 20
+    title: '&6ZASADY'
+    subtitle: '&f{seconds}'
+    title-stay-ticks: 25
+    sound-from-seconds: 5
+    countdown-sound: { enabled: true, sound: UI_BUTTON_CLICK, volume: 0.8, pitch: 1.4 }
+    chat-lines:
+      - '&d&lPOPCORN'
+      - '&fObserwuj kolory bloków pod nogami.'
+      - '&fBiały -> żółty -> pomarańczowy -> czerwony -> znika.'
+      - '&fNie spadnij z platformy.'
+      - '&fPrzetrwaj &e{duration} sekund &f= &a+2 punkty&f.'
+  platform:
+    pos1: { x: 608, y: -26, z: -110 }
+    pos2: { x: 580, y: -26, z: -153 }
+  materials:
+    white: WHITE_CONCRETE
+    yellow: YELLOW_CONCRETE
+    orange: ORANGE_CONCRETE
+    red: RED_CONCRETE
+  hazard:
+    stage-duration-ticks: 12
+    # Relative pacing weights; total removal is scaled to the platform and round duration.
+    activation-rate-start: 48.0
+    activation-rate-end: 80.0
+    acceleration-curve: 1.8
+    target-remaining-blocks: 40
+  messages:
+    eliminated: '&c{player} został wyeliminowany!'
+  scoring:
+    survivor-points: 2

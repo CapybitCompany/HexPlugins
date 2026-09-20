@@ -1,10 +1,35 @@
 id: tag
-display-name: 'Berek'
-enabled: false
-min-players: 1
-max-players: 0
+display-name: '&dBEREK'
+enabled: true
+min-players: 4
+max-players: 14
 weight: 1
-region: {}
-participant-spawns: []
-spectator-spawn: {}
-settings: {}
+round-time-seconds: 150
+region:
+  pos1: { x: 327, y: -34, z: -90 }
+  pos2: { x: 378, y: -8, z: -141 }
+participant-spawns:
+  - { x: 357, y: -30, z: -118, yaw: 0, pitch: 0 }
+spectator-spawn: { x: 357, y: -25, z: -118, yaw: 0, pitch: 30 }
+settings:
+  immunity-ticks: 40
+  scoring:
+    runner-seconds: [30, 75, 120]
+  bossbar:
+    title: '&d&lBEREK'
+    color: WHITE
+    style: SOLID
+  tutorial:
+    duration-seconds: 20
+    title: '&6ZASADY'
+    subtitle: '&f{seconds}'
+    title-stay-ticks: 25
+    sound-from-seconds: 5
+    countdown-sound: { enabled: true, sound: UI_BUTTON_CLICK, volume: 0.8, pitch: 1.4 }
+    chat-lines:
+      - '&d&lBEREK'
+      - '&fCzerwony obrys = berek, zielony = uciekający.'
+      - '&fBerek przekazuje swoją rolę uderzeniem ręką.'
+      - '&fPo oddaniu berka masz &e2 sekundy &fochrony.'
+      - '&fGra trwa &e{duration} sekund&f. Upadki nie zabierają serc.'
+      - '&fŁączny czas uciekania: &e30 / 75 / 120 s &f= &a1 / 2 / 3 pkt&f.'

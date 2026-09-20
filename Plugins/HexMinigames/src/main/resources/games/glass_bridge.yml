@@ -1,10 +1,51 @@
 id: glass_bridge
-display-name: 'Szklany Most'
-enabled: false
+display-name: '&dSZKLANY MOST'
+enabled: true
 min-players: 1
-max-players: 0
+max-players: 14
 weight: 1
-region: {}
-participant-spawns: []
-spectator-spawn: {}
-settings: {}
+round-time-seconds: 130
+
+region:
+  pos1: { x: 263, y: -33, z: -96 }
+  pos2: { x: 156, y: 66, z: 18 }
+
+participant-spawns:
+  - { x: 212.0, y: 27.0, z: 8.0, yaw: 180.0, pitch: 0.0 }
+spectator-spawn: { x: 212.0, y: 31.0, z: 8.0, yaw: 180.0, pitch: 0.0 }
+
+settings:
+  bossbar:
+    title: '&d&lSZKLANY MOST'
+    color: WHITE
+    style: SOLID
+  tutorial:
+    duration-seconds: 20
+    title: '&6ZASADY'
+    subtitle: '&f{seconds}'
+    title-stay-ticks: 25
+    sound-from-seconds: 5
+    countdown-sound: { enabled: true, sound: UI_BUTTON_CLICK, volume: 0.8, pitch: 1.4 }
+    chat-lines:
+      - '&d&lSZKLANY MOST'
+      - '&fW każdej parze tylko jedna platforma jest bezpieczna.'
+      - '&fZła szyba pęka po wskoczeniu na nią.'
+      - '&fIm dalej dotrzesz, tym lepszy będzie Twój wynik.'
+      - '&fDotarcie do mety daje dodatkowy &a+1 punkt&f.'
+      - '&fUważaj na krótkie, losowe momenty z włączonym PvP!'
+  materials:
+    glass: GLASS
+  finish-region:
+    pos1: { x: 211, y: 26, z: -67 }
+    pos2: { x: 214, y: 29, z: -67 }
+  fall-y: -26
+  respawn-delay-seconds: 10
+  respawn-spawn: { x: 212.0, y: 27.0, z: 8.0, yaw: 180.0, pitch: 0.0 }
+  start-boundary:
+    pos1: { x: 210, y: 28, z: 3 }
+    pos2: { x: 215, y: 28, z: 3 }
+  progress-origin-z: 0
+  actionbar: '&fCzas: &e{remaining} &8| &fPostęp: &e{meters}m'
+  actionbar-update-ticks: 2
+  scoring:
+    finish-bonus: 1

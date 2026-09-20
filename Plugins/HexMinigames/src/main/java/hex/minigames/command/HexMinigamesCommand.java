@@ -16,22 +16,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.UUID;
 import java.util.function.Supplier;
 
 public final class HexMinigamesCommand implements CommandExecutor, TabCompleter {
     private static final List<String> ROOT = List.of(
             "reload",
             "status",
-            "forcestart",
             "stop",
             "test",
-            "testjoin",
-            "testleave",
-            "forcegame",
-            "nextround",
-            "endround",
-            "debug"
+            "testareny",
+            "resetpunkty"
     );
 
     private final Supplier<LoadedMinigamesConfig> config;
@@ -62,19 +56,15 @@ public final class HexMinigamesCommand implements CommandExecutor, TabCompleter 
             return true;
         }
         switch (args[0].toLowerCase(Locale.ROOT)) {
+            case "resetpunkty" -> {
+                if (args.length != 1) sender.sendMessage(Text.color("&cUzycie: /hexminigames resetpunkty"));
+                else sessions.resetGlobalScores(sender);
+            }
             case "reload" -> handleReload(sender);
             case "status" -> sender.sendMessage(Text.color(messages().prefix() + sessions.status()));
-            case "forcestart" -> handleForceStart(sender);
             case "stop" -> sender.sendMessage(Text.color(messages().prefix() + sessions.stopActiveFromAdmin()));
             case "test" -> handleTest(sender, args);
-            case "testjoin" -> handleTestJoin(sender, args);
-            case "testleave" -> handleTestLeave(sender, args);
-            case "forcegame" -> handleForceGame(sender, args);
-            case "nextround", "endround" -> {
-                sessions.forceEndRound();
-                sender.sendMessage(Text.color(messages().prefix() + "&aWymuszono zakonczenie aktualnej rundy."));
-            }
-            case "debug" -> handleDebug(sender, args);
+            case "testareny" -> handleTestAreny(sender, args);
             default -> sendUsage(sender);
         }
         return true;
@@ -89,80 +79,53 @@ public final class HexMinigamesCommand implements CommandExecutor, TabCompleter 
         }
     }
 
-    private void handleForceStart(CommandSender sender) {
-        if (!(sender instanceof Player player)) {
-            sender.sendMessage(messages().get("player-only", "&cTa komenda wymaga gracza."));
+    private void handleTest(CommandSender sender, String[] args) {
+        List<Player> targets = new ArrayList<>();
+        if (args.length == 1 && sender instanceof Player player) targets.add(player);
+        for (String name : parsePlayerNames(args, 1)) {
+            Player target = Bukkit.getPlayerExact(name);
+            if (target == null) {
+                sender.sendMessage(Text.color(messages().prefix() + "&cGracz offline: " + name));
+                return;
+            }
+            if (!targets.contains(target)) targets.add(target);
+        }
+        if (targets.isEmpty()) {
+            sender.sendMessage(Text.color("&cUzycie: /hexminigames test <gracze...>"));
             return;
         }
-        String result = sessions.startAdminSeries(player);
+        String result = sessions.startAdminSeries(targets);
         sender.sendMessage(result == null
-                ? Text.color(messages().prefix() + "&aUruchomiono administracyjna serie HexMinigames.")
+                ? Text.color(messages().prefix() + "&aUruchomiono test 5 losowych minigier.")
                 : Text.color(result));
     }
 
-    private void handleTest(CommandSender sender, String[] args) {
-        if (args.length < 2) {
-            sender.sendMessage(Text.color(messages().prefix() + "&cUzycie: /hexminigames test <game> [player]"));
+    private void handleTestAreny(CommandSender sender, String[] args) {
+        if (args.length < 3) {
+            sender.sendMessage(Text.color(messages().prefix() + "&cUzycie: /hexminigames testareny <game> <gracze...>"));
             return;
         }
-        if (args.length == 2 && sessions.developmentSessionActive()) {
-            sender.sendMessage(Text.color(messages().prefix() + sessions.selectDevelopmentGame(args[1])));
-            return;
-        }
-        Player target;
-        if (args.length >= 3) {
-            target = Bukkit.getPlayerExact(args[2]);
+        String gameId = args[1];
+        List<Player> targets = new ArrayList<>();
+        for (String playerName : parsePlayerNames(args, 2)) {
+            Player target = Bukkit.getPlayerExact(playerName);
             if (target == null) {
-                sender.sendMessage(Text.color(messages().prefix() + "&cGracz offline: " + args[2]));
+                sender.sendMessage(Text.color(messages().prefix() + "&cGracz offline: " + playerName));
                 return;
             }
-        } else if (sender instanceof Player player) {
-            target = player;
-        } else {
-            sender.sendMessage(messages().get("player-only", "&cTa komenda wymaga gracza."));
+            targets.add(target);
+        }
+        if (targets.isEmpty()) {
+            sender.sendMessage(Text.color(messages().prefix() + "&cPodaj co najmniej jednego gracza."));
             return;
         }
-        String result = sessions.startAdminSingle(args[1], target);
+        String result = sessions.startAdminSingle(gameId, targets);
         sender.sendMessage(Text.color(result));
-    }
-
-    private void handleTestJoin(CommandSender sender, String[] args) {
-        Player target = resolveTarget(sender, args, 1);
-        if (target == null) return;
-        sender.sendMessage(Text.color(sessions.testJoin(target)));
-    }
-
-    private void handleTestLeave(CommandSender sender, String[] args) {
-        Player target = resolveTarget(sender, args, 1);
-        if (target == null) return;
-        sender.sendMessage(Text.color(sessions.testLeave(target)));
-    }
-
-    private void handleForceGame(CommandSender sender, String[] args) {
-        if (args.length < 2) {
-            sender.sendMessage(Text.color(messages().prefix() + "&cUzycie: /hexminigames forcegame <game>"));
-            return;
-        }
-        sender.sendMessage(Text.color(messages().prefix() + sessions.forceNextGame(args[1])));
-    }
-
-    private void handleDebug(CommandSender sender, String[] args) {
-        if (args.length < 3 || !"state".equalsIgnoreCase(args[1])) {
-            sender.sendMessage(Text.color(messages().prefix() + "&cUzycie: /hexminigames debug state <player>"));
-            return;
-        }
-        Player target = Bukkit.getPlayerExact(args[2]);
-        UUID playerId = target == null ? null : target.getUniqueId();
-        if (playerId == null) {
-            sender.sendMessage(Text.color(messages().prefix() + "&cGracz offline: " + args[2]));
-            return;
-        }
-        sender.sendMessage(Text.color(messages().prefix() + sessions.debugState(playerId)));
     }
 
     private void sendUsage(CommandSender sender) {
         sender.sendMessage(Text.color(messages().prefix()
-                + "&7/hexminigames <reload|status|forcestart|stop|test|testjoin|testleave|forcegame|nextround|endround|debug>"));
+                + "&7/hexminigames <reload|status|stop|test|testareny|resetpunkty>"));
     }
 
     @Override
@@ -170,19 +133,28 @@ public final class HexMinigamesCommand implements CommandExecutor, TabCompleter 
         if (!sender.hasPermission("hexminigames.admin")) return List.of();
         if (args.length == 1) return matches(ROOT, args[0]);
         String root = args[0].toLowerCase(Locale.ROOT);
-        if (args.length == 2 && (root.equals("test") || root.equals("forcegame"))) {
+        if (args.length >= 2 && root.equals("test")) {
+            return matches(onlinePlayerNames(), args[args.length - 1]);
+        }
+        if (args.length == 2 && root.equals("testareny")) {
             return matches(gameIds(), args[1]);
         }
-        if (args.length == 2 && root.equals("debug")) {
-            return matches(List.of("state"), args[1]);
-        }
-        if (args.length == 2 && (root.equals("testjoin") || root.equals("testleave"))) {
-            return matches(onlinePlayerNames(), args[1]);
-        }
-        if ((args.length == 3 && root.equals("test")) || (args.length == 3 && root.equals("debug") && args[1].equalsIgnoreCase("state"))) {
+        if (args.length >= 3 && root.equals("testareny")) {
             return matches(onlinePlayerNames(), args[args.length - 1]);
         }
         return List.of();
+    }
+
+    static List<String> parsePlayerNames(String[] args, int startIndex) {
+        List<String> names = new ArrayList<>();
+        if (args == null) return names;
+        for (int i = Math.max(0, startIndex); i < args.length; i++) {
+            for (String part : args[i].split(",")) {
+                String name = part.trim();
+                if (!name.isBlank()) names.add(name);
+            }
+        }
+        return names;
     }
 
     private List<String> gameIds() {
@@ -191,20 +163,6 @@ public final class HexMinigamesCommand implements CommandExecutor, TabCompleter 
             ids.add(definition.id());
         }
         return ids;
-    }
-
-    private Player resolveTarget(CommandSender sender, String[] args, int argumentIndex) {
-        if (args.length > argumentIndex) {
-            Player target = Bukkit.getPlayerExact(args[argumentIndex]);
-            if (target == null) {
-                sender.sendMessage(Text.color(messages().prefix() + "&cGracz offline: " + args[argumentIndex]));
-                return null;
-            }
-            return target;
-        }
-        if (sender instanceof Player player) return player;
-        sender.sendMessage(messages().get("player-only", "&cTa komenda wymaga gracza."));
-        return null;
     }
 
     private List<String> onlinePlayerNames() {

@@ -30,6 +30,16 @@ public final class MinigamesSession {
     private MinigameDefinition forcedNextGame;
     private boolean terminalNotified;
     private boolean seriesStarted;
+    private final Map<UUID, String> playerNames = new HashMap<>();
+    public void rememberName(UUID id, String name) { playerNames.put(id, name); }
+    public String playerName(UUID id) { return playerNames.getOrDefault(id, id.toString()); }
+    public List<UUID> ranking() {
+        Set<UUID> everyone = new LinkedHashSet<>(participants);
+        everyone.addAll(forfeitedParticipants);
+        return everyone.stream().sorted(java.util.Comparator
+                .comparingInt((UUID id) -> seriesScore.points(id)).reversed()
+                .thenComparing(this::playerName).thenComparing(UUID::toString)).toList();
+    }
 
     public MinigamesSession(UUID instanceId, SessionMode mode, EventExecutionContext eventContext, Set<UUID> participants, List<MinigameDefinition> selectedGames) {
         this(instanceId, mode, eventContext, participants, selectedGames, Map.of());
@@ -74,6 +84,7 @@ public final class MinigamesSession {
     public void forfeitParticipant(UUID playerId) {
         if (participants.remove(playerId)) {
             forfeitedParticipants.add(playerId);
+            seriesScore.reset(playerId);
         }
         if (currentRound != null) currentRound.removePlayer(playerId);
     }

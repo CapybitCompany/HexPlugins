@@ -22,9 +22,9 @@ settings:
   wrong-reset-delay-ticks: 12
 
   tutorial:
-    duration-seconds: 15
-    title: '&6&lZASADY NA CZACIE'
-    subtitle: '&e{seconds}'
+    duration-seconds: 20
+    title: '&6ZASADY'
+    subtitle: '&f{seconds}'
     title-stay-ticks: 25
     tick-sound:
       enabled: true
@@ -32,21 +32,14 @@ settings:
       volume: 0.8
       pitch: 1.4
     chat-lines:
-      - '&8&m----------------------------------------'
-      - '&6&lSUPER-PAMIĘĆ'
-      - '&7Odgadnij poprawną kolejność &f8 bloków&7.'
-      - '&7Poprawny wybór zmieni blok na &aZIELONY&7.'
-      - '&7Błędny wybór zmieni blok na &cCZERWONY'
-      - '&7i wyzeruje cały Twój aktualny postęp.'
-      - '&7'
-      - '&7Sekwencja po błędzie &fnie zmienia się&7.'
-      - '&7Masz &e{duration} sekund&7.'
-      - '&7Liczy się czas ukończenia.'
-      - '&8&m----------------------------------------'
+      - '&d&lSUPER-PAMIĘĆ'
+      - '&fOdtwórz poprawną kolejność &e8 bloków&f.'
+      - '&fBłąd resetuje Twój aktualny postęp.'
+      - '&fUkończ sekwencję przed końcem czasu.'
 
   bossbar:
-    title: '&6SUPER-PAMIĘĆ'
-    color: YELLOW
+    title: '&d&lSUPER-PAMIĘĆ'
+    color: WHITE
     style: SOLID
 
   actionbar:
@@ -95,13 +88,13 @@ settings:
       - '&6&lSUPER-PAMIĘĆ &8» &fWyniki'
       - '&7'
     placement-line: '&6{place}. &f{player} &8- &e{time} &8(&a+{points} pkt&8)'
-    dnf-line: '&8DNF: &7{players}'
+    dnf-line: '&8Niezaliczono: &7{players}'
     footer-line: '&8&m----------------------------------------'
 
   stations:
     - id: 1
       region:
-        pos1: { x: 397, y: 39, z: 119 }
+        pos1: { x: 397, y: 38, z: 119 }
         pos2: { x: 408, y: 42, z: 109 }
       spawn: { x: 402.0, y: 40.0, z: 117.0, yaw: 0.0, pitch: 0.0 }
       click-blocks:
@@ -115,7 +108,7 @@ settings:
         - { x: 406, y: 39, z: 117 }
     - id: 2
       region:
-        pos1: { x: 412, y: 39, z: 119 }
+        pos1: { x: 412, y: 38, z: 119 }
         pos2: { x: 423, y: 42, z: 109 }
       spawn: { x: 417.0, y: 40.0, z: 117.0, yaw: 0.0, pitch: 0.0 }
       click-blocks:
@@ -130,7 +123,7 @@ settings:
     - id: 3
       region:
         pos1: { x: 428, y: 41, z: 112 }
-        pos2: { x: 438, y: 38, z: 123 }
+        pos2: { x: 438, y: 37, z: 123 }
       spawn: { x: 436.0, y: 39.0, z: 118.0, yaw: 0.0, pitch: 0.0 }
       click-blocks:
         - { x: 436, y: 38, z: 121 }
@@ -143,7 +136,7 @@ settings:
         - { x: 436, y: 38, z: 114 }
     - id: 4
       region:
-        pos1: { x: 420, y: 38, z: 141 }
+        pos1: { x: 420, y: 37, z: 141 }
         pos2: { x: 431, y: 41, z: 131 }
       spawn: { x: 425.0, y: 39.0, z: 139.0, yaw: 0.0, pitch: 0.0 }
       click-blocks:
@@ -157,7 +150,7 @@ settings:
         - { x: 429, y: 38, z: 139 }
     - id: 5
       region:
-        pos1: { x: 445, y: 38, z: 106 }
+        pos1: { x: 445, y: 37, z: 106 }
         pos2: { x: 435, y: 41, z: 95 }
       spawn: { x: 443.0, y: 39.0, z: 101.0, yaw: 0.0, pitch: 0.0 }
       click-blocks:
@@ -171,7 +164,7 @@ settings:
         - { x: 443, y: 38, z: 97 }
     - id: 6
       region:
-        pos1: { x: 431, y: 39, z: 105 }
+        pos1: { x: 431, y: 38, z: 105 }
         pos2: { x: 421, y: 42, z: 94 }
       spawn: { x: 429.0, y: 40.0, z: 100.0, yaw: 0.0, pitch: 0.0 }
       click-blocks:
@@ -185,7 +178,7 @@ settings:
         - { x: 429, y: 39, z: 96 }
     - id: 7
       region:
-        pos1: { x: 444, y: 38, z: 81 }
+        pos1: { x: 444, y: 37, z: 81 }
         pos2: { x: 434, y: 41, z: 70 }
       spawn: { x: 442.0, y: 39.0, z: 76.0, yaw: 0.0, pitch: 0.0 }
       click-blocks:
@@ -199,7 +192,7 @@ settings:
         - { x: 442, y: 38, z: 72 }
     - id: 8
       region:
-        pos1: { x: 430, y: 38, z: 87 }
+        pos1: { x: 430, y: 37, z: 87 }
         pos2: { x: 420, y: 41, z: 76 }
       spawn: { x: 428.0, y: 39.0, z: 82.0, yaw: 0.0, pitch: 0.0 }
       click-blocks:
@@ -213,7 +206,7 @@ settings:
         - { x: 428, y: 38, z: 78 }
     - id: 9
       region:
-        pos1: { x: 425, y: 38, z: 69 }
+        pos1: { x: 425, y: 37, z: 69 }
         pos2: { x: 415, y: 41, z: 58 }
       spawn: { x: 423.0, y: 39.0, z: 64.0, yaw: 0.0, pitch: 0.0 }
       click-blocks:
@@ -227,7 +220,7 @@ settings:
         - { x: 423, y: 38, z: 60 }
     - id: 10
       region:
-        pos1: { x: 425, y: 37, z: 54 }
+        pos1: { x: 425, y: 36, z: 54 }
         pos2: { x: 415, y: 40, z: 43 }
       spawn: { x: 423.0, y: 38.0, z: 49.0, yaw: 0.0, pitch: 0.0 }
       click-blocks:
@@ -241,7 +234,7 @@ settings:
         - { x: 423, y: 37, z: 45 }
     - id: 11
       region:
-        pos1: { x: 394, y: 37, z: 37 }
+        pos1: { x: 394, y: 36, z: 37 }
         pos2: { x: 404, y: 40, z: 48 }
       spawn: { x: 396.0, y: 38.0, z: 42.0, yaw: 0.0, pitch: 0.0 }
       click-blocks:
@@ -255,7 +248,7 @@ settings:
         - { x: 396, y: 37, z: 46 }
     - id: 12
       region:
-        pos1: { x: 395, y: 38, z: 55 }
+        pos1: { x: 395, y: 37, z: 55 }
         pos2: { x: 405, y: 41, z: 66 }
       spawn: { x: 397.0, y: 39.0, z: 60.0, yaw: 0.0, pitch: 0.0 }
       click-blocks:
@@ -269,7 +262,7 @@ settings:
         - { x: 397, y: 38, z: 64 }
     - id: 13
       region:
-        pos1: { x: 387, y: 39, z: 69 }
+        pos1: { x: 387, y: 38, z: 69 }
         pos2: { x: 397, y: 42, z: 80 }
       spawn: { x: 389.0, y: 40.0, z: 74.0, yaw: 0.0, pitch: 0.0 }
       click-blocks:
@@ -283,7 +276,7 @@ settings:
         - { x: 389, y: 39, z: 78 }
     - id: 14
       region:
-        pos1: { x: 388, y: 39, z: 84 }
+        pos1: { x: 388, y: 38, z: 84 }
         pos2: { x: 398, y: 42, z: 95 }
       spawn: { x: 390.0, y: 40.0, z: 89.0, yaw: 0.0, pitch: 0.0 }
       click-blocks:

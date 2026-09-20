@@ -1,10 +1,49 @@
 id: hot_head
-display-name: 'HotHead'
-enabled: false
+display-name: '&dHOT HEAD'
+enabled: true
 min-players: 1
-max-players: 0
+max-players: 14
 weight: 1
-region: {}
-participant-spawns: []
-spectator-spawn: {}
-settings: {}
+round-time-seconds: 60
+
+region:
+  pos1: { x: -6, y: -33, z: 17 }
+  pos2: { x: -31, y: -19, z: 58 }
+
+participant-spawns:
+  - { x: -18.0, y: -31.0, z: 26.0, yaw: 0.0, pitch: 0.0 }
+spectator-spawn: { x: -18.0, y: -31.0, z: 39.0, yaw: 0.0, pitch: 0.0 }
+
+settings:
+  bossbar:
+    title: '&d&lHOT HEAD'
+    color: WHITE
+    style: SOLID
+  gameplay-spawn: { x: -18.0, y: -31.0, z: 39.0, yaw: 0.0, pitch: 0.0 }
+  tutorial:
+    duration-seconds: 20
+    title: '&6ZASADY'
+    subtitle: '&f{seconds}'
+    title-stay-ticks: 25
+    sound-from-seconds: 5
+    countdown-sound: { enabled: true, sound: UI_BUTTON_CLICK, volume: 0.8, pitch: 1.4 }
+    chat-lines:
+      - '&d&lHOT HEAD'
+      - '&fLampy ostrzegają, który pas za chwilę się podniesie.'
+      - '&fUnikaj fal podnoszącej się podłogi i ognia.'
+      - '&fPrzetrwaj &e{duration} sekund&f, aby zdobyć punkty.'
+  wave:
+    segment-material: LIGHT_GRAY_CONCRETE
+    warning-ticks: 10
+    step-delay-ticks: 2
+    segment-hold-ticks: 20
+    cycle-gap-ticks: 20
+  fire-damage-exception: true
+  axis1:
+    enabled: true
+  axis2:
+    enabled: true
+  messages:
+    eliminated: '&c{player} został wyeliminowany!'
+  scoring:
+    survivor-points: 2

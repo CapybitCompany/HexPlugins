@@ -17,6 +17,11 @@ public final class SeriesScore {
         return points.getOrDefault(playerId, 0);
     }
 
+    /** Discards only the points earned by this player in the current series. */
+    public void reset(UUID playerId) {
+        points.remove(playerId);
+    }
+
     public Map<UUID, Integer> snapshot() {
         return Map.copyOf(points);
     }

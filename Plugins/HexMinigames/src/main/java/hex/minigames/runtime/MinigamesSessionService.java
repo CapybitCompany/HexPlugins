@@ -13,20 +13,26 @@ import hex.events.api.ResultSubjectType;
 import hex.events.api.StartResult;
 import hex.minigames.config.ConfiguredSound;
 import hex.minigames.config.LoadedMinigamesConfig;
+import hex.minigames.config.PregameConfig;
 import hex.minigames.event.HexEventsBridge;
 import hex.minigames.game.DebugMinigame;
 import hex.minigames.game.EventDecision;
 import hex.minigames.game.Minigame;
 import hex.minigames.game.MinigameAvailability;
 import hex.minigames.game.MinigameDefinition;
+import hex.minigames.game.PlayerRoundResult;
 import hex.minigames.game.RoundContext;
 import hex.minigames.game.RoundEndReason;
 import hex.minigames.game.RoundResult;
+import hex.minigames.game.common.BossBarDisplay;
+import hex.minigames.game.common.BossBarSettings;
+import hex.minigames.game.dalgona.DalgonaConfig;
 import hex.minigames.model.LocationSpec;
 import hex.minigames.persistence.PlayerSnapshotRepository;
 import hex.minigames.persistence.StoredPlayerState;
 import hex.minigames.score.ScoreService;
 import hex.minigames.util.Text;
+import io.papermc.paper.event.player.AsyncChatEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -36,6 +42,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -44,6 +51,7 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
@@ -56,10 +64,12 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public final class MinigamesSessionService {
@@ -71,10 +81,22 @@ public final class MinigamesSessionService {
     private final Map<UUID, Set<UUID>> pendingParticipants = new HashMap<>();
     private final Set<UUID> restoring = new HashSet<>();
     private final Set<UUID> internalTeleports = new HashSet<>();
+    private final Map<UUID, Object> pendingRoundRespawns = new HashMap<>();
+    private final Set<UUID> chatBlocked = ConcurrentHashMap.newKeySet();
+    private final BossBarDisplay pregameBossBars = new BossBarDisplay();
     private LoadedMinigamesConfig config;
     private HexEventsBridge eventsBridge;
     private MinigamesSession activeSession;
     private BukkitTask tickTask;
+    private SeriesCelebration celebration;
+    public void celebration(SeriesCelebration celebration) { this.celebration = celebration; }
+    /** A reset is queued behind all earlier database writes and refreshes the placeholder cache. */
+    public void resetGlobalScores(org.bukkit.command.CommandSender sender) {
+        if (activeSession != null) { sender.sendMessage(config.messages().get("score-reset-running", "&cZakoncz aktywna serie przed resetem punktow.")); return; }
+        scores.resetAll().whenComplete((unused, error) -> Bukkit.getScheduler().runTask(plugin, () ->
+                sender.sendMessage(config.messages().get(error == null ? "score-reset-success" : "score-reset-failed",
+                        error == null ? "&aWyzerowano punkty wszystkich graczy." : "&cReset punktow nie powiodl sie; sprawdz konsole."))));
+    }
 
     public MinigamesSessionService(
             Plugin plugin,
@@ -96,6 +118,13 @@ public final class MinigamesSessionService {
         }
         for (String error : config.global().errors()) {
             plugin.getLogger().warning(error);
+        }
+        if (plugin != null) {
+            registry.definition(DalgonaConfig.ID).ifPresent(definition -> {
+                List<String> errors = new ArrayList<>();
+                DalgonaConfig loaded = DalgonaConfig.fromDefinition(definition, errors);
+                plugin.getLogger().info("Dalgona patterns loaded: " + loaded.patterns().size());
+            });
         }
     }
 
@@ -179,7 +208,9 @@ public final class MinigamesSessionService {
         String failure = prepareFailure(context);
         if (failure != null) return StartResult.failed(failure);
         Set<UUID> participants = onlineOnly(mergedParticipants(context));
-        if (participants.isEmpty()) return StartResult.failed("No online participants.");
+        if (participants.size() < Math.max(4, config.global().pregame().minimumPlayers()))
+            return StartResult.failed(config.messages().raw("queue-too-few", "Potrzeba co najmniej {required} graczy.")
+                    .replace("{required}", String.valueOf(Math.max(4, config.global().pregame().minimumPlayers()))));
         if (participants.size() > config.global().maxPlayers()) return StartResult.failed(maxPlayersMessage());
         String eligibleFailure = eligibleGamesFailure(participants.size(), config.global().gamesPerSeries());
         if (eligibleFailure != null) return StartResult.failed(eligibleFailure);
@@ -242,8 +273,10 @@ public final class MinigamesSessionService {
             plugin.getLogger().warning("Could not read minigames global score for " + playerId + ": " + rootMessage(error));
         }
         activeSession.addParticipant(playerId, globalAtStart);
+        activeSession.rememberName(playerId, player.getName());
         prepareMinigameState(player);
         teleportToPregame(player);
+        showPregameBossBar(player);
         if (activeSession.canBeginPregame(requiredPregamePlayers(activeSession))) {
             beginPregameDraw(activeSession);
         }
@@ -251,23 +284,35 @@ public final class MinigamesSessionService {
     }
 
     public String startAdminSeries(Player initiator) {
+        return startAdminSeries(initiator == null ? List.of() : List.of(initiator));
+    }
+
+    /** Starts the full five-game test flow for the explicitly selected online players. */
+    public String startAdminSeries(List<Player> targets) {
         if (activeSession != null) return config.messages().raw("already-running", "Already running.");
         Set<UUID> participants = new LinkedHashSet<>();
-        if (initiator != null) participants.add(initiator.getUniqueId());
+        for (Player target : targets) {
+            if (target == null || !target.isOnline()) return "&cWybrany gracz jest offline.";
+            participants.add(target.getUniqueId());
+        }
+        if (participants.isEmpty()) return "&cPodaj co najmniej jednego gracza.";
         int playerCount = Math.max(1, participants.size());
         List<MinigameDefinition> eligible = registry.eligible(playerCount, false, false);
-        if (eligible.size() < config.global().gamesPerSeries()) {
+        if (eligible.size() < 5) {
             return config.messages().format("not-enough-games", "&cZa malo dostepnych minigier: {available}/{required}.", Map.of(
                     "available", String.valueOf(eligible.size()),
-                    "required", String.valueOf(config.global().gamesPerSeries())
+                    "required", "5"
             ));
         }
-        List<MinigameDefinition> selected = selector.select(eligible, config.global().gamesPerSeries());
-        String failure = startSession(UUID.randomUUID(), SessionMode.ADMIN_TEST, null, participants, selected, false);
+        String failure = startSession(UUID.randomUUID(), SessionMode.ADMIN_TEST, null, participants, List.of(), true);
         return failure == null ? null : Text.color(config.messages().prefix() + failure);
     }
 
     public String startAdminSingle(String gameId, Player target) {
+        return startAdminSingle(gameId, target == null ? List.of() : List.of(target));
+    }
+
+    public String startAdminSingle(String gameId, List<Player> targets) {
         if (activeSession != null) return config.messages().raw("already-running", "Already running.");
         Optional<MinigameDefinition> definition = definitionForAdmin(gameId);
         if (definition.isEmpty()) {
@@ -276,14 +321,25 @@ public final class MinigamesSessionService {
         if (!definition.get().implemented()) {
             return config.messages().get("game-not-implemented", "&cMinigra nie jest jeszcze zaimplementowana.");
         }
+        int playerCount = Math.max(1, targets == null ? 0 : targets.size());
+        if (!definition.get().playerCountAllowed(playerCount)) {
+            return config.messages().format("game-not-available", "&cMinigra jest niedostepna: {reason}", Map.of(
+                    "reason", "Nieprawidlowa liczba graczy: " + playerCount
+            ));
+        }
         MinigameAvailability availability = registry.create(definition.get().id())
-                .map(game -> game.availability(definition.get(), 1))
+                .map(game -> game.availability(definition.get(), playerCount))
                 .orElse(MinigameAvailability.unavailable("Factory missing"));
         if (!availability.available()) {
             return config.messages().format("game-not-available", "&cMinigra jest niedostepna: {reason}", Map.of("reason", availability.reason()));
         }
         Set<UUID> participants = new LinkedHashSet<>();
-        participants.add(target.getUniqueId());
+        if (targets != null) {
+            for (Player target : targets) {
+                if (target != null && target.isOnline()) participants.add(target.getUniqueId());
+            }
+        }
+        if (participants.isEmpty()) return config.messages().raw("player-only", "&cTa komenda wymaga gracza.");
         String failure = startSession(UUID.randomUUID(), SessionMode.ADMIN_TEST, null, participants, List.of(definition.get()), false);
         if (failure != null) return Text.color(config.messages().prefix() + failure);
         return config.messages().format("admin-test-started", "&aUruchomiono administracyjny test minigry: &f{game}", Map.of("game", definition.get().id()));
@@ -482,6 +538,8 @@ public final class MinigamesSessionService {
 
     public void handleMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
+        if (event instanceof PlayerTeleportEvent || internalTeleports.contains(player.getUniqueId())
+                || pendingRoundRespawns.containsKey(player.getUniqueId())) return;
         if (activeSession == null || !activeSession.contains(player.getUniqueId())) return;
         if (isPregameState(activeSession.state())) {
             keepInPregame(player, event.getTo());
@@ -489,11 +547,74 @@ public final class MinigamesSessionService {
         }
         RoundSession round = activeSession.currentRound();
         if (round == null) return;
+        if (activeSession.state() == SeriesState.ROUND_RESULTS) {
+            Location stay = event.getFrom().clone();
+            if (event.getTo() != null) { stay.setYaw(event.getTo().getYaw()); stay.setPitch(event.getTo().getPitch()); }
+            event.setTo(stay);
+            return;
+        }
         if (round.playerState(player.getUniqueId()) == RoundPlayerState.GHOST) {
+            var restricted = round.minigame().ghostRegion(round.definition());
+            if (restricted.isPresent() && event.getTo() != null) {
+                var area = restricted.get();
+                Location to = event.getTo().clone();
+                to.setX(Math.clamp(to.getX(), area.minX() + 0.3, area.maxX() + 0.7));
+                to.setY(Math.clamp(to.getY(), area.minY(), area.maxY() + 0.9));
+                to.setZ(Math.clamp(to.getZ(), area.minZ() + 0.3, area.maxZ() + 0.7));
+                event.setTo(to);
+                return;
+            }
             keepGhostInRegion(player, round);
+            return;
         }
         RoundContext context = new RoundContext(this, round);
-        if (round.minigame().onMove(context, event) == EventDecision.DENY) event.setCancelled(true);
+        Location before = player.getLocation();
+        if (round.minigame().onMove(context, event) == EventDecision.DENY) {
+            // A penalty may teleport the player. Cancellation must not send them back onto the arena.
+            Location after = player.getLocation();
+            if (!before.equals(after)) {
+                event.setFrom(after);
+                event.setTo(after);
+            }
+            event.setCancelled(true);
+        }
+    }
+
+    public void handleChat(AsyncChatEvent event) {
+        if (event == null || event.getPlayer() == null) return;
+        if (chatBlocked.contains(event.getPlayer().getUniqueId())) {
+            event.setCancelled(true);
+        }
+    }
+
+    /** Operators may use commands; /lobby still performs normal participant cleanup. */
+    public void handleCommand(org.bukkit.event.player.PlayerCommandPreprocessEvent event) {
+        Player player = event.getPlayer();
+        if (!activeSessionContains(player.getUniqueId())) return;
+        if (player.isOp() && !isLobbyCommand(event.getMessage())) return;
+        event.setCancelled(true);
+        if (!isLobbyCommand(event.getMessage())) {
+            player.sendMessage(Text.color("&cW minigrze możesz używać tylko /lobby."));
+            return;
+        }
+        World lobby = Bukkit.getWorld("world");
+        if (lobby == null) {
+            player.sendMessage(Text.color("&cŚwiat world jest niedostępny."));
+            return;
+        }
+        MinigamesSession session = activeSession;
+        UUID playerId = player.getUniqueId();
+        pendingRoundRespawns.remove(playerId);
+        removeParticipant(session, playerId, RoundEndReason.SESSION_STOP, true);
+        restoreOnline(player, true);
+        player.setFallDistance(0);
+        player.setFireTicks(0);
+        player.setVelocity(new org.bukkit.util.Vector());
+        teleportInternal(player, lobby.getSpawnLocation());
+    }
+
+    static boolean isLobbyCommand(String command) {
+        return command != null && "/lobby".equalsIgnoreCase(command.trim());
     }
 
     public boolean handleTeleport(PlayerTeleportEvent event) {
@@ -511,8 +632,28 @@ public final class MinigamesSessionService {
         return route(event.getPlayer(), event, round -> round.minigame().onInteract(new RoundContext(this, round), event));
     }
 
+    public void routeJump(com.destroystokyo.paper.event.player.PlayerJumpEvent event) {
+        if (activeSession != null && (isPregameState(activeSession.state())
+                || activeSession.state() == SeriesState.SERIES_RESULTS
+                || activeSession.state() == SeriesState.INTERMISSION)) return;
+        route(event.getPlayer(), event, round -> round.minigame().onJump(new RoundContext(this, round), event));
+    }
+
+    public void routeKnockback(io.papermc.paper.event.entity.EntityKnockbackEvent event) {
+        if (!(event.getEntity() instanceof Player player) || activeSession == null
+                || !activeSession.contains(player.getUniqueId()) || activeSession.state() != SeriesState.ROUND_RUNNING) return;
+        RoundSession round = activeSession.currentRound();
+        if (round != null && round.playerState(player.getUniqueId()) == RoundPlayerState.ACTIVE) {
+            round.minigame().onKnockback(new RoundContext(this, round), event);
+        }
+    }
+
     public boolean routeBlockBreak(BlockBreakEvent event) {
         return route(event.getPlayer(), event, round -> round.minigame().onBlockBreak(new RoundContext(this, round), event));
+    }
+
+    public boolean routeBlockDamage(BlockDamageEvent event) {
+        return route(event.getPlayer(), event, round -> round.minigame().onBlockDamage(new RoundContext(this, round), event));
     }
 
     public boolean routeBlockPlace(BlockPlaceEvent event) {
@@ -520,7 +661,31 @@ public final class MinigamesSessionService {
     }
 
     public boolean routeDamage(Player player, EntityDamageEvent event) {
+        if (activeSessionContains(player.getUniqueId()) && activeSession.state() == SeriesState.ROUND_RUNNING) {
+            RoundSession round = activeSession.currentRound();
+            if (round != null && "hot_head".equals(round.definition().id())) {
+                EventDecision decision = round.minigame().onDamage(new RoundContext(this, round), event);
+                event.setCancelled(decision != EventDecision.ALLOW);
+                return true;
+            }
+        }
         return route(player, event, round -> round.minigame().onDamage(new RoundContext(this, round), event));
+    }
+
+    public void routeEntityExplode(org.bukkit.event.entity.EntityExplodeEvent event) {
+        if (activeSession == null || activeSession.currentRound() == null) return;
+        RoundSession round = activeSession.currentRound();
+        round.minigame().onEntityExplode(new RoundContext(this, round), event);
+    }
+
+    public boolean routeRegainHealth(Player player, org.bukkit.event.entity.EntityRegainHealthEvent event) {
+        if (!activeSessionContains(player.getUniqueId())) return false;
+        RoundSession round = activeSession.currentRound();
+        if (round == null) return false;
+        if (round.minigame().onRegainHealth(new RoundContext(this, round), event) == EventDecision.DENY) {
+            event.setCancelled(true);
+        }
+        return true;
     }
 
     public boolean routeDrop(PlayerDropItemEvent event) {
@@ -535,6 +700,10 @@ public final class MinigamesSessionService {
         return route(player, event, round -> round.minigame().onInventoryDrag(new RoundContext(this, round), event));
     }
 
+    public boolean routeToggleSneak(PlayerToggleSneakEvent event) {
+        return route(event.getPlayer(), event, round -> round.minigame().onToggleSneak(new RoundContext(this, round), event));
+    }
+
     public void requestRoundFinish(RoundSession round, RoundEndReason reason) {
         if (activeSession == null || activeSession.currentRound() != round) return;
         round.requestFinish(reason);
@@ -547,6 +716,30 @@ public final class MinigamesSessionService {
         if (player == null || !player.isOnline()) return;
         if (state == RoundPlayerState.GHOST) applyGhost(player);
         if (state == RoundPlayerState.ACTIVE) applyActiveRoundState(player);
+        if (state == RoundPlayerState.RESPAWN_DELAY) applyRespawnDelay(player);
+        if (state == RoundPlayerState.FINISHED) announceOutcome(round, player, true, false);
+        if (state == RoundPlayerState.GHOST || state == RoundPlayerState.ELIMINATED) announceOutcome(round, player, false, false);
+    }
+
+    private void announceOutcome(RoundSession round, Player player, boolean success, boolean refreshSubtitle) {
+        boolean first = round.markOutcomeAnnounced(player.getUniqueId());
+        if (first || refreshSubtitle) hex.minigames.game.common.RoundFeedback.show(player, success, first);
+        if (first) {
+            String message = Text.color(hex.minigames.game.common.RoundFeedback.announcement(player.getName(), success));
+            for (Player viewer : onlinePlayers(activeSession)) viewer.sendMessage(message);
+        }
+    }
+
+    public void blockChat(UUID playerId) {
+        if (playerId != null) chatBlocked.add(playerId);
+    }
+
+    public void unblockChat(UUID playerId) {
+        if (playerId != null) chatBlocked.remove(playerId);
+    }
+
+    boolean chatBlocked(UUID playerId) {
+        return chatBlocked.contains(playerId);
     }
 
     public void forceEndRound() {
@@ -560,9 +753,20 @@ public final class MinigamesSessionService {
         return config.messages().raw("admin-stopped", "Stopped.");
     }
 
+    /** Reload must restore Elytra's authored marker blocks before replacing its configuration. */
+    public void restoreElytraBeforeReload() {
+        if (activeSession != null && activeSession.currentRound() != null
+                && activeSession.currentRound().definition().id().equals("elytra")) {
+            cancelSession(activeSession, "ELYTRA_CONFIG_RELOAD", true);
+        }
+    }
+
     public String status() {
+        int playerCount = activeSession == null ? Math.max(1, config.global().pregame().minimumPlayers()) : Math.max(1, activeSession.activeParticipantCount());
+        String gameStatus = gameStatus(playerCount);
         if (activeSession == null) {
-            return "HexMinigames: idle, available=" + available() + ", reason=" + availabilityReason() + ", scoreStorage=" + scores.backendName();
+            return "HexMinigames: idle, available=" + available() + ", reason=" + availabilityReason() + ", scoreStorage=" + scores.backendName()
+                    + "\n" + gameStatus;
         }
         RoundSession round = activeSession.currentRound();
         String selected = activeSession.selectedGames().isEmpty()
@@ -576,7 +780,48 @@ public final class MinigamesSessionService {
                 + ", drawRemaining=" + (activeSession.state() == SeriesState.PRE_GAME_DRAW ? secondsRemaining(activeSession) : "-")
                 + ", countdownRemaining=" + (activeSession.state() == SeriesState.PRE_GAME_COUNTDOWN ? secondsRemaining(activeSession) : "-")
                 + ", selectedGames=" + selected
-                + ", round=" + (round == null ? "-" : round.roundNumber() + "/" + round.definition().id());
+                + ", round=" + (round == null ? "-" : round.roundNumber() + "/" + round.definition().id())
+                + "\n" + gameStatus;
+    }
+
+    private String gameStatus(int playerCount) {
+        List<MinigameDefinition> selectable = registry.eligible(playerCount, false, false);
+        Set<String> selectableIds = selectable.stream().map(MinigameDefinition::id).collect(Collectors.toSet());
+        List<String> lines = new ArrayList<>();
+        lines.add("planned total=" + registry.configuredRealGameCount()
+                + ", currently selectable count=" + selectable.size()
+                + ", games-per-series=" + config.global().gamesPerSeries());
+        for (MinigameDefinition definition : registry.definitions()) {
+            boolean availableGame = false;
+            String reason = definition.implemented() ? "" : "not-registered";
+            if (definition.implemented()) {
+                MinigameAvailability availability = registry.create(definition.id())
+                        .map(game -> game.availability(definition, playerCount))
+                        .orElse(MinigameAvailability.unavailable("Factory missing"));
+                availableGame = availability.available()
+                        && (!definition.internal() || definition.enabled())
+                        && (definition.internal() || definition.region().isPresent())
+                        && (definition.internal() || !definition.participantSpawns().isEmpty())
+                        && (definition.internal() || definition.spectatorSpawn().isPresent())
+                        && definition.playerCountAllowed(playerCount);
+                reason = availability.available() ? "" : availability.reason();
+            }
+            lines.add(definition.id()
+                    + ": registered=" + definition.implemented()
+                    + ", enabled=" + definition.enabled()
+                    + ", available=" + availableGame
+                    + ", selectable=" + selectableIds.contains(definition.id())
+                    + dalgonaPatternStatus(definition)
+                    + (reason == null || reason.isBlank() ? "" : ", reason=" + reason));
+        }
+        return String.join("\n", lines);
+    }
+
+    private String dalgonaPatternStatus(MinigameDefinition definition) {
+        if (!DalgonaConfig.ID.equals(definition.id())) return "";
+        List<String> errors = new ArrayList<>();
+        DalgonaConfig loaded = DalgonaConfig.fromDefinition(definition, errors);
+        return ", Dalgona patterns loaded: " + loaded.patterns().size();
     }
 
     public String debugState(UUID playerId) {
@@ -697,7 +942,6 @@ public final class MinigamesSessionService {
             session.replaceSelectedGames(selector.select(eligible, gamesToSelect));
         }
         transition(session, SeriesState.PRE_GAME_COUNTDOWN, config.global().pregame().countdownSeconds() * 20);
-        sendPregameCountdownSubtitle(session, config.global().pregame().countdownSeconds());
     }
 
     private boolean abortPregameIfTooFew(MinigamesSession session) {
@@ -708,12 +952,17 @@ public final class MinigamesSessionService {
     }
 
     private void sendPregameDrawActionbar(MinigamesSession session) {
-        String message = config.messages().raw("pregame-draw-actionbar", "&7Trwa losowanie &e{selected} &7z &e{available} &7minigier...")
-                .replace("{selected}", String.valueOf(gamesPerSeries(session)))
-                .replace("{available}", String.valueOf(registry.configuredRealGameCount()));
+        String message = pregameDrawActionbarMessage(config.messages(), gamesPerSeries(session), registry.configuredRealGameCount());
         for (Player player : onlinePlayers(session)) {
             player.sendActionBar(Text.component(message));
         }
+    }
+
+    static String pregameDrawActionbarMessage(hex.minigames.config.Messages messages, int selected, int available) {
+        hex.minigames.config.Messages safeMessages = messages == null ? new hex.minigames.config.Messages(Map.of()) : messages;
+        return safeMessages.raw("pregame-draw-actionbar", "&7Trwa losowanie &e{selected} &7z &e{available} &7minigier...")
+                .replace("{selected}", String.valueOf(selected))
+                .replace("{available}", String.valueOf(available));
     }
 
     private void clearPregameActionbar(MinigamesSession session) {
@@ -727,7 +976,18 @@ public final class MinigamesSessionService {
                 .replace("{seconds}", String.valueOf(seconds)));
         for (Player player : onlinePlayers(session)) {
             player.sendTitle("", subtitle, 0, 25, 0);
+            if (shouldPlayPregameCountdownSound(seconds, config.global().pregame())) {
+                play(player, config.global().pregame().countdownSound(), "pre-game countdown sound");
+            }
         }
+    }
+
+    static boolean shouldPlayPregameCountdownSound(int seconds, PregameConfig pregame) {
+        return pregame != null
+                && seconds >= 0
+                && seconds <= pregame.countdownSeconds()
+                && pregame.countdownSound() != null
+                && pregame.countdownSound().enabled();
     }
 
     private void tickCountdown(MinigamesSession session) {
@@ -758,19 +1018,29 @@ public final class MinigamesSessionService {
     private void tickRunning(MinigamesSession session) {
         RoundSession round = session.currentRound();
         if (round == null) return;
+        if (round.startDelayRemaining() > 0 && !round.finishRequested() && round.participantCount() > 0) {
+            if (round.startDelayRemaining() % 2 == 0) {
+                int seconds = (round.startDelayRemaining() + 19) / 20;
+                for (Player player : onlinePlayers(session)) {
+                    player.sendActionBar(Text.component("&fStart za: &e" + seconds + " s"));
+                }
+            }
+            round.tickStartDelay();
+            return;
+        }
         round.tickElapsed();
         RoundContext context = new RoundContext(this, round);
         try {
             round.minigame().handleTick(context);
         } catch (Throwable error) {
-            plugin.getLogger().warning("Minigame tick failed for " + round.definition().id() + ": " + rootMessage(error));
+            plugin.getLogger().log(java.util.logging.Level.WARNING, "Minigame tick failed for " + round.definition().id(), error);
             round.requestFinish(RoundEndReason.MINIGAME_REQUEST);
         }
         if (round.finishRequested()) {
             finishRound(session, round, round.requestedReason());
         } else if (round.participantCount() == 0) {
             finishRound(session, round, RoundEndReason.PLAYER_QUIT);
-        } else if (round.allActiveResolved()) {
+        } else if (round.minigame().finishWhenAllActiveResolved() && round.allActiveResolved()) {
             finishRound(session, round, RoundEndReason.ALL_ELIMINATED);
         } else if (round.timeLimitReached()) {
             finishRound(session, round, RoundEndReason.TIME_LIMIT);
@@ -785,7 +1055,10 @@ public final class MinigamesSessionService {
         session.decrementStateTicks();
     }
 
+    private String lastStartFailure;
+
     private String startSession(UUID instanceId, SessionMode mode, EventExecutionContext context, Set<UUID> participants, List<MinigameDefinition> selected, boolean usePregame) {
+        lastStartFailure = null;
         if (!available()) return availabilityReason();
         if (participants.size() > config.global().maxPlayers()) return maxPlayersMessage();
         for (MinigameDefinition definition : selected) {
@@ -827,11 +1100,13 @@ public final class MinigamesSessionService {
         MinigamesSession session = new MinigamesSession(instanceId, mode, context, participants, selected, startingGlobalScores);
         activeSession = session;
         for (Player player : onlinePlayers(session)) {
+            session.rememberName(player.getUniqueId(), player.getName());
             prepareMinigameState(player);
         }
         if (usePregame) {
             for (Player player : onlinePlayers(session)) {
                 teleportToPregame(player);
+                showPregameBossBar(player);
             }
             transition(session, SeriesState.PRE_GAME_WAITING, 0);
             if (session.canBeginPregame(requiredPregamePlayers(session))) {
@@ -841,13 +1116,18 @@ public final class MinigamesSessionService {
             transition(session, SeriesState.SELECTING_GAMES, 0);
             prepareNextRound(session);
         }
-        return null;
+        return activeSession == session ? null : lastStartFailure == null ? "Session preparation failed; check the console." : lastStartFailure;
     }
 
     private void prepareNextRound(MinigamesSession session) {
         if (activeSession != session) return;
+        clearPregameBossBars();
         if (!session.hasNextRound()) {
             showSeriesResults(session);
+            return;
+        }
+        if (session.mode() == SessionMode.EVENT && session.activeParticipantCount() < 2) {
+            finishSessionEarly(session, "TOO_FEW_CONTINUATION_PLAYERS");
             return;
         }
         int roundNumber = session.nextRoundNumber();
@@ -865,8 +1145,10 @@ public final class MinigamesSessionService {
         try {
             round.minigame().prepare(new RoundContext(this, round));
         } catch (Throwable error) {
-            plugin.getLogger().warning("Minigame prepare failed for " + definition.id() + ": " + rootMessage(error));
-            cancelSession(session, "Minigame prepare failed: " + definition.id(), true);
+            plugin.getLogger().log(java.util.logging.Level.WARNING, "Minigame prepare failed for " + definition.id(), error);
+            lastStartFailure = "Blad przygotowania " + definition.id() + ": " + rootMessage(error);
+            broadcast(session, "&c" + lastStartFailure);
+            cancelSession(session, lastStartFailure, true);
             return;
         }
         int countdownSeconds = Math.max(0, round.minigame().countdownSeconds(definition, config.global().roundCountdownSeconds()));
@@ -881,7 +1163,7 @@ public final class MinigamesSessionService {
         try {
             round.minigame().start(new RoundContext(this, round));
         } catch (Throwable error) {
-            plugin.getLogger().warning("Minigame start failed for " + round.definition().id() + ": " + rootMessage(error));
+            plugin.getLogger().log(java.util.logging.Level.WARNING, "Minigame start failed for " + round.definition().id(), error);
             finishRound(session, round, RoundEndReason.MINIGAME_REQUEST);
             return;
         }
@@ -890,6 +1172,7 @@ public final class MinigamesSessionService {
 
     private void finishRound(MinigamesSession session, RoundSession round, RoundEndReason reason) {
         if (activeSession != session || !round.markCleanedUp()) return;
+        for (UUID playerId : round.participants()) pendingRoundRespawns.remove(playerId);
         RoundResult result;
         RoundContext context = new RoundContext(this, round);
         try {
@@ -906,8 +1189,15 @@ public final class MinigamesSessionService {
         }
         for (Player player : onlinePlayers(session)) {
             applyActiveRoundState(player);
+            player.setVelocity(new org.bukkit.util.Vector());
+            player.setAllowFlight(true);
+            player.setFlying(true);
+            PlayerRoundResult outcome = result.players().get(player.getUniqueId());
+            if (outcome != null && (outcome.completed() || outcome.failed())) {
+                announceOutcome(round, player, outcome.completed(), true);
+            }
         }
-        playRoundEndSound(session);
+        sendRoundRanking(session, result);
         broadcast(session, config.messages().raw("round-results", "&eKoniec rundy: &f{game}").replace("{game}", round.definition().displayName()));
         transition(session, SeriesState.ROUND_RESULTS, config.global().roundResultsSeconds() * 20);
     }
@@ -922,12 +1212,34 @@ public final class MinigamesSessionService {
     }
 
     private void showSeriesResults(MinigamesSession session) {
+        session.currentRound(null);
+        for (Player player : onlinePlayers(session)) {
+            applyActiveRoundState(player);
+            teleportToPregame(player);
+        }
         broadcast(session, config.messages().raw("series-results", "&6Koniec serii HexMinigames."));
+        broadcast(session, config.messages().raw("series-ranking-header", "&d&lPODSUMOWANIE SERII"));
+        List<UUID> ranking = session.ranking();
+        for (int i = 0; i < ranking.size(); i++) {
+            UUID id = ranking.get(i);
+            String row = config.messages().raw("series-ranking-row", "&e{place}. &f{player} &7- &a{points} pkt{status}")
+                    .replace("{place}", String.valueOf(i + 1)).replace("{player}", session.playerName(id))
+                    .replace("{points}", String.valueOf(session.seriesScore().points(id)))
+                    .replace("{status}", session.forfeited(id) ? config.messages().raw("series-forfeited", " &8(opuscil serie)") : "");
+            broadcast(session, row);
+        }
+        ranking.stream().filter(id -> !session.forfeited(id)).findFirst().ifPresent(winner -> {
+            if (celebration != null) celebration.show(onlinePlayers(session),
+                    config.global().pregame().spawn().toLocation(config.global().worldName()), session.playerName(winner), config.messages());
+        });
+        scores.commitEligibleSeries(session);
         transition(session, SeriesState.SERIES_RESULTS, config.global().seriesResultsSeconds() * 20);
     }
 
     private void completeSession(MinigamesSession session) {
         if (activeSession != session || !session.markTerminalNotified()) return;
+        chatBlocked.removeAll(session.participants());
+        clearPregameBossBars();
         transition(session, SeriesState.FINISHED, 0);
         scores.commitEligibleSeries(session);
         if (session.mode() == SessionMode.EVENT && eventsBridge != null) {
@@ -940,6 +1252,8 @@ public final class MinigamesSessionService {
 
     private void cancelSession(MinigamesSession session, String reason, boolean notifyHexEvents) {
         if (activeSession != session || !session.markTerminalNotified()) return;
+        chatBlocked.removeAll(session.participants());
+        clearPregameBossBars();
         clearPregameActionbar(session);
         transition(session, SeriesState.CANCELLED, 0);
         RoundSession round = session.currentRound();
@@ -1049,6 +1363,8 @@ public final class MinigamesSessionService {
     }
 
     private void removeParticipant(MinigamesSession session, UUID playerId, RoundEndReason reason, boolean forfeit) {
+        unblockChat(playerId);
+        pregameBossBars.remove(playerId);
         RoundSession round = session.currentRound();
         if (round != null) {
             try {
@@ -1057,14 +1373,14 @@ public final class MinigamesSessionService {
                 plugin.getLogger().warning("Minigame quit handler failed for " + playerId + ": " + rootMessage(error));
             }
         }
-        if (forfeit) session.forfeitParticipant(playerId);
+        if (forfeit && session.state() != SeriesState.SERIES_RESULTS) session.forfeitParticipant(playerId);
         else session.removeParticipant(playerId);
         if (session.shouldAbortPregame(requiredPregamePlayers(session))) {
             broadcast(session, config.messages().raw("pregame-cancelled-too-few", "&cSeria zostala anulowana: za malo uczestnikow."));
             cancelSession(session, "TOO_FEW_PLAYERS_PRE_GAME", true);
             return;
         }
-        if (session.shouldFinishForMinimumContinuation(config.global().series().minimumContinuationPlayers())) {
+        if (session.shouldFinishForMinimumContinuation(Math.max(2, config.global().series().minimumContinuationPlayers()))) {
             finishSessionEarly(session, "TOO_FEW_CONTINUATION_PLAYERS");
             return;
         }
@@ -1075,6 +1391,8 @@ public final class MinigamesSessionService {
 
     private void finishSessionEarly(MinigamesSession session, String reason) {
         if (activeSession != session || !session.markTerminalNotified()) return;
+        chatBlocked.removeAll(session.participants());
+        clearPregameBossBars();
         broadcast(session, config.messages().raw("series-ended-too-few", "&eSeria HexMinigames zakonczyla sie wczesniej: zostal za malo uczestnikow."));
         RoundSession round = session.currentRound();
         if (round != null) {
@@ -1110,6 +1428,7 @@ public final class MinigamesSessionService {
                 continue;
             }
             applyActiveRoundState(player);
+            if ("popcorn".equals(round.definition().id())) target.add(0, 1, 0);
             teleportInternal(player, target);
         }
     }
@@ -1134,6 +1453,19 @@ public final class MinigamesSessionService {
             return;
         }
         teleportInternal(player, target);
+    }
+
+    private void showPregameBossBar(Player player) {
+        if (config == null || !config.global().pregame().enabled()) return;
+        pregameBossBars.show(player, new BossBarSettings(
+                config.global().pregame().bossBarTitle(),
+                config.global().pregame().bossBarColor(),
+                config.global().pregame().bossBarStyle()
+        ));
+    }
+
+    private void clearPregameBossBars() {
+        pregameBossBars.clear();
     }
 
     private boolean isPregameState(SeriesState state) {
@@ -1184,6 +1516,15 @@ public final class MinigamesSessionService {
         player.setFireTicks(0);
     }
 
+    private void applyRespawnDelay(Player player) {
+        player.setGameMode(GameMode.ADVENTURE);
+        player.setAllowFlight(false);
+        player.setFlying(false);
+        player.setCollidable(false);
+        player.setFallDistance(0.0f);
+        player.setFireTicks(0);
+    }
+
     private void keepGhostInRegion(Player player, RoundSession round) {
         if (round.definition().region().isPresent() && round.definition().region().get().contains(player.getLocation())) return;
         Location target = round.definition().internal()
@@ -1197,6 +1538,49 @@ public final class MinigamesSessionService {
         internalTeleports.add(playerId);
         player.teleport(target);
         Bukkit.getScheduler().runTaskLater(plugin, () -> internalTeleports.remove(playerId), 2L);
+    }
+
+    /** Defers penalty teleports so the movement packet cannot overwrite the respawn location. */
+    public void respawnRoundPlayer(RoundSession round, Player player, Location target, Runnable afterArrival) {
+        if (target == null || target.getWorld() == null) throw new IllegalArgumentException("Respawn world is unavailable");
+        UUID playerId = player.getUniqueId();
+        Object token = new Object();
+        pendingRoundRespawns.put(playerId, token);
+        Location destination = target.clone();
+        new org.bukkit.scheduler.BukkitRunnable() {
+            private int attempts;
+            private int waitingTicks;
+
+            @Override
+            public void run() {
+                if (pendingRoundRespawns.get(playerId) != token || !player.isOnline()
+                        || activeSession == null || activeSession.currentRound() != round
+                        || activeSession.state() != SeriesState.ROUND_RUNNING || !round.participants().contains(playerId)) {
+                    pendingRoundRespawns.remove(playerId, token);
+                    cancel();
+                    return;
+                }
+                if (waitingTicks-- > 0) return;
+                internalTeleports.add(playerId);
+                boolean arrived;
+                try {
+                    arrived = player.teleport(destination, PlayerTeleportEvent.TeleportCause.PLUGIN);
+                } finally {
+                    internalTeleports.remove(playerId);
+                }
+                if (arrived) {
+                    player.setVelocity(new org.bukkit.util.Vector());
+                    player.setFallDistance(0);
+                    player.setFireTicks(0);
+                    pendingRoundRespawns.remove(playerId, token);
+                    cancel();
+                    if (afterArrival != null) afterArrival.run();
+                } else {
+                    if (++attempts == 3) plugin.getLogger().warning("Respawn teleport cancelled for " + player.getName() + " in " + round.definition().id());
+                    waitingTicks = attempts >= 3 ? 19 : 0;
+                }
+            }
+        }.runTaskTimer(plugin, 1L, 1L);
     }
 
     private Set<UUID> mergedParticipants(EventExecutionContext context) {
@@ -1219,13 +1603,17 @@ public final class MinigamesSessionService {
     }
 
     private int requiredPregamePlayers(MinigamesSession session) {
+        if (session != null && session.mode() == SessionMode.ADMIN_TEST) {
+            return 1;
+        }
         if (session != null && session.mode() == SessionMode.DEVELOPMENT_TEST) {
             return config.global().developmentMinimumPlayers();
         }
-        return config.global().pregame().minimumPlayers();
+        return Math.max(4, config.global().pregame().minimumPlayers());
     }
 
     private int gamesPerSeries(MinigamesSession session) {
+        if (session != null && session.mode() == SessionMode.ADMIN_TEST) return 5;
         return session != null && session.mode() == SessionMode.DEVELOPMENT_TEST ? 1 : config.global().gamesPerSeries();
     }
 
@@ -1299,17 +1687,112 @@ public final class MinigamesSessionService {
 
     private void playRoundEndSound(MinigamesSession session) {
         ConfiguredSound configured = config.global().roundEndSound();
-        if (configured == null || !configured.enabled()) return;
+        for (Player player : onlinePlayers(session)) {
+            play(player, configured, "round-end-sound");
+        }
+    }
+
+    private void play(Player player, ConfiguredSound configured, String label) {
+        if (player == null || configured == null || !configured.enabled()) return;
         Sound sound;
         try {
             sound = configured.bukkitSound();
         } catch (Throwable error) {
-            plugin.getLogger().warning("Invalid round-end-sound: " + configured.sound());
+            plugin.getLogger().warning("Invalid " + label + ": " + configured.sound());
             return;
         }
-        if (sound == null) return;
+        if (sound != null) player.playSound(player.getLocation(), sound, configured.volume(), configured.pitch());
+    }
+
+    private void sendRoundEndSubtitle(MinigamesSession session) {
+        String subtitle = Text.color(roundEndSubtitle(config.messages()));
         for (Player player : onlinePlayers(session)) {
-            player.playSound(player.getLocation(), sound, configured.volume(), configured.pitch());
+            player.sendTitle("", subtitle, 0, 70, 10);
+        }
+    }
+
+    static String roundEndSubtitle(hex.minigames.config.Messages messages) {
+        hex.minigames.config.Messages safeMessages = messages == null ? new hex.minigames.config.Messages(Map.of()) : messages;
+        return safeMessages.raw("round-end-subtitle", "&6KONIEC");
+    }
+
+    private void sendRoundRanking(MinigamesSession session, RoundResult result) {
+        Map<UUID, String> names = new LinkedHashMap<>();
+        for (UUID playerId : session.participants()) {
+            Player player = Bukkit.getPlayer(playerId);
+            names.put(playerId, player == null ? playerId.toString() : player.getName());
+        }
+        List<String> lines = roundRankingLines(result, session.seriesScore().snapshot(), names, config.messages().raw("round-ranking-header", "&d&lWYNIKI"));
+        for (Player player : onlinePlayers(session)) {
+            for (String line : lines) {
+                player.sendMessage(Text.color(line));
+            }
+        }
+    }
+
+    static List<String> roundRankingLines(RoundResult result, Map<UUID, Integer> pendingSeriesScore, Map<UUID, String> playerNames, String header) {
+        RoundResult safeResult = result == null ? RoundResult.empty() : result;
+        Map<UUID, Integer> safeSeries = pendingSeriesScore == null ? Map.of() : pendingSeriesScore;
+        Map<UUID, String> safeNames = playerNames == null ? Map.of() : playerNames;
+        List<Map.Entry<UUID, PlayerRoundResult>> entries = new ArrayList<>(safeResult.players().entrySet());
+        entries.sort((left, right) -> {
+            int points = Integer.compare(right.getValue().points(), left.getValue().points());
+            if (points != 0) return points;
+            int tie = compareTieBreaker(left.getValue(), right.getValue());
+            if (tie != 0) return tie;
+            String leftName = safeNames.getOrDefault(left.getKey(), left.getKey().toString());
+            String rightName = safeNames.getOrDefault(right.getKey(), right.getKey().toString());
+            return leftName.compareToIgnoreCase(rightName);
+        });
+
+        List<String> lines = new ArrayList<>();
+        lines.add(header == null || header.isBlank() ? "&d&lWYNIKI" : header);
+        int place = 1;
+        for (Map.Entry<UUID, PlayerRoundResult> entry : entries) {
+            UUID playerId = entry.getKey();
+            PlayerRoundResult round = entry.getValue();
+            String name = safeNames.getOrDefault(playerId, playerId.toString());
+            int roundPoints = round.points();
+            int sum = safeSeries.getOrDefault(playerId, 0);
+            String pointsText = roundPoints > 0 ? "+" + roundPoints + " pkt" : "0 pkt";
+            lines.add("&f" + place + ". &e" + name + " &7" + pointsText + " &8| &fSuma: &d" + sum + " pkt");
+            place++;
+        }
+        return lines;
+    }
+
+    private static int compareTieBreaker(PlayerRoundResult left, PlayerRoundResult right) {
+        if (left.placement().isPresent() && right.placement().isPresent()) {
+            int placement = Integer.compare(left.placement().orElse(Integer.MAX_VALUE), right.placement().orElse(Integer.MAX_VALUE));
+            if (placement != 0) return placement;
+        }
+        int fastTime = compareLongData(left, right, "completion_time_ms", true);
+        if (fastTime != 0) return fastTime;
+        int finishTick = compareLongData(left, right, "finish_tick", true);
+        if (finishTick != 0) return finishTick;
+        int progress = compareLongData(left, right, "progress", false);
+        if (progress != 0) return progress;
+        return compareLongData(left, right, "meters", false);
+    }
+
+    private static int compareLongData(PlayerRoundResult left, PlayerRoundResult right, String key, boolean ascending) {
+        Optional<Long> leftValue = longData(left, key);
+        Optional<Long> rightValue = longData(right, key);
+        if (leftValue.isEmpty() && rightValue.isEmpty()) return 0;
+        if (leftValue.isEmpty()) return 1;
+        if (rightValue.isEmpty()) return -1;
+        int compared = Long.compare(leftValue.get(), rightValue.get());
+        return ascending ? compared : -compared;
+    }
+
+    private static Optional<Long> longData(PlayerRoundResult result, String key) {
+        if (result == null || key == null) return Optional.empty();
+        String raw = result.data().get(key);
+        if (raw == null || raw.isBlank()) return Optional.empty();
+        try {
+            return Optional.of(Long.parseLong(raw));
+        } catch (NumberFormatException ignored) {
+            return Optional.empty();
         }
     }
 

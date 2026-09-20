@@ -23,8 +23,9 @@ final class ScoreServiceCommitTest {
         MinigamesSession session = session(player);
         session.seriesScore().add(player, 10);
         session.forfeitParticipant(player);
+        assertEquals(0, session.seriesScore().points(player));
 
-        scores.commitEligibleSeries(session);
+        scores.commitEligibleSeries(session).join();
 
         assertEquals(100, repository.globalPoints(player));
     }
@@ -37,7 +38,7 @@ final class ScoreServiceCommitTest {
         MinigamesSession session = session(player);
         session.seriesScore().add(player, 10);
 
-        scores.commitEligibleSeries(session);
+        scores.commitEligibleSeries(session).join();
 
         assertEquals(110, repository.globalPoints(player));
     }
@@ -50,7 +51,7 @@ final class ScoreServiceCommitTest {
         MinigamesSession session = session(SessionMode.DEVELOPMENT_TEST, player);
         session.seriesScore().add(player, 10);
 
-        scores.commitEligibleSeries(session);
+        scores.commitEligibleSeries(session).join();
 
         assertEquals(100, repository.globalPoints(player));
     }
@@ -63,8 +64,8 @@ final class ScoreServiceCommitTest {
         MinigamesSession session = session(player);
         session.seriesScore().add(player, 10);
 
-        scores.commitEligibleSeries(session);
-        scores.commitEligibleSeries(session);
+        scores.commitEligibleSeries(session).join();
+        scores.commitEligibleSeries(session).join();
 
         assertEquals(110, repository.globalPoints(player));
     }
@@ -80,7 +81,7 @@ final class ScoreServiceCommitTest {
         session.seriesScore().add(forfeited, 8);
         session.forfeitParticipant(forfeited);
 
-        scores.commitEligibleSeries(session);
+        scores.commitEligibleSeries(session).join();
 
         assertEquals(112, repository.globalPoints(remaining));
         assertEquals(100, repository.globalPoints(forfeited));
@@ -123,6 +124,11 @@ final class ScoreServiceCommitTest {
             return true;
         }
 
+        @Override public java.util.List<LeaderboardEntry> allScores() {
+            return global.entrySet().stream().map(e -> new LeaderboardEntry(e.getKey(), e.getKey().toString(), e.getValue())).toList();
+        }
+        @Override public void saveName(UUID id, String name) { }
+        @Override public void resetScores() { global.clear(); }
         @Override
         public int globalPoints(UUID playerId) {
             return global.getOrDefault(playerId, 0);
