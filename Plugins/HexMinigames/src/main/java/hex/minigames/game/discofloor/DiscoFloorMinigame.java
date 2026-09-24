@@ -14,12 +14,13 @@ import java.util.*;
 
 /** Uses the existing concrete pattern and restores the original tiles between rounds. */
 public final class DiscoFloorMinigame implements Minigame {
-    private static final Map<Material, String> COLORS = Map.of(
-            Material.ORANGE_CONCRETE, "&6POMARAŃCZOWY", Material.BROWN_CONCRETE, "&6BRĄZOWY",
-            Material.PURPLE_CONCRETE, "&5FIOLETOWY", Material.YELLOW_CONCRETE, "&eŻÓŁTY",
-            Material.RED_CONCRETE, "&cCZERWONY", Material.LIGHT_BLUE_CONCRETE, "&bJASNONIEBIESKI",
-            Material.CYAN_CONCRETE, "&3CYJANOWY", Material.LIME_CONCRETE, "&aLIMONKOWY",
-            Material.GRAY_CONCRETE, "&8SZARY", Material.PINK_CONCRETE, "&dRÓŻOWY");
+    private static final Map<Material, String> COLORS = Map.ofEntries(
+            Map.entry(Material.ORANGE_CONCRETE, "&6POMARAŃCZOWY"), Map.entry(Material.BROWN_CONCRETE, "&6BRĄZOWY"),
+            Map.entry(Material.PURPLE_CONCRETE, "&5FIOLETOWY"), Map.entry(Material.YELLOW_CONCRETE, "&eŻÓŁTY"),
+            Map.entry(Material.RED_CONCRETE, "&cCZERWONY"), Map.entry(Material.LIGHT_BLUE_CONCRETE, "&bJASNONIEBIESKI"),
+            Map.entry(Material.CYAN_CONCRETE, "&3CYJANOWY"), Map.entry(Material.LIME_CONCRETE, "&aLIMONKOWY"),
+            Map.entry(Material.GRAY_CONCRETE, "&8SZARY"), Map.entry(Material.PINK_CONCRETE, "&dRÓŻOWY"),
+            Map.entry(Material.BLUE_CONCRETE, "&9NIEBIESKI"), Map.entry(Material.GREEN_CONCRETE, "&2ZIELONY"));
     private final Plugin plugin;
     private final Map<BlockPosition, Material> floor = new LinkedHashMap<>();
     private final BossBarDisplay bars = new BossBarDisplay();

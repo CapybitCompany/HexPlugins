@@ -14,8 +14,9 @@ countdowns:
 
 durations:
   default-round-seconds: 180
-  round-results-seconds: 10
-  intermission-seconds: 8
+  # Between games: 2 seconds of results + 0 intermission + 5 countdown = 7 seconds.
+  round-results-seconds: 2
+  intermission-seconds: 0
   series-results-seconds: 12
 
 storage:

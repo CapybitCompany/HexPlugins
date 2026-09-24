@@ -3,7 +3,7 @@ plugins {
 }
 
 group = 'hex'
-version = '1.0.0'
+version = '1.0.2'
 
 repositories {
     mavenCentral()
@@ -24,6 +24,7 @@ dependencies {
     testImplementation project(':plugins:HexEvents:hexevents-api')
     testImplementation 'org.junit.jupiter:junit-jupiter:5.11.0'
     testImplementation 'org.mockito:mockito-core:5.11.0'
+    testImplementation 'org.xerial:sqlite-jdbc:3.46.1.0'
 }
 
 java {

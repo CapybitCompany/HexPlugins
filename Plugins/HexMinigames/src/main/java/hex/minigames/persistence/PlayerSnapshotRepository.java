@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.attribute.Attribute;
 
 import java.io.File;
 import java.sql.Connection;
@@ -68,6 +69,7 @@ public final class PlayerSnapshotRepository {
                         )
                         """);
             }
+            migrateControllerSnapshot();
             available = true;
         } catch (Throwable error) {
             available = false;
@@ -77,6 +79,21 @@ public final class PlayerSnapshotRepository {
 
     public boolean available() {
         return available;
+    }
+
+    /** Additive migration keeps pending snapshots from older versions readable. */
+    private void migrateControllerSnapshot() throws Exception {
+        try (Connection connection=connect(); Statement statement=connection.createStatement()) {
+            java.util.Set<String> columns=new java.util.HashSet<>();
+            try (ResultSet rs=statement.executeQuery("PRAGMA table_info(minigames_snapshots)")) {
+                while(rs.next()) columns.add(rs.getString("name"));
+            }
+            for (String column:List.of("scale REAL NOT NULL DEFAULT 1.0", "fly_speed REAL NOT NULL DEFAULT 0.1",
+                    "walk_speed REAL NOT NULL DEFAULT 0.2", "invisible INTEGER NOT NULL DEFAULT 0",
+                    "collidable INTEGER NOT NULL DEFAULT 1", "gravity INTEGER NOT NULL DEFAULT 1", "invulnerable INTEGER NOT NULL DEFAULT 0")) {
+                if(!columns.contains(column.split(" ")[0])) statement.executeUpdate("ALTER TABLE minigames_snapshots ADD COLUMN "+column);
+            }
+        }
     }
 
     public synchronized boolean saveIfAbsent(Player player, UUID instanceId) {
@@ -91,8 +108,8 @@ public final class PlayerSnapshotRepository {
                 INSERT OR IGNORE INTO minigames_snapshots
                 (player_uuid, player_name, instance_id, created_at, restore_pending, inventory, armor, extra, cursor,
                  held_slot, game_mode, allow_flight, flying, exp, level, total_exp, health, absorption, food, saturation,
-                 exhaustion, effects, world, x, y, z, yaw, pitch)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 exhaustion, effects, world, x, y, z, yaw, pitch, scale, fly_speed, walk_speed, invisible, collidable, gravity, invulnerable)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """;
         try (Connection connection = connect(); PreparedStatement statement = connection.prepareStatement(sql)) {
             bind(statement, state);
@@ -113,6 +130,17 @@ public final class PlayerSnapshotRepository {
         } catch (Exception error) {
             throw new IllegalStateException("Could not load player snapshot", error);
         }
+    }
+
+    /** Attach the durable snapshot captured before entering the minigames world to a series. */
+    public synchronized boolean claimLobbySnapshot(UUID playerId, UUID instanceId) {
+        ensureAvailable();
+        try (Connection connection = connect(); PreparedStatement statement = connection.prepareStatement(
+                "UPDATE minigames_snapshots SET instance_id = ? WHERE player_uuid = ? AND instance_id IS NULL AND restore_pending = 0")) {
+            statement.setString(1, instanceId.toString());
+            statement.setString(2, playerId.toString());
+            return statement.executeUpdate() == 1;
+        } catch (Exception error) { throw new IllegalStateException("Could not claim lobby snapshot", error); }
     }
 
     public synchronized List<StoredPlayerState> findByInstance(UUID instanceId) {
@@ -180,6 +208,14 @@ public final class PlayerSnapshotRepository {
         player.setGameMode(state.gameMode() == null ? GameMode.SURVIVAL : state.gameMode());
         player.setAllowFlight(state.allowFlight());
         player.setFlying(state.allowFlight() && state.flying());
+        var scale = player.getAttribute(Attribute.SCALE);
+        if (scale != null) scale.setBaseValue(state.scale());
+        player.setFlySpeed(state.flySpeed());
+        player.setWalkSpeed(state.walkSpeed());
+        player.setInvisible(state.invisible());
+        player.setCollidable(state.collidable());
+        player.setGravity(state.gravity());
+        player.setInvulnerable(state.invulnerable());
         player.setExp(state.exp());
         player.setLevel(state.level());
         player.setTotalExperience(state.totalExperience());
@@ -232,7 +268,9 @@ public final class PlayerSnapshotRepository {
                 location.getY(),
                 location.getZ(),
                 location.getYaw(),
-                location.getPitch()
+                location.getPitch(),
+                player.getAttribute(Attribute.SCALE) == null ? 1.0 : player.getAttribute(Attribute.SCALE).getBaseValue(),
+                player.getFlySpeed(), player.getWalkSpeed(), player.isInvisible(), player.isCollidable(), player.hasGravity(), player.isInvulnerable()
         );
     }
 
@@ -265,6 +303,13 @@ public final class PlayerSnapshotRepository {
         statement.setDouble(26, state.z());
         statement.setFloat(27, state.yaw());
         statement.setFloat(28, state.pitch());
+        statement.setDouble(29, state.scale());
+        statement.setFloat(30, state.flySpeed());
+        statement.setFloat(31, state.walkSpeed());
+        statement.setBoolean(32, state.invisible());
+        statement.setBoolean(33, state.collidable());
+        statement.setBoolean(34, state.gravity());
+        statement.setBoolean(35, state.invulnerable());
     }
 
     private StoredPlayerState read(ResultSet rs) throws Exception {
@@ -297,7 +342,9 @@ public final class PlayerSnapshotRepository {
                 rs.getDouble("y"),
                 rs.getDouble("z"),
                 rs.getFloat("yaw"),
-                rs.getFloat("pitch")
+                rs.getFloat("pitch"),
+                rs.getDouble("scale"), rs.getFloat("fly_speed"), rs.getFloat("walk_speed"),
+                rs.getBoolean("invisible"), rs.getBoolean("collidable"), rs.getBoolean("gravity"), rs.getBoolean("invulnerable")
         );
     }
 

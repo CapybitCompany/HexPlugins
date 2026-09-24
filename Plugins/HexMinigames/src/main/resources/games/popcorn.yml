@@ -4,7 +4,7 @@ enabled: true
 min-players: 1
 max-players: 14
 weight: 1
-round-time-seconds: 45
+round-time-seconds: 35
 
 region:
   pos1: { x: 550, y: -33, z: -72 }
@@ -41,12 +41,12 @@ settings:
     orange: ORANGE_CONCRETE
     red: RED_CONCRETE
   hazard:
-    stage-duration-ticks: 12
+    stage-duration-ticks: 8
     # Relative pacing weights; total removal is scaled to the platform and round duration.
     activation-rate-start: 48.0
     activation-rate-end: 80.0
     acceleration-curve: 1.8
-    target-remaining-blocks: 40
+    target-remaining-blocks: 12
   messages:
     eliminated: '&c{player} został wyeliminowany!'
   scoring:

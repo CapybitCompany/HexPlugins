@@ -210,6 +210,11 @@ public final class HexMinigamesPlugin extends JavaPlugin implements Listener {
             @Override public boolean internal() { return false; }
             @Override public hex.minigames.game.Minigame create() { return new hex.minigames.game.elytra.ElytraMinigame(HexMinigamesPlugin.this); }
         });
+        registry.register(new MinigameFactory() {
+            @Override public String id() { return "drones"; }
+            @Override public boolean internal() { return false; }
+            @Override public hex.minigames.game.Minigame create() { return new hex.minigames.game.drones.DronesMinigame(HexMinigamesPlugin.this); }
+        });
         registry.rebuild(config.gameDefinitions());
 
         snapshots = new PlayerSnapshotRepository(this);

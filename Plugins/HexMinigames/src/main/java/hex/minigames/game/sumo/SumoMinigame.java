@@ -16,19 +16,20 @@ public final class SumoMinigame implements Minigame {
     private final Plugin plugin;
     private final Random random = new Random();
     private final Map<UUID, Flight> flights = new HashMap<>();
-    private final Map<UUID, Long> hitAfter = new HashMap<>();
     private final BossBarDisplay bars = new BossBarDisplay();
     private StandardTutorial tutorial;
     private BlockChangeTracker barriers;
     private SumoRuntime runtime;
     private boolean started;
     private RoundResult result;
+    private SumoBombs bombs;
     public SumoMinigame(Plugin plugin) { this.plugin = plugin; }
     @Override public String id() { return "monkey_run"; }
     @Override public boolean finishWhenAllActiveResolved() { return false; }
     @Override public int countdownSeconds(MinigameDefinition definition, int global) { return 20; }
     @Override public void prepare(RoundContext context) {
-        runtime = new SumoRuntime(); flights.clear(); hitAfter.clear(); result = null; started = false;
+        bombs = new SumoBombs(plugin);
+        runtime = new SumoRuntime(); flights.clear(); result = null; started = false;
         var errors = new ArrayList<String>();
         tutorial = new StandardTutorial(plugin, CommonGameConfig.tutorial(context.definition().settings(), id(),
                 List.of("&d&lSUMO", "&fWejdź na złotą płytkę, aby polecieć na arenę.",
@@ -43,7 +44,7 @@ public final class SumoMinigame implements Minigame {
         tutorial.begin(context, players, Map.of());
     }
     @Override public boolean handleCountdownTick(RoundContext context, int ticks) { return tutorial.tick(context, ticks, Map.of()); }
-    @Override public void start(RoundContext context) { tutorial.end(context); setBarriers(Material.AIR); started = true; }
+    @Override public void start(RoundContext context) { tutorial.end(context); setBarriers(Material.AIR); started = true; bombs.start(context); }
     /** Keep both spawn exits closed throughout the tutorial. */
     private void setBarriers(Material material) {
         for (int x = 431; x <= 441; x++) barriers.setType(new hex.minigames.model.BlockPosition(x, 48, 370), material);
@@ -68,15 +69,18 @@ public final class SumoMinigame implements Minigame {
         return EventDecision.PASS;
     }
     @Override public EventDecision onInteract(RoundContext context, PlayerInteractEvent event) {
+        if (started && bombs != null && bombs.interact(context, event)) return EventDecision.DENY;
         if (event.getAction() == org.bukkit.event.block.Action.PHYSICAL && event.getClickedBlock() != null
                 && event.getClickedBlock().getType() == Material.LIGHT_WEIGHTED_PRESSURE_PLATE) launch(context, event.getPlayer(), event.getClickedBlock().getLocation());
         return EventDecision.DENY;
     }
     @Override public void handleTick(RoundContext context) {
         if (!started) return;
+        bombs.tick(context);
         for (Player player : context.onlineParticipants()) {
             UUID id = player.getUniqueId();
             if (context.state(id) != RoundPlayerState.ACTIVE) continue;
+            player.setNoDamageTicks(0);
             if (player.getLocation().getY() <= 39) { respawn(context, player); continue; }
             Flight flight = flights.get(id);
             if (flight != null) {
@@ -103,26 +107,33 @@ public final class SumoMinigame implements Minigame {
         if (context.state(id) != RoundPlayerState.ACTIVE) return;
         flights.remove(id);
         context.state(id, RoundPlayerState.RESPAWN_DELAY);
-        context.respawn(player, spawn(player.getWorld(), random.nextBoolean()), () -> context.state(id, RoundPlayerState.ACTIVE));
+        context.respawn(player, spawn(player.getWorld(), random.nextBoolean()), () -> {
+            player.setNoDamageTicks(0);
+            context.state(id, RoundPlayerState.ACTIVE);
+        });
     }
     @Override public EventDecision onDamage(RoundContext context, EntityDamageEvent event) {
         if (!started || !(event.getEntity() instanceof Player victim) || context.state(victim.getUniqueId()) != RoundPlayerState.ACTIVE) return EventDecision.DENY;
         if (victim.getLocation().getY() <= 39 || event.getCause() == EntityDamageEvent.DamageCause.VOID) { respawn(context, victim); return EventDecision.DENY; }
-        if (event instanceof EntityDamageByEntityEvent hit && hit.getDamager() instanceof Player attacker
-                && event.getCause() == EntityDamageEvent.DamageCause.ENTITY_ATTACK
-                && context.participants().contains(attacker.getUniqueId()) && context.state(attacker.getUniqueId()) == RoundPlayerState.ACTIVE
-                && !flights.containsKey(victim.getUniqueId()) && !flights.containsKey(attacker.getUniqueId())
-                && inside(victim) && inside(attacker) && context.elapsedTicks() >= hitAfter.getOrDefault(victim.getUniqueId(), 0L)) {
+        return EventDecision.DENY;
+    }
+
+    /** One impulse per attack packet; no dependency on vanilla damage or post-teleport immunity. */
+    @Override public EventDecision onPreAttack(RoundContext context, io.papermc.paper.event.player.PrePlayerAttackEntityEvent event) {
+        Player attacker = event.getPlayer();
+        if (started && event.getAttacked() instanceof Player victim
+                && context.participants().contains(attacker.getUniqueId()) && context.participants().contains(victim.getUniqueId())
+                && context.state(attacker.getUniqueId()) == RoundPlayerState.ACTIVE
+                && context.state(victim.getUniqueId()) == RoundPlayerState.ACTIVE
+                && victim.getLocation().getY() > 39 && attacker.getLocation().getY() > 39) {
             Vector away = victim.getLocation().toVector().subtract(attacker.getLocation().toVector()).setY(0);
             if (away.lengthSquared() < 0.01) away = attacker.getLocation().getDirection().setY(0);
             if (away.lengthSquared() < 0.01) away = new Vector(1, 0, 0);
             victim.setVelocity(away.normalize().multiply(1.65).setY(0.52));
-            hitAfter.put(victim.getUniqueId(), context.elapsedTicks() + 5);
             victim.playSound(victim.getLocation(), "minecraft:entity.player.attack.knockback", 1, 1);
         }
         return EventDecision.DENY;
     }
-    private boolean inside(Player player) { Location p = player.getLocation(); return SumoRuntime.onArena(p.getX(), p.getY(), p.getZ()); }
     @Override public RoundResult finish(RoundContext context, RoundEndReason reason) {
         if (result != null) return result;
         started = false;
@@ -131,9 +142,10 @@ public final class SumoMinigame implements Minigame {
                 runtime.points(id) > 0, runtime.points(id) == 0, Map.of("arena-seconds", String.valueOf(runtime.ticks(id) / 20.0))));
         return result = new RoundResult(players, Map.of("game", id()));
     }
-    @Override public void handlePlayerQuit(RoundContext context, UUID id) { flights.remove(id); hitAfter.remove(id); tutorial.remove(context, id); bars.remove(id); }
+    @Override public void handlePlayerQuit(RoundContext context, UUID id) { flights.remove(id); tutorial.remove(context, id); bars.remove(id); }
     @Override public void reset(RoundContext context) {
-        started = false; flights.clear(); hitAfter.clear(); bars.clear();
+        if (bombs != null) { bombs.clear(context); bombs = null; }
+        started = false; flights.clear(); bars.clear();
         if (barriers != null) { barriers.restoreAll(); barriers = null; }
         if (tutorial != null) tutorial.end(context);
         for (Player player : context.onlineParticipants()) { player.setVelocity(new Vector()); player.sendActionBar(Text.component("")); Text.clearTitle(player); }

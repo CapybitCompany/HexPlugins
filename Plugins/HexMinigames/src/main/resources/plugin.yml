@@ -1,5 +1,5 @@
 name: HexMinigames
-version: '1.0.0'
+version: '1.0.2'
 main: hex.minigames.HexMinigamesPlugin
 api-version: '1.21.11'
 description: HexEvents minigames series core module.
@@ -9,6 +9,7 @@ depend:
 softdepend:
   - HexCore
   - PlaceholderAPI
+  - GlowAPI
 libraries:
   - org.xerial:sqlite-jdbc:3.46.1.0
 

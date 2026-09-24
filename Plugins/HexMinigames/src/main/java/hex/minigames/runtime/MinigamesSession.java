@@ -30,6 +30,25 @@ public final class MinigamesSession {
     private MinigameDefinition forcedNextGame;
     private boolean terminalNotified;
     private boolean seriesStarted;
+    private boolean resultsShown;
+    private final Set<UUID> rewardedWinners = new LinkedHashSet<>();
+
+    /** All eligible players sharing the highest series score. */
+    public List<UUID> winners() {
+        List<UUID> eligible = ranking().stream().filter(id -> !forfeited(id)).toList();
+        if (eligible.isEmpty()) return List.of();
+        int best = seriesScore.points(eligible.getFirst());
+        return eligible.stream().filter(id -> seriesScore.points(id) == best).toList();
+    }
+
+    /** Set before dispatching external commands, including when the command is unavailable. */
+    public boolean markWinnerRewarded(UUID playerId) { return rewardedWinners.add(playerId); }
+
+    public boolean markResultsShown() {
+        if (resultsShown) return false;
+        resultsShown = true;
+        return true;
+    }
     private final Map<UUID, String> playerNames = new HashMap<>();
     public void rememberName(UUID id, String name) { playerNames.put(id, name); }
     public String playerName(UUID id) { return playerNames.getOrDefault(id, id.toString()); }

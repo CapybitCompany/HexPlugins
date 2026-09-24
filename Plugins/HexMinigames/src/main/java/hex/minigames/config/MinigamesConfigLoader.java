@@ -23,6 +23,7 @@ public final class MinigamesConfigLoader {
             "red_light_green_light.yml",
             "glass_bridge.yml",
             "tag.yml",
+            "drones.yml",
             "super_memory.yml",
             "jump_rope.yml",
             "elytra.yml",
@@ -49,6 +50,82 @@ public final class MinigamesConfigLoader {
             saveResource("games/" + gameFile);
             BalanceConfigMigration.apply(plugin, gameFile);
         }
+        migrateLiveSeriesDefaults();
+        migrateBombKnockback();
+        migrateDronesGui();
+    }
+
+    /** Upgrade the installed sequence timing once, leaving customized values intact. */
+    private void migrateDronesGui() {
+        File file=new File(plugin.getDataFolder(),"games/drones.yml");
+        var yaml=new YamlConfiguration();
+        try {
+            yaml.load(file);
+            if(yaml.getInt("gui-revision",0)>=1) return;
+            var backup=file.toPath().resolveSibling(file.getName()+".before-gui-1.bak");
+            if(!java.nio.file.Files.exists(backup)) java.nio.file.Files.copy(file.toPath(),backup);
+            String path="settings.puzzles.sequence.green-show-ticks";
+            if(!yaml.contains(path)||yaml.getInt(path)==12) yaml.set(path,32);
+            yaml.set("gui-revision",1); yaml.save(file);
+        } catch(java.io.IOException | org.bukkit.configuration.InvalidConfigurationException error) {
+            plugin.getLogger().log(java.util.logging.Level.WARNING,"Cannot migrate Drones GUI settings",error);
+        }
+    }
+
+    /** Reduce existing stock bombs once as well as the defaults in new installations. */
+    private void migrateBombKnockback() {
+        File file = new File(plugin.getDataFolder(), "games/monkey_run.yml");
+        var yaml = YamlConfiguration.loadConfiguration(file);
+        if (yaml.getInt("bomb-knockback-revision", 0) >= 1) return;
+        try {
+            var backup = file.toPath().resolveSibling(file.getName() + ".before-bomb-knockback-1.bak");
+            if (!java.nio.file.Files.exists(backup)) java.nio.file.Files.copy(file.toPath(), backup);
+            if (!yaml.contains("settings.bombs.knockback") || yaml.getDouble("settings.bombs.knockback") == 2.5)
+                yaml.set("settings.bombs.knockback", 1.8);
+            yaml.set("bomb-knockback-revision", 1);
+            yaml.save(file);
+        } catch (java.io.IOException error) { throw new IllegalStateException("Cannot migrate bomb knockback", error); }
+    }
+
+    /** Install the requested pacing and new bomb options once, preserving backups. */
+    private void migrateLiveSeriesDefaults() {
+        File main = new File(plugin.getDataFolder(), "config.yml");
+        var yaml = YamlConfiguration.loadConfiguration(main);
+        if (yaml.getInt("live-series-revision", 0) >= 1) return;
+        try {
+            for (String name : List.of("config.yml", "messages.yml", "games/popcorn.yml", "games/monkey_run.yml")) {
+                File file = new File(plugin.getDataFolder(), name);
+                var backup = file.toPath().resolveSibling(file.getName() + ".before-live-series-1.bak");
+                if (!java.nio.file.Files.exists(backup)) java.nio.file.Files.copy(file.toPath(), backup);
+            }
+            File popcornFile = new File(plugin.getDataFolder(), "games/popcorn.yml");
+            var popcorn = YamlConfiguration.loadConfiguration(popcornFile);
+            popcorn.set("round-time-seconds", 35);
+            popcorn.set("settings.hazard.stage-duration-ticks", 8);
+            popcorn.set("settings.hazard.target-remaining-blocks", 12);
+            popcorn.save(popcornFile);
+            File sumoFile = new File(plugin.getDataFolder(), "games/monkey_run.yml");
+            var sumo = YamlConfiguration.loadConfiguration(sumoFile);
+            try (var input = plugin.getResource("games/monkey_run.yml")) {
+                if (input == null) throw new java.io.IOException("Missing sumo resource");
+                var defaults = YamlConfiguration.loadConfiguration(new java.io.InputStreamReader(input, java.nio.charset.StandardCharsets.UTF_8));
+                var bombs = defaults.getConfigurationSection("settings.bombs");
+                for (String key : bombs.getKeys(false)) {
+                    String path = "settings.bombs." + key;
+                    if (!sumo.contains(path)) sumo.set(path, bombs.get(key));
+                }
+            }
+            sumo.save(sumoFile);
+            File messagesFile = new File(plugin.getDataFolder(), "messages.yml");
+            var messages = YamlConfiguration.loadConfiguration(messagesFile);
+            if (!messages.contains("series-tie-title")) messages.set("series-tie-title", "&6Remis!");
+            messages.save(messagesFile);
+            yaml.set("countdowns.round", 5);
+            yaml.set("durations.round-results-seconds", 2);
+            yaml.set("durations.intermission-seconds", 0);
+            yaml.set("live-series-revision", 1);
+            yaml.save(main);
+        } catch (java.io.IOException error) { throw new IllegalStateException("Cannot migrate live series config", error); }
     }
 
     /** Add new message keys and migrate the previous waiting-room threshold once. */
@@ -107,8 +184,8 @@ public final class MinigamesConfigLoader {
         int gamesPerSeries = yaml.getInt("games-per-series", 5);
         int roundCountdown = yaml.getInt("countdowns.round", 5);
         int defaultRound = yaml.getInt("durations.default-round-seconds", 180);
-        int roundResults = yaml.getInt("durations.round-results-seconds", 8);
-        int intermission = yaml.getInt("durations.intermission-seconds", 8);
+        int roundResults = yaml.getInt("durations.round-results-seconds", 2);
+        int intermission = yaml.getInt("durations.intermission-seconds", 0);
         int seriesResults = yaml.getInt("durations.series-results-seconds", 12);
         String storageType = yaml.getString("storage.type", "auto");
         String sqliteFile = yaml.getString("storage.sqlite-file", "minigames.db");
@@ -212,6 +289,8 @@ public final class MinigamesConfigLoader {
     }
 
     private MinigameDefinition loadGame(String fileName, YamlConfiguration yaml, GlobalConfig global, List<String> errors) {
+        boolean drones = fileName.equals("drones.yml");
+        if (drones) errors = new ArrayList<>();
         String path = "games/" + fileName;
         String id = yaml.getString("id", fileName.replace(".yml", ""));
         String displayName = yaml.getString("display-name", id);
@@ -221,19 +300,36 @@ public final class MinigamesConfigLoader {
         int weight = yaml.getInt("weight", 1);
         int roundTime = yaml.getInt("round-time-seconds", global.defaultRoundSeconds());
         if ("hot_head".equals(id) && roundTime == 120) roundTime = 60;
-        if ("popcorn".equals(id) && (roundTime == 90 || roundTime == 60)) roundTime = 45;
+        if ("popcorn".equals(id) && (roundTime == 90 || roundTime == 60)) roundTime = 35;
         if ("dalgona".equals(id) && roundTime == 60) roundTime = 80;
         if ("glass_bridge".equals(id) && roundTime == 150) roundTime = 130;
-        Optional<CuboidRegion> region = region(global.worldName(), yaml.getConfigurationSection("region"), path, enabled, errors);
+        Optional<CuboidRegion> region = region(drones ? yaml.getString("world", global.worldName()) : global.worldName(), yaml.getConfigurationSection("region"), path, enabled, errors);
         List<LocationSpec> spawns = locationList(yaml.getMapList("participant-spawns"));
         Optional<LocationSpec> spectator = optionalLocation(yaml.getConfigurationSection("spectator-spawn"));
         Map<String, Object> settings = sectionMap(yaml.getConfigurationSection("settings"));
+        if (drones) {
+            settings = new LinkedHashMap<>(settings);
+            settings.put("world", yaml.getString("world", global.worldName()));
+            spawns = new ArrayList<>();
+            for (int i=1;i<=14;i++) {
+                Object station = hex.minigames.game.common.GameSettings.child(settings,"stations."+i);
+                LocationSpec spawn = hex.minigames.game.common.GameSettings.location(hex.minigames.game.common.GameSettings.child(station,"spawn"));
+                if (spawn.configured()) spawns.add(new LocationSpec(spawn.x()+0.5,spawn.y(),spawn.z()+0.5,
+                        "WEST".equals(hex.minigames.game.common.GameSettings.string(station,"facing",""))?90:-90,0,true));
+            }
+            if (!"drones".equals(id)) { errors.add(path+": id must be drones"); id="drones"; }
+            if (!global.worldName().equals(yaml.getString("world",global.worldName()))) errors.add(path+": world must match the series world");
+        }
 
         if (id == null || id.isBlank()) errors.add(path + ": id must not be empty");
         if (minPlayers < 0) errors.add(path + ": min-players must be >= 0");
         if (maxPlayers < 0) errors.add(path + ": max-players must be >= 0");
         if (weight <= 0) errors.add(path + ": weight must be > 0");
         if (roundTime <= 0) errors.add(path + ": round-time-seconds must be > 0");
+        if (drones && !errors.isEmpty()) {
+            settings.put("validation-errors", List.copyOf(errors));
+            errors.forEach(plugin.getLogger()::warning);
+        }
         return new MinigameDefinition(
                 id,
                 displayName,

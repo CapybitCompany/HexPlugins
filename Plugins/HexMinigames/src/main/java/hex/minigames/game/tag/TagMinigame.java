@@ -9,20 +9,22 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.util.Vector;
 import java.util.*;
 
 /** Non-damaging melee tag with colored roles and time-based scoring. */
 public final class TagMinigame implements Minigame {
     private final Plugin plugin;
     private final BossBarDisplay bars = new BossBarDisplay();
-    private final TagRoleDisplay roles = new TagRoleDisplay();
+    private final TagRoleDisplay roles;
     private TagConfig config;
     private StandardTutorial tutorial;
     private TagRuntime runtime;
     private RoundResult result;
     private boolean started;
 
-    public TagMinigame(Plugin plugin) { this.plugin = plugin; }
+    public TagMinigame(Plugin plugin) { this(plugin, new TagRoleDisplay(plugin)); }
+    TagMinigame(Plugin plugin, TagRoleDisplay roles) { this.plugin = plugin; this.roles = roles; }
     @Override public String id() { return TagConfig.ID; }
 
     @Override public MinigameAvailability availability(MinigameDefinition definition, int players) {
@@ -33,6 +35,7 @@ public final class TagMinigame implements Minigame {
     }
 
     @Override public void prepare(RoundContext context) {
+        roles.requireAvailable();
         List<String> errors = new ArrayList<>();
         config = TagConfig.fromDefinition(context.definition(), errors);
         if (!errors.isEmpty()) throw new IllegalStateException(String.join("; ", errors));
@@ -67,6 +70,7 @@ public final class TagMinigame implements Minigame {
                 || context.state(attacker.getUniqueId()) != RoundPlayerState.ACTIVE
                 || context.state(victim.getUniqueId()) != RoundPlayerState.ACTIVE) return EventDecision.DENY;
         if (runtime.transfer(attacker.getUniqueId(), victim.getUniqueId(), context.elapsedTicks())) {
+            applyTagHit(attacker, victim);
             roles.update(attacker, false);
             roles.update(victim, true);
             announceTagger(victim);
@@ -76,6 +80,15 @@ public final class TagMinigame implements Minigame {
         return EventDecision.DENY;
     }
 
+    /** Tag hits are cancelled to prevent health damage, so apply their feedback explicitly. */
+    private void applyTagHit(Player attacker, Player victim) {
+        Vector away = victim.getLocation().toVector().subtract(attacker.getLocation().toVector()).setY(0);
+        if (away.lengthSquared() < 0.01) away = attacker.getLocation().getDirection().setY(0);
+        if (away.lengthSquared() < 0.01) away = new Vector(1, 0, 0);
+        victim.setVelocity(away.normalize().multiply(1.25).setY(0.42));
+        victim.getWorld().playSound(victim.getLocation(), "minecraft:entity.player.attack.knockback", 1.0f, 1.0f);
+    }
+
     private void announceTagger(Player player) {
         player.sendTitle("", Text.color("&cBerek!"), 0, 20, 0);
         player.playSound(player.getLocation(), "minecraft:entity.villager.no", 1.0f, 0.7f);
@@ -83,6 +96,7 @@ public final class TagMinigame implements Minigame {
 
     @Override public void handleTick(RoundContext context) {
         if (!started || context.elapsedTicks() % 2 != 0) return;
+        if (context.elapsedTicks() % 10 == 0) roles.refresh(context.onlineParticipants(), runtime);
         for (Player player : context.onlineParticipants()) showStatus(context, player);
     }
 

@@ -16,6 +16,35 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 final class SumoMinigameTest {
+    @Test void arenaCombatWorksEvenWhileLaunchFlightIsStillTracked() throws Exception {
+        var game = new SumoMinigame(mock(Plugin.class));
+        var started = SumoMinigame.class.getDeclaredField("started"); started.setAccessible(true); started.set(game,true);
+        Player victim = mock(Player.class), attacker = mock(Player.class); World world = mock(World.class);
+        UUID id = UUID.randomUUID(), other = UUID.randomUUID();
+        when(victim.getUniqueId()).thenReturn(id); when(attacker.getUniqueId()).thenReturn(other);
+        when(victim.getLocation()).thenReturn(new Location(world,448,49,329));
+        RoundContext context = mock(RoundContext.class);
+        when(context.state(any())).thenReturn(RoundPlayerState.ACTIVE); when(context.participants()).thenReturn(Set.of(id,other));
+        game.onMove(context,new PlayerMoveEvent(victim,victim.getLocation(),victim.getLocation()));
+        when(victim.getLocation()).thenReturn(new Location(world,438.5,48,349.5));
+        when(attacker.getLocation()).thenReturn(new Location(world,438.5,48,348));
+        var hit = mock(io.papermc.paper.event.player.PrePlayerAttackEntityEvent.class);
+        when(hit.getAttacked()).thenReturn(victim); when(hit.getPlayer()).thenReturn(attacker);
+
+        game.onPreAttack(context,hit);
+        verify(victim).setVelocity(new org.bukkit.util.Vector(0,0.52,1.65));
+        clearInvocations(victim);
+        // Landing height and the old scoring disc must not gate combat; repeated hits have no cooldown.
+        when(victim.getLocation()).thenReturn(new Location(world,448,53,329));
+        when(attacker.getLocation()).thenReturn(new Location(world,448,52,327));
+        game.onPreAttack(context,hit);
+        game.onPreAttack(context,hit);
+        verify(victim,times(2)).setVelocity(new org.bukkit.util.Vector(0,0.52,1.65));
+        when(context.state(id)).thenReturn(RoundPlayerState.GHOST);
+        game.onPreAttack(context,hit);
+        verify(victim,times(2)).setVelocity(any());
+    }
+
     @Test void launchesToCentreCountsArenaTimeAndRespawnsWithoutLosingPoints() {
         try (var bukkit = mockStatic(Bukkit.class)) {
             World world = mock(World.class);
@@ -33,6 +62,7 @@ final class SumoMinigameTest {
             UUID id = UUID.randomUUID(), other = UUID.randomUUID();
             when(player.getUniqueId()).thenReturn(id); when(attacker.getUniqueId()).thenReturn(other);
             when(player.getWorld()).thenReturn(world);
+            when(player.getInventory()).thenReturn(mock(org.bukkit.inventory.PlayerInventory.class));
             AtomicReference<Location> at = new AtomicReference<>(new Location(world,448,49,324));
             when(player.getLocation()).thenAnswer(call -> at.get().clone());
             when(player.teleport(any(Location.class))).thenAnswer(call -> { at.set(call.getArgument(0)); return true; });
@@ -48,7 +78,10 @@ final class SumoMinigameTest {
             when(context.state(other)).thenReturn(RoundPlayerState.ACTIVE);
             doAnswer(call -> { state.set(call.getArgument(1)); return null; }).when(context).state(eq(id),any());
             AtomicLong tick = new AtomicLong(); when(context.elapsedTicks()).thenAnswer(call -> tick.get());
-            var game = new SumoMinigame(mock(Plugin.class));
+            Plugin plugin = mock(Plugin.class);
+            when(plugin.getName()).thenReturn("HexMinigames");
+            when(plugin.namespace()).thenReturn("hexminigames");
+            var game = new SumoMinigame(plugin);
             game.prepare(context);
             assertEquals(20, barriers.size());
             assertTrue(barriers.containsKey("431:48:370"));
@@ -66,14 +99,24 @@ final class SumoMinigameTest {
             at.set(new Location(world,438.5,48,349.5));
             for (int i=40;i<440;i++) { tick.set(i); game.handleTick(context); }
             when(attacker.getLocation()).thenReturn(new Location(world,438.5,48,348));
-            var attack = mock(EntityDamageByEntityEvent.class);
-            when(attack.getEntity()).thenReturn(player); when(attack.getDamager()).thenReturn(attacker);
-            when(attack.getCause()).thenReturn(EntityDamageEvent.DamageCause.ENTITY_ATTACK);
-            assertEquals(EventDecision.DENY,game.onDamage(context,attack));
+            var attack = mock(io.papermc.paper.event.player.PrePlayerAttackEntityEvent.class);
+            when(attack.getAttacked()).thenReturn(player); when(attack.getPlayer()).thenReturn(attacker);
+
+            assertEquals(EventDecision.DENY,game.onPreAttack(context,attack));
             verify(player).setVelocity(new org.bukkit.util.Vector(0,0.52,1.65));
             game.onMove(context,new PlayerMoveEvent(player,at.get(),new Location(world,438,39,349)));
             assertEquals(RoundPlayerState.RESPAWN_DELAY,state.get());
             verify(context).respawn(eq(player),any(Location.class),any(Runnable.class));
+            var arrival = org.mockito.ArgumentCaptor.forClass(Runnable.class);
+            verify(context).respawn(eq(player),any(Location.class),arrival.capture());
+            arrival.getValue().run();
+            assertEquals(RoundPlayerState.ACTIVE,state.get());
+            at.set(new Location(world,448,49,324));
+            when(attacker.getLocation()).thenReturn(new Location(world,448,49,323));
+            clearInvocations(player);
+            game.onPreAttack(context,attack);
+            game.onPreAttack(context,attack);
+            verify(player,times(2)).setVelocity(new org.bukkit.util.Vector(0,0.52,1.65));
             assertEquals(1,game.finish(context,RoundEndReason.TIME_LIMIT).players().get(id).points());
             game.reset(context);
             for (var block : barriers.values()) { var original = block.getBlockData(); verify(block).setBlockData(original, false); }

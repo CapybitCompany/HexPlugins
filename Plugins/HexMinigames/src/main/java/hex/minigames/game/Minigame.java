@@ -16,6 +16,14 @@ import java.util.UUID;
 public interface Minigame {
     String id();
 
+    default boolean fullTutorialEachRound() { return false; }
+    default boolean allowSingleRemainingPlayer() { return false; }
+    default void onInput(RoundContext context, org.bukkit.event.player.PlayerInputEvent event) { }
+    default void onInventoryClose(RoundContext context, org.bukkit.event.inventory.InventoryCloseEvent event) { }
+    default EventDecision onHeldSlot(RoundContext context, org.bukkit.event.player.PlayerItemHeldEvent event) { return EventDecision.ALLOW; }
+    default EventDecision onToggleFlight(RoundContext context, org.bukkit.event.player.PlayerToggleFlightEvent event) { return EventDecision.ALLOW; }
+    default EventDecision onTeleport(RoundContext context, org.bukkit.event.player.PlayerTeleportEvent event) { return EventDecision.ALLOW; }
+
     /** Optional tighter bounds for eliminated spectators. */
     default java.util.Optional<hex.minigames.model.CuboidRegion> ghostRegion(MinigameDefinition definition) {
         return java.util.Optional.empty();
@@ -60,6 +68,7 @@ public interface Minigame {
     }
 
     default EventDecision onMove(RoundContext context, PlayerMoveEvent event) { return EventDecision.PASS; }
+    default void onChunkLoad(RoundContext context, org.bukkit.entity.Player player, int x, int z) { }
     default EventDecision onJump(RoundContext context, com.destroystokyo.paper.event.player.PlayerJumpEvent event) { return EventDecision.ALLOW; }
     default void onKnockback(RoundContext context, io.papermc.paper.event.entity.EntityKnockbackEvent event) { }
     default EventDecision onInteract(RoundContext context, PlayerInteractEvent event) { return EventDecision.DENY; }
@@ -67,6 +76,7 @@ public interface Minigame {
     default EventDecision onBlockDamage(RoundContext context, BlockDamageEvent event) { return EventDecision.DENY; }
     default EventDecision onBlockPlace(RoundContext context, BlockPlaceEvent event) { return EventDecision.DENY; }
     default EventDecision onDamage(RoundContext context, EntityDamageEvent event) { return EventDecision.DENY; }
+    default EventDecision onPreAttack(RoundContext context, io.papermc.paper.event.player.PrePlayerAttackEntityEvent event) { return EventDecision.PASS; }
     default void onEntityExplode(RoundContext context, org.bukkit.event.entity.EntityExplodeEvent event) { }
     default EventDecision onRegainHealth(RoundContext context, org.bukkit.event.entity.EntityRegainHealthEvent event) { return EventDecision.PASS; }
     default EventDecision onDropItem(RoundContext context, PlayerDropItemEvent event) { return EventDecision.DENY; }

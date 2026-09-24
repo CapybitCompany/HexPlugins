@@ -27,6 +27,17 @@ public final class BlockChangeTracker {
         block.setType(material, false);
     }
 
+    /** Capture an authored cuboid before changing any of its blocks. */
+    public void snapshot(CuboidRegion region) {
+        World world = world();
+        if (world == null) throw new IllegalStateException("Missing block snapshot world: " + worldName);
+        for (int x=region.minX(); x<=region.maxX(); x++) for (int y=region.minY(); y<=region.maxY(); y++)
+            for (int z=region.minZ(); z<=region.maxZ(); z++) {
+                BlockPosition position=new BlockPosition(x,y,z);
+                originals.putIfAbsent(position,world.getBlockAt(x,y,z).getBlockData().clone());
+            }
+    }
+
     public void setBlockData(BlockPosition position, BlockData blockData) {
         World world = world();
         if (world == null || position == null || blockData == null) return;

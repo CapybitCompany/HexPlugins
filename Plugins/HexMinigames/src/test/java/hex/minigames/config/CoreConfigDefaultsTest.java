@@ -95,7 +95,7 @@ final class CoreConfigDefaultsTest {
     @Test
     void roundDurationsMatchLatestBalance() {
         assertEquals(60, loadGame("hot_head.yml").getInt("round-time-seconds"));
-        assertEquals(45, loadGame("popcorn.yml").getInt("round-time-seconds"));
+        assertEquals(35, loadGame("popcorn.yml").getInt("round-time-seconds"));
         assertEquals(80, loadGame("dalgona.yml").getInt("round-time-seconds"));
         assertEquals(130, loadGame("glass_bridge.yml").getInt("round-time-seconds"));
     }
@@ -110,7 +110,7 @@ final class CoreConfigDefaultsTest {
             var yaml = loadGame(game + ".yml");
             yaml.set("round-time-seconds", game.equals("hot_head") ? 120 : 90);
             var definition = (hex.minigames.game.MinigameDefinition) load.invoke(loader, game + ".yml", yaml, global, new java.util.ArrayList<String>());
-            assertEquals(game.equals("hot_head") ? 60 : 45, definition.roundTimeSeconds());
+            assertEquals(game.equals("hot_head") ? 60 : 35, definition.roundTimeSeconds());
         }
     }
 

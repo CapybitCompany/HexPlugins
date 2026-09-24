@@ -22,10 +22,10 @@ final class PopcornRuntimeTest {
 
         runtime.tick(10L);
 
-        assertEquals(Material.YELLOW_CONCRETE, runtime.tick(22L).get(0).material());
-        assertEquals(Material.ORANGE_CONCRETE, runtime.tick(34L).get(0).material());
-        assertEquals(Material.RED_CONCRETE, runtime.tick(46L).get(0).material());
-        assertEquals(Material.AIR, runtime.tick(58L).get(0).material());
+        assertEquals(Material.YELLOW_CONCRETE, runtime.tick(18L).get(0).material());
+        assertEquals(Material.ORANGE_CONCRETE, runtime.tick(26L).get(0).material());
+        assertEquals(Material.RED_CONCRETE, runtime.tick(34L).get(0).material());
+        assertEquals(Material.AIR, runtime.tick(42L).get(0).material());
     }
 
     @Test
@@ -50,17 +50,17 @@ final class PopcornRuntimeTest {
     }
 
     @Test
-    void fullPlatformLastsFortyFiveSecondsAndLeavesFortyBlocks() {
-        var runtime = new PopcornRuntime(config(45, Map.of(
+    void fullPlatformLastsThirtyFiveSecondsAndLeavesTwelveBlocks() {
+        var runtime = new PopcornRuntime(config(35, Map.of(
                 "platform", Map.of("pos1", Map.of("x", 580, "y", -26, "z", -153),
                         "pos2", Map.of("x", 608, "y", -26, "z", -110))
         )), new Random(5L));
-        for (int tick = 0; tick <= 900; tick++) {
+        for (int tick = 0; tick <= 700; tick++) {
             runtime.tick(tick);
-            if (tick == 450) assertTrue(runtime.remainingSolidBlocks() > 650);
-            if (tick == 880) assertTrue(runtime.remainingSolidBlocks() > 40);
+            if (tick == 450) assertTrue(runtime.remainingSolidBlocks() < 650);
+            if (tick == 680) assertTrue(runtime.remainingSolidBlocks() > 12);
         }
-        assertEquals(40, runtime.remainingSolidBlocks());
+        assertEquals(12, runtime.remainingSolidBlocks());
         assertTrue(runtime.tick(1400).isEmpty());
     }
 

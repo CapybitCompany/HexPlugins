@@ -13,9 +13,12 @@ public final class SeriesCelebration implements Listener, AutoCloseable {
     private final Set<Firework> fireworks = new HashSet<>();
     public SeriesCelebration(Plugin plugin) { this.plugin = plugin; }
     public void show(Collection<Player> players, Location lobby, String winner, Messages messages) {
+        show(players, lobby, List.of(winner), messages);
+    }
+    public void show(Collection<Player> players, Location lobby, List<String> winners, Messages messages) {
         for (Player player : players) {
-            Text.showTitle(player, messages.raw("series-winner-title", "&2&lZWYCIĘZCA"),
-                    messages.raw("series-winner-subtitle", "&6{player}").replace("{player}", winner), 10, 100, 20);
+            Text.showTitle(player, winners.size() > 1 ? messages.raw("series-tie-title", "&6Remis!") : messages.raw("series-winner-title", "&2&lZWYCIĘZCA"),
+                    messages.raw("series-winner-subtitle", "&6{player}").replace("{player}", String.join(", ", winners)), 10, 100, 20);
             player.playSound(player.getLocation(), messages.raw("series-winner-sound", "minecraft:ui.toast.challenge_complete"), 1, 1);
         }
         if (lobby == null || lobby.getWorld() == null) return;

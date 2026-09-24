@@ -79,6 +79,7 @@ public final class MinigamesSessionService {
     private final hex.minigames.game.MinigameRegistry registry;
     private final GameSelectionService selector = new GameSelectionService();
     private final Map<UUID, Set<UUID>> pendingParticipants = new HashMap<>();
+    private final Map<UUID, EventExecutionContext> pendingContexts = new HashMap<>();
     private final Set<UUID> restoring = new HashSet<>();
     private final Set<UUID> internalTeleports = new HashSet<>();
     private final Map<UUID, Object> pendingRoundRespawns = new HashMap<>();
@@ -88,6 +89,8 @@ public final class MinigamesSessionService {
     private HexEventsBridge eventsBridge;
     private MinigamesSession activeSession;
     private BukkitTask tickTask;
+    private int maintenanceTicks;
+    private final Set<UUID> restoreRetries = new HashSet<>();
     private SeriesCelebration celebration;
     public void celebration(SeriesCelebration celebration) { this.celebration = celebration; }
     /** A reset is queued behind all earlier database writes and refreshes the placeholder cache. */
@@ -189,7 +192,8 @@ public final class MinigamesSessionService {
             return EventJoinResult.denied("Jestes juz w aktywnej serii HexMinigames.");
         }
         try {
-            if (snapshots.find(request.playerId()).isPresent()) {
+            Optional<StoredPlayerState> stored = snapshots.find(request.playerId());
+            if (stored.isPresent() && (stored.get().instanceId() != null || stored.get().restorePending())) {
                 return EventJoinResult.denied(config.messages().raw("snapshot-existing", "Pending inventory restore."));
             }
         } catch (Throwable error) {
@@ -200,10 +204,12 @@ public final class MinigamesSessionService {
             return new EventJoinResult(EventJoinResult.Status.FULL, maxPlayersMessage());
         }
         pendingParticipants.computeIfAbsent(request.instanceId(), ignored -> new LinkedHashSet<>()).add(request.playerId());
+        if (request.context() != null) pendingContexts.put(request.instanceId(), request.context());
         return EventJoinResult.joined();
     }
 
     public StartResult startEvent(EventExecutionContext context) {
+        if (activeSession != null && activeSession.instanceId().equals(context.instanceId())) return StartResult.started();
         if (activeSession != null) return StartResult.failed(config.messages().raw("already-running", "Already running."));
         String failure = prepareFailure(context);
         if (failure != null) return StartResult.failed(failure);
@@ -229,6 +235,7 @@ public final class MinigamesSessionService {
         }
         if (startFailure != null) return StartResult.failed(startFailure);
         pendingParticipants.remove(context.instanceId());
+        pendingContexts.remove(context.instanceId());
         return StartResult.started();
     }
 
@@ -256,10 +263,11 @@ public final class MinigamesSessionService {
             return new EventJoinResult(EventJoinResult.Status.FULL, maxPlayersMessage());
         }
         try {
-            if (snapshots.find(playerId).isPresent()) {
+            boolean claimed = snapshots.claimLobbySnapshot(playerId, instanceId);
+            if (!claimed && snapshots.find(playerId).isPresent()) {
                 return EventJoinResult.denied(config.messages().raw("snapshot-existing", "Pending inventory restore."));
             }
-            if (!snapshots.saveIfAbsent(player, instanceId)) {
+            if (!claimed && !snapshots.saveIfAbsent(player, instanceId)) {
                 return EventJoinResult.denied(config.messages().raw("snapshot-existing", "Pending inventory restore."));
             }
         } catch (Throwable error) {
@@ -314,7 +322,7 @@ public final class MinigamesSessionService {
 
     public String startAdminSingle(String gameId, List<Player> targets) {
         if (activeSession != null) return config.messages().raw("already-running", "Already running.");
-        Optional<MinigameDefinition> definition = definitionForAdmin(gameId);
+        Optional<MinigameDefinition> definition = definitionForAdmin(gameId).map(this::singleArenaTestDefinition);
         if (definition.isEmpty()) {
             return config.messages().format("unknown-game", "&cNieznana minigra: {game}", Map.of("game", gameId));
         }
@@ -501,6 +509,12 @@ public final class MinigamesSessionService {
         if (activeSession != null) {
             cancelSession(activeSession, "SERVER_SHUTDOWN", false);
         }
+        if (snapshots.available()) {
+            for (StoredPlayerState state : snapshots.findAll()) {
+                Player player = Bukkit.getPlayer(state.playerId());
+                if (player != null && player.isOnline()) restoreOnline(player, true);
+            }
+        }
     }
 
     public void handlePendingJoin(Player player) {
@@ -517,14 +531,34 @@ public final class MinigamesSessionService {
     }
 
     public void handleQuit(Player player) {
-        if (activeSession == null || !activeSession.contains(player.getUniqueId())) return;
+        if (activeSession == null || !activeSession.contains(player.getUniqueId())) {
+            restoreBeforeDisconnect(player);
+            return;
+        }
         MinigamesSession session = activeSession;
         removeParticipant(session, player.getUniqueId(), RoundEndReason.PLAYER_QUIT, true);
         restoreBeforeDisconnect(player);
     }
 
     public void handleChangedWorld(Player player) {
-        if (activeSession == null || restoring.contains(player.getUniqueId()) || internalTeleports.contains(player.getUniqueId())) return;
+        if (restoring.contains(player.getUniqueId()) || internalTeleports.contains(player.getUniqueId())) return;
+        if (activeSession == null || !activeSession.contains(player.getUniqueId())) {
+            if (!player.getWorld().getName().equals(config.global().worldName())) {
+                restoreOnline(player, true);
+            } else {
+                try {
+                    var stored = snapshots.find(player.getUniqueId());
+                    if (stored.isPresent() && stored.get().instanceId() == null && !stored.get().restorePending()) {
+                        // Protect the saved inventory immediately, including while waiting for the fourth player.
+                        prepareMinigameState(player);
+                    }
+                } catch (Throwable error) {
+                    plugin.getLogger().warning("Could not prepare waiting player: " + rootMessage(error));
+                    restoreOnline(player, true);
+                }
+            }
+            return;
+        }
         if (!activeSession.contains(player.getUniqueId())) return;
         if (isPregameState(activeSession.state())) {
             teleportToPregame(player);
@@ -548,6 +582,8 @@ public final class MinigamesSessionService {
         RoundSession round = activeSession.currentRound();
         if (round == null) return;
         if (activeSession.state() == SeriesState.ROUND_RESULTS) {
+            if ("drones".equals(round.definition().id()) && round.playerState(player.getUniqueId()) == RoundPlayerState.FINISHED
+                    && event.getTo() != null && round.definition().region().map(area -> area.contains(event.getTo())).orElse(false)) return;
             Location stay = event.getFrom().clone();
             if (event.getTo() != null) { stay.setYaw(event.getTo().getYaw()); stay.setPitch(event.getTo().getPitch()); }
             event.setTo(stay);
@@ -620,6 +656,13 @@ public final class MinigamesSessionService {
     public boolean handleTeleport(PlayerTeleportEvent event) {
         Player player = event.getPlayer();
         if (activeSession == null || !activeSession.contains(player.getUniqueId())) return false;
+        if (!restoring.contains(player.getUniqueId()) && !internalTeleports.contains(player.getUniqueId())) {
+            RoundSession round = activeSession.currentRound();
+            if (round != null && round.minigame().onTeleport(new RoundContext(this,round),event)==EventDecision.DENY) {
+                event.setCancelled(true);
+                return true;
+            }
+        }
         if (!isPregameState(activeSession.state())) return false;
         if (restoring.contains(player.getUniqueId()) || internalTeleports.contains(player.getUniqueId())) return false;
         if (pregameContains(event.getTo())) return false;
@@ -628,8 +671,75 @@ public final class MinigamesSessionService {
         return true;
     }
 
+    /** Persist the original inventory and location before an external lobby teleport completes. */
+    public void captureLobbyEntry(PlayerTeleportEvent event) {
+        if (event.isCancelled() || config == null || !snapshots.available() || event.getTo() == null
+                || event.getFrom().getWorld() == null || event.getTo().getWorld() == null
+                || !event.getTo().getWorld().getName().equals(config.global().worldName())
+                || event.getFrom().getWorld().getName().equals(config.global().worldName())
+                || restoring.contains(event.getPlayer().getUniqueId())
+                || activeSessionContains(event.getPlayer().getUniqueId())) return;
+        try {
+            if (snapshots.saveIfAbsent(event.getPlayer(), null, event.getFrom())) {
+                Player player = event.getPlayer();
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    if (!player.isOnline() || activeSessionContains(player.getUniqueId())
+                            || player.getWorld().getName().equals(config.global().worldName())) return;
+                    // A later listener may cancel the teleport; do not keep an obsolete inventory snapshot.
+                    try {
+                        var stored = snapshots.find(player.getUniqueId());
+                        if (stored.isPresent() && stored.get().instanceId() == null && !stored.get().restorePending())
+                            snapshots.delete(player.getUniqueId());
+                    } catch (Throwable error) { plugin.getLogger().warning("Lobby snapshot cleanup failed: " + rootMessage(error)); }
+                });
+            }
+        } catch (Throwable error) {
+            event.setCancelled(true);
+            plugin.getLogger().severe("Cannot save lobby entry snapshot: " + rootMessage(error));
+        }
+    }
+
+    public void handleChunkLoad(Player player, int x, int z) {
+        if (activeSession == null || !activeSession.contains(player.getUniqueId())) return;
+        RoundSession round = activeSession.currentRound();
+        if (round != null) round.minigame().onChunkLoad(new RoundContext(this, round), player, x, z);
+    }
+
+    /** Count players physically inside the configured waiting room, independent of GUI votes. */
+    private void checkLobbyStart() {
+        if (!available() || !config.global().pregame().enabled()) return;
+        List<Player> players = world().getPlayers().stream().filter(p -> pregameContains(p.getLocation()))
+                .filter(p -> !restoreRetries.contains(p.getUniqueId())).limit(config.global().maxPlayers()).toList();
+        int minimum = Math.max(4, config.global().pregame().minimumPlayers());
+        if (players.size() < minimum || eligibleGamesFailure(players.size(), config.global().gamesPerSeries()) != null) return;
+        Set<UUID> ids = players.stream().map(Player::getUniqueId).collect(Collectors.toCollection(LinkedHashSet::new));
+        UUID instanceId = pendingParticipants.entrySet().stream().filter(e -> e.getValue().containsAll(ids))
+                .map(Map.Entry::getKey).findFirst().orElseGet(UUID::randomUUID);
+        String failure = startSession(instanceId, SessionMode.EVENT, pendingContexts.get(instanceId), ids, List.of(), true);
+        if (failure == null) { pendingParticipants.remove(instanceId); pendingContexts.remove(instanceId); }
+        if (failure != null && maintenanceTicks % 1200 == 0) plugin.getLogger().warning("Lobby autostart: " + failure);
+    }
+
     public boolean routeInteract(PlayerInteractEvent event) {
         return route(event.getPlayer(), event, round -> round.minigame().onInteract(new RoundContext(this, round), event));
+    }
+
+    public void routeInput(org.bukkit.event.player.PlayerInputEvent event) {
+        if (!activeSessionContains(event.getPlayer().getUniqueId()) || activeSession.state()!=SeriesState.ROUND_RUNNING) return;
+        RoundSession round=activeSession.currentRound();
+        if (round!=null && round.playerState(event.getPlayer().getUniqueId())==RoundPlayerState.ACTIVE)
+            round.minigame().onInput(new RoundContext(this,round),event);
+    }
+    public void routeInventoryClose(org.bukkit.event.inventory.InventoryCloseEvent event) {
+        if (!activeSessionContains(event.getPlayer().getUniqueId())) return;
+        RoundSession round=activeSession.currentRound();
+        if (round!=null) round.minigame().onInventoryClose(new RoundContext(this,round),event);
+    }
+    public void routeHeldSlot(org.bukkit.event.player.PlayerItemHeldEvent event) {
+        route(event.getPlayer(),event,round -> round.minigame().onHeldSlot(new RoundContext(this,round),event));
+    }
+    public void routeToggleFlight(org.bukkit.event.player.PlayerToggleFlightEvent event) {
+        route(event.getPlayer(),event,round -> round.minigame().onToggleFlight(new RoundContext(this,round),event));
     }
 
     public void routeJump(com.destroystokyo.paper.event.player.PlayerJumpEvent event) {
@@ -670,6 +780,19 @@ public final class MinigamesSessionService {
             }
         }
         return route(player, event, round -> round.minigame().onDamage(new RoundContext(this, round), event));
+    }
+
+    /** Sumo uses attack intent, before vanilla teleport immunity can suppress damage events. */
+    public void routePreAttack(io.papermc.paper.event.player.PrePlayerAttackEntityEvent event) {
+        if (activeSession == null || activeSession.currentRound() == null) return;
+        RoundSession round = activeSession.currentRound();
+        if (!"monkey_run".equals(round.definition().id())) return;
+        boolean attackerInSeries = activeSession.contains(event.getPlayer().getUniqueId());
+        boolean victimInSeries = event.getAttacked() instanceof Player victim && activeSession.contains(victim.getUniqueId());
+        if (!attackerInSeries && !victimInSeries) return;
+        event.setCancelled(true);
+        if (!attackerInSeries || !victimInSeries || activeSession.state() != SeriesState.ROUND_RUNNING) return;
+        round.minigame().onPreAttack(new RoundContext(this, round), event);
     }
 
     public void routeEntityExplode(org.bukkit.event.entity.EntityExplodeEvent event) {
@@ -756,8 +879,9 @@ public final class MinigamesSessionService {
     /** Reload must restore Elytra's authored marker blocks before replacing its configuration. */
     public void restoreElytraBeforeReload() {
         if (activeSession != null && activeSession.currentRound() != null
-                && activeSession.currentRound().definition().id().equals("elytra")) {
-            cancelSession(activeSession, "ELYTRA_CONFIG_RELOAD", true);
+                && (activeSession.currentRound().definition().id().equals("elytra")
+                    || activeSession.currentRound().definition().id().equals("drones"))) {
+            cancelSession(activeSession, "GAME_CONFIG_RELOAD", true);
         }
     }
 
@@ -867,7 +991,14 @@ public final class MinigamesSessionService {
             event.setCancelled(true);
             return true;
         }
-        EventDecision decision = routeCall.call(round);
+        EventDecision decision;
+        try { decision = routeCall.call(round); }
+        catch (Throwable error) {
+            plugin.getLogger().log(java.util.logging.Level.WARNING,"Minigame event failed: " + round.definition().id(),error);
+            round.requestFinish(RoundEndReason.MINIGAME_REQUEST);
+            event.setCancelled(true);
+            return true;
+        }
         if (decision != EventDecision.ALLOW) {
             event.setCancelled(true);
             return true;
@@ -876,6 +1007,13 @@ public final class MinigamesSessionService {
     }
 
     private void tick() {
+        if (++maintenanceTicks % 20 == 0) {
+            for (UUID id : Set.copyOf(restoreRetries)) {
+                Player player = Bukkit.getPlayer(id);
+                if (player != null && player.isOnline()) restoreOnline(player, true);
+            }
+            if (activeSession == null) checkLobbyStart();
+        }
         MinigamesSession session = activeSession;
         if (session == null) return;
         switch (session.state()) {
@@ -924,6 +1062,8 @@ public final class MinigamesSessionService {
     private void beginPregameDraw(MinigamesSession session) {
         if (activeSession != session) return;
         if (!session.canBeginPregame(requiredPregamePlayers(session))) return;
+        if (session.mode() == SessionMode.EVENT && onlinePlayers(session).stream()
+                .filter(p -> pregameContains(p.getLocation())).count() < requiredPregamePlayers(session)) return;
         transition(session, SeriesState.PRE_GAME_DRAW, config.global().pregame().drawDurationSeconds() * 20);
     }
 
@@ -945,7 +1085,9 @@ public final class MinigamesSessionService {
     }
 
     private boolean abortPregameIfTooFew(MinigamesSession session) {
-        if (!session.shouldAbortPregame(requiredPregamePlayers(session))) return false;
+        boolean absent = session.mode() == SessionMode.EVENT && onlinePlayers(session).stream()
+                .filter(p -> pregameContains(p.getLocation())).count() < requiredPregamePlayers(session);
+        if (!absent && !session.shouldAbortPregame(requiredPregamePlayers(session))) return false;
         broadcast(session, config.messages().raw("pregame-cancelled-too-few", "&cSeria zostala anulowana: za malo uczestnikow."));
         cancelSession(session, "TOO_FEW_PLAYERS_PRE_GAME", true);
         return true;
@@ -1008,11 +1150,11 @@ public final class MinigamesSessionService {
                 }
             }
         }
+        session.decrementStateTicks();
         if (session.stateTicksRemaining() <= 0) {
             startRound(session, round);
             return;
         }
-        session.decrementStateTicks();
     }
 
     private void tickRunning(MinigamesSession session) {
@@ -1048,11 +1190,11 @@ public final class MinigamesSessionService {
     }
 
     private void tickTimedState(MinigamesSession session, TimedStateFinished callback) {
+        session.decrementStateTicks();
         if (session.stateTicksRemaining() <= 0) {
             callback.run(session);
             return;
         }
-        session.decrementStateTicks();
     }
 
     private String lastStartFailure;
@@ -1071,9 +1213,18 @@ public final class MinigamesSessionService {
             for (UUID playerId : participants) {
                 Player player = Bukkit.getPlayer(playerId);
                 if (player == null || !player.isOnline()) continue;
+                if (snapshots.claimLobbySnapshot(playerId, instanceId)) {
+                    savedSnapshots.add(playerId);
+                    continue;
+                }
                 if (snapshots.find(playerId).isPresent()) {
                     rollbackSnapshots(savedSnapshots);
                     return config.messages().raw("snapshot-existing", "Pending inventory restore.");
+                }
+                if (player.getWorld() != null && player.getWorld().getName().equals(config.global().worldName())) {
+                    rollbackSnapshots(savedSnapshots);
+                    return "&cBrak zapisanej pozycji sprzed wejscia dla " + player.getName()
+                            + ". Wroc na world i ponownie wejdz do poczekalni.";
                 }
                 if (!snapshots.saveIfAbsent(player, instanceId)) {
                     rollbackSnapshots(savedSnapshots);
@@ -1152,6 +1303,7 @@ public final class MinigamesSessionService {
             return;
         }
         int countdownSeconds = Math.max(0, round.minigame().countdownSeconds(definition, config.global().roundCountdownSeconds()));
+        if (roundNumber > 1 && !round.minigame().fullTutorialEachRound()) countdownSeconds = Math.max(0, config.global().roundCountdownSeconds());
         transition(session, SeriesState.ROUND_COUNTDOWN, countdownSeconds * 20);
     }
 
@@ -1190,14 +1342,19 @@ public final class MinigamesSessionService {
         for (Player player : onlinePlayers(session)) {
             applyActiveRoundState(player);
             player.setVelocity(new org.bukkit.util.Vector());
-            player.setAllowFlight(true);
-            player.setFlying(true);
+            boolean hover = !"drones".equals(round.definition().id());
+            player.setAllowFlight(hover);
+            player.setFlying(hover);
             PlayerRoundResult outcome = result.players().get(player.getUniqueId());
             if (outcome != null && (outcome.completed() || outcome.failed())) {
                 announceOutcome(round, player, outcome.completed(), true);
             }
         }
         sendRoundRanking(session, result);
+        if ("drones".equals(round.definition().id())) {
+            playRoundEndSound(session);
+            sendRoundEndSubtitle(session);
+        }
         broadcast(session, config.messages().raw("round-results", "&eKoniec rundy: &f{game}").replace("{game}", round.definition().displayName()));
         transition(session, SeriesState.ROUND_RESULTS, config.global().roundResultsSeconds() * 20);
     }
@@ -1208,10 +1365,13 @@ public final class MinigamesSessionService {
             showSeriesResults(session);
             return;
         }
-        transition(session, SeriesState.INTERMISSION, config.global().intermissionSeconds() * 20);
+        if (config.global().intermissionSeconds() == 0) prepareNextRound(session);
+        else transition(session, SeriesState.INTERMISSION, config.global().intermissionSeconds() * 20);
     }
 
     private void showSeriesResults(MinigamesSession session) {
+        if (activeSession != session || !session.markResultsShown()) return;
+        transition(session, SeriesState.SERIES_RESULTS, config.global().seriesResultsSeconds() * 20);
         session.currentRound(null);
         for (Player player : onlinePlayers(session)) {
             applyActiveRoundState(player);
@@ -1228,12 +1388,23 @@ public final class MinigamesSessionService {
                     .replace("{status}", session.forfeited(id) ? config.messages().raw("series-forfeited", " &8(opuscil serie)") : "");
             broadcast(session, row);
         }
-        ranking.stream().filter(id -> !session.forfeited(id)).findFirst().ifPresent(winner -> {
+        List<UUID> winners = session.winners();
+        if (!winners.isEmpty()) {
             if (celebration != null) celebration.show(onlinePlayers(session),
-                    config.global().pregame().spawn().toLocation(config.global().worldName()), session.playerName(winner), config.messages());
-        });
+                    config.global().pregame().spawn().toLocation(config.global().worldName()),
+                    winners.stream().map(session::playerName).toList(), config.messages());
+            if (session.selectedGames().size() == 5 && !session.hasNextRound()) {
+                for (UUID winner : winners) {
+                    if (!session.markWinnerRewarded(winner)) continue;
+                    try {
+                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "dajpunkt global " + session.playerName(winner) + " 1");
+                    } catch (Throwable error) {
+                        plugin.getLogger().warning("Winner command failed (will not be retried): " + rootMessage(error));
+                    }
+                }
+            }
+        }
         scores.commitEligibleSeries(session);
-        transition(session, SeriesState.SERIES_RESULTS, config.global().seriesResultsSeconds() * 20);
     }
 
     private void completeSession(MinigamesSession session) {
@@ -1241,13 +1412,18 @@ public final class MinigamesSessionService {
         chatBlocked.removeAll(session.participants());
         clearPregameBossBars();
         transition(session, SeriesState.FINISHED, 0);
-        scores.commitEligibleSeries(session);
-        if (session.mode() == SessionMode.EVENT && eventsBridge != null) {
-            boolean completed = eventsBridge.complete(session.instanceId(), eventResult(session, EventOutcome.SUCCESS));
-            if (!completed) plugin.getLogger().warning("HexEvents refused HexMinigames completion for " + session.instanceId());
+        try {
+            scores.commitEligibleSeries(session);
+            if (session.mode() == SessionMode.EVENT && session.eventContext().isPresent() && eventsBridge != null) {
+                boolean completed = eventsBridge.complete(session.instanceId(), eventResult(session, EventOutcome.SUCCESS));
+                if (!completed) plugin.getLogger().warning("HexEvents refused HexMinigames completion for " + session.instanceId());
+            }
+        } catch (Throwable error) {
+            plugin.getLogger().warning("Series completion notification failed: " + rootMessage(error));
+        } finally {
+            restoreSessionPlayers(session);
+            activeSession = null;
         }
-        restoreSessionPlayers(session);
-        activeSession = null;
     }
 
     private void cancelSession(MinigamesSession session, String reason, boolean notifyHexEvents) {
@@ -1264,11 +1440,16 @@ public final class MinigamesSessionService {
                 plugin.getLogger().warning("Minigame reset during cancel failed: " + rootMessage(error));
             }
         }
-        if (notifyHexEvents && session.mode() == SessionMode.EVENT && eventsBridge != null) {
-            eventsBridge.fail(session.instanceId(), new EventFailure("MINIGAMES_CANCELLED", reason, false));
+        try {
+            if (notifyHexEvents && session.mode() == SessionMode.EVENT && session.eventContext().isPresent() && eventsBridge != null) {
+                eventsBridge.fail(session.instanceId(), new EventFailure("MINIGAMES_CANCELLED", reason, false));
+            }
+        } catch (Throwable error) {
+            plugin.getLogger().warning("Series cancellation notification failed: " + rootMessage(error));
+        } finally {
+            restoreSessionPlayers(session);
+            activeSession = null;
         }
-        restoreSessionPlayers(session);
-        activeSession = null;
     }
 
     private EventResult eventResult(MinigamesSession session, EventOutcome outcome) {
@@ -1286,7 +1467,14 @@ public final class MinigamesSessionService {
     }
 
     private void restoreSessionPlayers(MinigamesSession session) {
-        for (UUID playerId : session.participants()) {
+        Set<UUID> players = new HashSet<>(session.participants());
+        players.addAll(session.forfeitedParticipants());
+        try {
+            snapshots.findByInstance(session.instanceId()).forEach(state -> players.add(state.playerId()));
+        } catch (Throwable error) {
+            plugin.getLogger().warning("Could not enumerate series snapshots: " + rootMessage(error));
+        }
+        for (UUID playerId : players) {
             Player player = Bukkit.getPlayer(playerId);
             if (player != null && player.isOnline()) restoreOnline(player, true);
             else markPending(playerId);
@@ -1300,27 +1488,32 @@ public final class MinigamesSessionService {
         try {
             Optional<StoredPlayerState> state = snapshots.find(playerId);
             if (state.isEmpty()) {
-                fallbackRestore(player);
+                restoreRetries.remove(playerId);
                 return;
             }
             if (!PlayerSnapshotRepository.restore(player, state.get())) {
                 snapshots.markRestorePending(playerId);
+                restoreRetries.add(playerId);
                 player.sendMessage(config.messages().get("restore-failed", "&cRestore failed."));
                 return;
             }
             if (deleteAfterRestore) snapshots.delete(playerId);
+            restoreRetries.remove(playerId);
             player.setCollidable(true);
             player.sendMessage(config.messages().get("restore-success", "&aRestored."));
         } catch (Throwable error) {
+            restoreRetries.add(playerId);
             markPending(playerId);
             plugin.getLogger().warning("Could not restore minigames snapshot for " + player.getName() + ": " + rootMessage(error));
             player.sendMessage(config.messages().get("restore-failed", "&cRestore failed."));
         } finally {
-            Bukkit.getScheduler().runTaskLater(plugin, () -> restoring.remove(playerId), 2L);
+            if (plugin.isEnabled()) Bukkit.getScheduler().runTaskLater(plugin, () -> restoring.remove(playerId), 2L);
+            else restoring.remove(playerId);
         }
     }
 
     private void restoreBeforeDisconnect(Player player) {
+        restoring.add(player.getUniqueId());
         try {
             Optional<StoredPlayerState> state = snapshots.find(player.getUniqueId());
             if (state.isPresent() && PlayerSnapshotRepository.restore(player, state.get())) {
@@ -1331,17 +1524,9 @@ public final class MinigamesSessionService {
         } catch (Throwable error) {
             markPending(player.getUniqueId());
             plugin.getLogger().warning("Could not restore minigames snapshot before disconnect for " + player.getName() + ": " + rootMessage(error));
+        } finally {
+            restoring.remove(player.getUniqueId());
         }
-    }
-
-    private void fallbackRestore(Player player) {
-        player.getInventory().clear();
-        player.setItemOnCursor(new ItemStack(Material.AIR));
-        player.setGameMode(Bukkit.getDefaultGameMode());
-        player.setAllowFlight(false);
-        player.setFlying(false);
-        player.setCollidable(true);
-        player.updateInventory();
     }
 
     private void markInstanceSnapshotsPending(UUID instanceId) {
@@ -1380,7 +1565,8 @@ public final class MinigamesSessionService {
             cancelSession(session, "TOO_FEW_PLAYERS_PRE_GAME", true);
             return;
         }
-        if (session.shouldFinishForMinimumContinuation(Math.max(2, config.global().series().minimumContinuationPlayers()))) {
+        if (!(round != null && round.minigame().allowSingleRemainingPlayer() && round.participantCount() > 0)
+                && session.shouldFinishForMinimumContinuation(Math.max(2, config.global().series().minimumContinuationPlayers()))) {
             finishSessionEarly(session, "TOO_FEW_CONTINUATION_PLAYERS");
             return;
         }
@@ -1403,14 +1589,19 @@ public final class MinigamesSessionService {
             }
         }
         transition(session, SeriesState.FINISHED, 0);
-        scores.commitEligibleSeries(session);
-        if (session.mode() == SessionMode.EVENT && eventsBridge != null) {
-            EventResult result = new EventResult(EventOutcome.SUCCESS, eventResult(session, EventOutcome.SUCCESS).subjects(), Map.of("early_finish", reason));
-            boolean completed = eventsBridge.complete(session.instanceId(), result);
-            if (!completed) plugin.getLogger().warning("HexEvents refused early HexMinigames completion for " + session.instanceId());
+        try {
+            scores.commitEligibleSeries(session);
+            if (session.mode() == SessionMode.EVENT && session.eventContext().isPresent() && eventsBridge != null) {
+                EventResult result = new EventResult(EventOutcome.SUCCESS, eventResult(session, EventOutcome.SUCCESS).subjects(), Map.of("early_finish", reason));
+                boolean completed = eventsBridge.complete(session.instanceId(), result);
+                if (!completed) plugin.getLogger().warning("HexEvents refused early HexMinigames completion for " + session.instanceId());
+            }
+        } catch (Throwable error) {
+            plugin.getLogger().warning("Early series completion notification failed: " + rootMessage(error));
+        } finally {
+            restoreSessionPlayers(session);
+            activeSession = null;
         }
-        restoreSessionPlayers(session);
-        activeSession = null;
     }
 
     private void teleportRoundParticipants(MinigamesSession session, RoundSession round) {
@@ -1648,6 +1839,15 @@ public final class MinigamesSessionService {
         return registry.definition(gameId);
     }
 
+    /** Relax tag admission only for a single-arena test, including the session's own validation. */
+    private MinigameDefinition singleArenaTestDefinition(MinigameDefinition definition) {
+        if (!"tag".equals(definition.id())) return definition;
+        return new MinigameDefinition(definition.id(), definition.displayName(), definition.enabled(),
+                definition.implemented(), definition.internal(), 2, definition.maxPlayers(), definition.weight(),
+                definition.region(), definition.participantSpawns(), definition.spectatorSpawn(),
+                definition.roundTimeSeconds(), definition.settings(), definition.sourcePath());
+    }
+
     private MinigameDefinition debugDefinition(MinigameDefinition definition) {
         return new MinigameDefinition(
                 definition.id(),
@@ -1736,6 +1936,12 @@ public final class MinigamesSessionService {
         Map<UUID, String> safeNames = playerNames == null ? Map.of() : playerNames;
         List<Map.Entry<UUID, PlayerRoundResult>> entries = new ArrayList<>(safeResult.players().entrySet());
         entries.sort((left, right) -> {
+            if ("drones".equals(safeResult.metadata().get("game"))) {
+                int completed = Boolean.compare(right.getValue().completed(), left.getValue().completed());
+                if (completed != 0) return completed;
+                int time = compareLongData(left.getValue(), right.getValue(), "completion_time_ns", true);
+                if (time != 0) return time;
+            }
             int points = Integer.compare(right.getValue().points(), left.getValue().points());
             if (points != 0) return points;
             int tie = compareTieBreaker(left.getValue(), right.getValue());
@@ -1755,7 +1961,9 @@ public final class MinigamesSessionService {
             int roundPoints = round.points();
             int sum = safeSeries.getOrDefault(playerId, 0);
             String pointsText = roundPoints > 0 ? "+" + roundPoints + " pkt" : "0 pkt";
-            lines.add("&f" + place + ". &e" + name + " &7" + pointsText + " &8| &fSuma: &d" + sum + " pkt");
+            String time = round.data().get("time_display");
+            String detail = time == null ? "" : (round.completed() ? "[" + time + "] " : time + " ");
+            lines.add("&f" + place + ". &e" + name + " &7" + detail + (round.completed() && time != null ? "&a" : "") + pointsText + " &8| &fSuma: &d" + sum + " pkt");
             place++;
         }
         return lines;
@@ -1807,7 +2015,9 @@ public final class MinigamesSessionService {
     private void rollbackSnapshots(List<UUID> savedSnapshots) {
         for (UUID playerId : savedSnapshots) {
             try {
-                snapshots.delete(playerId);
+                Player player = Bukkit.getPlayer(playerId);
+                if (player != null && player.isOnline()) restoreOnline(player, true);
+                else markPending(playerId);
             } catch (Throwable error) {
                 plugin.getLogger().warning("Could not roll back minigames snapshot for " + playerId + ": " + rootMessage(error));
             }

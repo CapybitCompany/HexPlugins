@@ -33,6 +33,20 @@ public final class MinigamesEventRouter implements Listener {
         this.sessions = sessions;
     }
 
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onInput(org.bukkit.event.player.PlayerInputEvent event) { sessions.routeInput(event); }
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onClose(org.bukkit.event.inventory.InventoryCloseEvent event) { sessions.routeInventoryClose(event); }
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onHeldSlot(org.bukkit.event.player.PlayerItemHeldEvent event) { sessions.routeHeldSlot(event); }
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onToggleFlight(org.bukkit.event.player.PlayerToggleFlightEvent event) { sessions.routeToggleFlight(event); }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPreAttack(io.papermc.paper.event.player.PrePlayerAttackEntityEvent event) {
+        sessions.routePreAttack(event);
+    }
+
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onJump(com.destroystokyo.paper.event.player.PlayerJumpEvent event) { sessions.routeJump(event); }
 
@@ -67,6 +81,12 @@ public final class MinigamesEventRouter implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onTeleport(PlayerTeleportEvent event) {
         sessions.handleTeleport(event);
+        sessions.captureLobbyEntry(event);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onChunkLoad(io.papermc.paper.event.packet.PlayerChunkLoadEvent event) {
+        sessions.handleChunkLoad(event.getPlayer(), event.getChunk().getX(), event.getChunk().getZ());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)

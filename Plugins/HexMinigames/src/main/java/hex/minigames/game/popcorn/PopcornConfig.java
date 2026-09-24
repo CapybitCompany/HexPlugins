@@ -52,11 +52,11 @@ public record PopcornConfig(
                 GameSettings.material(settings, "materials.yellow", Material.YELLOW_CONCRETE, source, targetErrors),
                 GameSettings.material(settings, "materials.orange", Material.ORANGE_CONCRETE, source, targetErrors),
                 GameSettings.material(settings, "materials.red", Material.RED_CONCRETE, source, targetErrors),
-                Math.max(1, (int) hazardTiming(settings, "hazard.stage-duration-ticks", 60, 4, 12)),
+                Math.max(1, (int) hazardTiming(settings, "hazard.stage-duration-ticks", 60, 4, 8)),
                 Math.max(0.0, hazardTiming(settings, "hazard.activation-rate-start", 1.0, 18.0, 48.0)),
                 Math.max(0.0, hazardTiming(settings, "hazard.activation-rate-end", 32.0, 48.0, 80.0)),
                 Math.max(0.1, GameSettings.decimal(settings, "hazard.acceleration-curve", 1.8)),
-                Math.max(0, GameSettings.integer(settings, "hazard.target-remaining-blocks", 40)),
+                Math.max(0, GameSettings.integer(settings, "hazard.target-remaining-blocks", 12)),
                 GameSettings.string(settings, "messages.eliminated", "&c{player} został wyeliminowany!"),
                 Math.max(0, GameSettings.integer(settings, "scoring.survivor-points", 2))
         );

@@ -427,16 +427,16 @@ final class GameplayRegressionTest {
                 List.of(), Optional.empty(), 90, Map.of("hazard", Map.of("stage-duration-ticks", 4,
                 "activation-rate-start", 18, "activation-rate-end", 48)), "test");
         var config = PopcornConfig.fromDefinition(definition, new ArrayList<>());
-        assertEquals(12, config.stageDurationTicks());
+        assertEquals(8, config.stageDurationTicks());
         var runtime = new PopcornRuntime(config, new Random(1));
         assertTrue(runtime.tick(0).isEmpty());
         assertTrue(runtime.tick(10).isEmpty());
-        assertTrue(runtime.tick(21).isEmpty());
-        var firstGroup = runtime.tick(22);
+        assertTrue(runtime.tick(17).isEmpty());
+        var firstGroup = runtime.tick(18);
         assertTrue(firstGroup.size() > 1);
         assertTrue(firstGroup.stream().allMatch(c -> c.material() == Material.YELLOW_CONCRETE));
-        assertTrue(runtime.tick(23).isEmpty());
-        assertTrue(runtime.tick(34).stream().anyMatch(c -> c.material() == Material.ORANGE_CONCRETE));
+        assertTrue(runtime.tick(19).isEmpty());
+        assertTrue(runtime.tick(26).stream().anyMatch(c -> c.material() == Material.ORANGE_CONCRETE));
     }
 
     @Test
@@ -705,5 +705,17 @@ final class GameplayRegressionTest {
         service.handleMove(move);
         assertTrue(game.ghostRegion(round.definition()).orElseThrow().contains(move.getTo()));
         verify(player, never()).teleport(any(Location.class));
+    }
+
+    @Test
+    void finishedDronePilotCanWalkDuringResultsButCannotLeaveArena() throws Exception {
+        Minigame game=mock(Minigame.class); when(game.id()).thenReturn("drones");
+        attach(game,new LocationSpec(0,0,0,0,0,true)); round.playerState(id,RoundPlayerState.FINISHED);
+        var field=MinigamesSessionService.class.getDeclaredField("activeSession"); field.setAccessible(true);
+        ((MinigamesSession)field.get(service)).state(SeriesState.ROUND_RESULTS);
+        Location from=new Location(world,10,10,10),to=from.clone().add(.2,0,0);
+        var move=new PlayerMoveEvent(player,from,to); service.handleMove(move); assertEquals(to,move.getTo());
+        var outside=new PlayerMoveEvent(player,from,new Location(world,2000,10,10)); service.handleMove(outside);
+        assertEquals(from,outside.getTo()); verify(game,never()).onMove(any(),any());
     }
 }

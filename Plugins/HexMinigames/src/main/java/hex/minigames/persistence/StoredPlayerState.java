@@ -35,6 +35,13 @@ public record StoredPlayerState(
         double y,
         double z,
         float yaw,
-        float pitch
+        float pitch,
+        double scale,
+        float flySpeed,
+        float walkSpeed,
+        boolean invisible,
+        boolean collidable,
+        boolean gravity,
+        boolean invulnerable
 ) {
 }

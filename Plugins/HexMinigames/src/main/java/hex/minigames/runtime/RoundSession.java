@@ -32,7 +32,7 @@ public final class RoundSession {
         this.minigame = minigame;
         this.participants = new LinkedHashSet<>(participants);
         this.maxTicks = Math.max(1, maxTicks);
-        this.startDelayRemaining = Math.max(0, minigame.startDelayTicks());
+        this.startDelayRemaining = roundNumber > 1 ? 0 : Math.max(0, minigame.startDelayTicks());
         for (UUID participant : participants) {
             playerStates.put(participant, RoundPlayerState.ACTIVE);
         }

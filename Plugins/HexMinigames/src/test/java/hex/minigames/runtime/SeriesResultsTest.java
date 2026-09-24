@@ -110,7 +110,7 @@ final class SeriesResultsTest {
                 order.verify(player).sendMessage("HEADER");
                 for (int place = 1; place <= 14; place++) order.verify(player).sendMessage(place + ":P" + (14-place) + ":" + (14-place));
             }
-            verify(celebration).show(anyCollection(), any(Location.class), eq("P13"), eq(messages));
+            verify(celebration).show(anyCollection(), any(Location.class), eq(List.of("P13")), eq(messages));
             verify(scores).commitEligibleSeries(session);
         }
     }

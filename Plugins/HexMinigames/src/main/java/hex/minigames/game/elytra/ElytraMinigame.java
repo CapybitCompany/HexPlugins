@@ -126,6 +126,7 @@ public final class ElytraMinigame implements Minigame {
         if (!started) return;
         for (Player player : context.onlineParticipants()) {
             UUID id = player.getUniqueId();
+            if (context.elapsedTicks() % 10 == 0) showFrames(player);
             if (context.state(id) != RoundPlayerState.ACTIVE) continue;
             if (player.isGliding()) { flown.add(id); lastFlight.put(id, context.elapsedTicks()); }
             else if (flown.contains(id) && (player.isOnGround() || context.elapsedTicks() - lastFlight.getOrDefault(id, context.elapsedTicks()) >= 5)) {
@@ -133,7 +134,6 @@ public final class ElytraMinigame implements Minigame {
             }
             if (player.getLocation().getY() <= context.definition().region().orElseThrow().minY()) { respawn(context, player); continue; }
             if (context.elapsedTicks() % 10 == 0) showProgress(context, player);
-            if (context.elapsedTicks() % 40 == 0) showFrames(player);
         }
     }
     @Override public EventDecision onMove(RoundContext context, PlayerMoveEvent event) {
@@ -164,8 +164,20 @@ public final class ElytraMinigame implements Minigame {
         if (!player.getWorld().equals(world)) return;
         for (var p : colored.getOrDefault(player.getUniqueId(), Set.of())) {
             Location at = new Location(world,p.x(),p.y(),p.z());
-            if (at.distanceSquared(player.getLocation()) <= 96 * 96) player.sendBlockChange(at, Material.LIME_CONCRETE.createBlockData());
+            player.sendBlockChange(at, Material.LIME_CONCRETE.createBlockData());
         }
+    }
+
+    /** Reapply personal colors after the chunk packet replaces client-side block changes. */
+    @Override public void onChunkLoad(RoundContext context, Player player, int x, int z) {
+        if (!player.getWorld().equals(world)) return;
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            if (!player.isOnline() || !player.getWorld().equals(world)) return;
+            for (var p : colored.getOrDefault(player.getUniqueId(), Set.of())) {
+                if ((p.x() >> 4) == x && (p.z() >> 4) == z)
+                    player.sendBlockChange(new Location(world, p.x(), p.y(), p.z()), Material.LIME_CONCRETE.createBlockData());
+            }
+        });
     }
     private void clearFrames(Player player) {
         if (!player.getWorld().equals(world)) {

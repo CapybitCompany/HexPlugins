@@ -13,5 +13,12 @@ participant-spawns:
   - { x: 434, y: 47, z: 374, yaw: 180, pitch: 0 }
 spectator-spawn: { x: 438, y: 56, z: 349, yaw: 0, pitch: 20 }
 settings:
+  bombs:
+    enabled: true
+    min-interval-seconds: 8
+    max-interval-seconds: 16
+    spawn-height: 6
+    radius: 7
+    knockback: 1.8
   tutorial:
     duration-seconds: 20

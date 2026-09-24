@@ -1,0 +1,180 @@
+id: drones
+display-name: '&dDrony'
+enabled: true
+world: Hex_Minigames
+min-players: 1
+max-players: 14
+weight: 1
+round-time-seconds: 300
+region:
+  pos1: { x: -242, y: -31, z: -25 }
+  pos2: { x: -38, y: 45, z: 170 }
+# Participant spawns are derived from stations by the common config loader.
+spectator-spawn: { x: -144.5, y: 20, z: 70.5, yaw: 0, pitch: 20 }
+settings:
+  bossbar:
+    title: '&d&lDRONY'
+    color: WHITE
+    style: SOLID
+  tutorial:
+    duration-seconds: 20
+    title: '&6ZASADY'
+    subtitle: '&f{seconds}'
+    title-stay-ticks: 25
+    sound-from-seconds: 5
+    countdown-sound: { enabled: true, sound: UI_BUTTON_CLICK, volume: 0.8, pitch: 1.4 }
+    chat-lines:
+      - '&d&lDRONY'
+      - '&fWypuść swojego drona i ukończ &e4 punkty kontrolne&f.'
+      - '&fDo punktów możesz lecieć w &edowolnej kolejności&f.'
+      - '&fPrzy każdym punkcie wykonaj zadanie w GUI.'
+      - '&fPo ukończeniu &a4/4 &fwrócisz do boksu.'
+      - '&fBiegnij wtedy do jednego z generatorów i uruchom go przed końcem czasu.'
+  stations:
+    '1':
+      spawn: { x: -74, y: 9, z: 81 }
+      facing: WEST
+      gate-region:
+        pos1: { x: -73, y: 9, z: 81 }
+        pos2: { x: -73, y: 11, z: 81 }
+    '2':
+      spawn: { x: -74, y: 9, z: 78 }
+      facing: WEST
+      gate-region:
+        pos1: { x: -73, y: 9, z: 78 }
+        pos2: { x: -73, y: 11, z: 78 }
+    '3':
+      spawn: { x: -74, y: 9, z: 75 }
+      facing: WEST
+      gate-region:
+        pos1: { x: -73, y: 9, z: 75 }
+        pos2: { x: -73, y: 11, z: 75 }
+    '4':
+      spawn: { x: -74, y: 9, z: 72 }
+      facing: WEST
+      gate-region:
+        pos1: { x: -73, y: 9, z: 72 }
+        pos2: { x: -73, y: 11, z: 72 }
+    '5':
+      spawn: { x: -74, y: 9, z: 69 }
+      facing: WEST
+      gate-region:
+        pos1: { x: -73, y: 9, z: 69 }
+        pos2: { x: -73, y: 11, z: 69 }
+    '6':
+      spawn: { x: -74, y: 9, z: 66 }
+      facing: WEST
+      gate-region:
+        pos1: { x: -73, y: 9, z: 66 }
+        pos2: { x: -73, y: 11, z: 66 }
+    '7':
+      spawn: { x: -74, y: 9, z: 63 }
+      facing: WEST
+      gate-region:
+        pos1: { x: -73, y: 9, z: 63 }
+        pos2: { x: -73, y: 11, z: 63 }
+    '8':
+      spawn: { x: -214, y: 9, z: 61 }
+      facing: EAST
+      gate-region:
+        pos1: { x: -215, y: 9, z: 61 }
+        pos2: { x: -215, y: 11, z: 61 }
+    '9':
+      spawn: { x: -214, y: 9, z: 64 }
+      facing: EAST
+      gate-region:
+        pos1: { x: -215, y: 9, z: 64 }
+        pos2: { x: -215, y: 11, z: 64 }
+    '10':
+      spawn: { x: -214, y: 9, z: 67 }
+      facing: EAST
+      gate-region:
+        pos1: { x: -215, y: 9, z: 67 }
+        pos2: { x: -215, y: 11, z: 67 }
+    '11':
+      spawn: { x: -214, y: 9, z: 70 }
+      facing: EAST
+      gate-region:
+        pos1: { x: -215, y: 9, z: 70 }
+        pos2: { x: -215, y: 11, z: 70 }
+    '12':
+      spawn: { x: -214, y: 9, z: 73 }
+      facing: EAST
+      gate-region:
+        pos1: { x: -215, y: 9, z: 73 }
+        pos2: { x: -215, y: 11, z: 73 }
+    '13':
+      spawn: { x: -214, y: 9, z: 76 }
+      facing: EAST
+      gate-region:
+        pos1: { x: -215, y: 9, z: 76 }
+        pos2: { x: -215, y: 11, z: 76 }
+    '14':
+      spawn: { x: -214, y: 9, z: 79 }
+      facing: EAST
+      gate-region:
+        pos1: { x: -215, y: 9, z: 79 }
+        pos2: { x: -215, y: 11, z: 79 }
+  drone:
+    item:
+      material: RECOVERY_COMPASS
+      name: '&b&lDRON'
+      lore: ['&7PPM - wypuść drona']
+    spawn-distance: 3
+    scale: 0.35
+    acceleration: 0.045
+    vertical-acceleration: 0.040
+    max-speed: 0.55
+    max-vertical-speed: 0.35
+    drag: 0.88
+    boost-multiplier: 1.55
+    boost-duration: 12
+    boost-cooldown: 50
+    visual:
+      scale: 0.35
+  checkpoints:
+    checkpoint-1:
+      location: { x: -190, y: -12, z: 37 }
+      puzzle: cables
+    checkpoint-2:
+      location: { x: -184, y: 7, z: 90 }
+      puzzle: cores
+    checkpoint-3:
+      location: { x: -152, y: -12, z: 53 }
+      puzzle: calibration
+    checkpoint-4:
+      location: { x: -123, y: -17, z: 96 }
+      puzzle: sequence
+  beam:
+    height: 45 # Legacy setting: native beacon beams extend to the sky; vanilla controls their height.
+  puzzles:
+    cables: {} # Full board drag: left sources, far-right sockets; marker moves aside while carrying a cable.
+    cores: {} # Five fixed colors; title is the required target arrangement.
+    calibration: {} # Target 2..5; three adjustable indicators.
+    sequence:
+      green-show-ticks: 32
+      gap-ticks: 5
+  generators:
+    locations:
+      - { x: -223, y: 11, z: 70 }
+      - { x: -65, y: 11, z: 72 }
+  generator-puzzle:
+    stage1: { step-ticks: 4, target-width: 2 }
+    stage2: { step-ticks: 3, target-width: 1 }
+    stage3: { step-ticks: 2, target-width: 1 }
+  scores:
+    first: 4
+    second-third: 3
+    fourth-ninth: 2
+    tenth-plus: 1
+  messages:
+    progress: '&fPunkty kontrolne: &e{completed}/4'
+    checkpoint: '&aPUNKT ZALICZONY! &f{completed}/4'
+    penalty: '&cKara: 2 sekundy'
+    returned: '&ePunkty kontrolne &f- &aSukces!'
+    generator: '&cIDŹ DO GENERATORA!'
+    finished: '&aZALICZONO!'
+    time: '&fTwój czas: &e{time}'
+  sounds:
+    checkpoint: minecraft:block.note_block.chime
+    error: minecraft:entity.villager.no

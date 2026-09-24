@@ -30,6 +30,7 @@ final class DiscoFloorMinigameTest {
     private RoundContext context;
     private DiscoFloorMinigame game;
     private long tick;
+    private boolean newColors;
     private RoundPlayerState state = RoundPlayerState.ACTIVE;
 
     @BeforeEach void setup() {
@@ -42,7 +43,9 @@ final class DiscoFloorMinigameTest {
         when(world.getBlockAt(anyInt(), eq(-32), anyInt())).thenAnswer(call -> {
             int x = call.getArgument(0), z = call.getArgument(2);
             return blocks.computeIfAbsent(x + ":" + z, key -> {
-                var material = new AtomicReference<>(x % 2 == 0 ? Material.RED_CONCRETE : Material.PINK_CONCRETE);
+                var material = new AtomicReference<>(newColors
+                        ? (x % 2 == 0 ? Material.BLUE_CONCRETE : Material.GREEN_CONCRETE)
+                        : (x % 2 == 0 ? Material.RED_CONCRETE : Material.PINK_CONCRETE));
                 materials.add(material);
                 var block = mock(Block.class);
                 var original = mock(BlockData.class);
@@ -71,6 +74,25 @@ final class DiscoFloorMinigameTest {
         game.prepare(context);
     }
     @AfterEach void cleanup() { effects.close(); bukkit.close(); }
+
+    @Test void blueAndGreenAreSelectedRemovedAndRestoredLikeOtherColors() {
+        game.reset(context);
+        blocks.clear(); materials.clear(); newColors = true;
+        game.prepare(context); game.start(context);
+        tick = 60; game.handleTick(context);
+        tick = 120; game.handleTick(context);
+        assertEquals(648, airCount());
+        tick = 220; game.handleTick(context);
+        assertEquals(648, materials.stream().filter(m -> m.get() == Material.BLUE_CONCRETE).count());
+        assertEquals(648, materials.stream().filter(m -> m.get() == Material.GREEN_CONCRETE).count());
+        tick = 280; game.handleTick(context);
+        verify(player).sendTitle(eq(""), contains("NIEBIESKI"), eq(0), eq(20), eq(0));
+        verify(player).sendTitle(eq(""), contains("ZIELONY"), eq(0), eq(20), eq(0));
+        tick = 340; game.handleTick(context);
+        assertEquals(648, airCount());
+        game.reset(context);
+        assertEquals(0, airCount());
+    }
 
     @Test void fullCycleKeepsColorFiveSecondsRestoresFloorAndAwardsFourPointsAfterSevenRounds() {
         game.start(context);
