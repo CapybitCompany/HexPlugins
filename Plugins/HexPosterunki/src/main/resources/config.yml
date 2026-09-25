@@ -1,0 +1,246 @@
+# ==========================================================================
+# HexPosterunki - konfiguracja logiki
+# ==========================================================================
+# W tym pliku trzymamy WYŁĄCZNIE parametry logiki.
+# Wszystkie teksty widoczne dla gracza są rejestrowane w HexCore
+# (namespace "posterunki") i można je nadpisać w HexCore/ui.yml -> overrides.
+#
+# Lokalizacje twierdz konfigurujesz w outposts.yml,
+# a zawartość skrzyń w loot.yml.
+# ==========================================================================
+
+# Główny przełącznik eventów. false = ochrona regionów nadal działa,
+# ale żaden posterunek nie zostanie uruchomiony.
+enabled: true
+
+# Dodatkowe logi diagnostyczne w konsoli.
+debug: false
+
+# --------------------------------------------------------------------------
+# Czasy
+# --------------------------------------------------------------------------
+timing:
+  # Jak długo posterunek pozostaje dostępny, zanim wygaśnie bez przejęcia.
+  # 0 = bez limitu (posterunek czeka na drużynę w nieskończoność).
+  active-window-seconds: 3600
+
+  # Przerwa po zakończeniu posterunku, zanim system wylosuje kolejną twierdzę.
+  cooldown-seconds: 1800
+
+  # Czas przygotowania między przejęciem przez drużynę a pierwszą falą.
+  preparation-seconds: 15
+
+  # Przerwa między kolejnymi falami.
+  wave-delay-seconds: 10
+
+  # Ile czasu zwycięska drużyna ma na zebranie łupów PO wygranej, zanim posterunek
+  # zostanie zresetowany. Przez ten czas skrzynie i dropy pozostają dostępne,
+  # a kontrola nad posterunkiem jest zamrożona (nikt już go nie przejmie).
+  # 0 = brak fazy łupów (reset natychmiast po zwycięstwie - NIEZALECANE).
+  loot-seconds: 120
+
+  # Jak długo region musi pozostać CAŁKOWICIE pusty (bez graczy z drużyną),
+  # zanim moby i boss zostaną usunięte, a walka wróci do fali 1.
+  # Wylosowany boss NIE jest losowany ponownie - dzięki temu wipe nie służy
+  # do farmienia lepszych bossów.
+  grace-period-seconds: 120
+
+  # Jak często (w tickach) pracuje główna pętla eventu. 20 ticków = 1 sekunda.
+  tick-interval-ticks: 20
+
+  # Jak często stan jest zapisywany do MySQL w tle (snapshot okresowy).
+  # Każde przejście fazy zapisuje się natychmiast, niezależnie od tej wartości.
+  snapshot-interval-seconds: 30
+
+# --------------------------------------------------------------------------
+# Zabójstwa i ranking
+# --------------------------------------------------------------------------
+kills:
+  # Minimalna liczba final killi na mobach z aktualnego runu, aby gracz
+  # w ogóle liczył się do rankingu i nagród TOP 5.
+  required: 10
+
+# --------------------------------------------------------------------------
+# Wybór twierdzy
+# --------------------------------------------------------------------------
+selection:
+  # true = system stara się nie wylosować tej samej twierdzy dwa razy z rzędu
+  # (o ile istnieje inna twierdza z wagą > 0).
+  avoid-immediate-repeat: true
+
+# --------------------------------------------------------------------------
+# Integracja z HexTowns
+# --------------------------------------------------------------------------
+towns:
+  # Dokładna wersja pluginu HexTowns lub "*" dla dowolnej wersji,
+  # której API (townIdOf / findTown / Town.name) nadal się zgadza.
+  required-version: "*"
+
+# --------------------------------------------------------------------------
+# Fale mobów
+# --------------------------------------------------------------------------
+# mob-id musi istnieć w konfiguracji HexCustomMobs (sekcja "mobs").
+# Poniższe przykłady używają mobów z domyślnej konfiguracji HexCustomMobs
+# (forest_zombie, desert_husk) - podmień je na własne identyfikatory.
+# Nieznane mob-id są zgłaszane przez /posterunki validate.
+# spawn-points to nazwy punktów z outposts.yml; pusta lista = dowolny punkt.
+# W wersji 1 liczba mobów NIE skaluje się automatycznie od liczby graczy.
+waves:
+  - id: 1
+    groups:
+      - mob-id: forest_zombie
+        count: 6
+        spawn-points: [ brama, dziedziniec ]
+  - id: 2
+    groups:
+      - mob-id: forest_zombie
+        count: 8
+        spawn-points: [ brama, dziedziniec, wieza ]
+      - mob-id: desert_husk
+        count: 4
+        spawn-points: [ wieza ]
+  - id: 3
+    groups:
+      - mob-id: desert_husk
+        count: 10
+        spawn-points: [ ]
+
+# --------------------------------------------------------------------------
+# Boss (STORMBOSSY)
+# --------------------------------------------------------------------------
+boss:
+  # false = posterunek kończy się po ostatniej fali, bez bossa.
+  enabled: true
+
+  # Globalna szansa, że dany run w ogóle będzie miał bossa (0.0 - 1.0).
+  # Losowanie odbywa się DOKŁADNIE RAZ na run i jest zapisywane w MySQL.
+  spawn-chance: 0.35
+
+  # Obsługiwany silnik bossów. Obecnie wspierane: stormbossy.
+  provider: stormbossy
+
+  # Dokładna wersja pluginu STORMBOSSY, z którą zgodny jest adapter.
+  required-version: "1.0"
+
+  # true = HexPosterunki odmawia startu, jeśli STORMBOSSY ma włączony
+  # własny harmonogram spawnu. To HexPosterunki steruje spawnem bossa.
+  require-native-schedules-disabled: true
+
+  # true = ostrzegaj, gdy boss nie ma natywnych nagród STORMBOSSY.
+  # HexPosterunki celowo NIE wydaje nagród za bossa - robi to STORMBOSSY.
+  expect-native-rewards: true
+
+  # Lista boss-id z STORMBOSSY wraz z wagami.
+  # Niska waga = boss rzadki/silny, wysoka waga = boss częsty/słabszy.
+  bosses:
+    lesny_golem: 60
+    kamienny_straznik: 30
+    wladca_burzy: 8
+    pradawny_tytan: 2
+
+# --------------------------------------------------------------------------
+# Ochrona regionu i reset
+# --------------------------------------------------------------------------
+protection:
+  # Maksymalna liczba bloków, jaką skanujemy przy starcie runu, aby zapisać stany
+  # bloków (drzwi, dźwignie...). Skan jest rozłożony na wiele ticków.
+  max-snapshot-volume: 250000
+
+  # Analogiczny limit dla skanu czyszczącego ogień przy resecie.
+  # Domyślnie równy max-snapshot-volume.
+  max-reset-scan-volume: 250000
+
+  # Ile bloków wolno przejrzeć w JEDNYM ticku na wątku głównym.
+  # Niższa wartość = łagodniej dla TPS, dłuższy reset. Minimum 256.
+  scan-blocks-per-tick: 20000
+
+  # true = przy resecie usuwamy też przedmioty leżące na ziemi w regionie.
+  # UWAGA: dropy ze śmierci graczy i przedmioty niezwiązane z eventem
+  # też zostałyby usunięte, dlatego domyślnie false.
+  remove-ground-items-on-reset: false
+
+  # Maksymalna liczba chunków trzymanych ticketem pluginu dla AKTYWNEGO posterunku.
+  # Tickety są zwalniane przy resecie i cooldownie.
+  chunk-ticket-limit: 64
+
+  # Jak często sprawdzać, czy moby eventowe nie opuściły regionu.
+  containment-check-interval-ticks: 40
+
+  # Materiały, których stan zapisujemy przy starcie runu i przywracamy przy resecie.
+  # Pusta lista = wbudowana lista (drzwi, klapy, furtki, dźwignie, przyciski,
+  # płyty naciskowe, przekaźniki, komparatory, pochodnie redstone).
+  snapshot-materials: [ ]
+
+# --------------------------------------------------------------------------
+# Interfejs
+# --------------------------------------------------------------------------
+ui:
+  bossbar:
+    enabled: true
+    # Maksymalny dystans (w blokach, w tym samym świecie), na którym gracz
+    # widzi bossbar posterunku. To jest wyświetlanie dalekiego zasięgu.
+    max-distance: 20000
+
+  hologram:
+    enabled: true
+    # Zasięg widoczności encji TextDisplay (mnożnik klienta; 1.0 ~ 64 bloki).
+    # Hologram jest prawdziwą encją i celowo działa tylko lokalnie -
+    # dalekiego zasięgu pilnuje bossbar.
+    view-range: 2.0
+    update-interval-ticks: 20
+
+  actionbar:
+    enabled: true
+
+# --------------------------------------------------------------------------
+# Opcjonalne nagrody TOP 5
+# --------------------------------------------------------------------------
+# Domyślnie WYŁĄCZONE. Normalne dropy z HexCustomMobs i natywne nagrody
+# STORMBOSSY za bossa działają niezależnie i nie są tu duplikowane.
+# Nagrody otrzymują wyłącznie członkowie drużyny kontrolującej posterunek
+# w momencie zakończenia, którzy osiągnęli kills.required.
+#
+# Roszczenie do nagrody jest ZAMRAŻANE w chwili zwycięstwa razem z jego treścią:
+# późniejsza zmiana tej sekcji nie zmienia już przyznanych nagród, a wyjście
+# z regionu czy wylogowanie po zwycięstwie ich nie kasuje.
+# Gracz offline odbierze nagrodę przy następnym wejściu na serwer.
+rewards:
+  enabled: false
+
+  # Ile miejsc jest nagradzanych (1 = najlepsze).
+  places: 5
+
+  # Ile razy ponawiać wydanie nagrody, o której NA PEWNO wiadomo, że się nie wykonała
+  # (np. nieznany materiał, nieobsłużona komenda). Po przekroczeniu limitu roszczenie
+  # trafia do /posterunki rewards list i czeka na decyzję administratora.
+  # Nagrody o NIEZNANYM wyniku (np. przerwane restartem) nie są ponawiane automatycznie.
+  max-delivery-attempts: 3
+
+  places-config:
+    1:
+      items:
+        - material: DIAMOND_BLOCK
+          amount: 2
+          name: "<gold>Trofeum posterunku</gold>"
+          lore:
+            - "<gray>1. miejsce</gray>"
+      commands:
+        - "eco give <player> 5000"
+    2:
+      items:
+        - material: DIAMOND
+          amount: 8
+      commands:
+        - "eco give <player> 3000"
+    3:
+      items:
+        - material: DIAMOND
+          amount: 4
+    4:
+      items:
+        - material: GOLD_INGOT
+          amount: 16
+    5:
+      items:
+        - material: GOLD_INGOT
+          amount: 8

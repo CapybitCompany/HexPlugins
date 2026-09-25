@@ -1,0 +1,81 @@
+# ==========================================================================
+# HexPosterunki - loot kontenerów posterunku
+# ==========================================================================
+# Kontenery są przypisane do konkretnej twierdzy w outposts.yml
+# (sekcja loot-containers). Tutaj decydujesz, CO się w nich pojawia.
+#
+# Każdy kontener jest napełniany DOKŁADNIE RAZ na run. Gwarantuje to klucz
+# główny tabeli posterunki_loot w MySQL, więc restart serwera w trakcie
+# napełniania nie spowoduje drugiego napełnienia.
+# ==========================================================================
+
+# false = kontenery nigdy nie są napełniane (pozostają zablokowane).
+enabled: true
+
+# Kiedy kontenery są napełniane i odblokowywane:
+#   RUN_START     - zaraz po przejęciu posterunku przez drużynę
+#   WAVES_CLEARED - po odparciu ostatniej fali (domyślne)
+#   COMPLETED     - dopiero po zakończeniu całej walki, łącznie z bossem
+fill-phase: WAVES_CLEARED
+
+# Co dzieje się z kontenerami przy resecie posterunku:
+#   CLEAR           - kontener zostaje pusty (domyślne)
+#   RESTORE_INITIAL - kontener jest napełniany z tabeli "initial-table"
+reset-mode: CLEAR
+
+# Tabela używana, gdy kontener nie ma własnego przypisania.
+default-table: standard
+
+# Tabela stanu wyjściowego dla reset-mode: RESTORE_INITIAL.
+# Zostaw puste, jeśli używasz CLEAR.
+initial-table: ""
+
+tables:
+  standard:
+    # Ile losowań (wpisów) trafia do kontenera.
+    rolls: 4
+    entries:
+      - material: IRON_INGOT
+        min: 4
+        max: 12
+        weight: 40
+      - material: GOLD_INGOT
+        min: 2
+        max: 8
+        weight: 25
+      - material: DIAMOND
+        min: 1
+        max: 3
+        weight: 10
+      - material: EXPERIENCE_BOTTLE
+        min: 4
+        max: 16
+        weight: 20
+      - material: NETHERITE_SCRAP
+        min: 1
+        max: 1
+        weight: 5
+
+  wieza:
+    rolls: 2
+    entries:
+      - material: DIAMOND
+        min: 2
+        max: 5
+        weight: 30
+      - material: GOLDEN_APPLE
+        min: 1
+        max: 2
+        weight: 15
+      - material: EMERALD
+        min: 4
+        max: 10
+        weight: 55
+
+# Przypisanie kontenerów do tabel: <id-posterunku> -> <nazwa-kontenera> -> <tabela>
+containers:
+  fort_polnocny:
+    skrzynia_glowna: standard
+    skrzynia_wiezy: wieza
+  fort_poludniowy:
+    skrzynia_glowna: standard

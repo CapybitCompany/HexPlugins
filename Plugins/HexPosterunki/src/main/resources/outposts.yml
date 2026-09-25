@@ -1,0 +1,73 @@
+# ==========================================================================
+# HexPosterunki - stałe lokalizacje twierdz
+# ==========================================================================
+# Twierdze budują administratorzy RĘCZNIE i pozostają one w świecie na stałe.
+# Plugin NIGDY nie kopiuje, nie spawnuje i nie usuwa budowli.
+# Ten plik opisuje tylko, gdzie twierdza stoi i gdzie dzieją się rzeczy.
+#
+# Przy starcie każdy wpis jest walidowany. Niepoprawny posterunek jest
+# POMIJANY i wyraźnie logowany - reszta twierdz działa dalej.
+# Jeśli żadna twierdza nie przejdzie walidacji, scheduler w ogóle nie wystartuje.
+#
+# Format współrzędnych:
+#   region.min / region.max / loot-containers : "x,y,z"  (liczby całkowite)
+#   center / boss-spawn / spawn-points        : "x,y,z" lub "x,y,z,yaw,pitch"
+#
+# Wymagania walidacji:
+#   - świat musi istnieć,
+#   - center, boss-spawn, wszystkie spawn-points i loot-containers
+#     muszą leżeć WEWNĄTRZ regionu,
+#   - musi istnieć co najmniej jeden spawn-point.
+# ==========================================================================
+
+outposts:
+
+  fort_polnocny:
+    # Nazwa wyświetlana graczom (polska, z polskimi znakami).
+    display-name: "Fort Północny"
+
+    world: world
+
+    # Waga przy losowaniu. Wyższa = częściej wybierany. 0 = nigdy.
+    weight: 10
+
+    # Prostopadłościenna strefa ochronna i eventowa.
+    # Chroniona ZAWSZE, także gdy żaden event nie trwa.
+    region:
+      min: "1000,50,1000"
+      max: "1060,110,1060"
+
+    # Środek / pozycja hologramu.
+    center: "1030,70,1030"
+
+    # Dynamiczna pozycja spawnu bossa (STORMBOSSY spawnuje właśnie tutaj,
+    # a nie w swoim natywnym slocie spawnu).
+    boss-spawn: "1030,70,1030"
+
+    # Punkty spawnu mobów. Nazwy są używane w config.yml -> waves -> spawn-points.
+    spawn-points:
+      brama: "1010,66,1030"
+      dziedziniec: "1030,66,1010"
+      wieza: "1050,74,1050"
+
+    # Opcjonalne skrzynie/barrele z lootem. Muszą być kontenerami.
+    # Napełniane dokładnie raz na run, czyszczone przy resecie.
+    loot-containers:
+      skrzynia_glowna: "1030,67,1032"
+      skrzynia_wiezy: "1050,75,1050"
+
+  fort_poludniowy:
+    display-name: "Fort Południowy"
+    world: world
+    weight: 6
+    region:
+      min: "-1200,50,-1200"
+      max: "-1140,110,-1140"
+    center: "-1170,70,-1170"
+    boss-spawn: "-1170,70,-1170"
+    spawn-points:
+      brama: "-1190,66,-1170"
+      dziedziniec: "-1170,66,-1190"
+      wieza: "-1150,74,-1150"
+    loot-containers:
+      skrzynia_glowna: "-1170,67,-1168"

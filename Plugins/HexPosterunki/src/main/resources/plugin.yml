@@ -1,0 +1,37 @@
+name: HexPosterunki
+version: '1.0.0'
+main: hexposterunki.HexPosterunkiPlugin
+api-version: '1.21'
+description: System posterunków dla serwera
+authors: [HexDevTeam]
+
+# HexCore dostarcza HexApi (MySQL + UI).
+# HexCustomMobs publikuje CustomMobsApi, do którego linkujemy w czasie kompilacji,
+# więc musi być obecny podczas ładowania klas.
+depend:
+  - HexCore
+  - HexCustomMobs
+
+# HexTowns i STORMBOSSY są używane WYŁĄCZNIE przez adaptery refleksyjne,
+# więc ich brak nie blokuje załadowania pluginu - zatrzymuje tylko eventy.
+softdepend:
+  - HexTowns
+  - STORMBOSSY
+
+commands:
+  posterunki:
+    description: Narzędzia diagnostyczne i awaryjne systemu posterunków
+    usage: /posterunki <status|validate|start [id]|stop|reset|reload|rewards>
+    aliases: [ posterunek, hexposterunki ]
+    permission: hexposterunki.admin
+
+permissions:
+  hexposterunki.admin:
+    description: Dostęp do komend administracyjnych HexPosterunki
+    default: op
+  hexposterunki.admin.bypass:
+    description: Omijanie ochrony regionu i blokady teleportacji na posterunek
+    default: op
+  hexposterunki.admin.rewards:
+    description: Rozstrzyganie nagród o nieznanym statusie wydania (/posterunki rewards)
+    default: op

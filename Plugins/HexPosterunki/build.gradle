@@ -1,0 +1,70 @@
+plugins {
+    id 'java'
+}
+
+group = 'hexposterunki'
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'papermc'
+        url = 'https://repo.papermc.io/repository/maven-public/'
+    }
+}
+
+dependencies {
+    compileOnly 'io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT'
+
+    // HexCore (HexApi: db + ui) and HexCustomMobs (CustomMobsApi) are runtime dependencies,
+    // resolved through the Bukkit ServicesManager. Compile against them, never shade them.
+    compileOnly project(':plugins:HexCore')
+    compileOnly project(':plugins:HexCustomMobs')
+
+    // HexTowns and STORMBOSSY are deliberately absent from the build graph.
+    // They are reached through version-checked adapters at runtime.
+
+    // Paper API on the test classpath: the pure domain classes need no server, but the
+    // configuration loaders reference org.bukkit.configuration types.
+    testImplementation 'io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT'
+    testImplementation project(':plugins:HexCore')
+    testImplementation project(':plugins:HexCustomMobs')
+
+    // MockBukkit gives the listener/engine regression tests a real (mock) server: worlds,
+    // players, entities and the actual Bukkit event pipeline.
+    testImplementation 'org.mockbukkit.mockbukkit:mockbukkit-v1.21:4.0.0'
+
+    // H2 in MySQL compatibility mode runs the real repository SQL in tests. It is NOT MySQL;
+    // the MySQL integration test is opt-in via the HEXPOSTERUNKI_TEST_MYSQL_URL environment variable.
+    testImplementation 'com.h2database:h2:2.2.224'
+
+    testImplementation platform('org.junit:junit-bom:5.10.2')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+    testLogging {
+        events 'passed', 'skipped', 'failed'
+    }
+}
+
+jar {
+    archiveFileName = "HexPosterunki-${version}.jar"
+}
+
+def localBuildScript = file("build.local.gradle")
+if (localBuildScript.exists()) {
+    apply from: localBuildScript
+}
