@@ -1,0 +1,178 @@
+# ==========================================================
+# HexPvpSmp - global config
+# All player/admin UI text is Polish. This plugin owns spawn
+# protection entirely (no WorldGuard). Towns are managed by a
+# separate plugin and are NOT handled here.
+# ==========================================================
+enabled: true
+# These worlds are owned by minigames: no combat tags, punishment, UI or region protection here.
+excluded-worlds:
+  - Hex_Minigames
+  - HexMinigames
+# When true, protection decisions (pvp/build/mob denials) are logged.
+debug: false
+
+combat:
+  duration-seconds: 15
+  actionbar-enabled: true
+  # Tick interval for the actionbar / combat-expiry sweep.
+  actionbar-update-ticks: 10
+  allowed-commands:
+    - msg
+    - r
+    - tell
+    - help
+  # Punishment applied when a combat-tagged player quits.
+  # Implemented manually — we do NOT trigger vanilla PlayerDeathEvent,
+  # to avoid timing races and duplicate item drops. The quitter is still
+  # counted as having died (death stat), the last attacker is credited with
+  # the kill, and the quitter respawns at the world spawn on next join.
+  combat-log:
+    # Master switch. false = only clear the combat tag, do not drop anything.
+    enabled: true
+    # When enabled, drop and clear the player's inventory + armor + offhand.
+    drop-inventory: true
+    # When enabled, drop the player's accumulated XP and reset level.
+    drop-exp: true
+    broadcast: "&c<player> wylogował się podczas walki i zginął."
+
+# Data-driven block/interaction/item protection for spawn + no-build regions.
+protection:
+  # HexPvpSmp owns spawn protection entirely. Paper checks its native
+  # server.properties spawn-protection BEFORE PlayerInteractEvent, so a native
+  # radius > 0 silently blocks chests, crafting tables and buttons in spawn
+  # before this plugin can decide. When true, HexPvpSmp stores the original
+  # radius, forces it to 0 while running and restores it on disable (only if it
+  # still controls it). server.properties itself is never edited. Leave true
+  # unless another plugin must keep the native spawn radius.
+  disable-native-spawn-protection: true
+  # Whether OP / hexpvpsmp.bypass players are exempt from each rule group.
+  # Set any switch to false to enforce that rule even for OP/bypass.
+  bypass:
+    build: true
+    interact: true
+    items: true
+  interactions:
+    # Whether buttons count as protected interactables. Default false so players
+    # can press buttons (e.g. a spawn door). Set true to also block buttons.
+    # Doors, trapdoors, gates and levers are always blocked regardless.
+    block-buttons: false
+  items:
+    # Terrain/always-blocked items (boats, minecarts, bone meal, eggs, ender
+    # pearls, eye of ender, goat horn) are ALWAYS blocked in every protected
+    # region, even for OP/bypass. This switch only controls PvP/mobility items
+    # (snowballs, wind charges, fireworks, splash/lingering potions, bows/
+    # crossbows) inside NO_BUILD zones; a valid bypass.items may still relax
+    # those there. Spawn safezones always block everything regardless.
+    block-pvp-in-no-build: false
+
+# All user-facing messages. <command> and <seconds> are placeholders.
+messages:
+  no-permission: "&cNie masz uprawnień."
+  pvp-denied: "&cPvP jest tutaj wyłączone."
+  safezone-entry-denied: "&cNie możesz wejść do spawnu podczas walki."
+  command-blocked: "&cNie możesz użyć &f/<command> &cpodczas walki."
+  combat-actionbar: "&cWalka: &f<seconds>s"
+  build-denied: "&cNie możesz tutaj budować."
+  interact-denied: "&cNie możesz tego tutaj używać."
+  item-denied: "&cNie możesz używać tego przedmiotu w tej strefie."
+  reload-success: "&aHexPvpSmp przeładowany."
+  reload-failed: "&cPrzeładowanie nie powiodło się. Sprawdź konsolę."
+  # Shown as a title + subtitle when entering the spawn safezone.
+  safezone-enter-title: "&aBezpieczna strefa"
+  safezone-enter-subtitle: "&7PvP jest tutaj wyłączone."
+  # Shown as a title + subtitle when leaving the spawn safezone (no bossbar).
+  safezone-exit-title: "&cOpuszczasz bezpieczną strefę"
+  safezone-exit-subtitle: "&7PvP jest teraz aktywne."
+
+safezones:
+  block-entry-while-combat: true
+  # Rate-limit per-player warning chat/actionbar messages.
+  warning-cooldown-ticks: 20
+  # Rate-limit the safezone enter/exit title+subtitle so skimming the border
+  # does not spam the player.
+  info-cooldown-ticks: 40
+  # Temporary client-side wall shown when a combat-tagged player is blocked
+  # from entering spawn. Fake blocks only — no real blocks are ever placed.
+  entry-barrier:
+    enabled: true
+    material: RED_STAINED_GLASS
+    duration-ticks: 40
+    # Blocks to each side of the player along the wall (line length = 2*radius+1).
+    radius: 4
+    # Wall height in blocks, starting at the player's feet.
+    height: 3
+
+# Regions are horizontal X/Z areas and protect EVERY height automatically
+# (from world bottom to top). Only min-x/max-x/min-z/max-z are used; there is
+# no min-y/max-y. This stops players bypassing spawn protection by building
+# above or tunnelling below the box. (Legacy min-y/max-y are ignored + warned.)
+#
+# Region priority: SPAWN_SAFEZONE always wins over NO_BUILD where they overlap.
+#   - spawn:     no PvP, no build, no combat entry, no interaction, no hunger loss.
+#   - no-build:  PvP + combat allowed, but no build/interaction (and terrain items).
+worlds:
+  world:
+    enabled: true
+
+    # SPAWN_SAFEZONE: no PvP, no build, blocks combat-tagged entry, blocks mobs.
+    spawn:
+      enabled: true
+      block-mob-spawns: true
+      # Prevent hunger loss for players standing in the spawn safezone.
+      disable-hunger-loss: true
+      region:
+        type: CUBOID
+        min-x: 2701
+        max-x: 2827
+        min-z: 882
+        max-z: 993
+
+    # NO_BUILD: PvP allowed, combat allowed, but building/breaking is denied.
+    # Four cuboids form a continuous 200-block-wide ring around the spawn box
+    # (X 2701..2827 / Z 882..993). North/south include the corner areas;
+    # east/west fill the sides without overlapping the spawn safezone.
+    # Spawn priority still wins if an admin later configures overlapping regions.
+    no-build-zones:
+      north_spawn:
+        enabled: true
+        region:
+          type: CUBOID
+          min-x: 2501
+          max-x: 3027
+          min-z: 682
+          max-z: 881
+      south_spawn:
+        enabled: true
+        region:
+          type: CUBOID
+          min-x: 2501
+          max-x: 3027
+          min-z: 994
+          max-z: 1193
+      east_spawn:
+        enabled: true
+        region:
+          type: CUBOID
+          min-x: 2828
+          max-x: 3027
+          min-z: 882
+          max-z: 993
+      west_spawn:
+        enabled: true
+        region:
+          type: CUBOID
+          min-x: 2501
+          max-x: 2700
+          min-z: 882
+          max-z: 993
+
+    # Public chests: block coordinates players may open/use inside spawn.
+    # They are protected from being broken/exploded/moved. For a double chest
+    # you only need to list ONE half — the other half is resolved automatically.
+    public-chests:
+      spawn_public:
+        world: world
+        x: 2752
+        y: 75
+        z: 933

@@ -1,0 +1,47 @@
+plugins {
+    id 'java'
+}
+
+group = 'hexpvpsmp'
+version = '2.0.1'
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'papermc'
+        url = 'https://repo.papermc.io/repository/maven-public/'
+    }
+}
+
+dependencies {
+    compileOnly 'io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.0'
+    testImplementation 'org.mockbukkit.mockbukkit:mockbukkit-v1.21:4.0.0'
+    // Mockito is used for lightweight projectile/potion/item-frame entity stubs,
+    // avoiding MockBukkit's flaky live entity spawning in unit tests.
+    testImplementation 'org.mockito:mockito-core:5.14.2'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+jar {
+    archiveFileName = "HexPvpSmp-${version}.jar"
+}
+
+def localBuildScript = file("build.local.gradle")
+if (localBuildScript.exists()) {
+    apply from: localBuildScript
+}
